@@ -11,6 +11,7 @@ import java.sql.Statement;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public final class DatabaseManager {
@@ -120,6 +121,15 @@ public final class DatabaseManager {
 
     public void close() {
         executor.shutdown();
+        try {
+            // Laisser les dernières sauvegardes de coffres se terminer avant l'arrêt du serveur.
+            if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                throw new IllegalStateException("Les sauvegardes SQLite ne sont pas terminées après 10 secondes");
+            }
+        } catch (InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Attente des sauvegardes SQLite interrompue", exception);
+        }
     }
 
     public static final class DatabaseException extends RuntimeException {

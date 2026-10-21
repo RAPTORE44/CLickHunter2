@@ -112,7 +112,7 @@ commands:
     usage: /station <spawn <enchant|reforge|rune>|remove>
     permission: cliker.mob.admin
   sac:
-    description: Ouvre ton sac (stockage de talismans, capacite selon permission)
+    description: Ouvre tes sacs personnels de 54 cases, debloques selon ton rang
     usage: /sac
     permission: cliker.sac.use
   talisman:

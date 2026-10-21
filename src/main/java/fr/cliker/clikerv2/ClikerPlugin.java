@@ -89,6 +89,7 @@ public final class ClikerPlugin extends JavaPlugin {
     private DatabaseManager database;
     private EconomyService economy;
     private CustomMobManager mobManager;
+    private BagMenu bagMenu;
 
     @Override
     public void onEnable() {
@@ -156,7 +157,7 @@ public final class ClikerPlugin extends JavaPlugin {
         BagStore bagStore = new BagStore(database);
         BagManager bagManager = new BagManager(this, bagStore);
         getServer().getPluginManager().registerEvents(bagManager, this);
-        BagMenu bagMenu = new BagMenu(this, bagManager);
+        bagMenu = new BagMenu(this, bagManager);
         getServer().getPluginManager().registerEvents(bagMenu, this);
         setExecutor("sac", new BagCommand(bagMenu));
         bagManager.loadOnlinePlayers();
@@ -300,6 +301,7 @@ public final class ClikerPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (bagMenu != null) bagMenu.shutdown();
         if (mobManager != null) mobManager.shutdown();
         if (database != null) database.close();
     }
