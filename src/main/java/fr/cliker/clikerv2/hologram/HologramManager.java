@@ -10,6 +10,9 @@ import eu.decentsoftware.holograms.api.DHAPI;
 import eu.decentsoftware.holograms.api.holograms.Hologram;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.TextDisplay;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -30,6 +33,8 @@ public final class HologramManager {
     private final boolean available;
 
     private final Map<String, Type> holograms = new HashMap<>();
+    private final Map<String, TextDisplay> leaderboardDisplays = new HashMap<>();
+    private final Map<String, Location> leaderboardLocations = new HashMap<>();
 
     public HologramManager(JavaPlugin plugin, HologramStore store, PlayerLevelStore levelStore, MobKillStore killStore, EconomyService economy) {
         this.plugin = plugin;
@@ -51,6 +56,13 @@ public final class HologramManager {
                 if (type == null) continue;
                 holograms.put(point.id(), type);
                 String name = hologramName(point.id());
+                if (type != Type.BOSS_TIMER) {
+                    // Les noms d'armor stands de DecentHolograms suivent la caméra.
+                    // Remplacer aussi les anciens classements par un texte fixe.
+                    if (DHAPI.getHologram(name) != null) DHAPI.removeHologram(name);
+                    createLeaderboardDisplay(point.id(), point.location());
+                    continue;
+                }
                 Hologram existing = DHAPI.getHologram(name);
                 if (existing != null) {
                     // DecentHolograms garde ses hologrammes en mémoire/disque indépendamment de notre reload : on réutilise au lieu de dupliquer.
@@ -72,7 +84,8 @@ public final class HologramManager {
         if (!available) return;
         String id = UUID.randomUUID().toString();
         holograms.put(id, type);
-        DHAPI.createHologram(hologramName(id), location);
+        if (type == Type.BOSS_TIMER) DHAPI.createHologram(hologramName(id), location);
+        else createLeaderboardDisplay(id, location);
         store.save(id, type.name(), location);
         refresh(id, type);
     }
@@ -83,12 +96,18 @@ public final class HologramManager {
         double bestDistance = Double.MAX_VALUE;
         for (String id : holograms.keySet()) {
             Hologram hologram = DHAPI.getHologram(hologramName(id));
-            if (hologram == null || !hologram.getLocation().getWorld().equals(near.getWorld())) continue;
-            double distance = hologram.getLocation().distanceSquared(near);
+            TextDisplay display = leaderboardDisplays.get(id);
+            Location location = leaderboardLocations.get(id);
+            if (location == null && hologram != null) location = hologram.getLocation();
+            if (location == null || !location.getWorld().equals(near.getWorld())) continue;
+            double distance = location.distanceSquared(near);
             if (distance < bestDistance) { bestDistance = distance; nearest = id; }
         }
         if (nearest == null) return false;
-        DHAPI.removeHologram(hologramName(nearest));
+        TextDisplay display = leaderboardDisplays.remove(nearest);
+        leaderboardLocations.remove(nearest);
+        if (display != null) display.remove();
+        else DHAPI.removeHologram(hologramName(nearest));
         holograms.remove(nearest);
         store.removeById(nearest);
         return true;
@@ -147,21 +166,59 @@ public final class HologramManager {
 
     private void applyLines(String id, String title, List<Object[]> entries) {
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            Hologram hologram = DHAPI.getHologram(hologramName(id));
-            if (hologram == null) return;
-            List<String> lines = new ArrayList<>();
-            lines.add("&d&l" + title);
-            lines.add("&7");
-            if (entries.isEmpty()) {
-                lines.add("&8Aucune donnée pour le moment.");
-            } else {
-                for (int i = 0; i < entries.size(); i++) {
-                    Object[] entry = entries.get(i);
-                    lines.add("&e#" + (i + 1) + " &f" + entry[0] + " &7- &b" + Numbers.compact((Long) entry[1]));
-                }
+            TextDisplay display = leaderboardDisplays.get(id);
+            Location location = leaderboardLocations.get(id);
+            if (location == null) return;
+            if (display == null || !display.isValid()) {
+                // Les entités non persistantes disparaissent au déchargement du chunk.
+                // Les recréer à son retour sans forcer le chargement des chunks éloignés.
+                if (!location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) return;
+                createLeaderboardDisplay(id, location);
+                display = leaderboardDisplays.get(id);
             }
-            DHAPI.setHologramLines(hologram, lines);
+            List<String> lines = leaderboardLines(title, entries);
+            display.text(LegacyComponentSerializer.legacyAmpersand().deserialize(String.join("\n", lines)));
         });
+    }
+
+    private static List<String> leaderboardLines(String title, List<Object[]> entries) {
+        List<String> lines = new ArrayList<>();
+        lines.add("&d&l" + title);
+        lines.add("&7");
+        for (int i = 0; i < 10; i++) {
+            if (i < entries.size()) {
+                Object[] entry = entries.get(i);
+                lines.add("&e#" + (i + 1) + " &f" + entry[0] + " &7- &b" + Numbers.compact((Long) entry[1]));
+            } else {
+                lines.add("&e#" + (i + 1) + "                &7- &b0");
+            }
+        }
+        return lines;
+    }
+
+    private void createLeaderboardDisplay(String id, Location location) {
+        TextDisplay previous = leaderboardDisplays.remove(id);
+        if (previous != null) previous.remove();
+        Location facingEast = location.clone();
+        // Les TextDisplay sont orientés vers le sud à yaw=0 ; -90 pointe vers l'est.
+        facingEast.setYaw(-90.0f);
+        facingEast.setPitch(0.0f);
+        leaderboardLocations.put(id, facingEast.clone());
+        TextDisplay display = location.getWorld().spawn(facingEast, TextDisplay.class, entity -> {
+            entity.setPersistent(false);
+            entity.setBillboard(Display.Billboard.FIXED);
+            entity.setAlignment(TextDisplay.TextAlignment.LEFT);
+            entity.setLineWidth(1000);
+            entity.setShadowed(true);
+        });
+        leaderboardDisplays.put(id, display);
+    }
+
+    public void shutdown() {
+        for (TextDisplay display : leaderboardDisplays.values()) display.remove();
+        leaderboardDisplays.clear();
+        leaderboardLocations.clear();
+        holograms.clear();
     }
 
     private String hologramName(String id) { return "cliker_leaderboard_" + id; }
