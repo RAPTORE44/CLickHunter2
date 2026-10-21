@@ -91,6 +91,7 @@ public final class ClikerPlugin extends JavaPlugin {
     private CustomMobManager mobManager;
     private BagMenu bagMenu;
     private fr.cliker.clikerv2.daily.DailyModule dailyModule;
+    private fr.cliker.clikerv2.buyzone.BuyZoneModule buyZoneModule;
 
     @Override
     public void onEnable() {
@@ -310,11 +311,21 @@ public final class ClikerPlugin extends JavaPlugin {
                 return true;
             });
         }
+        try {
+            buyZoneModule = new fr.cliker.clikerv2.buyzone.BuyZoneModule(this, economy, database);
+            buyZoneModule.start();
+            getLogger().info("Module buyzone actif.");
+        } catch (Exception exception) {
+            getLogger().log(java.util.logging.Level.SEVERE, "Impossible de démarrer le module buyzone", exception);
+            if (buyZoneModule != null) buyZoneModule.shutdown();
+            buyZoneModule = null;
+        }
         getLogger().info("Economie active avec SQLite.");
     }
 
     @Override
     public void onDisable() {
+        if (buyZoneModule != null) buyZoneModule.shutdown();
         if (dailyModule != null) dailyModule.shutdown();
         if (bagMenu != null) bagMenu.shutdown();
         if (mobManager != null) mobManager.shutdown();

@@ -1,0 +1,109 @@
+# Accès aux zones de ClikerV2 : tarifs à renseigner, aucun prix d'accès dans le ZIP initial.
+# Un prix -1 interdit la création du portail et tout achat. 0 signifie gratuit.
+# Les prix sont exprimés dans les unités internes : 10 gemmes-sombres = 1 gemme affichée.
+dimensions:
+  demi-largeur: 20
+  hauteur: 10
+  # Portail invisible par défaut : 40 de large, 10 de haut, 1 de profondeur.
+  # Pour un volume 40 x 40 x 10, mettre profondeur: 40.
+  profondeur: 1
+
+zones:
+  vache:
+    nom: 'Vache'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.vache
+  cochon:
+    nom: 'Cochon'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.cochon
+  poulet:
+    nom: 'Poulet'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.poulet
+  mouton:
+    nom: 'Mouton'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.mouton
+  lapin:
+    nom: 'Lapin'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.lapin
+  ourse:
+    nom: 'Ourse'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.ourse
+  ane:
+    nom: 'Âne'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.ane
+  pigman:
+    nom: 'Pigman'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.pigman
+  piglin:
+    nom: 'Piglin'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.piglin
+  piglin_brute:
+    nom: 'Piglin Brute'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.piglin_brute
+  hoglin:
+    nom: 'Hoglin'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.hoglin
+  magma_slime:
+    nom: 'Magma Slime'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.magma_slime
+  blaze:
+    nom: 'Blaze'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.blaze
+  wither_skeleton:
+    nom: 'Wither Squelette'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.wither_skeleton
+  ghast:
+    nom: 'Ghast'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.ghast
+  vindicator:
+    nom: 'Vindicateur'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.vindicator
+  ravager:
+    nom: 'Ravageur'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.ravager
+  wither:
+    nom: 'Wither'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.wither
+  warden:
+    nom: 'Warden'
+    prix: -1
+    devise: ecus
+    permission: cliker.zone.warden
+
+# Les positions sont enregistrées par /buyzone spawn <zone>.
+portails: {}

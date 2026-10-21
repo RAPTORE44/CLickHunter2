@@ -83,6 +83,40 @@ public final class EconomyService {
         }
     }
 
+    public enum ZonePurchase { PURCHASED, ALREADY_OWNED, INSUFFICIENT_FUNDS }
+
+    /** Le débit et le droit d'accès sont validés ensemble, ou tous deux annulés. */
+    public CompletableFuture<ZonePurchase> purchaseZone(UUID uuid, String playerName, String zoneId,
+                                                       String permission, CurrencyType currency, long price) {
+        if (price < 0) return CompletableFuture.failedFuture(new IllegalArgumentException("Prix de zone non configuré"));
+        return database.submit(connection -> {
+            try {
+                connection.setAutoCommit(false);
+                try (PreparedStatement owned = connection.prepareStatement("SELECT 1 FROM buyzone_unlocks WHERE uuid=? AND zone_id=?")) {
+                    owned.setString(1, uuid.toString()); owned.setString(2, zoneId);
+                    try (ResultSet rows = owned.executeQuery()) {
+                        if (rows.next()) { connection.rollback(); return ZonePurchase.ALREADY_OWNED; }
+                    }
+                }
+                ensurePlayer(connection, uuid, playerName);
+                try (PreparedStatement debit = connection.prepareStatement("UPDATE player_balances SET " + column(currency)
+                        + " = " + column(currency) + " - ? WHERE uuid=? AND " + column(currency) + " >= ?")) {
+                    debit.setLong(1, price); debit.setString(2, uuid.toString()); debit.setLong(3, price);
+                    if (debit.executeUpdate() == 0) { connection.rollback(); return ZonePurchase.INSUFFICIENT_FUNDS; }
+                }
+                try (PreparedStatement grant = connection.prepareStatement("INSERT INTO buyzone_unlocks(uuid,zone_id,permission) VALUES(?,?,?)")) {
+                    grant.setString(1, uuid.toString()); grant.setString(2, zoneId); grant.setString(3, permission);
+                    grant.executeUpdate();
+                }
+                connection.commit();
+                return ZonePurchase.PURCHASED;
+            } catch (SQLException exception) {
+                try { connection.rollback(); } catch (SQLException rollback) { exception.addSuppressed(rollback); }
+                throw new DatabaseManager.DatabaseException(exception);
+            }
+        });
+    }
+
     private long readBalance(Connection connection, UUID uuid, CurrencyType currency) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("SELECT " + column(currency) + " FROM player_balances WHERE uuid = ?")) {
             statement.setString(1, uuid.toString());

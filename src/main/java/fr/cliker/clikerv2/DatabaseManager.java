@@ -50,6 +50,7 @@ public final class DatabaseManager {
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS server_spawn (id INTEGER PRIMARY KEY CHECK (id = 1), world TEXT NOT NULL, x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL, yaw REAL NOT NULL, pitch REAL NOT NULL)");
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS stations (id TEXT PRIMARY KEY NOT NULL, type TEXT NOT NULL, world TEXT NOT NULL, x INTEGER NOT NULL, y INTEGER NOT NULL, z INTEGER NOT NULL)");
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS bags (uuid TEXT PRIMARY KEY NOT NULL, items TEXT NOT NULL)");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS buyzone_unlocks (uuid TEXT NOT NULL, zone_id TEXT NOT NULL, permission TEXT NOT NULL, purchased_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(uuid, zone_id))");
             migrateAuctionsExpiredColumn(statement);
             migrateUpgradesCadenceColumn(statement);
         }

@@ -5,6 +5,9 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, DecentHolograms, Citizens, ItemsAdder]
 commands:
+  buyzone:
+    description: Crée ou supprime un portail d'achat de zone
+    usage: /buyzone spawn <zone> | /buyzone remove <zone>
   daily:
     description: Calendrier des récompenses journalières NorthBlue
     usage: /daily [pnj spawn|remove]
@@ -123,6 +126,12 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.buyzone.admin:
+    description: Créer ou supprimer les portails d'achat de zone
+    default: op
+  cliker.buyzone.bypass:
+    description: Traverser les portails sans devoir acheter les zones
+    default: op
   cliker.daily.use:
     description: Ouvrir le calendrier et réclamer sa récompense journalière
     default: true
