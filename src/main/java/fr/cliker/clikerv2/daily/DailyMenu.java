@@ -1,0 +1,102 @@
+package fr.cliker.clikerv2.daily;
+
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+public final class DailyMenu implements Listener {
+    private final DailyModule module;
+    public DailyMenu(DailyModule module) { this.module = module; }
+
+    public static int slot(int day) {
+        if (day < 1 || day > 31) throw new IllegalArgumentException("Jour invalide");
+        return day <= 28 ? (1 + (day - 1) / 7) * 9 + 1 + (day - 1) % 7 : 48 + day - 29;
+    }
+    public static int day(int slot) {
+        for (int day = 1; day <= 31; day++) if (slot(day) == slot) return day;
+        return -1;
+    }
+    public void open(Player player, DailyProgress progress) {
+        Holder holder = new Holder(player.getUniqueId(), progress);
+        holder.inventory = Bukkit.createInventory(holder, 54, DailySettings.color(module.settings().config().getString("interface.titre", "Calendrier de Récompenses")));
+        render(holder);
+        player.openInventory(holder.inventory);
+    }
+    public void update(Player player, DailyProgress progress) {
+        if (holder(player) instanceof Holder holder && holder.owner.equals(player.getUniqueId())) {
+            holder.progress = progress;
+            render(holder);
+        }
+    }
+    public void refreshOpenMenus() {
+        for (Player player : module.plugin().getServer().getOnlinePlayers()) {
+            if (holder(player) instanceof Holder holder) render(holder);
+        }
+    }
+    private void render(Holder holder) {
+        ZonedDateTime now = module.now();
+        DailySettings settings = module.settings();
+        Map<String, String> info = new HashMap<>();
+        info.put("jour", Integer.toString(holder.progress.currentDay(now.toLocalDate())));
+        info.put("etat", settings.message(holder.progress.claimedToday(now.toLocalDate()) ? "etat-recupere" : "etat-disponible"));
+        info.put("temps", duration(Duration.between(now, now.toLocalDate().plusDays(1).atStartOfDay(now.getZone()))));
+        for (int slot = 0; slot < 54; slot++) holder.inventory.setItem(slot, settings.icon(slot < 9 ? "bandeau" : "fond", Map.of()));
+        holder.inventory.setItem(4, settings.icon("informations", info));
+        for (int day = 1; day <= 31; day++) {
+            DailyProgress.Status status = holder.progress.status(day, now.toLocalDate());
+            String icon = switch (status) { case AVAILABLE -> "disponible"; case LOCKED -> "verrouille"; case CLAIMED -> "recupere"; };
+            Map<String, String> values = Map.of("jour", Integer.toString(day), "recompense", settings.reward(day),
+                    "temps", duration(holder.progress.untilUnlock(day, now)), "etat", settings.message("etat-" + icon));
+            holder.inventory.setItem(slot(day), settings.icon(icon, values));
+        }
+    }
+    public static String duration(Duration duration) {
+        long seconds = Math.max(0, duration.getSeconds());
+        return (seconds / 86400 > 0 ? seconds / 86400 + "j " : "") + String.format("%02dh %02dm %02ds", (seconds % 86400) / 3600, (seconds % 3600) / 60, seconds % 60);
+    }
+    @EventHandler public void click(InventoryClickEvent event) {
+        if (!(event.getView().getTopInventory().getHolder() instanceof Holder holder)) return;
+        event.setCancelled(true); // Y compris shift-click, raccourcis clavier, double-clic et inventaire du bas.
+        if (!(event.getWhoClicked() instanceof Player player) || !holder.owner.equals(player.getUniqueId())) return;
+        if (!event.isLeftClick() && !event.isRightClick()) return;
+        int day = day(event.getRawSlot());
+        if (day < 0) return;
+        DailyProgress.Status status = holder.progress.status(day, module.now().toLocalDate());
+        if (status == DailyProgress.Status.AVAILABLE) module.claim(player, day);
+        else player.sendMessage(module.settings().message(status == DailyProgress.Status.CLAIMED ? "deja-recupere" : "verrouille", Map.of("temps", duration(holder.progress.untilUnlock(day, module.now())))));
+    }
+    @EventHandler public void drag(InventoryDragEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof Holder) event.setCancelled(true);
+    }
+    @EventHandler public void close(InventoryCloseEvent event) {
+        if (event.getInventory().getHolder() instanceof Holder) module.cancelOpen(event.getPlayer().getUniqueId());
+    }
+    public void shutdown() {
+        for (Player player : module.plugin().getServer().getOnlinePlayers()) {
+            if (holder(player) instanceof Holder) player.closeInventory();
+        }
+    }
+    private static InventoryHolder holder(Player player) {
+        Inventory top = player.getOpenInventory().getTopInventory();
+        return top == null ? null : top.getHolder();
+    }
+    private static final class Holder implements InventoryHolder {
+        private final UUID owner;
+        private DailyProgress progress;
+        private Inventory inventory;
+        private Holder(UUID owner, DailyProgress progress) { this.owner = owner; this.progress = progress; }
+        @Override public Inventory getInventory() { return inventory; }
+    }
+}

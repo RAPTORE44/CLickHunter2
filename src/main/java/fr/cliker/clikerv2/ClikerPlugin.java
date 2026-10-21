@@ -90,6 +90,7 @@ public final class ClikerPlugin extends JavaPlugin {
     private EconomyService economy;
     private CustomMobManager mobManager;
     private BagMenu bagMenu;
+    private fr.cliker.clikerv2.daily.DailyModule dailyModule;
 
     @Override
     public void onEnable() {
@@ -296,11 +297,25 @@ public final class ClikerPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(statsMenu, this);
         setExecutor("stats", new StatsCommand(statsMenu));
 
+        try {
+            dailyModule = new fr.cliker.clikerv2.daily.DailyModule(this);
+            dailyModule.start();
+            getLogger().info("Module de récompenses journalières NorthBlue actif.");
+        } catch (Exception exception) {
+            getLogger().log(java.util.logging.Level.SEVERE, "Impossible de démarrer le module daily", exception);
+            if (dailyModule != null) dailyModule.shutdown();
+            dailyModule = null;
+            if (getCommand("daily") != null) getCommand("daily").setExecutor((sender, command, label, args) -> {
+                sender.sendMessage(net.kyori.adventure.text.Component.text("Le calendrier est indisponible. Contacte un administrateur.", net.kyori.adventure.text.format.NamedTextColor.RED));
+                return true;
+            });
+        }
         getLogger().info("Economie active avec SQLite.");
     }
 
     @Override
     public void onDisable() {
+        if (dailyModule != null) dailyModule.shutdown();
         if (bagMenu != null) bagMenu.shutdown();
         if (mobManager != null) mobManager.shutdown();
         if (database != null) database.close();

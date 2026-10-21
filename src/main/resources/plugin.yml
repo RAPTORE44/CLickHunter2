@@ -3,8 +3,11 @@ version: ${project.version}
 main: fr.cliker.clikerv2.ClikerPlugin
 api-version: '1.21'
 author: Cliker
-softdepend: [LuckPerms, DecentHolograms]
+softdepend: [LuckPerms, DecentHolograms, Citizens, ItemsAdder]
 commands:
+  daily:
+    description: Calendrier des récompenses journalières NorthBlue
+    usage: /daily [pnj spawn|remove]
   ecus:
     description: Gestion des Écus
     usage: /ecus <balance|give|take|set> [joueur] [montant]
@@ -120,6 +123,12 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.daily.use:
+    description: Ouvrir le calendrier et réclamer sa récompense journalière
+    default: true
+  cliker.daily.admin:
+    description: Créer ou supprimer le PNJ des récompenses journalières
+    default: op
   cliker.money.use:
     default: true
   cliker.money.admin:

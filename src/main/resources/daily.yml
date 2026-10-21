@@ -1,0 +1,234 @@
+# Module de récompenses journalières NorthBlue intégré à ClikerV2.
+# Les journées changent à MINUIT dans ce fuseau : aucun délai de 24 heures.
+fuseau-horaire: Europe/Paris
+
+pnj:
+  skin: Nati144378
+  titre: '&aRécompenses journalières'
+  sous-titre: '&7Clic droit pour ouvrir'
+  actif: false
+  # id et position sont enregistrés automatiquement par /daily pnj spawn.
+
+messages:
+  sans-permission: '&cTu ne disposes pas de la permission nécessaire.'
+  joueur-uniquement: '&cCette commande est réservée aux joueurs.'
+  usage: '&e/daily &7ou &e/daily pnj <spawn|remove>'
+  chargement: '&7Chargement de tes récompenses...'
+  traitement: '&eTa récupération est déjà en cours.'
+  recupere: '&aRécompense du jour {jour} récupérée !'
+  deja-recupere: '&7Tu as déjà récupéré cette récompense dans ce cycle.'
+  indisponible: '&eCette récompense n’est plus disponible. Le calendrier a été actualisé.'
+  verrouille: '&7Cette récompense sera disponible dans &f{temps}&7, si tu poursuis ta série.'
+  erreur: '&cImpossible de traiter ta demande. Réessaie ou contacte un administrateur.'
+  erreur-commande: '&cLa récupération est enregistrée, mais une commande a échoué. Contacte un administrateur.'
+  citizens-absent: '&cCitizens compatible avec Paper 1.21.4 est nécessaire pour le PNJ. /daily reste disponible.'
+  pnj-cree: '&aLe PNJ des récompenses journalières a été créé.'
+  pnj-existant: '&eUn PNJ existe déjà. Supprime-le avant d’en créer un autre.'
+  pnj-supprime: '&aLe PNJ des récompenses journalières a été supprimé.'
+  pnj-absent: '&7Aucun PNJ de récompenses n’est enregistré.'
+  etat-disponible: '&aDisponible'
+  etat-verrouille: '&7Verrouillé'
+  etat-recupere: '&2Déjà récupéré'
+
+interface:
+  titre: 'Calendrier de Récompenses'
+  # Une valeur itemsadder non vide (ex. northblue:cadeau) est utilisée si l'objet existe.
+  # Sinon, materiau sert de remplacement. Les assets/textures ne sont pas inclus.
+  icones:
+    fond:
+      materiau: BLUE_STAINED_GLASS_PANE
+      itemsadder: ''
+      nom: ' '
+      description: []
+    bandeau:
+      materiau: CYAN_STAINED_GLASS_PANE
+      itemsadder: ''
+      nom: ' '
+      description: []
+    informations:
+      materiau: BOOK
+      itemsadder: ''
+      nom: '&b&lInformations'
+      description:
+        - '&8&m────────────────────────'
+        - '&7Jour actuel : &e{jour}&7/31'
+        - '&7Récompense : {etat}'
+        - ''
+        - '&7Une récompense par journée calendaire.'
+        - '&7Nouveau jour à minuit (fuseau configuré).'
+        - '&7Aucun délai de 24 heures.'
+        - ''
+        - '&cUne journée entière sans réclamer'
+        - '&créinitialise ta série au jour 1.'
+        - '&7Une simple connexion ne suffit pas.'
+        - '&7Après le jour 31 : nouveau cycle le lendemain.'
+        - '&8&m────────────────────────'
+    disponible:
+      materiau: CHEST
+      itemsadder: ''
+      custom-model-data: 0
+      nom: '&a&lJour {jour}'
+      description:
+        - '&8&m────────────────────────'
+        - '&7État : {etat}'
+        - ''
+        - '&f{recompense}'
+        - ''
+        - '&aCliquez pour réclamer !'
+        - '&8&m────────────────────────'
+    verrouille:
+      materiau: TRIPWIRE_HOOK
+      itemsadder: ''
+      custom-model-data: 0
+      nom: '&7&lJour {jour}'
+      description:
+        - '&8&m────────────────────────'
+        - '&7État : {etat}'
+        - ''
+        - '&f{recompense}'
+        - ''
+        - '&7Déblocage dans : &f{temps}'
+        - '&8En poursuivant ta série chaque jour.'
+        - '&8&m────────────────────────'
+    recupere:
+      materiau: LIME_DYE
+      itemsadder: ''
+      custom-model-data: 0
+      nom: '&2&lJour {jour}'
+      description:
+        - '&8&m────────────────────────'
+        - '&7État : {etat}'
+        - ''
+        - '&f{recompense}'
+        - ''
+        - '&2Récompense déjà récupérée.'
+        - '&8&m────────────────────────'
+
+# Commandes exécutées par la CONSOLE, sans slash initial.
+# Variables : {joueur}, {uuid}, {jour}. Conserver au moins une commande par jour.
+# Contenu de TEST uniquement : aucun objet ni monnaie n'est attribué.
+recompenses:
+  1:
+    description: 'Récompense test — Jour 1'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 1 récupérée !","color":"green"}'
+  2:
+    description: 'Récompense test — Jour 2'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 2 récupérée !","color":"green"}'
+  3:
+    description: 'Récompense test — Jour 3'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 3 récupérée !","color":"green"}'
+  4:
+    description: 'Récompense test — Jour 4'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 4 récupérée !","color":"green"}'
+  5:
+    description: 'Récompense test — Jour 5'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 5 récupérée !","color":"green"}'
+  6:
+    description: 'Récompense test — Jour 6'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 6 récupérée !","color":"green"}'
+  7:
+    description: 'Récompense test — Jour 7'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 7 récupérée !","color":"green"}'
+  8:
+    description: 'Récompense test — Jour 8'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 8 récupérée !","color":"green"}'
+  9:
+    description: 'Récompense test — Jour 9'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 9 récupérée !","color":"green"}'
+  10:
+    description: 'Récompense test — Jour 10'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 10 récupérée !","color":"green"}'
+  11:
+    description: 'Récompense test — Jour 11'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 11 récupérée !","color":"green"}'
+  12:
+    description: 'Récompense test — Jour 12'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 12 récupérée !","color":"green"}'
+  13:
+    description: 'Récompense test — Jour 13'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 13 récupérée !","color":"green"}'
+  14:
+    description: 'Récompense test — Jour 14'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 14 récupérée !","color":"green"}'
+  15:
+    description: 'Récompense test — Jour 15'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 15 récupérée !","color":"green"}'
+  16:
+    description: 'Récompense test — Jour 16'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 16 récupérée !","color":"green"}'
+  17:
+    description: 'Récompense test — Jour 17'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 17 récupérée !","color":"green"}'
+  18:
+    description: 'Récompense test — Jour 18'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 18 récupérée !","color":"green"}'
+  19:
+    description: 'Récompense test — Jour 19'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 19 récupérée !","color":"green"}'
+  20:
+    description: 'Récompense test — Jour 20'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 20 récupérée !","color":"green"}'
+  21:
+    description: 'Récompense test — Jour 21'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 21 récupérée !","color":"green"}'
+  22:
+    description: 'Récompense test — Jour 22'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 22 récupérée !","color":"green"}'
+  23:
+    description: 'Récompense test — Jour 23'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 23 récupérée !","color":"green"}'
+  24:
+    description: 'Récompense test — Jour 24'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 24 récupérée !","color":"green"}'
+  25:
+    description: 'Récompense test — Jour 25'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 25 récupérée !","color":"green"}'
+  26:
+    description: 'Récompense test — Jour 26'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 26 récupérée !","color":"green"}'
+  27:
+    description: 'Récompense test — Jour 27'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 27 récupérée !","color":"green"}'
+  28:
+    description: 'Récompense test — Jour 28'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 28 récupérée !","color":"green"}'
+  29:
+    description: 'Récompense test — Jour 29'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 29 récupérée !","color":"green"}'
+  30:
+    description: 'Récompense test — Jour 30'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 30 récupérée !","color":"green"}'
+  31:
+    description: 'Récompense test — Jour 31'
+    commandes:
+      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 31 récupérée !","color":"green"}'

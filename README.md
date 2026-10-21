@@ -1,5 +1,9 @@
 # ClikerV2
 
+Le module **NorthBlue de récompenses journalières** est intégré à ce même plugin :
+`/daily`, calendrier de 31 jours et PNJ Citizens optionnel.
+Voir [l'installation, la configuration et les règles du calendrier](docs/RECOMPENSES-JOURNALIERES.md).
+
 Plugin unique pour Paper 1.21.4 : economie SQLite et commandes de gestion des monnaies.
 
 ## Prerequis

@@ -94,12 +94,10 @@
                         <goals><goal>shade</goal></goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <relocations>
-                                <relocation>
-                                    <pattern>org.sqlite</pattern>
-                                    <shadedPattern>fr.cliker.libs.sqlite</shadedPattern>
-                                </relocation>
-                            </relocations>
+                            <!-- SQLite utilise des noms JNI fixes : ne pas déplacer org.sqlite. -->
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
                         </configuration>
                     </execution>
                 </executions>
