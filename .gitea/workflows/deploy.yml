@@ -1,0 +1,45 @@
+name: Build & Deploy Plugin
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: ☕ Configurer Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: 🛠️ Installer Maven
+        uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: 3.9.9
+
+      - name: 🔨 Compiler le plugin
+        run: mvn -B clean package
+
+      - name: 🔑 Installer sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: 🚀 Envoyer le .jar via SFTP
+        env:
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+        run: |
+          sshpass -p "$SFTP_PASSWORD" sftp \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -P 2022 \
+            admin.f212ac25@node.northblue.fr <<'EOF'
+          put ./target/clikerv2-1.0.0.jar /plugins/ClikerV2.jar.tmp
+          -rm /plugins/ClikerV2.jar
+          rename /plugins/ClikerV2.jar.tmp /plugins/ClikerV2.jar
+          bye
+          EOF

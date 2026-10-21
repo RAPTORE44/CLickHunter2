@@ -1,0 +1,5 @@
+database-file: data/economy.db
+starting-balances:
+  ecus: 0
+  gemmes-sombres: 0
+  cendres: 0

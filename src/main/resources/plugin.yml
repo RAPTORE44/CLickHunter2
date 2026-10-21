@@ -1,0 +1,206 @@
+name: ClikerV2
+version: ${project.version}
+main: fr.cliker.clikerv2.ClikerPlugin
+api-version: '1.21'
+author: Cliker
+softdepend: [LuckPerms, DecentHolograms]
+commands:
+  ecus:
+    description: Gestion des Écus
+    usage: /ecus <balance|give|take|set> [joueur] [montant]
+    permission: cliker.money.use
+  gemmes:
+    description: Gestion des Gemmes Sombres
+    usage: /gemmes <balance|give|take|set> [joueur] [montant]
+    aliases: [gemmessombres]
+    permission: cliker.money.use
+  cendres:
+    description: Gestion des Cendres
+    usage: /cendres <balance|give|take|set> [joueur] [montant]
+    permission: cliker.money.use
+  xp:
+    description: Gestion de l'expérience vanilla
+    usage: /xp give <joueur> <montant>
+    permission: cliker.xp.admin
+  mobspawn:
+    description: Gestion des zones de spawn des mobs custom (bossspawn = Golem, PV x10, drops speciaux)
+    usage: /mobspawn <setspawn|bossspawn|remove|removeall|list> [mob]
+    aliases: [mob]
+    permission: cliker.mob.admin
+  epee:
+    description: Donne l'épée du dresseur (+25 dégâts)
+    usage: /epee
+    permission: cliker.mob.admin
+  stuff:
+    description: Donne l'épée + l'armure d'un mob (set complet = OneShot)
+    usage: /stuff <mob>
+    permission: cliker.mob.admin
+  coffre:
+    description: Donne un coffre du Nether (loot par rareté)
+    usage: /coffre <joueur> <rareté> [quantité]
+    permission: cliker.mob.admin
+  autoclick:
+    description: Active/désactive l'attaque automatique sur la cible visée (toutes les 2s)
+    usage: /autoclick
+    permission: cliker.autoclick.use
+  upgrade:
+    description: Ouvre le menu d'upgrades (payées en Gemmes Sombres)
+    usage: /upgrade
+    permission: cliker.upgrade.use
+  stats:
+    description: Ouvre le menu de statistiques du joueur
+    usage: /stats
+    permission: cliker.stats.use
+  prestige:
+    description: Ouvre le menu de prestige (niveau + mobs tués)
+    usage: /prestige
+    permission: cliker.prestige.use
+  mobkills:
+    description: Ajoute des kills de mobs à un joueur (tests)
+    usage: /mobkills give <joueur> <montant>
+    permission: cliker.mob.admin
+  sell:
+    description: Ouvre le menu de vente des essences de mobs
+    usage: /sell
+    permission: cliker.sell.use
+  enchant:
+    description: Ouvre la Table d'Enchantement (Écus)
+    usage: /enchant
+    permission: cliker.gear.use
+  reforge:
+    description: Ouvre l'Enclume de Reforge (Gemmes Sombres)
+    usage: /reforge
+    permission: cliker.gear.use
+  runes:
+    description: Ouvre la Table de Runes (Cendres)
+    usage: /runes
+    permission: cliker.gear.use
+  compresseur:
+    description: Donne un compresseur d'essences pour un mob donne
+    usage: /compresseur <mob>
+    permission: cliker.mob.admin
+  pnj:
+    description: Gestion des PNJ marchands (achat armure/epee/compresseur contre Ecus + essences)
+    usage: /pnj <spawn <mob>|remove|list>
+    permission: cliker.mob.admin
+  charm:
+    description: Donne une amulette de degats passive pour un mob donne
+    usage: /charm <mob>
+    permission: cliker.mob.admin
+  holotop:
+    description: Gestion des hologrammes de classement (DecentHolograms requis)
+    usage: /holotop <spawn <level|kills|ecus|gemmes|cendres|bosstimer>|remove>
+    permission: cliker.mob.admin
+  ah:
+    description: Hotel des ventes (taxe 1% sur chaque vente)
+    usage: /ah [sell <prix>|mylistings]
+    permission: cliker.ah.use
+  tuto:
+    description: Ouvre le livre-guide du serveur
+    usage: /tuto
+    permission: cliker.tuto.use
+  spawn:
+    description: Teleporte au spawn du serveur
+    usage: /spawn
+    permission: cliker.spawn.use
+  setspawn:
+    description: Definit le spawn du serveur ici
+    usage: /setspawn
+    permission: cliker.spawn.admin
+  station:
+    description: Gestion des blocs station (table d'enchant/enclume de reforge/table de runes)
+    usage: /station <spawn <enchant|reforge|rune>|remove>
+    permission: cliker.mob.admin
+  sac:
+    description: Ouvre ton sac (stockage de talismans, capacite selon permission)
+    usage: /sac
+    permission: cliker.sac.use
+  talisman:
+    description: Donne un Treasure Talisman a un joueur
+    usage: /talisman treasure <joueur>
+    permission: cliker.mob.admin
+permissions:
+  cliker.money.use:
+    default: true
+  cliker.money.admin:
+    default: op
+  cliker.xp.admin:
+    default: op
+  cliker.mob.admin:
+    default: op
+  cliker.autoclick.use:
+    default: true
+  cliker.upgrade.use:
+    default: true
+  cliker.stats.use:
+    default: true
+  cliker.prestige.use:
+    default: true
+  cliker.sell.use:
+    default: true
+  cliker.gear.use:
+    default: true
+  cliker.ah.use:
+    default: true
+  cliker.ah.admin:
+    default: op
+  cliker.tuto.use:
+    default: true
+  cliker.spawn.use:
+    default: true
+  cliker.spawn.admin:
+    default: op
+  cliker.sac.use:
+    default: true
+  cliker.sac.2:
+    default: false
+  cliker.sac.3:
+    default: false
+  cliker.sac.4:
+    default: false
+  cliker.sac.5:
+    default: false
+  cliker.sac.6:
+    default: false
+  cliker.sac.7:
+    default: false
+  cliker.sac.8:
+    default: false
+  cliker.sac.9:
+    default: false
+  cliker.bonus.ecus.2: { default: false }
+  cliker.bonus.ecus.3: { default: false }
+  cliker.bonus.ecus.4: { default: false }
+  cliker.bonus.ecus.5: { default: false }
+  cliker.bonus.ecus.6: { default: false }
+  cliker.bonus.ecus.7: { default: false }
+  cliker.bonus.ecus.8: { default: false }
+  cliker.bonus.ecus.9: { default: false }
+  cliker.bonus.ecus.10: { default: false }
+  cliker.bonus.gemmes.2: { default: false }
+  cliker.bonus.gemmes.3: { default: false }
+  cliker.bonus.gemmes.4: { default: false }
+  cliker.bonus.gemmes.5: { default: false }
+  cliker.bonus.gemmes.6: { default: false }
+  cliker.bonus.gemmes.7: { default: false }
+  cliker.bonus.gemmes.8: { default: false }
+  cliker.bonus.gemmes.9: { default: false }
+  cliker.bonus.gemmes.10: { default: false }
+  cliker.bonus.vente.2: { default: false }
+  cliker.bonus.vente.3: { default: false }
+  cliker.bonus.vente.4: { default: false }
+  cliker.bonus.vente.5: { default: false }
+  cliker.bonus.vente.6: { default: false }
+  cliker.bonus.vente.7: { default: false }
+  cliker.bonus.vente.8: { default: false }
+  cliker.bonus.vente.9: { default: false }
+  cliker.bonus.vente.10: { default: false }
+  cliker.bonus.xp.2: { default: false }
+  cliker.bonus.xp.3: { default: false }
+  cliker.bonus.xp.4: { default: false }
+  cliker.bonus.xp.5: { default: false }
+  cliker.bonus.xp.6: { default: false }
+  cliker.bonus.xp.7: { default: false }
+  cliker.bonus.xp.8: { default: false }
+  cliker.bonus.xp.9: { default: false }
+  cliker.bonus.xp.10: { default: false }
