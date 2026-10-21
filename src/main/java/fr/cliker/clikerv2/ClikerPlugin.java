@@ -89,7 +89,6 @@ public final class ClikerPlugin extends JavaPlugin {
     private DatabaseManager database;
     private EconomyService economy;
     private CustomMobManager mobManager;
-    private HologramManager hologramManager;
 
     @Override
     public void onEnable() {
@@ -262,7 +261,7 @@ public final class ClikerPlugin extends JavaPlugin {
         setExecutor("autoclick", autoClickManager);
 
         HologramStore hologramStore = new HologramStore(database);
-        hologramManager = new HologramManager(this, hologramStore, levelStore, killStore, economy);
+        HologramManager hologramManager = new HologramManager(this, hologramStore, levelStore, killStore, economy);
         getServer().getScheduler().runTaskLater(this, hologramManager::load, 20L);
         hologramManager.start();
         if (getCommand("holotop") != null) {
@@ -301,7 +300,6 @@ public final class ClikerPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (hologramManager != null) hologramManager.shutdown();
         if (mobManager != null) mobManager.shutdown();
         if (database != null) database.close();
     }
