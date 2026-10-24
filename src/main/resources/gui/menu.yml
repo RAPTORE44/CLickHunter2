@@ -1,0 +1,89 @@
+taille: 36
+titre: '&8NorthBlue &7• &8Menu principal'
+fond: BLACK_STAINED_GLASS_PANE
+messages:
+  interdit: '&cTu ne peux pas ouvrir ce menu.'
+boutons:
+  daily:
+    slot: 10
+    materiau: CHEST
+    nom: '&aRécompenses journalières'
+    description: ['&7Récupère ton cadeau du jour.', '', '&eClique pour ouvrir le calendrier.']
+    commande: daily
+    permission: cliker.daily.use
+  sacs:
+    slot: 11
+    materiau: NETHER_STAR
+    nom: '&6Mes sacs'
+    description: ['&7Range tes objets et tes talismans.', '', '&eClique pour choisir un sac.']
+    commande: sac
+    permission: cliker.sac.use
+  stats:
+    slot: 12
+    materiau: BOOK
+    nom: '&bMes statistiques'
+    description: ['&7Consulte ta progression et tes bonus.', '', '&eClique pour consulter.']
+    commande: stats
+    permission: cliker.stats.use
+  upgrades:
+    slot: 13
+    materiau: EXPERIENCE_BOTTLE
+    nom: '&dAméliorations'
+    description: ['&7Renforce durablement ton personnage.', '', '&eClique pour voir les améliorations.']
+    commande: upgrade
+    permission: cliker.upgrade.use
+  prestige:
+    slot: 14
+    materiau: BEACON
+    nom: '&5Prestige'
+    description: ['&7Consulte les conditions du prochain prestige.', '', '&eClique pour consulter les conditions.']
+    commande: prestige
+    permission: cliker.prestige.use
+  ah:
+    slot: 15
+    materiau: GOLD_INGOT
+    nom: '&6Hôtel des ventes'
+    description: ['&7Achète et gère tes annonces.', '', '&eClique pour parcourir les offres.']
+    commande: ah
+    permission: cliker.ah.use
+  spawn:
+    slot: 16
+    materiau: COMPASS
+    nom: '&bRetour au spawn'
+    description: ['&7Rejoins le point de départ.', '', '&eClique pour te téléporter.']
+    commande: spawn
+    permission: cliker.spawn.use
+  enchant:
+    slot: 20
+    materiau: ENCHANTING_TABLE
+    nom: '&dEnchantements'
+    description: ['&7Améliore ton équipement.', '', '&eClique pour ouvrir la table.']
+    commande: enchant
+    permission: cliker.gear.use
+  reforge:
+    slot: 21
+    materiau: ANVIL
+    nom: '&6Reforge'
+    description: ['&7Personnalise les bonus de ton équipement.', '', '&eClique pour ouvrir.']
+    commande: reforge
+    permission: cliker.gear.use
+  sell:
+    slot: 23
+    materiau: EMERALD
+    nom: '&aVendre mes essences'
+    description: ['&7Consulte les prix de vente.', '', '&eClique pour ouvrir.']
+    commande: sell
+    permission: cliker.sell.use
+  tuto:
+    slot: 24
+    materiau: WRITABLE_BOOK
+    nom: '&bGuide du serveur'
+    description: ['&7Retrouve les explications du jeu.', '', '&eClique pour lire le guide.']
+    commande: tuto
+    permission: cliker.tuto.use
+  fermer:
+    slot: 31
+    materiau: BARRIER
+    nom: '&cFermer'
+    description: []
+    commande: ''

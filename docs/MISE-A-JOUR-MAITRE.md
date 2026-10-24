@@ -54,7 +54,7 @@ persistée est déjà dépassée lors d'un redémarrage.
 - Vente, lootboxes, prestige, upgrades et GUI à dépôt : transactions durables,
   protections contre fermeture/crash et livraison différée des objets.
 - Mailbox et livraison atomique des récompenses daily, commandes admin daily.
-- Black Market, Dark Auction distincte, Spawn Shop, hub /menu, fishing, mining, events.
+- Black Market, Dark Auction distincte, Spawn Shop, fishing, mining, events.
 - /vault complet, administration /nb, validation globale, backups administrables,
   massedit, profils, overrides, reloads sûrs et audit généralisé.
 - Validation réelle Paper/Citizens/ItemsAdder et scénarios de crash/charge.
@@ -63,3 +63,8 @@ Les valeurs historiques manquantes peuvent être remplacées par un équilibrage
 
 Les tests existants et nouveaux valident uniquement les capacités qu'ils exercent.
 La réussite du build ne constitue pas une certification production globale.
+
+## Révision UX/UI
+
+Le hub `/menu` est désormais disponible, avec configuration et contrôle des permissions.
+Voir [les améliorations UX/UI et les optimisations](UX-UI-OPTIMISATIONS.md).

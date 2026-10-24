@@ -5,6 +5,10 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, DecentHolograms, Citizens, ItemsAdder]
 commands:
+  menu:
+    description: Menu principal NorthBlue
+    usage: /menu
+    permission: cliker.menu
   buyzone:
     description: Crée ou supprime un portail d'achat de zone
     usage: /buyzone spawn <zone> | /buyzone remove <zone>
@@ -126,6 +130,8 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.menu:
+    default: true
   cliker.buyzone.admin:
     description: Créer ou supprimer les portails d'achat de zone
     default: op

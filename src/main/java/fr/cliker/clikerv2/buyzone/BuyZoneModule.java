@@ -223,6 +223,7 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
         if (offer.zone.price() < 0) { player.sendMessage(Component.text("Le prix de cette zone n'est pas encore configuré.", NamedTextColor.RED)); return; }
         UUID uuid = player.getUniqueId();
         if (!paying.add(uuid)) return;
+        offer.inventory.setItem(4, icon(Material.CLOCK, "&eAchat en cours…", List.of("&7Vérification de ton solde.", "&7Patiente un instant.")));
         economy.purchaseZone(uuid, player.getName(), offer.zone.id(), offer.zone.permission(), offer.zone.currency(), offer.zone.price())
                 .whenComplete((result, error) -> sync(() -> {
                     paying.remove(uuid);

@@ -30,6 +30,8 @@ public final class HologramManager {
     private final boolean available;
 
     private final Map<String, Type> holograms = new HashMap<>();
+    private final Map<String, List<String>> rendered = new HashMap<>();
+    private final java.util.Set<Type> inFlight = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     public HologramManager(JavaPlugin plugin, HologramStore store, PlayerLevelStore levelStore, MobKillStore killStore, EconomyService economy) {
         this.plugin = plugin;
@@ -90,37 +92,47 @@ public final class HologramManager {
         if (nearest == null) return false;
         DHAPI.removeHologram(hologramName(nearest));
         holograms.remove(nearest);
+        rendered.remove(nearest);
         store.removeById(nearest);
         return true;
     }
 
     private void refreshAll() {
-        for (Map.Entry<String, Type> entry : new HashMap<>(holograms).entrySet()) refresh(entry.getKey(), entry.getValue());
+        java.util.Set<Type> seen = java.util.EnumSet.noneOf(Type.class);
+        for (Map.Entry<String, Type> entry : holograms.entrySet()) {
+            if (seen.add(entry.getValue())) refresh(entry.getKey(), entry.getValue());
+        }
     }
 
     private void refresh(String id, Type type) {
+        if (!inFlight.add(type)) return;
         switch (type) {
             case LEVEL -> levelStore.top(10).whenComplete((entries, error) -> {
-                if (error == null) applyLines(id, "★ Top Niveaux ★", entries.stream()
+                inFlight.remove(type);
+                if (error == null) applyLines(type, "★ Top Niveaux ★", entries.stream()
                         .map(e -> (Object[]) new Object[]{e.playerName(), (long) e.level()}).toList());
             });
             case KILLS -> killStore.top(10).whenComplete((entries, error) -> {
-                if (error == null) applyLines(id, "☠ Top Kills ★", entries.stream()
+                inFlight.remove(type);
+                if (error == null) applyLines(type, "☠ Top Kills ★", entries.stream()
                         .map(e -> (Object[]) new Object[]{e.playerName(), e.total()}).toList());
             });
             case ECUS -> economy.topBalances(CurrencyType.ECUS, 10).whenComplete((entries, error) -> {
-                if (error == null) applyLines(id, "✦ Top Écus ★", entries.stream()
+                inFlight.remove(type);
+                if (error == null) applyLines(type, "✦ Top Écus ★", entries.stream()
                         .map(e -> (Object[]) new Object[]{e.playerName(), e.amount()}).toList());
             });
             case GEMMES -> economy.topBalances(CurrencyType.GEMMES_SOMBRES, 10).whenComplete((entries, error) -> {
-                if (error == null) applyLines(id, "◆ Top Gemmes Sombres ★", entries.stream()
+                inFlight.remove(type);
+                if (error == null) applyLines(type, "◆ Top Gemmes Sombres ★", entries.stream()
                         .map(e -> (Object[]) new Object[]{e.playerName(), e.amount() / 10}).toList());
             });
             case CENDRES -> economy.topBalances(CurrencyType.CENDRES, 10).whenComplete((entries, error) -> {
-                if (error == null) applyLines(id, "❀ Top Cendres ★", entries.stream()
+                inFlight.remove(type);
+                if (error == null) applyLines(type, "❀ Top Cendres ★", entries.stream()
                         .map(e -> (Object[]) new Object[]{e.playerName(), e.amount()}).toList());
             });
-            case BOSS_TIMER -> applyBossTimerLines(id, lastBossTimerLines);
+            case BOSS_TIMER -> { inFlight.remove(type); applyBossTimerLines(id, lastBossTimerLines); }
         }
     }
 
@@ -142,15 +154,23 @@ public final class HologramManager {
     private void applyBossTimerLines(String id, List<String> lines) {
         Hologram hologram = DHAPI.getHologram(hologramName(id));
         if (hologram == null) return;
-        DHAPI.setHologramLines(hologram, lines);
+        if (!lines.equals(rendered.get(id))) {
+            DHAPI.setHologramLines(hologram, lines);
+            rendered.put(id, List.copyOf(lines));
+        }
     }
 
-    private void applyLines(String id, String title, List<Object[]> entries) {
+    private void applyLines(Type type, String title, List<Object[]> entries) {
+        if (!plugin.isEnabled()) return;
         plugin.getServer().getScheduler().runTask(plugin, () -> {
-            Hologram hologram = DHAPI.getHologram(hologramName(id));
-            if (hologram == null) return;
             List<String> lines = leaderboardLines(title, entries);
-            DHAPI.setHologramLines(hologram, lines);
+            for (var entry : holograms.entrySet()) {
+                if (entry.getValue() != type || lines.equals(rendered.get(entry.getKey()))) continue;
+                Hologram hologram = DHAPI.getHologram(hologramName(entry.getKey()));
+                if (hologram == null) continue;
+                DHAPI.setHologramLines(hologram, lines);
+                rendered.put(entry.getKey(), List.copyOf(lines));
+            }
         });
     }
 

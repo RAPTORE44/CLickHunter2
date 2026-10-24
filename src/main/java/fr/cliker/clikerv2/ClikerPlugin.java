@@ -90,6 +90,7 @@ public final class ClikerPlugin extends JavaPlugin {
     private EconomyService economy;
     private CustomMobManager mobManager;
     private BagMenu bagMenu;
+    private fr.cliker.clikerv2.ui.MainMenu mainMenu;
     private fr.cliker.clikerv2.daily.DailyModule dailyModule;
     private fr.cliker.clikerv2.buyzone.BuyZoneModule buyZoneModule;
 
@@ -324,11 +325,23 @@ public final class ClikerPlugin extends JavaPlugin {
             buyZoneModule = null;
         }
         getServer().getPluginManager().registerEvents(new fr.cliker.clikerv2.security.SystemEggProtection(), this);
+        try {
+            mainMenu = new fr.cliker.clikerv2.ui.MainMenu(this);
+            getServer().getPluginManager().registerEvents(mainMenu, this);
+            getCommand("menu").setExecutor(mainMenu);
+        } catch (IllegalArgumentException error) {
+            getLogger().log(java.util.logging.Level.SEVERE, "Configuration du menu principal invalide", error);
+            getCommand("menu").setExecutor((sender, command, label, args) -> {
+                sender.sendMessage(net.kyori.adventure.text.Component.text("Le menu est indisponible. Contacte un administrateur.", net.kyori.adventure.text.format.NamedTextColor.RED));
+                return true;
+            });
+        }
         getLogger().info("Economie active avec SQLite.");
     }
 
     @Override
     public void onDisable() {
+        if (mainMenu != null) mainMenu.shutdown();
         if (buyZoneModule != null) buyZoneModule.shutdown();
         if (dailyModule != null) dailyModule.shutdown();
         if (bagMenu != null) bagMenu.shutdown();

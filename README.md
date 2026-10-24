@@ -65,3 +65,5 @@ Vérifications automatisées : `mvn test`.
 État de la mise en conformité du cahier maître : [avancement et limites](docs/MISE-A-JOUR-MAITRE.md).
 
 Compilation reproductible (JDK 21) : `./mvnw clean package`.
+
+Navigation et performances : `/menu` — [configuration et optimisations](docs/UX-UI-OPTIMISATIONS.md).

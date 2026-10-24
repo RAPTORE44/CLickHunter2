@@ -51,7 +51,9 @@ public final class BagMenu implements Listener {
         for (int bag = 0; bag < BagManager.MAX_CAPACITY; bag++) {
             boolean unlocked = bag < capacity;
             String rank = RANKS.get(bag);
-            List<Component> lore = List.of(text(rank, NamedTextColor.GRAY));
+            List<Component> lore = List.of(text(rank, NamedTextColor.GRAY), Component.empty(),
+                    text(unlocked ? "54 emplacements personnels" : "Débloque ce rang pour accéder au sac.", NamedTextColor.GRAY),
+                    text(unlocked ? "Clique pour ouvrir" : "Accès verrouillé", unlocked ? NamedTextColor.GREEN : NamedTextColor.RED));
             inventory.setItem(FIRST_BAG_SLOT + bag, icon(unlocked ? Material.NETHER_STAR : Material.BARRIER,
                     text("Sac " + (bag + 1) + (unlocked ? "" : " — Verrouillé"), unlocked ? NamedTextColor.GOLD : NamedTextColor.RED), lore));
         }

@@ -51,9 +51,10 @@ public final class DailyModule implements CommandExecutor, TabCompleter, Listene
     public void cancelOpen(UUID uuid) { opening.remove(uuid); }
     public void open(Player player) {
         if (!player.hasPermission(USE_PERMISSION)) { send(player, "sans-permission"); return; }
+        if (opening.containsKey(player.getUniqueId())) return;
         Object token = new Object();
         opening.put(player.getUniqueId(), token);
-        send(player, "chargement");
+        player.sendActionBar(settings.message("chargement", Map.of()));
         store.load(player.getUniqueId()).whenComplete((progress, error) -> sync(() -> {
             if (!player.isOnline() || opening.get(player.getUniqueId()) != token) return;
             opening.remove(player.getUniqueId());

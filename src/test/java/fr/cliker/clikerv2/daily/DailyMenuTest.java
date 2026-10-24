@@ -111,6 +111,30 @@ class DailyMenuTest {
         assertTrue(drag.isCancelled());
         assertEquals(0, rewards.get());
     }
+    @Test void midnightUpdatesAnOpenMenuWithoutRewritingItsBackground() throws Exception {
+        var clock = DailyModule.class.getDeclaredField("clock"); clock.setAccessible(true);
+        var date = java.time.LocalDate.of(2026, 10, 24);
+        var zone = java.time.ZoneId.of("Europe/Paris");
+        clock.set(module, java.time.Clock.fixed(date.atTime(23, 59).atZone(zone).toInstant(), zone));
+        var menuField = DailyModule.class.getDeclaredField("menu"); menuField.setAccessible(true);
+        var calendar = (DailyMenu) menuField.get(module);
+        calendar.open(player, new DailyProgress(date, 1));
+        var top = player.getOpenInventory().getTopInventory();
+        ItemStack background = top.getItem(0);
+        var probe = background.getItemMeta();
+        probe.displayName(net.kyori.adventure.text.Component.text("Décoration déjà posée"));
+        background.setItemMeta(probe);
+        top.setItem(0, background);
+        ItemStack claimed = top.getItem(DailyMenu.slot(1));
+        calendar.refreshOpenMenus();
+        assertEquals(background, top.getItem(0));
+        assertEquals(claimed, top.getItem(DailyMenu.slot(1)));
+        clock.set(module, java.time.Clock.fixed(date.plusDays(1).atTime(0, 1).atZone(zone).toInstant(), zone));
+        calendar.refreshOpenMenus();
+        assertEquals(background, top.getItem(0));
+        assertTrue(top.getItem(DailyMenu.slot(2)).getItemMeta().getEnchantmentGlintOverride());
+    }
+
     @Test void npcManagementRequiresAdminAndDoesNotBreakWithoutCitizens() {
         player.addAttachment(plugin, DailyModule.ADMIN_PERMISSION, false);
         assertTrue(module.onCommand(player, new Command("daily") { @Override public boolean execute(CommandSender s, String l, String[] a) { return false; } }, "daily", new String[]{"pnj", "spawn"}));
