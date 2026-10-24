@@ -54,7 +54,8 @@ persistée est déjà dépassée lors d'un redémarrage.
   ancienne transaction composite ni sa facturation.
 - Vente, lootboxes, prestige, upgrades et GUI à dépôt : transactions durables,
   protections contre fermeture/crash et livraison différée des objets.
-- Mailbox et livraison atomique des récompenses daily, commandes admin daily.
+- Atomicité de bout en bout du daily et de ses commandes, commandes admin daily.
+  La boîte /claim pour les objets non livrés est désormais disponible.
 - Black Market, Dark Auction distincte, Spawn Shop, fishing, mining, events.
 - /vault complet, administration /nb, validation globale, backups administrables,
   massedit, profils, overrides, reloads sûrs et audit généralisé.
@@ -69,3 +70,8 @@ La réussite du build ne constitue pas une certification production globale.
 
 Le hub `/menu` est désormais disponible, avec configuration et contrôle des permissions.
 Voir [les améliorations UX/UI et les optimisations](UX-UI-OPTIMISATIONS.md).
+
+## Révision claim et parrainage
+
+La boîte `/claim` et `/parrein` sont implémentées ; voir `CLAIM-PARRAINAGE.md`.
+Cela ne certifie pas les autres transactions historiques du plugin.

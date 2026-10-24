@@ -19,7 +19,8 @@ public final class EconomyService {
 
     public EconomyService(DatabaseManager database, Map<CurrencyType, Long> startingBalances) {
         this.database = database;
-        this.startingBalances = new EnumMap<>(startingBalances);
+        this.startingBalances = new EnumMap<>(CurrencyType.class);
+        this.startingBalances.putAll(startingBalances);
     }
 
     public CompletableFuture<Balances> getBalances(UUID uuid) {

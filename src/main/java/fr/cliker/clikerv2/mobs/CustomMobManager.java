@@ -458,8 +458,7 @@ public final class CustomMobManager implements Listener {
         if (killer != null) {
             int amount = ThreadLocalRandom.current().nextInt(1, 4);
             ItemStack essence = EssenceItem.create(tier, amount);
-            var leftover = killer.getInventory().addItem(essence);
-            leftover.values().forEach(item -> killer.getWorld().dropItemNaturally(killer.getLocation(), item));
+            fr.cliker.clikerv2.rewards.ItemDelivery.give(killer, essence);
             grantRewards(killer, tier);
             rollLootboxDrops(killer);
             rollTalismanDrop(killer, tier);
@@ -478,8 +477,7 @@ public final class CustomMobManager implements Listener {
     private void rollTalismanDrop(Player killer, MobTier tier) {
         if (ThreadLocalRandom.current().nextInt(500_000) != 0) return;
         ItemStack talisman = TalismanItem.createMobTalisman(tier);
-        var leftover = killer.getInventory().addItem(talisman);
-        leftover.values().forEach(item -> killer.getWorld().dropItemNaturally(killer.getLocation(), item));
+        fr.cliker.clikerv2.rewards.ItemDelivery.give(killer, talisman);
         killer.sendMessage(Component.text("✦✦✦ TALISMAN OBTENU : ", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD)
                 .append(Component.text(tier.label() + " Talisman !", NamedTextColor.AQUA)));
     }
@@ -490,8 +488,7 @@ public final class CustomMobManager implements Listener {
         for (LootboxTier tier : LootboxTier.values()) {
             if (ThreadLocalRandom.current().nextDouble(100.0) < tier.dropChancePercent() + lootFinderBonus) {
                 ItemStack box = LootboxItem.create(tier);
-                var leftover = killer.getInventory().addItem(box);
-                leftover.values().forEach(item -> killer.getWorld().dropItemNaturally(killer.getLocation(), item));
+                fr.cliker.clikerv2.rewards.ItemDelivery.give(killer, box);
                 killer.sendMessage(Component.text("✦ Coffre obtenu : ", NamedTextColor.YELLOW)
                         .append(Component.text(tier.boxName(), tier.color(), TextDecoration.BOLD)));
             }
@@ -557,8 +554,7 @@ public final class CustomMobManager implements Listener {
     }
 
     private void giveItem(Player player, ItemStack item) {
-        var leftover = player.getInventory().addItem(item);
-        leftover.values().forEach(leftoverItem -> player.getWorld().dropItemNaturally(player.getLocation(), leftoverItem));
+        fr.cliker.clikerv2.rewards.ItemDelivery.give(player, item);
     }
 
     /** Somme les bonus d'une rune d'armure (XP, catégorie BOTH) sur toutes les pièces équipées portant cette rune. */

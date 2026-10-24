@@ -90,6 +90,8 @@ public final class ClikerPlugin extends JavaPlugin {
     private EconomyService economy;
     private CustomMobManager mobManager;
     private BagMenu bagMenu;
+    private fr.cliker.clikerv2.rewards.ClaimService claims;
+    private fr.cliker.clikerv2.referral.ReferralModule referrals;
     private fr.cliker.clikerv2.discord.DiscordModule discordModule;
     private MoneyScoreboard scoreboard;
     private fr.cliker.clikerv2.ui.MainMenu mainMenu;
@@ -114,6 +116,8 @@ public final class ClikerPlugin extends JavaPlugin {
             startingBalances.put(currency, Math.max(0L, getConfig().getLong("starting-balances." + currency.key(), 0L)));
         }
         economy = new EconomyService(database, startingBalances);
+        claims = new fr.cliker.clikerv2.rewards.ClaimService(this, database);
+        claims.start();
         registerCurrencyCommand("ecus", CurrencyType.ECUS);
         registerCurrencyCommand("gemmes", CurrencyType.GEMMES_SOMBRES);
         registerCurrencyCommand("cendres", CurrencyType.CENDRES);
@@ -173,7 +177,7 @@ public final class ClikerPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(bagMenu, this);
         setExecutor("sac", new BagCommand(bagMenu));
         bagManager.loadOnlinePlayers();
-        TalismanCommand talismanCommand = new TalismanCommand();
+        TalismanCommand talismanCommand = new TalismanCommand(this);
         setExecutor("talisman", talismanCommand);
         if (getCommand("talisman") != null) getCommand("talisman").setTabCompleter(talismanCommand);
 
@@ -264,7 +268,7 @@ public final class ClikerPlugin extends JavaPlugin {
         LootboxItem.init(this);
         getServer().getPluginManager().registerEvents(new LootboxManager(economy), this);
         if (getCommand("coffre") != null) {
-            LootboxCommand lootboxCommand = new LootboxCommand();
+            LootboxCommand lootboxCommand = new LootboxCommand(this);
             setExecutor("coffre", lootboxCommand);
             getCommand("coffre").setTabCompleter(lootboxCommand);
         }
@@ -350,11 +354,24 @@ public final class ClikerPlugin extends JavaPlugin {
             getLogger().log(java.util.logging.Level.SEVERE, "Module Discord indisponible", error);
             if (discordModule != null) discordModule.shutdown();
         }
+        try {
+            referrals = new fr.cliker.clikerv2.referral.ReferralModule(this, database, claims);
+            referrals.start();
+        } catch (IllegalArgumentException | IllegalStateException error) {
+            getLogger().log(java.util.logging.Level.SEVERE, "Configuration du parrainage invalide : vérifier parrainage.yml", error);
+            if (referrals != null) referrals.shutdown();
+            referrals = null;
+            getCommand("parrein").setExecutor((sender, command, label, args) -> {
+                sender.sendMessage(net.kyori.adventure.text.Component.text("Le parrainage est temporairement indisponible. Contacte un administrateur.", net.kyori.adventure.text.format.NamedTextColor.RED));
+                return true;
+            });
+        }
         getLogger().info("Economie active avec SQLite.");
     }
 
     @Override
     public void onDisable() {
+        if (referrals != null) referrals.shutdown();
         if (discordModule != null) discordModule.shutdown();
         if (scoreboard != null) scoreboard.shutdown();
         if (mainMenu != null) mainMenu.shutdown();
@@ -362,6 +379,7 @@ public final class ClikerPlugin extends JavaPlugin {
         if (dailyModule != null) dailyModule.shutdown();
         if (bagMenu != null) bagMenu.shutdown();
         if (mobManager != null) mobManager.shutdown();
+        if (claims != null) claims.shutdown();
         if (database != null) database.close();
     }
 

@@ -51,6 +51,15 @@ public final class DatabaseManager {
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS stations (id TEXT PRIMARY KEY NOT NULL, type TEXT NOT NULL, world TEXT NOT NULL, x INTEGER NOT NULL, y INTEGER NOT NULL, z INTEGER NOT NULL)");
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS bags (uuid TEXT PRIMARY KEY NOT NULL, items TEXT NOT NULL)");
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS buyzone_unlocks (uuid TEXT NOT NULL, zone_id TEXT NOT NULL, permission TEXT NOT NULL, purchased_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY(uuid, zone_id))");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS claim_items(id TEXT PRIMARY KEY, owner TEXT NOT NULL, source TEXT NOT NULL, payload TEXT NOT NULL, state INTEGER NOT NULL DEFAULT 0, lease TEXT, lease_until INTEGER NOT NULL DEFAULT 0, UNIQUE(owner,source))");
+            statement.executeUpdate("CREATE INDEX IF NOT EXISTS claim_owner_state ON claim_items(owner,state)");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS referral_players(uuid TEXT PRIMARY KEY, name TEXT NOT NULL, first_join INTEGER NOT NULL, deadline INTEGER NOT NULL, last_seen INTEGER NOT NULL)");
+            statement.executeUpdate("CREATE INDEX IF NOT EXISTS referral_player_name ON referral_players(name COLLATE NOCASE)");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS referrals(recruit TEXT PRIMARY KEY, sponsor TEXT NOT NULL, created_at INTEGER NOT NULL)");
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS private_notices(id TEXT PRIMARY KEY, owner TEXT NOT NULL, message TEXT NOT NULL, delivered INTEGER NOT NULL DEFAULT 0)");
+            statement.executeUpdate("CREATE INDEX IF NOT EXISTS notice_owner ON private_notices(owner,delivered)");
+            // Les anciennes réservations ne sont plus actives après un redémarrage du plugin.
+            statement.executeUpdate("UPDATE claim_items SET lease_until=0 WHERE state=1");
             migrateAuctionsExpiredColumn(statement);
             migrateUpgradesCadenceColumn(statement);
         }

@@ -22,8 +22,7 @@ public final class CompressorCommand implements CommandExecutor, TabCompleter {
         MobTier tier = MobTier.parse(args[0]);
         if (tier == null) { sender.sendMessage(Component.text("Mob inconnu : " + args[0], NamedTextColor.RED)); return true; }
 
-        var leftover = player.getInventory().addItem(CompressorItem.create(tier));
-        leftover.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+        fr.cliker.clikerv2.rewards.ItemDelivery.give(player, CompressorItem.create(tier));
         player.sendMessage(Component.text("✦ Compresseur " + tier.label() + " donné !", NamedTextColor.GREEN));
         return true;
     }

@@ -5,6 +5,15 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, DecentHolograms, Citizens, ItemsAdder]
 commands:
+  claim:
+    description: Récupérer les récompenses en objets non livrées
+    usage: /claim
+    permission: cliker.claim
+  parrein:
+    description: Indiquer le joueur qui t’a invité
+    usage: /parrein <pseudo>
+    aliases: [parrain, parrainage]
+    permission: cliker.parrein
   discord:
     description: Lien du Discord ClickHunter et gestion du PNJ
     usage: /discord [pnj spawn|remove]
@@ -133,6 +142,10 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.claim:
+    default: true
+  cliker.parrein:
+    default: true
   cliker.discord.use:
     default: true
   cliker.discord.admin:

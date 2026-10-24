@@ -73,3 +73,5 @@ Scoreboard ClickHunter : [présentation, monnaies et configuration](docs/SCOREBO
 Combat : [textes de dégâts qui montent puis disparaissent](docs/TEXTES-DE-DEGATS.md).
 
 Communauté : [commande Discord et placement du PNJ](docs/PNJ-DISCORD.md).
+
+Récompenses différées et communauté : [/claim et /parrein](docs/CLAIM-PARRAINAGE.md).

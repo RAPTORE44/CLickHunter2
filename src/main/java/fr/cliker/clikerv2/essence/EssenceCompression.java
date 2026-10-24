@@ -30,7 +30,6 @@ public final class EssenceCompression {
     }
 
     private static void give(Player player, MobTier tier, EssenceRarity rarity, int amount) {
-        var leftover = player.getInventory().addItem(EssenceItem.create(tier, rarity, amount));
-        leftover.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+        fr.cliker.clikerv2.rewards.ItemDelivery.give(player, EssenceItem.create(tier, rarity, amount));
     }
 }

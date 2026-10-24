@@ -164,8 +164,7 @@ public final class ReforgeMenu implements Listener {
         ItemStack deposited = holder.inventory.getItem(DEPOSIT_SLOT);
         if (deposited == null) return;
         holder.inventory.setItem(DEPOSIT_SLOT, null);
-        var leftover = player.getInventory().addItem(deposited);
-        leftover.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+        fr.cliker.clikerv2.rewards.ItemDelivery.give(player, deposited);
     }
 
     private static final class Holder implements InventoryHolder {

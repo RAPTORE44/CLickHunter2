@@ -205,8 +205,7 @@ public final class MerchantMenu implements Listener {
                 return;
             }
             if (essenceCost > 0) EssenceItem.remove(player, tier, required, essenceCost);
-            var leftover = player.getInventory().addItem(reward);
-            leftover.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+            fr.cliker.clikerv2.rewards.ItemDelivery.give(player, reward);
             player.sendMessage(Component.text("✦ Achat effectué !", NamedTextColor.GREEN));
         }));
     }
@@ -238,8 +237,7 @@ public final class MerchantMenu implements Listener {
                 EssenceRarity next = rarity.next();
                 if (next == null) return;
                 if (EssenceItem.remove(player, tier, rarity, EssenceCompression.RATIO)) {
-                    var leftover = player.getInventory().addItem(EssenceItem.create(tier, next, 1));
-                    leftover.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+                    fr.cliker.clikerv2.rewards.ItemDelivery.give(player, EssenceItem.create(tier, next, 1));
                     player.sendMessage(Component.text("✦ " + EssenceCompression.RATIO + " " + rarity.label() + " ", NamedTextColor.GREEN)
                             .append(Component.text("-> 1 " + next.label() + " " + tier.label() + " !", next.color())));
                 } else {
@@ -254,8 +252,7 @@ public final class MerchantMenu implements Listener {
                 EssenceRarity previous = rarity.previous();
                 if (previous == null) return;
                 if (EssenceItem.remove(player, tier, rarity, 1)) {
-                    var leftover = player.getInventory().addItem(EssenceItem.create(tier, previous, EssenceCompression.RATIO));
-                    leftover.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+                    fr.cliker.clikerv2.rewards.ItemDelivery.give(player, EssenceItem.create(tier, previous, EssenceCompression.RATIO));
                     player.sendMessage(Component.text("✦ 1 " + rarity.label() + " ", NamedTextColor.YELLOW)
                             .append(Component.text("-> " + EssenceCompression.RATIO + " " + previous.label() + " " + tier.label() + " !", previous.color())));
                 } else {

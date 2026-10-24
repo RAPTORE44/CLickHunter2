@@ -30,8 +30,7 @@ public final class TierGearCommand implements CommandExecutor, TabCompleter {
         pieces.add(TierGear.createSword(tier));
         for (TierGear.ArmorSlot slot : TierGear.ArmorSlot.values()) pieces.add(TierGear.createArmor(tier, slot));
         for (ItemStack piece : pieces) {
-            var leftover = player.getInventory().addItem(piece);
-            leftover.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+            fr.cliker.clikerv2.rewards.ItemDelivery.give(player, piece);
         }
 
         sender.sendMessage(Component.text("Set " + tier.label() + " reçu (épée + armure). ", NamedTextColor.GREEN)

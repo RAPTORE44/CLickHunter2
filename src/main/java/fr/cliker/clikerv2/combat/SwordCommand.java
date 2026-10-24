@@ -28,7 +28,7 @@ public final class SwordCommand implements CommandExecutor {
         if (!sender.hasPermission("cliker.mob.admin")) { sender.sendMessage(Component.text("Permission administrateur requise.", NamedTextColor.RED)); return true; }
         if (!(sender instanceof Player player)) { sender.sendMessage(Component.text("Commande réservée aux joueurs.", NamedTextColor.RED)); return true; }
 
-        player.getInventory().addItem(create());
+        fr.cliker.clikerv2.rewards.ItemDelivery.give(player, create());
         player.sendMessage(Component.text("⚔ Épée +25 dégâts reçue.", NamedTextColor.AQUA));
         return true;
     }

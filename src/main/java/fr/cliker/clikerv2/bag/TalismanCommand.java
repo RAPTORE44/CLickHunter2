@@ -16,6 +16,9 @@ import java.util.Locale;
 
 /** /talisman treasure <joueur> : donne un Treasure Talisman (admin). */
 public final class TalismanCommand implements CommandExecutor, TabCompleter {
+    private final org.bukkit.plugin.java.JavaPlugin plugin;
+    public TalismanCommand(org.bukkit.plugin.java.JavaPlugin plugin) { this.plugin = plugin; }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("cliker.mob.admin")) { sender.sendMessage(Component.text("Permission administrateur requise.", NamedTextColor.RED)); return true; }
@@ -23,14 +26,16 @@ public final class TalismanCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage(Component.text("/" + label + " treasure <joueur>", NamedTextColor.YELLOW));
             return true;
         }
-        Player target = Bukkit.getPlayerExact(args[1]);
-        if (target == null) { sender.sendMessage(Component.text("Joueur introuvable ou hors ligne.", NamedTextColor.RED)); return true; }
-
-        ItemStack item = TalismanItem.createTreasureTalisman();
-        var leftover = target.getInventory().addItem(item);
-        leftover.values().forEach(over -> target.getWorld().dropItemNaturally(target.getLocation(), over));
-        target.sendMessage(Component.text("✦ Tu as reçu un Treasure Talisman ! Mets-le dans ton /sac.", NamedTextColor.GOLD));
-        sender.sendMessage(Component.text("Treasure Talisman donné à " + target.getName() + ".", NamedTextColor.GREEN));
+        var delivery = Bukkit.getServicesManager().load(fr.cliker.clikerv2.rewards.ClaimService.class);
+        if (delivery == null) { sender.sendMessage(Component.text("Service de récompenses indisponible.", NamedTextColor.RED)); return true; }
+        String name = args[1]; ItemStack item = TalismanItem.createTreasureTalisman();
+        delivery.resolve(name).whenComplete((uuid, error) -> Bukkit.getScheduler().runTask(plugin, () -> {
+            if (error != null || uuid == null) { sender.sendMessage(Component.text("Joueur inconnu : il doit avoir déjà rejoint le serveur.", NamedTextColor.RED)); return; }
+            delivery.give(uuid, name, item);
+            Player online = Bukkit.getPlayer(uuid);
+            if (online != null) online.sendMessage(Component.text("✦ Treasure Talisman attribué ! Consulte /claim si nécessaire.", NamedTextColor.GOLD));
+            sender.sendMessage(Component.text("Treasure Talisman attribué à " + name + ".", NamedTextColor.GREEN));
+        }));
         return true;
     }
 

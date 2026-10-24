@@ -14,6 +14,6 @@ public final class StarterSwordListener implements Listener {
         for (ItemStack item : player.getInventory().getContents()) {
             if (item != null && item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer().has(SwordCommand.SWORD_KEY, PersistentDataType.BYTE)) return;
         }
-        player.getInventory().addItem(SwordCommand.create());
+        fr.cliker.clikerv2.rewards.ItemDelivery.give(player, SwordCommand.create());
     }
 }

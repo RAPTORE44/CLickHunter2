@@ -1,0 +1,39 @@
+# Temps réel depuis la toute première connexion, y compris hors ligne.
+delai-minutes: 30
+parrain-par-defaut: RAPTORE44
+barre:
+  couleur: PURPLE
+  titre: '&dFais /parrein <pseudo> &f• &e{temps}'
+recompenses:
+  filleul:
+    monnaies:
+      ecus: 1000
+      gemmes-sombres: 0
+      cendres: 0
+    objets:
+      - type: lootbox
+        id: commun
+        quantite: 1
+  parrain:
+    monnaies:
+      ecus: 2500
+      gemmes-sombres: 0
+      cendres: 0
+    objets:
+      - type: lootbox
+        id: commun
+        quantite: 1
+# Gemmes sombres : quantités internes en dixièmes, 10 = 1 gemme.
+# Autre objet : {type: minecraft, materiau: DIAMOND, quantite: 1}
+messages:
+  invitation: '&dBienvenue ! &fIndique qui t’a invité avec &e/parrein <pseudo>&f. Si personne ne t’a invité, mets &e/parrein {defaut}&f. Tu as &e{temps}&f.'
+  filleul: '&aTon parrain {parrain} a été enregistré ! Les monnaies sont créditées et tes objets sont disponibles via /claim si nécessaire.'
+  parrain: '&a{filleul} t’a choisi comme parrain ! Ta récompense est créditée ; les objets non livrés sont dans /claim.'
+  expire: '&cLe délai pour choisir un parrain est terminé.'
+  deja: '&eTu as déjà choisi ton parrain.'
+  soi: '&cTu ne peux pas être ton propre parrain.'
+  cycle: '&cCe parrainage réciproque n’est pas autorisé.'
+  inconnu: '&cCe joueur est introuvable. Le parrain doit avoir déjà rejoint le serveur.'
+  traitement: '&eTon parrainage est en cours de validation.'
+  erreur: '&cImpossible de valider le parrainage. Aucune récompense supplémentaire n’a été débitée.'
+  chargement: '&7Chargement de ton parrainage. Réessaie dans un instant.'

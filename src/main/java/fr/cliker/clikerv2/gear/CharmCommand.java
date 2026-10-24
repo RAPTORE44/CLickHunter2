@@ -23,8 +23,7 @@ public final class CharmCommand implements CommandExecutor, TabCompleter {
         MobTier tier = MobTier.parse(args[0]);
         if (tier == null) { sender.sendMessage(Component.text("Mob inconnu : " + args[0], NamedTextColor.RED)); return true; }
 
-        var leftover = player.getInventory().addItem(CharmItem.create(tier));
-        leftover.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+        fr.cliker.clikerv2.rewards.ItemDelivery.give(player, CharmItem.create(tier));
         player.sendMessage(Component.text("✦ Amulette " + tier.label() + " donnée !", NamedTextColor.GREEN));
         return true;
     }

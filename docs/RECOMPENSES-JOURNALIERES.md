@@ -164,6 +164,8 @@ l’administrateur si ses textes font encore référence à 31 jours. Une ancien
 récupération aux jours 29–31 est considérée comme une fin de cycle, tout en
 conservant sa date : aucune deuxième récupération le même jour.
 
-La livraison actuelle utilise encore les commandes de récompense. Le journal
-transactionnel de livraison et la mailbox anti-perte de la spécification maître
-ne sont pas encore fournis : cela reste un blocage à la validation production.
+La livraison actuelle utilise encore les commandes de récompense. Les objets des
+commandes ClikerV2 passent désormais par `/claim` si le destinataire est hors ligne
+ou si son inventaire est plein. Cela ne rend pas atomiques la date daily et toutes
+les commandes externes entre bases distinctes : cette limite reste à traiter pour
+la validation production complète. Voir `CLAIM-PARRAINAGE.md`.

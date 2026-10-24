@@ -74,8 +74,7 @@ public final class AuctionManager implements Listener {
         if (seller != null && seller.isOnline()) {
             ItemStack item = deserialize(listing.itemYaml());
             if (item != null) {
-                var leftover = seller.getInventory().addItem(item);
-                leftover.values().forEach(leftoverItem -> seller.getWorld().dropItemNaturally(seller.getLocation(), leftoverItem));
+                fr.cliker.clikerv2.rewards.ItemDelivery.give(seller, item);
             }
             store.removeById(listing.id());
             seller.sendMessage(Component.text("⌛ Ton annonce (" + listing.price() + " Écus) a expiré après 72h, item rendu.", NamedTextColor.YELLOW));
@@ -92,8 +91,7 @@ public final class AuctionManager implements Listener {
             for (AuctionListing listing : expired) {
                 ItemStack item = deserialize(listing.itemYaml());
                 if (item != null) {
-                    var leftover = player.getInventory().addItem(item);
-                    leftover.values().forEach(leftoverItem -> player.getWorld().dropItemNaturally(player.getLocation(), leftoverItem));
+                    fr.cliker.clikerv2.rewards.ItemDelivery.give(player, item);
                 }
                 store.removeById(listing.id());
             }
@@ -166,8 +164,7 @@ public final class AuctionManager implements Listener {
 
             ItemStack item = deserialize(listing.itemYaml());
             if (item != null) {
-                var leftover = buyer.getInventory().addItem(item);
-                leftover.values().forEach(leftoverItem -> buyer.getWorld().dropItemNaturally(buyer.getLocation(), leftoverItem));
+                fr.cliker.clikerv2.rewards.ItemDelivery.give(buyer, item);
             }
 
             long tax = Math.round(listing.price() * TAX_RATE);
@@ -195,8 +192,7 @@ public final class AuctionManager implements Listener {
         store.removeById(listingId);
         ItemStack item = deserialize(listing.itemYaml());
         if (item != null) {
-            var leftover = seller.getInventory().addItem(item);
-            leftover.values().forEach(leftoverItem -> seller.getWorld().dropItemNaturally(seller.getLocation(), leftoverItem));
+            fr.cliker.clikerv2.rewards.ItemDelivery.give(seller, item);
         }
         return true;
     }

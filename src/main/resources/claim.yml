@@ -1,0 +1,10 @@
+titre: '&8Récompenses à récupérer'
+messages:
+  chargement: '&7Chargement de tes récompenses...'
+  attente: '&aTu as une récompense en attente ! &e/claim &apour la récupérer.'
+  vide: '&7Tu n’as aucune récompense en attente.'
+  plein: '&cTon inventaire est plein. Libère de la place puis utilise /claim.'
+  recupere: '&aRécompense récupérée !'
+  traitement: '&eUne récupération est déjà en cours. Patiente un instant.'
+  erreur: '&cImpossible de traiter la récompense. Elle reste sauvegardée dans /claim.'
+  sauvegarde: '&eSauvegarde de la récompense en cours. Patiente un instant.'
