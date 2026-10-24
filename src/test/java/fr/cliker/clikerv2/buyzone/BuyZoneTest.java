@@ -70,6 +70,10 @@ class BuyZoneTest {
         var file = plugin.getDataFolder().toPath().resolve("buyzone.yml").toFile();
         var config = YamlConfiguration.loadConfiguration(file);
         config.set("zones.cochon.prix", 100);
+        config.set("zones.test_non_configure.prix", -1);
+        config.set("zones.test_non_configure.nom", "Zone non configurée");
+        config.set("zones.test_non_configure.devise", "ecus");
+        config.set("zones.test_non_configure.permission", "cliker.zone.test_non_configure");
         config.save(file);
         databaseFile = "test-" + UUID.randomUUID() + ".db";
         database = new DatabaseManager(plugin, databaseFile);
@@ -172,11 +176,11 @@ class BuyZoneTest {
         assertEquals(400L, economy.getBalance(player.getUniqueId(), player.getName(), CurrencyType.ECUS).join());
         assertTrue(new BuyZoneStore(database).load(UUID.randomUUID()).join().isEmpty());
     }
-    @Test void unknownPricesAreNotInventedAndAdminPermissionIsRequired() {
-        module.onCommand(admin, COMMAND, "buyzone", new String[]{"spawn", "vache"});
+    @Test void customDisabledZonesRemainDisabledAndAdminPermissionIsRequired() {
+        module.onCommand(admin, COMMAND, "buyzone", new String[]{"spawn", "test_non_configure"});
         var saved = YamlConfiguration.loadConfiguration(plugin.getDataFolder().toPath().resolve("buyzone.yml").toFile());
-        assertEquals(-1L, saved.getLong("zones.vache.prix"));
-        assertFalse(saved.contains("portails.vache"));
+        assertEquals(-1L, saved.getLong("zones.test_non_configure.prix"));
+        assertFalse(saved.contains("portails.test_non_configure"));
         module.onCommand(player, COMMAND, "buyzone", new String[]{"spawn", "cochon"});
         assertFalse(YamlConfiguration.loadConfiguration(plugin.getDataFolder().toPath().resolve("buyzone.yml").toFile()).contains("portails.cochon"));
     }
@@ -202,6 +206,27 @@ class BuyZoneTest {
         module.onCommand(admin, COMMAND, "buyzone", new String[]{"remove", "cochon"});
         assertFalse(YamlConfiguration.loadConfiguration(plugin.getDataFolder().toPath().resolve("buyzone.yml").toFile()).contains("portails.cochon"));
         assertEquals(Set.of("cochon"), new BuyZoneStore(database).load(player.getUniqueId()).join());
+    }
+    @Test void legacyMissingPricesMigrateWithoutChangingCustomPricesOrPositions() throws Exception {
+        var path = plugin.getDataFolder().toPath().resolve("buyzone.yml");
+        var old = YamlConfiguration.loadConfiguration(path.toFile());
+        old.set("version-prix", null);
+        old.set("zones.vache.prix", -1);
+        old.set("zones.piglin_brute.prix", -1);
+        old.set("zones.cochon.prix", 1234);
+        old.set("portails.cochon", center);
+        old.save(path.toFile());
+        var migrated = new BuyZoneModule(plugin, economy, database);
+        try {
+            var saved = YamlConfiguration.loadConfiguration(path.toFile());
+            assertEquals(2, saved.getInt("version-prix"));
+            assertEquals(0L, saved.getLong("zones.vache.prix"));
+            assertEquals(10_000_000L, saved.getLong("zones.piglin_brute.prix"));
+            assertEquals(1234L, saved.getLong("zones.cochon.prix"));
+            assertEquals(-1L, saved.getLong("zones.test_non_configure.prix"));
+            assertEquals(center, saved.getLocation("portails.cochon"));
+            try (var backups = Files.list(path.getParent().resolve("backups"))) { assertEquals(1, backups.count()); }
+        } finally { migrated.shutdown(); }
     }
     @Test void failedUnlockInsertRollsBackMoneyDebit() {
         economy.set(player.getUniqueId(), player.getName(), CurrencyType.ECUS, 250).join();

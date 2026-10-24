@@ -59,8 +59,7 @@ persistée est déjà dépassée lors d'un redémarrage.
   massedit, profils, overrides, reloads sûrs et audit généralisé.
 - Validation réelle Paper/Citizens/ItemsAdder et scénarios de crash/charge.
 
-Les prix d'accès et l'ancien pack d'équilibrage ne sont toujours pas fournis.
-Le fichier Buyzone conserve donc ses tarifs non configurés à -1.
+Les valeurs historiques manquantes peuvent être remplacées par un équilibrage provisoire autorisé. Buyzone reçoit des tarifs progressifs basés sur les prix des armures ; les prix déjà définis restent inchangés.
 
 Les tests existants et nouveaux valident uniquement les capacités qu'ils exercent.
 La réussite du build ne constitue pas une certification production globale.

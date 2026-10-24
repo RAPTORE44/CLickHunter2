@@ -5,21 +5,22 @@ monnaies et la base SQLite de ClikerV2, sans Vault ni WorldGuard.
 
 ## Configuration nécessaire avant de créer les portails
 
-Les fichiers du projet initial contiennent les noms des 19 types de mobs, mais
-**aucune liste de prix d'accès ni de permissions de zones**. Leurs points de vie
-ne sont pas des prix. Le module reprend donc ces noms dans `buyzone.yml` et laisse
-chaque prix à **-1 (non configuré)**. Aucun tarif n'a été inventé.
+Les tarifs existants sont conservés. Les accès qui n'avaient pas encore de prix
+reçoivent un **équilibrage provisoire autorisé** : Vache gratuite, puis le prix
+d'accès correspond à dix fois le prix actuel d'une pièce d'armure de la zone.
+Exemples : Cochon 1 000 Écus, Poulet 5 000, Mouton 10 000, Piglin Brute 10 millions.
+Cela ne modifie pas le prix des équipements. Tous les montants restent éditables.
 
 Au premier démarrage, le fichier est créé dans `plugins/ClikerV2/buyzone.yml`.
-Renseigner les vrais tarifs et, si nécessaire, remplacer les permissions proposées,
+Ajuster les tarifs et, si nécessaire, remplacer les permissions proposées,
 puis redémarrer le serveur avant de créer les portails. Exemple de structure,
-avec un tarif volontairement NON renseigné :
+avec le tarif provisoire :
 
 ```yaml
 zones:
   cochon:
     nom: 'Cochon'
-    prix: -1
+    prix: 1000
     devise: ecus
     permission: cliker.zone.cochon
 ```
@@ -133,3 +134,12 @@ insuffisant, l'achat, les doubles clics, la concurrence des paiements, l'annulat
 atomique d'un débit si l'enregistrement du droit échoue et le rechargement des
 achats après redémarrage. Ils utilisent un serveur simulé. Le placement réel du
 portail, les collisions et le terrain du serveur restent à vérifier en jeu.
+
+## Migration automatique des anciens tarifs
+
+Une ancienne configuration sans `version-prix: 2` est copiée dans
+`backups/buyzone-<timestamp>.yml`. Seuls les prix absents ou égaux à -1 des zones
+connues sont remplacés. Les montants positifs, la gratuité déjà configurée, les
+permissions, les positions et les achats sont conservés. Les zones personnalisées
+ne sont pas affectées. Après migration, `-1` reste utilisable pour désactiver
+volontairement une zone : la migration ne repasse pas à chaque démarrage.

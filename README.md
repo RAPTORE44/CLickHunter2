@@ -2,7 +2,7 @@
 
 Le module **Buyzone** crée des portails invisibles d'achat d'accès avec l'économie
 intégrée : [configuration des tarifs, commandes et installation](docs/BUYZONE.md).
-Les prix d'accès sont à renseigner ; aucun tarif n'était présent dans le projet initial.
+Les prix d'accès manquants sont proposés à partir des prix actuels des armures, sans modifier les tarifs existants.
 
 Le module **NorthBlue de récompenses journalières** est intégré à ce même plugin :
 `/daily`, calendrier de 28 jours et PNJ Citizens optionnel.

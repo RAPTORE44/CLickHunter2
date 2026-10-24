@@ -50,6 +50,7 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
         file = new File(plugin.getDataFolder(), "buyzone.yml");
         if (!file.exists()) plugin.saveResource("buyzone.yml", false);
         config = YamlConfiguration.loadConfiguration(file);
+        migratePrices();
         ConfigurationSection catalog = config.getConfigurationSection("zones");
         if (catalog == null) throw new IllegalArgumentException("Catalogue des zones absent");
         for (String id : catalog.getKeys(false)) {
@@ -65,6 +66,28 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
             gates.put(id, definition(id, location));
         }
     }
+    private void migratePrices() {
+        if (config.getInt("version-prix", 1) >= 2) return;
+        try {
+            var backup = plugin.getDataFolder().toPath().resolve("backups/buyzone-" + System.currentTimeMillis() + ".yml");
+            java.nio.file.Files.createDirectories(backup.getParent());
+            java.nio.file.Files.copy(file.toPath(), backup);
+            try (var input = plugin.getResource("buyzone.yml")) {
+                var defaults = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(Objects.requireNonNull(input), java.nio.charset.StandardCharsets.UTF_8));
+                for (String id : defaults.getConfigurationSection("zones").getKeys(false)) {
+                    String key = "zones." + id + ".prix";
+                    // Conserver les prix déjà personnalisés et les entrées de zones supplémentaires.
+                    if (config.isConfigurationSection("zones." + id) && (!config.contains(key) || config.getLong(key) == -1)) {
+                        config.set(key, defaults.getLong(key));
+                    }
+                }
+            }
+            config.set("version-prix", 2);
+            saveConfig();
+            plugin.getLogger().info("Buyzone : tarifs provisoires appliqués ; ancienne configuration sauvegardée dans " + backup.getFileName());
+        } catch (java.io.IOException e) { throw new IllegalStateException("Migration des tarifs impossible", e); }
+    }
+
     public void start() {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         Objects.requireNonNull(plugin.getCommand("buyzone")).setExecutor(this);
