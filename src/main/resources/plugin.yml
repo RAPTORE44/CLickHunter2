@@ -9,10 +9,10 @@ commands:
     description: Récupérer les récompenses en objets non livrées
     usage: /claim
     permission: cliker.claim
-  parrein:
+  parrain:
     description: Indiquer le joueur qui t’a invité
-    usage: /parrein <pseudo>
-    aliases: [parrain, parrainage]
+    usage: /parrain <pseudo>
+    aliases: [parrein, parrainage]
     permission: cliker.parrein
   discord:
     description: Lien du Discord ClickHunter et gestion du PNJ

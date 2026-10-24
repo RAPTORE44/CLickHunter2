@@ -74,4 +74,4 @@ Combat : [textes de dégâts qui montent puis disparaissent](docs/TEXTES-DE-DEGA
 
 Communauté : [commande Discord et placement du PNJ](docs/PNJ-DISCORD.md).
 
-Récompenses différées et communauté : [/claim et /parrein](docs/CLAIM-PARRAINAGE.md).
+Récompenses différées et communauté : [/claim et /parrain](docs/CLAIM-PARRAINAGE.md).

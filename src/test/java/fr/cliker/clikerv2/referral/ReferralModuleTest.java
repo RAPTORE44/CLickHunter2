@@ -27,7 +27,7 @@ class ReferralModuleTest {
     private ReferralModule module;
     private PlayerMock recruit, sponsor, observer;
     private MutableClock clock;
-    private final Command command = new Command("parrein") { @Override public boolean execute(CommandSender s,String l,String[]a){return false;} };
+    private final Command command = new Command("parrain") { @Override public boolean execute(CommandSender s,String l,String[]a){return false;} };
     @BeforeEach void setup() throws Exception {
         server = MockBukkit.mock(new ServerMock() {
             // Le cache de profils est simulé pour les tests hors ligne.
@@ -64,11 +64,11 @@ class ReferralModuleTest {
     }
     private List<String> messages(PlayerMock player) { List<String> list = new ArrayList<>(); for (String s; (s = player.nextMessage()) != null;) list.add(s); return list; }
     @Test void welcomeHasFallbackAndBarDisappearsAfterSuccessfulChoice() throws Exception {
-        assertTrue(messages(recruit).stream().anyMatch(m -> m.contains("/parrein RAPTORE44")));
+        assertTrue(messages(recruit).stream().anyMatch(m -> m.contains("/parrain RAPTORE44")));
         BossBar bar = bars().get(recruit.getUniqueId()); assertNotNull(bar);
-        assertTrue(bar.getTitle().contains("/parrein")); assertTrue(bar.getTitle().contains("30 min"));
+        assertTrue(bar.getTitle().contains("/parrain")); assertTrue(bar.getTitle().contains("30 min"));
         messages(sponsor); messages(observer);
-        module.onCommand(recruit, command, "parrein", new String[]{"RAPTORE44"});
+        module.onCommand(recruit, command, "parrain", new String[]{"RAPTORE44"});
         await(() -> new ReferralStore(database, Map.of()).notices(sponsor.getUniqueId()).join().size() == 1);
         server.getScheduler().performTicks(3); database.submit(c -> null).join(); server.getScheduler().performTicks(3);
         assertFalse(bars().containsKey(recruit.getUniqueId()));
@@ -82,13 +82,13 @@ class ReferralModuleTest {
         clock.time += 31 * 60000;
         var tick = ReferralModule.class.getDeclaredMethod("tick"); tick.setAccessible(true); tick.invoke(module);
         assertFalse(bars().containsKey(recruit.getUniqueId()));
-        module.onCommand(recruit, command, "parrein", new String[]{"RAPTORE44"});
+        module.onCommand(recruit, command, "parrain", new String[]{"RAPTORE44"});
         assertTrue(messages(recruit).stream().anyMatch(m -> m.contains("terminé")));
         load(recruit); assertFalse(bars().containsKey(recruit.getUniqueId()));
     }
     @Test void offlineSponsorIsNotifiedOnlyOnNextConnection() throws Exception {
         messages(sponsor); sponsor.disconnect();
-        module.onCommand(recruit, command, "parrein", new String[]{"RAPTORE44"});
+        module.onCommand(recruit, command, "parrain", new String[]{"RAPTORE44"});
         var repository = new ReferralStore(database, Map.of());
         await(() -> !repository.notices(sponsor.getUniqueId()).join().isEmpty());
         assertEquals(2500L, new EconomyService(database, Map.of()).getBalances(sponsor.getUniqueId()).join().ecus());
@@ -96,6 +96,20 @@ class ReferralModuleTest {
         sponsor.reconnect(); load(sponsor);
         database.submit(c -> null).join(); server.getScheduler().performTicks(3);
         assertTrue(messages(sponsor).stream().anyMatch(m -> m.contains("Nouveau") && m.contains("parrain")));
+    }
+    @Test void oldCommandTextsAreCorrectedWithoutChangingRewards() throws Exception {
+        var file = plugin.getDataFolder().toPath().resolve("parrainage.yml").toFile();
+        var old = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+        old.set("barre.titre", "&dFais /parrein <pseudo> {temps}");
+        old.set("messages.invitation", "Utilise /parrein RAPTORE44");
+        old.set("recompenses.filleul.monnaies.ecus", 1234); old.save(file);
+        var corrected = new ReferralModule(plugin, database, claims, clock);
+        try {
+            var saved = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+            assertEquals("&dFais /parrain <pseudo> {temps}", saved.getString("barre.titre"));
+            assertEquals("Utilise /parrain RAPTORE44", saved.getString("messages.invitation"));
+            assertEquals(1234L, saved.getLong("recompenses.filleul.monnaies.ecus"));
+        } finally { corrected.shutdown(); }
     }
     private static final class MutableClock extends Clock {
         long time; MutableClock(long time) { this.time = time; }

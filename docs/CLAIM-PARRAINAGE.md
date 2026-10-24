@@ -46,9 +46,9 @@ shops ou daily en transactions atomiques de bout en bout. Ne pas utiliser de
 reload à chaud. Les modifications forcées d'inventaire par un plugin externe et
 les défaillances matérielles de stockage ne sont pas couvertes par les tests.
 
-## /parrein <pseudo>
+## /parrain <pseudo>
 
-Alias : `/parrain <pseudo>` et `/parrainage <pseudo>`.
+Alias : `/parrein <pseudo>` et `/parrainage <pseudo>`.
 Permission : `cliker.parrein`, accordée à tous par défaut.
 
 Le délai commence à la **toute première connexion réelle du compte** au serveur.
@@ -60,8 +60,8 @@ restent inchangées.
 
 Pendant ce délai :
 
-- Un message privé de bienvenue explique `/parrein <pseudo>` et propose
-  `/parrein RAPTORE44` si personne n'a invité le joueur.
+- Un message privé de bienvenue explique `/parrain <pseudo>` et propose
+  `/parrain RAPTORE44` si personne n'a invité le joueur.
 - Une barre de boss violette, de style Wither, rappelle la commande et le temps restant.
 - Une validation réussie retire la barre. À expiration, elle disparaît également.
 - Le parrain doit être un compte connu ayant déjà rejoint le serveur ; il peut être hors ligne.
@@ -84,7 +84,7 @@ delai-minutes: 30
 parrain-par-defaut: RAPTORE44
 barre:
   couleur: PURPLE
-  titre: '&dFais /parrein <pseudo> &f• &e{temps}'
+  titre: '&dFais /parrain <pseudo> &f• &e{temps}'
 recompenses:
   filleul:
     monnaies:
@@ -125,7 +125,7 @@ récompenses rétroactives à un parrainage déjà validé.
 1. Arrêter le serveur et sauvegarder le dossier `plugins/ClikerV2/`.
 2. Remplacer le JAR puis démarrer : les deux YAML et tables sont créés automatiquement.
 3. Ajuster les récompenses si nécessaire puis redémarrer.
-4. Tester `/claim` avec un inventaire plein et un compte neuf pour `/parrein`.
+4. Tester `/claim` avec un inventaire plein et un compte neuf pour `/parrain`.
 
 Les tests couvrent notamment les propriétaires, doubles clics, pagination,
 inventaire plein, conservation hors ligne/redémarrage, fusion de piles, reprise
@@ -135,3 +135,6 @@ barre, messages privés et notification du parrain après reconnexion.
 Les frontières de sauvegarde de fichiers joueur et d'écriture d'inventaire non
 implémentées dans MockBukkit sont simulées dans les tests ; un vrai arrêt brutal
 du serveur et le rendu client de la barre restent à vérifier sur Paper.
+
+La permission historique `cliker.parrein` est conservée pour ne pas casser les groupes existants.
+Les anciennes mentions de `/parrein` dans la barre et le message d’accueil sont corrigées automatiquement au redémarrage.

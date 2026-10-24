@@ -361,7 +361,7 @@ public final class ClikerPlugin extends JavaPlugin {
             getLogger().log(java.util.logging.Level.SEVERE, "Configuration du parrainage invalide : vérifier parrainage.yml", error);
             if (referrals != null) referrals.shutdown();
             referrals = null;
-            getCommand("parrein").setExecutor((sender, command, label, args) -> {
+            getCommand("parrain").setExecutor((sender, command, label, args) -> {
                 sender.sendMessage(net.kyori.adventure.text.Component.text("Le parrainage est temporairement indisponible. Contacte un administrateur.", net.kyori.adventure.text.format.NamedTextColor.RED));
                 return true;
             });

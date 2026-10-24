@@ -41,6 +41,16 @@ public final class ReferralModule implements Listener, CommandExecutor, TabCompl
         File file = new File(plugin.getDataFolder(), "parrainage.yml");
         if (!file.exists()) plugin.saveResource("parrainage.yml", false);
         config = YamlConfiguration.loadConfiguration(file);
+        boolean corrected = false;
+        for (String key : List.of("barre.titre", "messages.invitation")) {
+            String previous = config.getString(key, "");
+            String updated = previous.replaceAll("/parrein(?=\\s|$)", "/parrain");
+            if (!updated.equals(previous)) { config.set(key, updated); corrected = true; }
+        }
+        if (corrected) {
+            try { config.save(file); }
+            catch (java.io.IOException error) { throw new IllegalStateException("Correction de la commande de parrainage impossible", error); }
+        }
         long minutes = config.getLong("delai-minutes", 30); if (minutes < 1 || minutes > 10080) throw new IllegalArgumentException("Délai de parrainage invalide");
         window = minutes * 60000;
         Map<CurrencyType, Long> initial = new EnumMap<>(CurrencyType.class);
@@ -52,7 +62,7 @@ public final class ReferralModule implements Listener, CommandExecutor, TabCompl
     }
     public void start() {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        Objects.requireNonNull(plugin.getCommand("parrein")).setExecutor(this); plugin.getCommand("parrein").setTabCompleter(this);
+        Objects.requireNonNull(plugin.getCommand("parrain")).setExecutor(this); plugin.getCommand("parrain").setTabCompleter(this);
         for (Player player : Bukkit.getOnlinePlayers()) load(player);
         ticker = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20, 20);
     }
@@ -95,7 +105,7 @@ public final class ReferralModule implements Listener, CommandExecutor, TabCompl
     public static String remaining(long millis) { long seconds = Math.max(0, (millis + 999) / 1000); return (seconds / 60) + " min " + String.format(Locale.ROOT, "%02d s", seconds % 60); }
     private void showBar(Player player, ReferralStore.PlayerState state) {
         BossBar bar = bars.computeIfAbsent(player.getUniqueId(), id -> Bukkit.createBossBar("", BarColor.valueOf(config.getString("barre.couleur", "PURPLE")), BarStyle.SOLID));
-        bar.setTitle(ChatColor.translateAlternateColorCodes('&', config.getString("barre.titre", "&d/parrein <pseudo> • {temps}").replace("{temps}", remaining(state.deadline() - clock.millis()))));
+        bar.setTitle(ChatColor.translateAlternateColorCodes('&', config.getString("barre.titre", "&d/parrain <pseudo> • {temps}").replace("{temps}", remaining(state.deadline() - clock.millis()))));
         bar.setProgress(Math.max(0, Math.min(1, (state.deadline() - clock.millis()) / (double)window))); bar.addPlayer(player);
     }
     private void removeBar(UUID owner) { BossBar bar = bars.remove(owner); if (bar != null) bar.removeAll(); }
