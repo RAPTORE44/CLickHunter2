@@ -1,0 +1,10 @@
+active: true
+# Montée d'un bloc en une seconde, puis suppression.
+montee-blocs: 1.0
+duree-ticks: 20
+texte: '&c&l-{degats}'
+decalage-vertical: 0.5
+dispersion: 0.35
+# Limites visuelles uniquement : aucun effet sur les dégâts ou les gains.
+maximum-actifs: 200
+maximum-par-joueur: 20

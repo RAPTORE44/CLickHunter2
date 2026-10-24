@@ -30,7 +30,6 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -59,6 +58,7 @@ public final class CustomMobManager implements Listener {
     public static NamespacedKey MOB_ID_KEY;
 
     private final JavaPlugin plugin;
+    private final fr.cliker.clikerv2.combat.DamagePopups damagePopups;
     private final double bossHpMultiplier;
     private final MobSpawnStore store;
     private final EconomyService economy;
@@ -82,6 +82,7 @@ public final class CustomMobManager implements Listener {
 
     public CustomMobManager(JavaPlugin plugin, MobSpawnStore store, EconomyService economy, UpgradeManager upgrades, MobKillStore killStore, PrestigeManager prestige, CompressorManager compressorManager, BagManager bagManager) {
         this.plugin = plugin;
+        this.damagePopups = new fr.cliker.clikerv2.combat.DamagePopups(plugin);
         java.io.File bossFile = new java.io.File(plugin.getDataFolder(), "boss.yml");
         if (!bossFile.exists()) plugin.saveResource("boss.yml", false);
         bossHpMultiplier = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(bossFile).getDouble("multiplicateur-pv", 100);
@@ -183,6 +184,7 @@ public final class CustomMobManager implements Listener {
     }
 
     public void shutdown() {
+        damagePopups.shutdown();
         for (String spawnId : new ArrayList<>(aliveBySpawnId.keySet())) despawn(spawnId);
         for (BukkitTask task : pendingRespawns.values()) task.cancel();
         pendingRespawns.clear();
@@ -304,7 +306,7 @@ public final class CustomMobManager implements Listener {
      * fatal côté PV virtuels ; le coup fatal met la vraie vie à 0 pour déclencher la mort naturellement (drops,
      * récompenses, respawn gérés par onDeath sans duplication de logique).
      */
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamage(EntityDamageByEntityEvent event) {
         if (!(event.getEntity() instanceof LivingEntity victim)) return;
         String mobId = victim.getPersistentDataContainer().get(mobIdKey, PersistentDataType.STRING);
@@ -344,7 +346,7 @@ public final class CustomMobManager implements Listener {
             event.setDamage(0.0);
         }
         updateNameplate(victim, tier, hpAfter, maxHp, boss);
-        spawnDamagePopup(victim, applied);
+        damagePopups.show(player, victim, applied);
     }
 
     /**
@@ -434,22 +436,6 @@ public final class CustomMobManager implements Listener {
         if (item == null || !item.hasItemMeta()) return false;
         String tag = item.getItemMeta().getPersistentDataContainer().get(TierGear.ARMOR_KEY, PersistentDataType.STRING);
         return gearMobId.equals(tag);
-    }
-
-    private void spawnDamagePopup(LivingEntity victim, double damage) {
-        Location popupLocation = victim.getLocation().add(
-                ThreadLocalRandom.current().nextDouble(-0.5, 0.5),
-                victim.getHeight() + 0.5,
-                ThreadLocalRandom.current().nextDouble(-0.5, 0.5));
-        ArmorStand stand = victim.getWorld().spawn(popupLocation, ArmorStand.class, armorStand -> {
-            armorStand.setVisible(false);
-            armorStand.setGravity(false);
-            armorStand.setMarker(true);
-            armorStand.setCustomNameVisible(true);
-            armorStand.customName(Component.text("-" + Numbers.compact(damage), NamedTextColor.RED, TextDecoration.BOLD));
-            armorStand.setPersistent(false);
-        });
-        plugin.getServer().getScheduler().runTaskLater(plugin, stand::remove, 15L);
     }
 
     @EventHandler

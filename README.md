@@ -69,3 +69,5 @@ Compilation reproductible (JDK 21) : `./mvnw clean package`.
 Navigation et performances : `/menu` — [configuration et optimisations](docs/UX-UI-OPTIMISATIONS.md).
 
 Scoreboard ClickHunter : [présentation, monnaies et configuration](docs/SCOREBOARD.md).
+
+Combat : [textes de dégâts qui montent puis disparaissent](docs/TEXTES-DE-DEGATS.md).
