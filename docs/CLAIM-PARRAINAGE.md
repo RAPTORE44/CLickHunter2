@@ -48,7 +48,7 @@ les défaillances matérielles de stockage ne sont pas couvertes par les tests.
 
 ## /parrain <pseudo>
 
-Alias : `/parrein <pseudo>` et `/parrainage <pseudo>`.
+Alias : `/parrainage <pseudo>`.
 Permission : `cliker.parrein`, accordée à tous par défaut.
 
 Le délai commence à la **toute première connexion réelle du compte** au serveur.

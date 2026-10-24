@@ -12,7 +12,7 @@ commands:
   parrain:
     description: Indiquer le joueur qui t’a invité
     usage: /parrain <pseudo>
-    aliases: [parrein, parrainage]
+    aliases: [parrainage]
     permission: cliker.parrein
   discord:
     description: Lien du Discord ClickHunter et gestion du PNJ
