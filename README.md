@@ -71,3 +71,5 @@ Navigation et performances : `/menu` — [configuration et optimisations](docs/U
 Scoreboard ClickHunter : [présentation, monnaies et configuration](docs/SCOREBOARD.md).
 
 Combat : [textes de dégâts qui montent puis disparaissent](docs/TEXTES-DE-DEGATS.md).
+
+Communauté : [commande Discord et placement du PNJ](docs/PNJ-DISCORD.md).

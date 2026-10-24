@@ -90,6 +90,7 @@ public final class ClikerPlugin extends JavaPlugin {
     private EconomyService economy;
     private CustomMobManager mobManager;
     private BagMenu bagMenu;
+    private fr.cliker.clikerv2.discord.DiscordModule discordModule;
     private MoneyScoreboard scoreboard;
     private fr.cliker.clikerv2.ui.MainMenu mainMenu;
     private fr.cliker.clikerv2.daily.DailyModule dailyModule;
@@ -342,11 +343,19 @@ public final class ClikerPlugin extends JavaPlugin {
                 return true;
             });
         }
+        try {
+            discordModule = new fr.cliker.clikerv2.discord.DiscordModule(this);
+            discordModule.start();
+        } catch (Exception error) {
+            getLogger().log(java.util.logging.Level.SEVERE, "Module Discord indisponible", error);
+            if (discordModule != null) discordModule.shutdown();
+        }
         getLogger().info("Economie active avec SQLite.");
     }
 
     @Override
     public void onDisable() {
+        if (discordModule != null) discordModule.shutdown();
         if (scoreboard != null) scoreboard.shutdown();
         if (mainMenu != null) mainMenu.shutdown();
         if (buyZoneModule != null) buyZoneModule.shutdown();

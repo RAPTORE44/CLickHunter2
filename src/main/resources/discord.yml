@@ -1,0 +1,17 @@
+lien: 'https://discord.gg/WSwBwpnQTa'
+messages:
+  titre: '&9&lClickHunter &8• &fRejoins notre Discord !'
+  survol: '&aClique pour ouvrir le Discord.'
+  interdit: '&cTu n’as pas la permission nécessaire.'
+  citizens-absent: '&cInstalle Citizens compatible Paper 1.21.4 pour créer le PNJ Discord.'
+  joueur-uniquement: '&cPlace-toi en jeu pour créer le PNJ.'
+  cree: '&aPNJ Discord créé à ta position.'
+  existant: '&eUn PNJ Discord existe déjà. Utilise /discord pnj remove pour le déplacer.'
+  supprime: '&aPNJ Discord supprimé.'
+  absent: '&7Aucun PNJ Discord enregistré.'
+  erreur: '&cImpossible de gérer le PNJ Discord. Consulte la console.'
+pnj:
+  actif: false
+  skin: Nati144378
+  titre: '&9&lDISCORD'
+  sous-titre: '&fClic droit pour rejoindre'
