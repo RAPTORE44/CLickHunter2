@@ -4,9 +4,10 @@ starting-balances:
   gemmes-sombres: 0
   cendres: 0
 
-# Affichage externe recommandé ; aucun HUD permanent imposé par défaut.
+# Présentation ClickHunter demandée ; désactiver enabled si un plugin externe gère le tableau.
 displays:
   scoreboard:
-    enabled: false
+    enabled: true
+    style-version: 1
   tab:
     enabled: false

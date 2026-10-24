@@ -11,8 +11,9 @@ l'ensemble du cahier maître. Elle conserve l'identité et les données ClikerV2
   est sauvegardé et migré. Les personnalisations existantes sont conservées.
 - Les anciens jours 29–31 conservent leur date de claim et deviennent une fin de
   cycle : pas de seconde récupération lors de la migration.
-- Scoreboard et TAB natifs désactivés par défaut. Activation volontaire dans
-  `config.yml`, `displays.scoreboard.enabled` et `displays.tab.enabled`.
+- La première révision désactivait scoreboard et TAB par défaut. La demande suivante
+  active le nouveau scoreboard ClickHunter une fois ; il reste désactivable dans
+  `config.yml`. Le TAB reste désactivé. Voir `SCOREBOARD.md`.
 - Protection des essences sous forme d'œufs contre l'usage vanilla, les interactions
   avec les entités et le distributeur, en reconnaissant le PDC et non le lore.
 - Enchant : coût configurable par défaut 100 000 Écus, probabilités configurables

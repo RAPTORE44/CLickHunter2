@@ -90,6 +90,7 @@ public final class ClikerPlugin extends JavaPlugin {
     private EconomyService economy;
     private CustomMobManager mobManager;
     private BagMenu bagMenu;
+    private MoneyScoreboard scoreboard;
     private fr.cliker.clikerv2.ui.MainMenu mainMenu;
     private fr.cliker.clikerv2.daily.DailyModule dailyModule;
     private fr.cliker.clikerv2.buyzone.BuyZoneModule buyZoneModule;
@@ -142,10 +143,15 @@ public final class ClikerPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(prestigeMenu, this);
         setExecutor("prestige", new PrestigeCommand(prestigeMenu));
 
-        MoneyScoreboard scoreboard = new MoneyScoreboard(this, economy, killStore, prestigeManager);
-        if (getConfig().getBoolean("displays.scoreboard.enabled", false)) {
-            getServer().getPluginManager().registerEvents(scoreboard, this);
-            scoreboard.start();
+        try {
+            MoneyScoreboard.installStyle(this);
+            scoreboard = new MoneyScoreboard(this, economy, killStore, prestigeManager);
+            if (getConfig().getBoolean("displays.scoreboard.enabled", false)) {
+                getServer().getPluginManager().registerEvents(scoreboard, this);
+                scoreboard.start();
+            }
+        } catch (IllegalArgumentException | IllegalStateException error) {
+            getLogger().log(java.util.logging.Level.SEVERE, "Scoreboard indisponible : vérifier scoreboard.yml", error);
         }
 
         UpgradeStore upgradeStore = new UpgradeStore(database);
@@ -341,6 +347,7 @@ public final class ClikerPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (scoreboard != null) scoreboard.shutdown();
         if (mainMenu != null) mainMenu.shutdown();
         if (buyZoneModule != null) buyZoneModule.shutdown();
         if (dailyModule != null) dailyModule.shutdown();

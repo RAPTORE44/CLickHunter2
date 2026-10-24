@@ -1,0 +1,19 @@
+# Présentation inspirée de la capture, avec les données réelles de ClickHunter.
+titre: '&a&lClickHunter'
+actualisation-ticks: 40
+lignes:
+  - '&7CLICKER'
+  - ''
+  - '&6{joueur}'
+  - '&f▏ &eNiveau : &f{niveau}'
+  - '&f▏ &eÉcus : &f{ecus}'
+  - '&f▏ &dGemmes sombres : &f{gemmes}'
+  - '&f▏ &7Cendres : &f{cendres}'
+  - ''
+  - '&6PROGRESSION'
+  - '&f▏ &ePrestige : &f{prestige}'
+  - '&f▏ &eMobs tués : &f{kills}'
+  - ''
+  - '&6SERVEUR'
+  - '&f▏ &eEn ligne : &f{connectes}'
+  - '&a&lplay.clickhunter.fr'

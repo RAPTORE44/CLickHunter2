@@ -5,144 +5,132 @@ import fr.cliker.clikerv2.economy.CurrencyType;
 import fr.cliker.clikerv2.mobs.MobKillStore;
 import fr.cliker.clikerv2.prestige.PrestigeManager;
 import fr.cliker.clikerv2.prestige.PrestigeType;
-
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scoreboard.Criteria;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Team;
+import fr.cliker.clikerv2.daily.DailySettings;
 import io.papermc.paper.scoreboard.numbers.NumberFormat;
+import net.kyori.adventure.text.Component;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.*;
+import org.bukkit.event.player.*;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.*;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public final class MoneyScoreboard implements Listener {
     private static final String OBJECTIVE_ID = "cliker_money";
-    private static final CurrencyType[] MONEY_LINES = { CurrencyType.ECUS, CurrencyType.GEMMES_SOMBRES, CurrencyType.CENDRES };
-
-    private static final int LINE_LEVEL = 0;
-    private static final int LINE_GAP_1 = 1;
-    private static final int LINE_KILLS = 2;
-    private static final int LINE_GAP_2 = 3;
-    private static final int LINE_ECUS = 4;
-    private static final int LINE_GEMMES = 5;
-    private static final int LINE_CENDRES = 6;
-    private static final int LINE_GAP_3 = 7;
-    private static final int LINE_FOOTER = 8;
-    private static final int LINE_COUNT = 9;
-
     private final JavaPlugin plugin;
     private final EconomyService economy;
     private final MobKillStore killStore;
     private final PrestigeManager prestige;
+    private final List<String> lines;
+    private final Component title;
+    private final long interval;
+    private final java.util.function.Consumer<Score> scoreFormatter;
+    private final Map<UUID, Session> sessions = new HashMap<>();
+    private final Set<UUID> pending = ConcurrentHashMap.newKeySet();
+    private BukkitTask task;
+    private volatile boolean stopped;
+
+    /** Une activation unique demandée par la nouvelle présentation ; les désactivations ultérieures sont conservées. */
+    public static void installStyle(JavaPlugin plugin) {
+        File file = new File(plugin.getDataFolder(), "scoreboard.yml");
+        if (!file.exists()) plugin.saveResource("scoreboard.yml", false);
+        if (plugin.getConfig().getInt("displays.scoreboard.style-version", 0) >= 1) return;
+        File config = new File(plugin.getDataFolder(), "config.yml");
+        try {
+            if (config.exists()) {
+                var backup = plugin.getDataFolder().toPath().resolve("backups/config-scoreboard-" + System.currentTimeMillis() + ".yml");
+                Files.createDirectories(backup.getParent()); Files.copy(config.toPath(), backup);
+            }
+            plugin.getConfig().set("displays.scoreboard.enabled", true);
+            plugin.getConfig().set("displays.scoreboard.style-version", 1);
+            plugin.saveConfig();
+        } catch (java.io.IOException e) { throw new IllegalStateException("Sauvegarde de la configuration du scoreboard impossible", e); }
+    }
 
     public MoneyScoreboard(JavaPlugin plugin, EconomyService economy, MobKillStore killStore, PrestigeManager prestige) {
-        this.plugin = plugin;
-        this.economy = economy;
-        this.killStore = killStore;
-        this.prestige = prestige;
+        this(plugin, economy, killStore, prestige, score -> score.numberFormat(NumberFormat.blank()));
     }
-
-    public void start() {
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::refreshAll, 0L, 40L);
+    MoneyScoreboard(JavaPlugin plugin, EconomyService economy, MobKillStore killStore, PrestigeManager prestige,
+                    java.util.function.Consumer<Score> scoreFormatter) {
+        this.scoreFormatter = scoreFormatter;
+        this.plugin = plugin; this.economy = economy; this.killStore = killStore; this.prestige = prestige;
+        var config = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "scoreboard.yml"));
+        lines = List.copyOf(config.getStringList("lignes"));
+        if (lines.isEmpty() || lines.size() > 15) throw new IllegalArgumentException("Le scoreboard doit contenir entre 1 et 15 lignes");
+        title = DailySettings.color(config.getString("titre", "&a&lClickHunter"));
+        interval = Math.max(20L, config.getLong("actualisation-ticks", 40));
     }
-
-    @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        setup(event.getPlayer());
-    }
-
-    private void refreshAll() {
-        for (Player player : plugin.getServer().getOnlinePlayers()) refresh(player);
-    }
-
-    private void setup(Player player) {
-        var scoreboard = plugin.getServer().getScoreboardManager().getNewScoreboard();
-        Objective objective = scoreboard.registerNewObjective(OBJECTIVE_ID, Criteria.DUMMY,
-                Component.text("✦ CLIKER ✦", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD));
+    public void start() { task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::refreshAll, 0L, interval); }
+    @EventHandler public void onJoin(PlayerJoinEvent event) { setup(event.getPlayer()); }
+    @EventHandler public void onQuit(PlayerQuitEvent event) { sessions.remove(event.getPlayer().getUniqueId()); }
+    private void refreshAll() { for (Player player : plugin.getServer().getOnlinePlayers()) refresh(player); }
+    private Session setup(Player player) {
+        var board = plugin.getServer().getScoreboardManager().getNewScoreboard();
+        var objective = board.registerNewObjective(OBJECTIVE_ID, Criteria.DUMMY, title);
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-
-        for (int i = 0; i < LINE_COUNT; i++) {
-            Team team = scoreboard.registerNewTeam("cliker_line_" + i);
+        for (int i = 0; i < lines.size(); i++) {
+            var team = board.registerNewTeam("cliker_line_" + i);
             team.addEntry(entry(i));
-            Score score = objective.getScore(entry(i));
-            score.setScore(LINE_COUNT - i);
-            score.numberFormat(NumberFormat.blank());
+            var score = objective.getScore(entry(i)); score.setScore(lines.size() - i); scoreFormatter.accept(score);
         }
-        player.setScoreboard(scoreboard);
-        refresh(player);
+        Session session = new Session(board, player.getScoreboard());
+        sessions.put(player.getUniqueId(), session); player.setScoreboard(board);
+        update(player, session, null, null);
+        return session;
     }
-
     private void refresh(Player player) {
-        boolean needsSetup = player.getScoreboard().getObjective(OBJECTIVE_ID) == null
-                || player.getScoreboard().getTeam("cliker_line_" + (LINE_COUNT - 1)) == null;
-        if (needsSetup) setup(player);
-        var scoreboard = player.getScoreboard();
-        economy.getBalances(player.getUniqueId()).thenCombine(killStore.getTotal(player.getUniqueId()), (balances, kills) ->
-                new Object[]{balances, kills}
-        ).whenComplete((result, error) -> plugin.getServer().getScheduler().runTask(plugin, () -> {
-            if (error != null || !player.isOnline()) return;
-            EconomyService.Balances balances = (EconomyService.Balances) result[0];
-            long kills = (long) result[1];
-
-            int prestigeLevel = prestige.getLevel(player.getUniqueId());
-            Component levelValue = prestigeLevel > 0
-                    ? Component.text("[", NamedTextColor.DARK_GRAY)
-                            .append(Component.text(PrestigeType.toRoman(prestigeLevel), NamedTextColor.LIGHT_PURPLE))
-                            .append(Component.text("-", NamedTextColor.DARK_GRAY))
-                            .append(Component.text(player.getLevel(), NamedTextColor.GREEN))
-                            .append(Component.text("]", NamedTextColor.DARK_GRAY))
-                    : Component.text(player.getLevel(), NamedTextColor.GREEN);
-            setLine(scoreboard, LINE_LEVEL, Component.text("★ ", NamedTextColor.GREEN)
-                    .append(Component.text("Level: ", NamedTextColor.WHITE))
-                    .append(levelValue));
-            setLine(scoreboard, LINE_GAP_1, Component.empty());
-            setLine(scoreboard, LINE_KILLS, Component.text("☠ ", NamedTextColor.RED)
-                    .append(Component.text("Mobs tués : ", NamedTextColor.WHITE))
-                    .append(Component.text(String.format("%,d", kills).replace(',', ' '), NamedTextColor.RED)));
-            setLine(scoreboard, LINE_GAP_2, Component.empty());
-
-            for (CurrencyType currency : MONEY_LINES) {
-                int lineIndex = switch (currency) {
-                    case ECUS -> LINE_ECUS;
-                    case GEMMES_SOMBRES -> LINE_GEMMES;
-                    case CENDRES -> LINE_CENDRES;
-                };
-                long value = switch (currency) {
-                    case ECUS -> balances.ecus();
-                    case GEMMES_SOMBRES -> balances.gemmesSombres();
-                    case CENDRES -> balances.cendres();
-                };
-                setLine(scoreboard, lineIndex, Component.text(currency.symbol() + " ", accent(currency))
-                        .append(Component.text(currency.displayName() + " ", NamedTextColor.WHITE))
-                        .append(Component.text(": ", NamedTextColor.DARK_GRAY))
-                        .append(Component.text(currency.format(value), accent(currency))));
-            }
-
-            setLine(scoreboard, LINE_GAP_3, Component.empty());
-            setLine(scoreboard, LINE_FOOTER, Component.text("play.northblue.fr", NamedTextColor.AQUA));
-        }));
+        Session session = sessions.get(player.getUniqueId());
+        if (session == null) session = setup(player);
+        // Ne pas remplacer en boucle un tableau repris par un autre plugin.
+        if (player.getScoreboard() != session.board || !pending.add(player.getUniqueId())) return;
+        Session target = session;
+        economy.getBalances(player.getUniqueId()).thenCombine(killStore.getTotal(player.getUniqueId()), Snapshot::new)
+                .whenComplete((snapshot, error) -> {
+                    if (stopped || !plugin.isEnabled()) { pending.remove(player.getUniqueId()); return; }
+                    plugin.getServer().getScheduler().runTask(plugin, () -> {
+                        pending.remove(player.getUniqueId());
+                        if (!player.isOnline() || sessions.get(player.getUniqueId()) != target || player.getScoreboard() != target.board) return;
+                        if (error != null) { plugin.getLogger().log(Level.WARNING, "Actualisation du scoreboard impossible", error); return; }
+                        update(player, target, snapshot.balances, snapshot.kills);
+                    });
+                });
     }
-
-    private void setLine(org.bukkit.scoreboard.Scoreboard scoreboard, int index, Component content) {
-        Team team = scoreboard.getTeam("cliker_line_" + index);
-        if (team == null) return;
-        team.prefix(content);
-        team.suffix(Component.empty());
+    public static Map<String, String> values(String player, int level, int prestige, EconomyService.Balances balances, Long kills, int online) {
+        Map<String, String> values = new HashMap<>();
+        values.put("joueur", player); values.put("niveau", Integer.toString(level));
+        values.put("prestige", prestige <= 0 ? "0" : PrestigeType.toRoman(prestige));
+        values.put("ecus", balances == null ? "…" : CurrencyType.ECUS.format(balances.ecus()));
+        values.put("gemmes", balances == null ? "…" : CurrencyType.GEMMES_SOMBRES.format(balances.gemmesSombres()));
+        values.put("cendres", balances == null ? "…" : CurrencyType.CENDRES.format(balances.cendres()));
+        values.put("kills", kills == null ? "…" : String.format(Locale.FRANCE, "%,d", kills));
+        values.put("connectes", Integer.toString(online));
+        return values;
     }
-
-    private static NamedTextColor accent(CurrencyType currency) {
-        return switch (currency) {
-            case ECUS -> NamedTextColor.GOLD;
-            case GEMMES_SOMBRES -> NamedTextColor.DARK_PURPLE;
-            case CENDRES -> NamedTextColor.GRAY;
-        };
+    private void update(Player player, Session session, EconomyService.Balances balances, Long kills) {
+        Map<String, String> values = values(player.getName(), player.getLevel(), prestige.getLevel(player.getUniqueId()), balances, kills, plugin.getServer().getOnlinePlayers().size());
+        for (int i = 0; i < lines.size(); i++) {
+            Component content = DailySettings.color(DailySettings.replace(lines.get(i), values));
+            Team team = session.board.getTeam("cliker_line_" + i);
+            if (!content.equals(team.prefix())) team.prefix(content);
+        }
     }
-
+    public void shutdown() {
+        stopped = true;
+        if (task != null) task.cancel();
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            Session session = sessions.get(player.getUniqueId());
+            if (session != null && player.getScoreboard() == session.board) player.setScoreboard(session.previous);
+        }
+        sessions.clear(); pending.clear(); HandlerList.unregisterAll(this);
+    }
     private static String entry(int index) { return "§" + Integer.toHexString(index) + "§r"; }
+    private record Snapshot(EconomyService.Balances balances, Long kills) {}
+    private record Session(Scoreboard board, Scoreboard previous) {}
 }
