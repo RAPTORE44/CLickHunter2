@@ -100,7 +100,7 @@ public final class PrestigeMenu implements Listener {
         if (event.getSlot() != BUTTON_SLOT || !(event.getWhoClicked() instanceof Player player)) return;
 
         manager.attemptPrestige(player, () -> {
-            if (player.isOnline()) tabList.apply(player);
+            if (player.isOnline() && plugin.getConfig().getBoolean("displays.tab.enabled", false)) tabList.apply(player);
             killStore.getTotal(player.getUniqueId()).whenComplete((kills, error) -> Bukkit.getScheduler().runTask(plugin, () -> {
                 if (error != null || !player.isOnline() || player.getOpenInventory().getTopInventory().getHolder() != holder) return;
                 holder.inventory.setItem(BUTTON_SLOT, buildItem(player, kills));

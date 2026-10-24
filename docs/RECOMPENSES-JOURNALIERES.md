@@ -46,7 +46,7 @@ l'accès aux services Mojang et aux textures doit être autorisé sur le serveur
 - Une récupération à 23 h 59 autorise la suivante dès 00 h 00, y compris à 00 h 01.
 - Il faut **réclamer** une récompense chaque jour : se connecter ne valide rien.
 - Une journée entière manquée remet la prochaine récompense au jour 1.
-- Après la récupération du jour 31, un nouveau cycle commence le lendemain.
+- Après la récupération du jour 28, un nouveau cycle commence le lendemain.
 - Les changements d'heure de printemps et d'automne sont pris en compte.
 
 Exemple : jour 5 récupéré lundi, aucune récupération mardi, retour mercredi :
@@ -60,10 +60,10 @@ double-clics, touches de barre rapide et glisser-déposer.
 
 ## Interface et visuels
 
-Inventaire de **54 cases**, titre « Calendrier de Récompenses », fond bleu foncé,
-bandeau cyan, bouton Informations en case centrale de la première ligne.
+Inventaire de **54 cases**, titre « Calendrier de Récompenses », fond noir,
+bandeau noir, bouton Informations en case centrale de la première ligne.
 Les jours 1 à 28 occupent les sept colonnes centrales des quatre lignes suivantes ;
-les jours 29 à 31 sont centrés sur la dernière ligne.
+la dernière ligne conserve le fond et peut accueillir de futurs boutons.
 
 La configuration définit séparément les icônes de fond, bandeau, informations,
 récompense disponible, verrouillée et déjà récupérée. Chaque icône peut définir :
@@ -82,8 +82,8 @@ description:
 **ItemsAdder est optionnel.** Les icônes personnalisées requièrent ItemsAdder,
 les objets correspondants et son pack de ressources accepté par les joueurs.
 Le module ne fournit pas ces assets. Sans objet ItemsAdder utilisable, il affiche
-le matériau Minecraft indiqué : coffre pour le cadeau, crochet pour le cadenas
-et teinture verte pour une récompense récupérée. Aucun pack n'est requis pour ces
+le matériau Minecraft indiqué : coffre avec effet enchanté pour le jour disponible, coffre normal pour le jour verrouillé
+et wagonnet pour une récompense récupérée. Aucun pack n'est requis pour ces
 remplacements classiques. Les icônes réelles de cadeau et cadenas dépendent donc
 d'un pack personnalisé ; les titres, séparateurs, états et descriptions sont
 fournis en texte coloré standard.
@@ -93,16 +93,24 @@ disposition et les couleurs décrites, sans prétendre reproduire des textures a
 
 ## Récompenses configurables
 
-Les **31 récompenses initiales sont uniquement du test**. Aucune monnaie ni objet
-n'est attribué. Pour chaque jour, le fichier contient :
+Le cycle par défaut attribue des lootboxes :
+
+- Jours 1 à 7 : Epic x1 à x7.
+- Jours 8 à 14 : Legendary x1 à x7.
+- Jours 15 à 21 : Mythic x1 à x7.
+- Jours 22 à 28 : Divine x1 à x7.
 
 ```yaml
 recompenses:
   1:
-    description: 'Récompense test — Jour 1'
+    description: 'Epic Lootbox x1'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 1 récupérée !","color":"green"}'
+      - 'coffre {joueur} epique 1'
 ```
+
+Les gains des lootboxes sont modifiables dans `lootboxes.yml`. Les tiers
+Legendary et Mythic sont nouveaux : leurs gains monétaires par défaut sont des
+propositions explicites, pas des valeurs retrouvées dans un ancien pack.
 
 Les commandes s'exécutent en console, sans slash initial. Variables acceptées :
 `{joueur}`, `{uuid}` et `{jour}`. Une liste vide bloque la récupération sans
@@ -140,9 +148,22 @@ ils ne sont pas validés par le serveur simulé utilisé pour les tests.
 
 ## Vérification en jeu recommandée
 
-1. `/daily` : vérifier les 31 jours, les infobulles et le bouton Informations.
-2. Réclamer le jour 1 : recevoir le message de test, puis voir l'icône récupérée.
+1. `/daily` : vérifier les 28 jours, les infobulles et le bouton Informations.
+2. Réclamer le jour 1 : recevoir la lootbox, puis voir l'icône récupérée.
 3. Cliquer de nouveau et tenter les déplacements d'objets : aucune seconde récompense.
 4. `/daily pnj spawn` : vérifier le skin, le texte, l'immobilité et le clic droit.
 5. Refaire `spawn` : création refusée. Redémarrer : un seul PNJ revient.
 6. `/daily pnj remove`, puis redémarrer : le PNJ doit rester supprimé.
+
+## Migration du calendrier historique
+
+Au premier chargement, une copie de l’ancienne configuration est créée dans
+`backups/daily-<timestamp>.yml`. Le pack de test standard est remplacé par le pack
+final de 28 jours. Un pack personnalisé est préservé et doit être révisé par
+l’administrateur si ses textes font encore référence à 31 jours. Une ancienne
+récupération aux jours 29–31 est considérée comme une fin de cycle, tout en
+conservant sa date : aucune deuxième récupération le même jour.
+
+La livraison actuelle utilise encore les commandes de récompense. Le journal
+transactionnel de livraison et la mailbox anti-perte de la spécification maître
+ne sont pas encore fournis : cela reste un blocage à la validation production.

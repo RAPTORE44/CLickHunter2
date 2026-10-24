@@ -3,3 +3,10 @@ starting-balances:
   ecus: 0
   gemmes-sombres: 0
   cendres: 0
+
+# Affichage externe recommandé ; aucun HUD permanent imposé par défaut.
+displays:
+  scoreboard:
+    enabled: false
+  tab:
+    enabled: false

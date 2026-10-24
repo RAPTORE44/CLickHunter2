@@ -30,7 +30,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class EnchantMenu implements Listener {
     private static final int DEPOSIT_SLOT = 4;
     private static final int BUTTON_SLOT = 13;
-    private static final long COST = 250_000L;
+    private final long cost;
+    private final List<Double> weights;
 
     private final JavaPlugin plugin;
     private final EconomyService economy;
@@ -38,6 +39,13 @@ public final class EnchantMenu implements Listener {
     public EnchantMenu(JavaPlugin plugin, EconomyService economy) {
         this.plugin = plugin;
         this.economy = economy;
+        java.io.File file = new java.io.File(plugin.getDataFolder(), "enchants.yml");
+        if (!file.exists()) plugin.saveResource("enchants.yml", false);
+        var settings = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+        cost = settings.getLong("cout", 100_000L);
+        if (cost < 0) throw new IllegalArgumentException("Coût d'enchantement négatif");
+        weights = settings.getDoubleList("probabilites");
+        EnchantRoll.validate(weights);
     }
 
     public void open(Player player) { open(player, null); }
@@ -99,7 +107,7 @@ public final class EnchantMenu implements Listener {
         lore.add(Component.text("Universel possible : tous les effets.", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(""));
         lore.add(Component.text("Coût : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                .append(Component.text(Numbers.compact(COST) + " Écus", NamedTextColor.GOLD)));
+                .append(Component.text(Numbers.compact(cost) + " Écus", NamedTextColor.GOLD)));
         lore.add(Component.text("Clique pour enchanter !", NamedTextColor.GREEN, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
@@ -121,7 +129,7 @@ public final class EnchantMenu implements Listener {
 
         EnchantType[] options = EnchantType.of(category);
 
-        economy.change(player.getUniqueId(), player.getName(), CurrencyType.ECUS, -COST).whenComplete((balance, error) ->
+        economy.change(player.getUniqueId(), player.getName(), CurrencyType.ECUS, -cost).whenComplete((balance, error) ->
                 Bukkit.getScheduler().runTask(plugin, () -> {
             if (!player.isOnline()) return;
             if (error != null) {
@@ -133,7 +141,7 @@ public final class EnchantMenu implements Listener {
 
             EnchantType chosen = options[ThreadLocalRandom.current().nextInt(options.length)];
             int oldLevel = ItemMods.getEnchantLevel(current, chosen);
-            int newLevel = 1 + ThreadLocalRandom.current().nextInt(EnchantType.MAX_LEVEL);
+            int newLevel = EnchantRoll.level(weights, ThreadLocalRandom.current().nextDouble(100));
             ItemMods.clearEnchants(current);
 
             if (chosen.isUniversal()) {

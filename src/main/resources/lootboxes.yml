@@ -1,0 +1,17 @@
+# Gains configurables. Les tiers historiques conservent leur balance.
+# Legendary et Mythic sont nouveaux : valeurs par défaut proposées, à valider avec le vrai pack de balance.
+commun:
+  ecus: 25000
+peu-commun:
+  ecus: 100000
+rare:
+  ecus: 500000
+epique:
+  ecus: 2000000
+legendaire:
+  ecus: 4000000
+mythique:
+  ecus: 7000000
+divin:
+  ecus: 10000000
+# Chaque entrée accepte aussi cendres, xp et gemmes-dixiemes.

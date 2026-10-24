@@ -1,0 +1,9 @@
+# Coût et probabilités du moteur existant. Les autres effets doivent encore migrer.
+cout: 100000
+# Poids en pourcentage ; la somme doit être 100. V = 0,1 %.
+probabilites:
+  - 40.0
+  - 30.0
+  - 20.0
+  - 9.9
+  - 0.1

@@ -27,11 +27,25 @@ public final class BossEventManager implements Listener {
     private final CustomMobManager mobManager;
     private final BossBar bossBar;
     private HologramManager hologramManager;
-    private long remainingSeconds = INTERVAL_SECONDS;
+    private long remainingSeconds;
+    private long nextSpawnMillis;
+    private final org.bukkit.configuration.file.YamlConfiguration settings;
+    private final java.io.File settingsFile;
+    private final long interval;
+    private final long warning;
 
     public BossEventManager(JavaPlugin plugin, CustomMobManager mobManager) {
         this.plugin = plugin;
         this.mobManager = mobManager;
+        settingsFile = new java.io.File(plugin.getDataFolder(), "boss.yml");
+        if (!settingsFile.exists()) plugin.saveResource("boss.yml", false);
+        settings = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(settingsFile);
+        interval = settings.getLong("intervalle-secondes", INTERVAL_SECONDS);
+        warning = settings.getLong("avertissement-secondes", WARNING_SECONDS);
+        if (interval < 1 || interval > 31_536_000 || warning < 0 || warning > interval) throw new IllegalArgumentException("Intervalle boss invalide");
+        nextSpawnMillis = settings.getLong("prochain-spawn-ms", System.currentTimeMillis() + interval * 1000);
+        saveTimer();
+        remainingSeconds = Math.max(0, (nextSpawnMillis - System.currentTimeMillis() + 999) / 1000);
         this.bossBar = Bukkit.createBossBar("Prochain Golem", BarColor.RED, BarStyle.SOLID);
     }
 
@@ -47,13 +61,15 @@ public final class BossEventManager implements Listener {
     private void tick() {
         if (mobManager.bossSpawnIds().isEmpty()) return;
 
-        remainingSeconds--;
+        remainingSeconds = Math.max(0, (nextSpawnMillis - System.currentTimeMillis() + 999) / 1000);
         if (remainingSeconds <= 0) {
             spawnWave();
-            remainingSeconds = INTERVAL_SECONDS;
+            nextSpawnMillis = System.currentTimeMillis() + interval * 1000;
+            saveTimer();
+            remainingSeconds = interval;
             return;
         }
-        if (remainingSeconds <= WARNING_SECONDS) {
+        if (remainingSeconds <= warning) {
             updateBossBar();
         } else if (!bossBar.getPlayers().isEmpty()) {
             hideBossBar();
@@ -71,6 +87,12 @@ public final class BossEventManager implements Listener {
         }
     }
 
+    private void saveTimer() {
+        settings.set("prochain-spawn-ms", nextSpawnMillis);
+        try { settings.save(settingsFile); }
+        catch (java.io.IOException error) { throw new IllegalStateException("Sauvegarde de l'horloge boss impossible", error); }
+    }
+
     private void updateHologram() {
         if (hologramManager == null) return;
         long minutes = remainingSeconds / 60;
@@ -83,7 +105,7 @@ public final class BossEventManager implements Listener {
         long minutes = remainingSeconds / 60;
         long seconds = remainingSeconds % 60;
         bossBar.setTitle("⚔ Prochain Golem dans " + minutes + "m " + String.format("%02d", seconds) + "s");
-        bossBar.setProgress(Math.max(0.0, Math.min(1.0, (double) remainingSeconds / WARNING_SECONDS)));
+        bossBar.setProgress(Math.max(0.0, Math.min(1.0, (double) remainingSeconds / Math.max(1, warning))));
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             if (!bossBar.getPlayers().contains(player)) bossBar.addPlayer(player);
         }
@@ -95,6 +117,6 @@ public final class BossEventManager implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        if (remainingSeconds > 0 && remainingSeconds <= WARNING_SECONDS) bossBar.addPlayer(event.getPlayer());
+        if (remainingSeconds > 0 && remainingSeconds <= warning) bossBar.addPlayer(event.getPlayer());
     }
 }

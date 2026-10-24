@@ -1,0 +1,4 @@
+# Horloge persistante : le redémarrage ne repousse plus la prochaine vague.
+intervalle-secondes: 1800
+avertissement-secondes: 300
+multiplicateur-pv: 100

@@ -73,17 +73,17 @@ class DailyMenuTest {
     @Test void completeFrenchMenuAndTestRewardsAreConfigured() throws Exception {
         open();
         var inventory = player.getOpenInventory().getTopInventory();
-        assertEquals(Material.CYAN_STAINED_GLASS_PANE, inventory.getItem(0).getType());
-        assertEquals(Material.BLUE_STAINED_GLASS_PANE, inventory.getItem(9).getType());
+        assertEquals(Material.BLACK_STAINED_GLASS_PANE, inventory.getItem(0).getType());
+        assertEquals(Material.BLACK_STAINED_GLASS_PANE, inventory.getItem(9).getType());
         assertEquals(Material.BOOK, inventory.getItem(4).getType());
         assertEquals(Material.CHEST, inventory.getItem(DailyMenu.slot(1)).getType());
-        for (int day = 1; day <= 31; day++) {
+        for (int day = 1; day <= 28; day++) {
             var item = inventory.getItem(DailyMenu.slot(day));
             var lore = item.getItemMeta().lore().stream().map(PlainTextComponentSerializer.plainText()::serialize).toList();
-            assertTrue(lore.contains("Récompense test — Jour " + day));
+            assertTrue(lore.stream().anyMatch(line -> line.contains("Lootbox x")));
             assertFalse(module.settings().commands(day).isEmpty());
-            assertTrue(module.settings().commands(day).getFirst().startsWith("minecraft:tellraw {joueur} "));
-            if (day > 1) assertEquals(Material.TRIPWIRE_HOOK, item.getType());
+            assertTrue(module.settings().commands(day).getFirst().startsWith("coffre {joueur} "));
+            if (day > 1) assertEquals(Material.CHEST, item.getType());
         }
     }
     @Test void doubleClickExecutesConsoleRewardOnceAndPersistsAfterReopen() throws Exception {
@@ -91,7 +91,7 @@ class DailyMenuTest {
         open();
         for (int i = 0; i < 12; i++) assertTrue(click(DailyMenu.slot(1), ClickType.LEFT, InventoryAction.PICKUP_ALL).isCancelled());
         await(() -> rewards.get() == 1);
-        assertEquals(Material.LIME_DYE, player.getOpenInventory().getTopInventory().getItem(DailyMenu.slot(1)).getType());
+        assertEquals(Material.MINECART, player.getOpenInventory().getTopInventory().getItem(DailyMenu.slot(1)).getType());
         player.closeInventory();
         open();
         click(DailyMenu.slot(1), ClickType.LEFT, InventoryAction.PICKUP_ALL);

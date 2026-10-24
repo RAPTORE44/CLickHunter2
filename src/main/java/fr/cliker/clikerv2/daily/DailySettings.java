@@ -25,7 +25,32 @@ public final class DailySettings {
         file = new File(plugin.getDataFolder(), "daily.yml");
         if (!file.exists()) plugin.saveResource("daily.yml", false);
         config = YamlConfiguration.loadConfiguration(file);
+        migrateCalendar();
         zone = ZoneId.of(config.getString("fuseau-horaire", "Europe/Paris"));
+    }
+
+    private void migrateCalendar() {
+        if (config.getInt("schema-version", 1) >= 2) return;
+        try {
+            java.nio.file.Path backup = plugin.getDataFolder().toPath().resolve("backups/daily-" + System.currentTimeMillis() + ".yml");
+            java.nio.file.Files.createDirectories(backup.getParent());
+            java.nio.file.Files.copy(file.toPath(), backup);
+            // Remplacer uniquement le pack de test livré auparavant ; préserver les récompenses personnalisées.
+            boolean testPack = true;
+            for (int day = 1; day <= 31; day++) {
+                if (!config.getString("recompenses." + day + ".description", "").equals("Récompense test — Jour " + day)) testPack = false;
+            }
+            if (testPack) {
+                try (var input = plugin.getResource("daily.yml")) {
+                    var defaults = YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(java.util.Objects.requireNonNull(input), java.nio.charset.StandardCharsets.UTF_8));
+                    config.set("recompenses", defaults.getConfigurationSection("recompenses"));
+                    config.set("interface", defaults.getConfigurationSection("interface"));
+                }
+            }
+            config.set("schema-version", 2);
+            save();
+            plugin.getLogger().info("Daily : cycle de 28 jours, configuration sauvegardée dans " + backup.getFileName());
+        } catch (java.io.IOException e) { throw new IllegalStateException("Migration du calendrier impossible", e); }
     }
 
     public YamlConfiguration config() { return config; }
@@ -68,6 +93,7 @@ public final class DailySettings {
         meta.lore(config.getStringList(path + ".description").stream().map(line -> color(replace(line, values))).toList());
         int model = config.getInt(path + ".custom-model-data", 0);
         if (model > 0) meta.setCustomModelData(model);
+        if (config.getBoolean(path + ".brillant", false)) meta.setEnchantmentGlintOverride(true);
         item.setItemMeta(meta);
         return item;
     }

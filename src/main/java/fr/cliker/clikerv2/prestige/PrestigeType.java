@@ -23,7 +23,10 @@ public final class PrestigeType {
             case 3 -> 30_000L;
             case 4 -> 70_000L;
             case 5 -> 150_000L;
-            default -> 150_000L * (1L << (prestige - 5));
+            default -> {
+                java.math.BigInteger required = java.math.BigInteger.valueOf(150_000L).shiftLeft(Math.max(0, prestige - 5));
+                yield required.min(java.math.BigInteger.valueOf(Long.MAX_VALUE)).longValueExact();
+            }
         };
     }
 

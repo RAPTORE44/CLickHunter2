@@ -59,6 +59,7 @@ public final class CustomMobManager implements Listener {
     public static NamespacedKey MOB_ID_KEY;
 
     private final JavaPlugin plugin;
+    private final double bossHpMultiplier;
     private final MobSpawnStore store;
     private final EconomyService economy;
     private final UpgradeManager upgrades;
@@ -81,6 +82,10 @@ public final class CustomMobManager implements Listener {
 
     public CustomMobManager(JavaPlugin plugin, MobSpawnStore store, EconomyService economy, UpgradeManager upgrades, MobKillStore killStore, PrestigeManager prestige, CompressorManager compressorManager, BagManager bagManager) {
         this.plugin = plugin;
+        java.io.File bossFile = new java.io.File(plugin.getDataFolder(), "boss.yml");
+        if (!bossFile.exists()) plugin.saveResource("boss.yml", false);
+        bossHpMultiplier = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(bossFile).getDouble("multiplicateur-pv", 100);
+        if (!Double.isFinite(bossHpMultiplier) || bossHpMultiplier <= 0) throw new IllegalArgumentException("Multiplicateur boss invalide");
         this.store = store;
         this.economy = economy;
         this.upgrades = upgrades;
@@ -283,15 +288,7 @@ public final class CustomMobManager implements Listener {
      * (le stuff seul, sans upgrades/prestige/enchants, doit prendre largement plus de 10 coups pour le tuer).
      */
     private long bossHealth(MobTier tier) {
-        return switch (tier) {
-            case WITHER_SKELETON -> 100_000_000L;
-            case GHAST -> 500_000_000L;
-            case VINDICATOR -> 1_000_000_000L;
-            case RAVAGER -> 5_000_000_000L;
-            case WITHER -> 10_000_000_000L;
-            case WARDEN -> 50_000_000_000L;
-            default -> Math.round(tier.maxHealth()) * 10;
-        };
+        return Math.round(tier.maxHealth() * bossHpMultiplier);
     }
 
     private void updateNameplate(LivingEntity entity, MobTier tier, long hp, long maxHp, boolean boss) {

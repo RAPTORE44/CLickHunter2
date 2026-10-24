@@ -133,8 +133,8 @@ public final class ClikerPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PrestigeChatFormatter(prestigeManager), this);
 
         TabListManager tabListManager = new TabListManager(prestigeManager);
-        getServer().getPluginManager().registerEvents(tabListManager, this);
-        prestigeManager.setTabListManager(tabListManager);
+        if (getConfig().getBoolean("displays.tab.enabled", false)) getServer().getPluginManager().registerEvents(tabListManager, this);
+        if (getConfig().getBoolean("displays.tab.enabled", false)) prestigeManager.setTabListManager(tabListManager);
         prestigeManager.loadOnlinePlayers();
 
         PrestigeMenu prestigeMenu = new PrestigeMenu(this, prestigeManager, killStore, tabListManager);
@@ -142,8 +142,10 @@ public final class ClikerPlugin extends JavaPlugin {
         setExecutor("prestige", new PrestigeCommand(prestigeMenu));
 
         MoneyScoreboard scoreboard = new MoneyScoreboard(this, economy, killStore, prestigeManager);
-        getServer().getPluginManager().registerEvents(scoreboard, this);
-        scoreboard.start();
+        if (getConfig().getBoolean("displays.scoreboard.enabled", false)) {
+            getServer().getPluginManager().registerEvents(scoreboard, this);
+            scoreboard.start();
+        }
 
         UpgradeStore upgradeStore = new UpgradeStore(database);
         UpgradeManager upgradeManager = new UpgradeManager(this, upgradeStore, economy);
@@ -250,6 +252,7 @@ public final class ClikerPlugin extends JavaPlugin {
             getCommand("pnj").setTabCompleter(merchantCommand);
         }
 
+        fr.cliker.clikerv2.lootbox.LootboxTier.load(this);
         LootboxItem.init(this);
         getServer().getPluginManager().registerEvents(new LootboxManager(economy), this);
         if (getCommand("coffre") != null) {
@@ -320,6 +323,7 @@ public final class ClikerPlugin extends JavaPlugin {
             if (buyZoneModule != null) buyZoneModule.shutdown();
             buyZoneModule = null;
         }
+        getServer().getPluginManager().registerEvents(new fr.cliker.clikerv2.security.SystemEggProtection(), this);
         getLogger().info("Economie active avec SQLite.");
     }
 

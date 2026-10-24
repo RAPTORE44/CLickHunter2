@@ -35,20 +35,20 @@ class RewardStoreTest {
     @Test void fullCycleResetAndMissingDayArePersisted() throws Exception {
         UUID uuid = UUID.randomUUID();
         try (var store = new RewardStore(folder.resolve("daily.db"))) {
-            for (int day = 1; day <= 31; day++) {
+            for (int day = 1; day <= 28; day++) {
                 LocalDate date = TODAY.plusDays(day - 1);
                 assertTrue(store.claim(uuid, day, () -> date).join().accepted());
             }
-            assertFalse(store.claim(uuid, 1, () -> TODAY.plusDays(30)).join().accepted());
-            assertTrue(store.claim(uuid, 1, () -> TODAY.plusDays(31)).join().accepted());
-            assertFalse(store.claim(uuid, 2, () -> TODAY.plusDays(33)).join().accepted());
-            assertTrue(store.claim(uuid, 1, () -> TODAY.plusDays(33)).join().accepted());
+            assertFalse(store.claim(uuid, 1, () -> TODAY.plusDays(27)).join().accepted());
+            assertTrue(store.claim(uuid, 1, () -> TODAY.plusDays(28)).join().accepted());
+            assertFalse(store.claim(uuid, 2, () -> TODAY.plusDays(30)).join().accepted());
+            assertTrue(store.claim(uuid, 1, () -> TODAY.plusDays(30)).join().accepted());
         }
     }
     @Test void outOfSequenceAndInvalidDaysDoNotConsumeDay() throws Exception {
         UUID uuid = UUID.randomUUID();
         try (var store = new RewardStore(folder.resolve("daily.db"))) {
-            for (int day : new int[]{0, 2, 31, 32}) assertFalse(store.claim(uuid, day, () -> TODAY).join().accepted());
+            for (int day : new int[]{0, 2, 28, 32}) assertFalse(store.claim(uuid, day, () -> TODAY).join().accepted());
             assertTrue(store.claim(uuid, 1, () -> TODAY).join().accepted());
         }
     }

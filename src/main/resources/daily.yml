@@ -1,3 +1,4 @@
+schema-version: 2
 # Module de récompenses journalières NorthBlue intégré à ClikerV2.
 # Les journées changent à MINUIT dans ce fuseau : aucun délai de 24 heures.
 fuseau-horaire: Europe/Paris
@@ -36,12 +37,12 @@ interface:
   # Sinon, materiau sert de remplacement. Les assets/textures ne sont pas inclus.
   icones:
     fond:
-      materiau: BLUE_STAINED_GLASS_PANE
+      materiau: BLACK_STAINED_GLASS_PANE
       itemsadder: ''
       nom: ' '
       description: []
     bandeau:
-      materiau: CYAN_STAINED_GLASS_PANE
+      materiau: BLACK_STAINED_GLASS_PANE
       itemsadder: ''
       nom: ' '
       description: []
@@ -51,7 +52,7 @@ interface:
       nom: '&b&lInformations'
       description:
         - '&8&m────────────────────────'
-        - '&7Jour actuel : &e{jour}&7/31'
+        - '&7Jour actuel : &e{jour}&7/28'
         - '&7Récompense : {etat}'
         - ''
         - '&7Une récompense par journée calendaire.'
@@ -61,9 +62,10 @@ interface:
         - '&cUne journée entière sans réclamer'
         - '&créinitialise ta série au jour 1.'
         - '&7Une simple connexion ne suffit pas.'
-        - '&7Après le jour 31 : nouveau cycle le lendemain.'
+        - '&7Après le jour 28 : nouveau cycle le lendemain.'
         - '&8&m────────────────────────'
     disponible:
+      brillant: true
       materiau: CHEST
       itemsadder: ''
       custom-model-data: 0
@@ -77,7 +79,7 @@ interface:
         - '&aCliquez pour réclamer !'
         - '&8&m────────────────────────'
     verrouille:
-      materiau: TRIPWIRE_HOOK
+      materiau: CHEST
       itemsadder: ''
       custom-model-data: 0
       nom: '&7&lJour {jour}'
@@ -91,7 +93,7 @@ interface:
         - '&8En poursuivant ta série chaque jour.'
         - '&8&m────────────────────────'
     recupere:
-      materiau: LIME_DYE
+      materiau: MINECART
       itemsadder: ''
       custom-model-data: 0
       nom: '&2&lJour {jour}'
@@ -106,129 +108,117 @@ interface:
 
 # Commandes exécutées par la CONSOLE, sans slash initial.
 # Variables : {joueur}, {uuid}, {jour}. Conserver au moins une commande par jour.
-# Contenu de TEST uniquement : aucun objet ni monnaie n'est attribué.
+# Cycle définitif de 28 jours : récompenses de lootboxes.
 recompenses:
   1:
-    description: 'Récompense test — Jour 1'
+    description: 'Epic Lootbox x1'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 1 récupérée !","color":"green"}'
+      - 'coffre {joueur} epique 1'
   2:
-    description: 'Récompense test — Jour 2'
+    description: 'Epic Lootbox x2'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 2 récupérée !","color":"green"}'
+      - 'coffre {joueur} epique 2'
   3:
-    description: 'Récompense test — Jour 3'
+    description: 'Epic Lootbox x3'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 3 récupérée !","color":"green"}'
+      - 'coffre {joueur} epique 3'
   4:
-    description: 'Récompense test — Jour 4'
+    description: 'Epic Lootbox x4'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 4 récupérée !","color":"green"}'
+      - 'coffre {joueur} epique 4'
   5:
-    description: 'Récompense test — Jour 5'
+    description: 'Epic Lootbox x5'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 5 récupérée !","color":"green"}'
+      - 'coffre {joueur} epique 5'
   6:
-    description: 'Récompense test — Jour 6'
+    description: 'Epic Lootbox x6'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 6 récupérée !","color":"green"}'
+      - 'coffre {joueur} epique 6'
   7:
-    description: 'Récompense test — Jour 7'
+    description: 'Epic Lootbox x7'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 7 récupérée !","color":"green"}'
+      - 'coffre {joueur} epique 7'
   8:
-    description: 'Récompense test — Jour 8'
+    description: 'Legendary Lootbox x1'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 8 récupérée !","color":"green"}'
+      - 'coffre {joueur} legendaire 1'
   9:
-    description: 'Récompense test — Jour 9'
+    description: 'Legendary Lootbox x2'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 9 récupérée !","color":"green"}'
+      - 'coffre {joueur} legendaire 2'
   10:
-    description: 'Récompense test — Jour 10'
+    description: 'Legendary Lootbox x3'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 10 récupérée !","color":"green"}'
+      - 'coffre {joueur} legendaire 3'
   11:
-    description: 'Récompense test — Jour 11'
+    description: 'Legendary Lootbox x4'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 11 récupérée !","color":"green"}'
+      - 'coffre {joueur} legendaire 4'
   12:
-    description: 'Récompense test — Jour 12'
+    description: 'Legendary Lootbox x5'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 12 récupérée !","color":"green"}'
+      - 'coffre {joueur} legendaire 5'
   13:
-    description: 'Récompense test — Jour 13'
+    description: 'Legendary Lootbox x6'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 13 récupérée !","color":"green"}'
+      - 'coffre {joueur} legendaire 6'
   14:
-    description: 'Récompense test — Jour 14'
+    description: 'Legendary Lootbox x7'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 14 récupérée !","color":"green"}'
+      - 'coffre {joueur} legendaire 7'
   15:
-    description: 'Récompense test — Jour 15'
+    description: 'Mythic Lootbox x1'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 15 récupérée !","color":"green"}'
+      - 'coffre {joueur} mythique 1'
   16:
-    description: 'Récompense test — Jour 16'
+    description: 'Mythic Lootbox x2'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 16 récupérée !","color":"green"}'
+      - 'coffre {joueur} mythique 2'
   17:
-    description: 'Récompense test — Jour 17'
+    description: 'Mythic Lootbox x3'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 17 récupérée !","color":"green"}'
+      - 'coffre {joueur} mythique 3'
   18:
-    description: 'Récompense test — Jour 18'
+    description: 'Mythic Lootbox x4'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 18 récupérée !","color":"green"}'
+      - 'coffre {joueur} mythique 4'
   19:
-    description: 'Récompense test — Jour 19'
+    description: 'Mythic Lootbox x5'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 19 récupérée !","color":"green"}'
+      - 'coffre {joueur} mythique 5'
   20:
-    description: 'Récompense test — Jour 20'
+    description: 'Mythic Lootbox x6'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 20 récupérée !","color":"green"}'
+      - 'coffre {joueur} mythique 6'
   21:
-    description: 'Récompense test — Jour 21'
+    description: 'Mythic Lootbox x7'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 21 récupérée !","color":"green"}'
+      - 'coffre {joueur} mythique 7'
   22:
-    description: 'Récompense test — Jour 22'
+    description: 'Divine Lootbox x1'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 22 récupérée !","color":"green"}'
+      - 'coffre {joueur} divin 1'
   23:
-    description: 'Récompense test — Jour 23'
+    description: 'Divine Lootbox x2'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 23 récupérée !","color":"green"}'
+      - 'coffre {joueur} divin 2'
   24:
-    description: 'Récompense test — Jour 24'
+    description: 'Divine Lootbox x3'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 24 récupérée !","color":"green"}'
+      - 'coffre {joueur} divin 3'
   25:
-    description: 'Récompense test — Jour 25'
+    description: 'Divine Lootbox x4'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 25 récupérée !","color":"green"}'
+      - 'coffre {joueur} divin 4'
   26:
-    description: 'Récompense test — Jour 26'
+    description: 'Divine Lootbox x5'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 26 récupérée !","color":"green"}'
+      - 'coffre {joueur} divin 5'
   27:
-    description: 'Récompense test — Jour 27'
+    description: 'Divine Lootbox x6'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 27 récupérée !","color":"green"}'
+      - 'coffre {joueur} divin 6'
   28:
-    description: 'Récompense test — Jour 28'
+    description: 'Divine Lootbox x7'
     commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 28 récupérée !","color":"green"}'
-  29:
-    description: 'Récompense test — Jour 29'
-    commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 29 récupérée !","color":"green"}'
-  30:
-    description: 'Récompense test — Jour 30'
-    commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 30 récupérée !","color":"green"}'
-  31:
-    description: 'Récompense test — Jour 31'
-    commandes:
-      - 'minecraft:tellraw {joueur} {"text":"[NorthBlue] Récompense test — Jour 31 récupérée !","color":"green"}'
+      - 'coffre {joueur} divin 7'

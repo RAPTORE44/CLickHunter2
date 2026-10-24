@@ -5,7 +5,7 @@ intégrée : [configuration des tarifs, commandes et installation](docs/BUYZONE.
 Les prix d'accès sont à renseigner ; aucun tarif n'était présent dans le projet initial.
 
 Le module **NorthBlue de récompenses journalières** est intégré à ce même plugin :
-`/daily`, calendrier de 31 jours et PNJ Citizens optionnel.
+`/daily`, calendrier de 28 jours et PNJ Citizens optionnel.
 Voir [l'installation, la configuration et les règles du calendrier](docs/RECOMPENSES-JOURNALIERES.md).
 
 Plugin unique pour Paper 1.21.4 : economie SQLite et commandes de gestion des monnaies.
@@ -61,3 +61,7 @@ et à l'arrêt du plugin. Les objets de l'ancien sac sont automatiquement repris
 dans le premier coffre ; les talismans stockés conservent leurs bonus.
 
 Vérifications automatisées : `mvn test`.
+
+État de la mise en conformité du cahier maître : [avancement et limites](docs/MISE-A-JOUR-MAITRE.md).
+
+Compilation reproductible (JDK 21) : `./mvnw clean package`.

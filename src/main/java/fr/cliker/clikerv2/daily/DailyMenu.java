@@ -21,11 +21,11 @@ public final class DailyMenu implements Listener {
     public DailyMenu(DailyModule module) { this.module = module; }
 
     public static int slot(int day) {
-        if (day < 1 || day > 31) throw new IllegalArgumentException("Jour invalide");
+        if (day < 1 || day > DailyProgress.DAYS) throw new IllegalArgumentException("Jour invalide");
         return day <= 28 ? (1 + (day - 1) / 7) * 9 + 1 + (day - 1) % 7 : 48 + day - 29;
     }
     public static int day(int slot) {
-        for (int day = 1; day <= 31; day++) if (slot(day) == slot) return day;
+        for (int day = 1; day <= DailyProgress.DAYS; day++) if (slot(day) == slot) return day;
         return -1;
     }
     public void open(Player player, DailyProgress progress) {
@@ -54,7 +54,7 @@ public final class DailyMenu implements Listener {
         info.put("temps", duration(Duration.between(now, now.toLocalDate().plusDays(1).atStartOfDay(now.getZone()))));
         for (int slot = 0; slot < 54; slot++) holder.inventory.setItem(slot, settings.icon(slot < 9 ? "bandeau" : "fond", Map.of()));
         holder.inventory.setItem(4, settings.icon("informations", info));
-        for (int day = 1; day <= 31; day++) {
+        for (int day = 1; day <= DailyProgress.DAYS; day++) {
             DailyProgress.Status status = holder.progress.status(day, now.toLocalDate());
             String icon = switch (status) { case AVAILABLE -> "disponible"; case LOCKED -> "verrouille"; case CLAIMED -> "recupere"; };
             Map<String, String> values = Map.of("jour", Integer.toString(day), "recompense", settings.reward(day),

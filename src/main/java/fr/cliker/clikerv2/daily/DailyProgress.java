@@ -6,11 +6,13 @@ import java.time.ZonedDateTime;
 
 /** Calcul pur par dates locales : aucun délai de 24 heures. */
 public record DailyProgress(LocalDate lastClaim, int day) {
-    public static final int DAYS = 31;
+    public static final int DAYS = 28;
     public static final DailyProgress EMPTY = new DailyProgress(null, 0);
     public enum Status { AVAILABLE, LOCKED, CLAIMED }
 
     public DailyProgress {
+        // Ancien cycle de 31 jours : conserver la date et considérer le cycle terminé.
+        if (lastClaim != null && day >= 29 && day <= 31) day = DAYS;
         if ((lastClaim == null && day != 0) || (lastClaim != null && (day < 1 || day > DAYS))) {
             throw new IllegalArgumentException("Progression journalière invalide");
         }
