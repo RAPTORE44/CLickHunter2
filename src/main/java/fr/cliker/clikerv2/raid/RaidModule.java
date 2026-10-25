@@ -368,7 +368,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     }
 
     private void onMain(Runnable action) {
-        if (!stopped && plugin.isEnabled()) Bukkit.getScheduler().runTask(plugin, action);
+        if (!stopped && plugin.isEnabled())
+            fr.cliker.clikerv2.runtime.ServerTasks.run(plugin, action);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

@@ -64,6 +64,7 @@ public final class RuneMenu implements Listener {
             inventory.setItem(DEPOSIT_SLOT, preload);
             refreshButton(inventory);
         }
+        fr.cliker.clikerv2.ui.MenuNavigation.back(plugin, inventory, 26);
         player.openInventory(inventory);
     }
 
@@ -198,7 +199,8 @@ public final class RuneMenu implements Listener {
 
         int slot = event.getSlot();
         if (slot == DEPOSIT_SLOT) {
-            Bukkit.getScheduler().runTask(plugin, () -> refreshButton(holder.inventory));
+            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                    plugin, () -> refreshButton(holder.inventory));
             return;
         }
         event.setCancelled(true);
@@ -213,7 +215,9 @@ public final class RuneMenu implements Listener {
                         .anyMatch(
                                 slot -> slot < holder.inventory.getSize() && slot != DEPOSIT_SLOT))
             event.setCancelled(true);
-        else Bukkit.getScheduler().runTask(plugin, () -> refreshButton(holder.inventory));
+        else
+            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                    plugin, () -> refreshButton(holder.inventory));
     }
 
     @EventHandler

@@ -91,6 +91,9 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.raid.RaidModule raidModule;
     private fr.cliker.clikerv2.outpost.OutpostModule outpostModule;
     private fr.cliker.clikerv2.hunting.HuntUI activityUI;
+    private AutoClickManager autoClickManager;
+    private GearAttributeManager gearAttributeManager;
+    private BossEventManager bossEventManager;
     private DatabaseManager database;
     private EconomyService economy;
     private CustomMobManager mobManager;
@@ -106,6 +109,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        fr.cliker.clikerv2.display.RankPrefix.initialize();
         DeathLogFilter.install();
         try {
             database =
@@ -131,6 +135,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         claims.start();
         rewardLedger = new fr.cliker.clikerv2.hunting.RewardLedger(this, database);
         activityUI = new fr.cliker.clikerv2.hunting.HuntUI(this);
+        new fr.cliker.clikerv2.ui.MenuNavigation(this);
         registerCurrencyCommand("ecus", CurrencyType.ECUS);
         registerCurrencyCommand("gemmes", CurrencyType.GEMMES_SOMBRES);
         registerCurrencyCommand("cendres", CurrencyType.CENDRES);
@@ -265,7 +270,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             setExecutor("mobspawn", mobSpawnCommand);
             getCommand("mobspawn").setTabCompleter(mobSpawnCommand);
         }
-        BossEventManager bossEventManager = new BossEventManager(this, mobManager);
+        bossEventManager = new BossEventManager(this, mobManager);
         getServer().getPluginManager().registerEvents(bossEventManager, this);
         bossEventManager.start();
 
@@ -279,7 +284,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         }
 
         ItemMods.init(this);
-        GearAttributeManager gearAttributeManager = new GearAttributeManager(this);
+        gearAttributeManager = new GearAttributeManager(this);
         getServer().getPluginManager().registerEvents(gearAttributeManager, this);
         gearAttributeManager.start();
 
@@ -340,14 +345,16 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
 
         fr.cliker.clikerv2.lootbox.LootboxTier.load(this);
         LootboxItem.init(this);
-        getServer().getPluginManager().registerEvents(new LootboxManager(economy), this);
+        getServer()
+                .getPluginManager()
+                .registerEvents(new LootboxManager(this, rewardLedger, claims), this);
         if (getCommand("coffre") != null) {
             LootboxCommand lootboxCommand = new LootboxCommand(this);
             setExecutor("coffre", lootboxCommand);
             getCommand("coffre").setTabCompleter(lootboxCommand);
         }
 
-        AutoClickManager autoClickManager = new AutoClickManager(this, upgradeManager);
+        autoClickManager = new AutoClickManager(this, upgradeManager);
         getServer().getPluginManager().registerEvents(autoClickManager, this);
         autoClickManager.start();
         setExecutor("autoclick", autoClickManager);
@@ -379,7 +386,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         SpawnManager spawnManager = new SpawnManager(this, spawnStore);
         getServer().getScheduler().runTaskLater(this, spawnManager::load, 20L);
         setExecutor("spawn", new SpawnCommand(this, spawnManager));
-        setExecutor("setspawn", new SetSpawnCommand(spawnManager));
+        setExecutor("setspawn", new SetSpawnCommand(this, spawnManager));
         getServer().getPluginManager().registerEvents(new RespawnListener(spawnManager), this);
 
         getServer().getPluginManager().registerEvents(new TutoJoinListener(this, levelStore), this);
@@ -506,6 +513,9 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         if (buyZoneModule != null) buyZoneModule.shutdown();
         if (dailyModule != null) dailyModule.shutdown();
         if (bagMenu != null) bagMenu.shutdown();
+        if (autoClickManager != null) autoClickManager.shutdown();
+        if (bossEventManager != null) bossEventManager.shutdown();
+        if (gearAttributeManager != null) gearAttributeManager.shutdown();
         if (mobManager != null) mobManager.shutdown();
         if (claims != null) claims.shutdown();
         if (database != null) database.close();

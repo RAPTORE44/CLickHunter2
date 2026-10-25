@@ -116,20 +116,19 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
         future.whenComplete(
                 (value, error) -> {
                     if (stopped || !plugin.isEnabled()) return;
-                    Bukkit.getScheduler()
-                            .runTask(
-                                    plugin,
-                                    () -> {
-                                        if (error != null) {
-                                            busy.remove(player.getUniqueId());
-                                            plugin.getLogger()
-                                                    .log(
-                                                            java.util.logging.Level.SEVERE,
-                                                            "Chasse : erreur SQLite",
-                                                            error);
-                                            if (player.isOnline()) message(player, "erreur");
-                                        } else if (player.isOnline()) action.accept(value);
-                                    });
+                    fr.cliker.clikerv2.runtime.ServerTasks.run(
+                            plugin,
+                            () -> {
+                                if (error != null) {
+                                    busy.remove(player.getUniqueId());
+                                    plugin.getLogger()
+                                            .log(
+                                                    java.util.logging.Level.SEVERE,
+                                                    "Chasse : erreur SQLite",
+                                                    error);
+                                    if (player.isOnline()) message(player, "erreur");
+                                } else if (player.isOnline()) action.accept(value);
+                            });
                 });
     }
 
@@ -238,6 +237,7 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
                                             "&7Les maîtrises suivent tes éliminations normales.",
                                             "&7Statistiques suivies depuis cette mise à jour.",
                                             "&7Les gains affichés sont réellement crédités.")));
+                    fr.cliker.clikerv2.ui.MenuNavigation.back(plugin, view.inventory, 45);
                     player.openInventory(view.inventory);
                 });
     }
@@ -343,6 +343,7 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
                                             "&7Réinitialisation à minuit : " + zone,
                                             "&7Seules les éliminations après acceptation comptent.",
                                             "&7Réclame tes récompenses avant minuit.")));
+                    fr.cliker.clikerv2.ui.MenuNavigation.back(plugin, view.inventory, 45);
                     player.openInventory(view.inventory);
                 });
     }

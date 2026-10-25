@@ -14,7 +14,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,7 +21,7 @@ public final class PrestigeManager implements Listener {
     private final JavaPlugin plugin;
     private final PrestigeStore store;
     private final MobKillStore killStore;
-    private final Map<UUID, Integer> cache = new HashMap<>();
+    private final Map<UUID, Integer> cache = new java.util.concurrent.ConcurrentHashMap<>();
     private TabListManager tabList;
     private final java.util.Set<UUID> pending = new java.util.HashSet<>();
 
@@ -50,26 +49,23 @@ public final class PrestigeManager implements Listener {
         store.getLevel(uuid)
                 .whenComplete(
                         (level, error) ->
-                                plugin.getServer()
-                                        .getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    if (error != null) {
-                                                        plugin.getLogger()
-                                                                .severe(
-                                                                        "Impossible de charger le"
-                                                                                + " prestige : "
-                                                                                + error
-                                                                                        .getMessage());
-                                                        return;
-                                                    }
-                                                    if (!player.isOnline()) return;
-                                                    cache.put(uuid, level);
-                                                    applyPendingReset(player);
-                                                    if (tabList != null && player.isOnline())
-                                                        tabList.apply(player);
-                                                }));
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (error != null) {
+                                                plugin.getLogger()
+                                                        .severe(
+                                                                "Impossible de charger le"
+                                                                        + " prestige : "
+                                                                        + error.getMessage());
+                                                return;
+                                            }
+                                            if (!player.isOnline()) return;
+                                            cache.put(uuid, level);
+                                            applyPendingReset(player);
+                                            if (tabList != null && player.isOnline())
+                                                tabList.apply(player);
+                                        }));
     }
 
     /**
@@ -144,53 +140,50 @@ public final class PrestigeManager implements Listener {
                 .whenComplete(
                         (accepted, error) -> {
                             if (!plugin.isEnabled()) return;
-                            plugin.getServer()
-                                    .getScheduler()
-                                    .runTask(
-                                            plugin,
-                                            () -> {
-                                                pending.remove(owner);
-                                                if (error != null) {
-                                                    plugin.getLogger()
-                                                            .log(
-                                                                    java.util.logging.Level.SEVERE,
-                                                                    "Prestige non enregistré",
-                                                                    error);
-                                                    if (player.isOnline())
-                                                        player.sendMessage(
-                                                                Component.text(
-                                                                        "Prestige impossible."
-                                                                            + " Réessaie dans"
-                                                                            + " quelques instants.",
-                                                                        NamedTextColor.RED));
-                                                } else if (!Boolean.TRUE.equals(accepted)) {
-                                                    if (player.isOnline())
-                                                        player.sendMessage(
-                                                                Component.text(
-                                                                        "Conditions non remplies : "
-                                                                                + Numbers.compact(
-                                                                                        requiredKills)
-                                                                                + " éliminations"
-                                                                                + " requises, ou"
-                                                                                + " prestige déjà"
-                                                                                + " modifié.",
-                                                                        NamedTextColor.RED));
-                                                } else if (player.isOnline()) {
-                                                    cache.put(owner, next);
-                                                    applyPendingReset(player);
-                                                    if (tabList != null) tabList.apply(player);
-                                                    player.sendMessage(
-                                                            Component.text(
-                                                                    "Prestige "
-                                                                            + PrestigeType.toRoman(
-                                                                                    next)
-                                                                            + " atteint ! Tes bonus"
-                                                                            + " par élimination"
-                                                                            + " augmentent.",
-                                                                    NamedTextColor.LIGHT_PURPLE));
-                                                }
-                                                if (onComplete != null) onComplete.run();
-                                            });
+                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                    plugin,
+                                    () -> {
+                                        pending.remove(owner);
+                                        if (error != null) {
+                                            plugin.getLogger()
+                                                    .log(
+                                                            java.util.logging.Level.SEVERE,
+                                                            "Prestige non enregistré",
+                                                            error);
+                                            if (player.isOnline())
+                                                player.sendMessage(
+                                                        Component.text(
+                                                                "Prestige impossible."
+                                                                        + " Réessaie dans"
+                                                                        + " quelques instants.",
+                                                                NamedTextColor.RED));
+                                        } else if (!Boolean.TRUE.equals(accepted)) {
+                                            if (player.isOnline())
+                                                player.sendMessage(
+                                                        Component.text(
+                                                                "Conditions non remplies : "
+                                                                        + Numbers.compact(
+                                                                                requiredKills)
+                                                                        + " éliminations"
+                                                                        + " requises, ou"
+                                                                        + " prestige déjà"
+                                                                        + " modifié.",
+                                                                NamedTextColor.RED));
+                                        } else if (player.isOnline()) {
+                                            cache.put(owner, next);
+                                            applyPendingReset(player);
+                                            if (tabList != null) tabList.apply(player);
+                                            player.sendMessage(
+                                                    Component.text(
+                                                            "Prestige "
+                                                                    + PrestigeType.toRoman(next)
+                                                                    + " atteint ! Tes bonus"
+                                                                    + " par élimination"
+                                                                    + " augmentent.",
+                                                            NamedTextColor.LIGHT_PURPLE));
+                                        }
+                                        if (onComplete != null) onComplete.run();
+                                    });
                         });
     }
 
@@ -200,75 +193,68 @@ public final class PrestigeManager implements Listener {
                 .whenComplete(
                         (reset, error) -> {
                             if (!plugin.isEnabled()) return;
-                            plugin.getServer()
-                                    .getScheduler()
-                                    .runTask(
-                                            plugin,
-                                            () -> {
-                                                if (error != null
-                                                        || reset == null
-                                                        || !player.isOnline()) return;
-                                                var marker =
-                                                        new org.bukkit.NamespacedKey(
-                                                                plugin, "prestige_xp_reset");
-                                                var receipt =
-                                                        new org.bukkit.NamespacedKey(
-                                                                plugin, "earned_xp_applied");
-                                                var pdc = player.getPersistentDataContainer();
-                                                if (pdc.getOrDefault(
-                                                                marker,
-                                                                org.bukkit.persistence
-                                                                        .PersistentDataType.INTEGER,
-                                                                0)
-                                                        < reset.level()) {
-                                                    player.setLevel(0);
-                                                    player.setExp(0);
-                                                    player.setTotalExperience(0);
-                                                    pdc.set(
-                                                            receipt,
-                                                            org.bukkit.persistence
-                                                                    .PersistentDataType.LONG,
-                                                            Math.max(
-                                                                    reset.earnedXP(),
-                                                                    pdc.getOrDefault(
-                                                                            receipt,
-                                                                            org.bukkit.persistence
-                                                                                    .PersistentDataType
-                                                                                    .LONG,
-                                                                            0L)));
-                                                    pdc.set(
-                                                            marker,
-                                                            org.bukkit.persistence
-                                                                    .PersistentDataType.INTEGER,
-                                                            reset.level());
-                                                }
-                                                try {
-                                                    player.saveData();
-                                                } catch (RuntimeException failure) {
-                                                    plugin.getLogger()
-                                                            .log(
-                                                                    java.util.logging.Level.SEVERE,
-                                                                    "Réinitialisation XP non"
-                                                                        + " sauvegardée : reprise à"
-                                                                        + " la connexion",
-                                                                    failure);
-                                                    retryReset(player);
-                                                    return;
-                                                }
-                                                store.acknowledgeReset(owner, reset.level())
-                                                        .whenComplete(
-                                                                (ignored, ackError) -> {
-                                                                    if (ackError != null
-                                                                            && plugin.isEnabled())
-                                                                        plugin.getServer()
-                                                                                .getScheduler()
-                                                                                .runTask(
-                                                                                        plugin,
-                                                                                        () ->
-                                                                                                retryReset(
-                                                                                                        player));
-                                                                });
-                                            });
+                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                    plugin,
+                                    () -> {
+                                        if (error != null || reset == null || !player.isOnline())
+                                            return;
+                                        var marker =
+                                                new org.bukkit.NamespacedKey(
+                                                        plugin, "prestige_xp_reset");
+                                        var receipt =
+                                                new org.bukkit.NamespacedKey(
+                                                        plugin, "earned_xp_applied");
+                                        var pdc = player.getPersistentDataContainer();
+                                        if (pdc.getOrDefault(
+                                                        marker,
+                                                        org.bukkit.persistence.PersistentDataType
+                                                                .INTEGER,
+                                                        0)
+                                                < reset.level()) {
+                                            player.setLevel(0);
+                                            player.setExp(0);
+                                            player.setTotalExperience(0);
+                                            pdc.set(
+                                                    receipt,
+                                                    org.bukkit.persistence.PersistentDataType.LONG,
+                                                    Math.max(
+                                                            reset.earnedXP(),
+                                                            pdc.getOrDefault(
+                                                                    receipt,
+                                                                    org.bukkit.persistence
+                                                                            .PersistentDataType
+                                                                            .LONG,
+                                                                    0L)));
+                                            pdc.set(
+                                                    marker,
+                                                    org.bukkit.persistence.PersistentDataType
+                                                            .INTEGER,
+                                                    reset.level());
+                                        }
+                                        try {
+                                            player.saveData();
+                                        } catch (RuntimeException failure) {
+                                            plugin.getLogger()
+                                                    .log(
+                                                            java.util.logging.Level.SEVERE,
+                                                            "Réinitialisation XP non"
+                                                                    + " sauvegardée : reprise à"
+                                                                    + " la connexion",
+                                                            failure);
+                                            retryReset(player);
+                                            return;
+                                        }
+                                        store.acknowledgeReset(owner, reset.level())
+                                                .whenComplete(
+                                                        (ignored, ackError) -> {
+                                                            if (ackError != null
+                                                                    && plugin.isEnabled())
+                                                                fr.cliker.clikerv2.runtime
+                                                                        .ServerTasks.run(
+                                                                        plugin,
+                                                                        () -> retryReset(player));
+                                                        });
+                                    });
                         });
     }
 

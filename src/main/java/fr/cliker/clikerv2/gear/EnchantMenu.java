@@ -63,15 +63,14 @@ public final class EnchantMenu implements Listener {
                         holder,
                         27,
                         Component.text(
-                                "Table d'Enchantement",
-                                NamedTextColor.LIGHT_PURPLE,
-                                TextDecoration.BOLD));
+                                "Table d'Enchantement", NamedTextColor.GREEN, TextDecoration.BOLD));
         holder.inventory = inventory;
         decorate(inventory);
         if (preload != null) {
             inventory.setItem(DEPOSIT_SLOT, preload);
             refreshButton(inventory);
         }
+        fr.cliker.clikerv2.ui.MenuNavigation.back(plugin, inventory, 26);
         player.openInventory(inventory);
     }
 
@@ -213,7 +212,8 @@ public final class EnchantMenu implements Listener {
 
         int slot = event.getSlot();
         if (slot == DEPOSIT_SLOT) {
-            Bukkit.getScheduler().runTask(plugin, () -> refreshButton(holder.inventory));
+            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                    plugin, () -> refreshButton(holder.inventory));
             return;
         }
         event.setCancelled(true);
@@ -228,7 +228,9 @@ public final class EnchantMenu implements Listener {
                         .anyMatch(
                                 slot -> slot < holder.inventory.getSize() && slot != DEPOSIT_SLOT))
             event.setCancelled(true);
-        else Bukkit.getScheduler().runTask(plugin, () -> refreshButton(holder.inventory));
+        else
+            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                    plugin, () -> refreshButton(holder.inventory));
     }
 
     @EventHandler

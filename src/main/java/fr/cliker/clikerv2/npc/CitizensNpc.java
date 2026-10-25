@@ -260,7 +260,7 @@ public class CitizensNpc implements Listener {
                                                                     + config.getString(
                                                                             "pnj.sous-titre",
                                                                             "&7Clic droit pour"
-                                                                                + " ouvrir")));
+                                                                                    + " ouvrir")));
                                         });
             }
         } catch (Exception e) {
@@ -273,21 +273,19 @@ public class CitizensNpc implements Listener {
     @EventHandler
     public void worldLoaded(org.bukkit.event.world.WorldLoadEvent event) {
         if (!ready || !config.getBoolean("pnj.actif", false) || anchor() == null) return;
-        plugin.getServer()
-                .getScheduler()
-                .runTask(
-                        plugin,
-                        () -> {
-                            try {
-                                restore();
-                            } catch (Exception error) {
-                                plugin.getLogger()
-                                        .log(
-                                                Level.SEVERE,
-                                                "Restauration différée du PNJ impossible",
-                                                error);
-                            }
-                        });
+        fr.cliker.clikerv2.runtime.ServerTasks.run(
+                plugin,
+                () -> {
+                    try {
+                        restore();
+                    } catch (Exception error) {
+                        plugin.getLogger()
+                                .log(
+                                        Level.SEVERE,
+                                        "Restauration différée du PNJ impossible",
+                                        error);
+                    }
+                });
     }
 
     @EventHandler

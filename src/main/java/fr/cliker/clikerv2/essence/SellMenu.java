@@ -130,75 +130,65 @@ public final class SellMenu implements Listener {
         economy.change(player.getUniqueId(), player.getName(), CurrencyType.ECUS, gain)
                 .whenComplete(
                         (balance, error) ->
-                                Bukkit.getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    if (error != null) {
-                                                        var delivery =
-                                                                Bukkit.getServicesManager()
-                                                                        .load(
-                                                                                fr.cliker.clikerv2
-                                                                                        .rewards
-                                                                                        .ClaimService
-                                                                                        .class);
-                                                        if (delivery != null)
-                                                            delivery.give(
-                                                                    player.getUniqueId(),
-                                                                    player.getName(),
-                                                                    clicked.clone());
-                                                        plugin.getLogger()
-                                                                .log(
-                                                                        java.util.logging.Level
-                                                                                .SEVERE,
-                                                                        "Vente d’essences"
-                                                                                + " impossible,"
-                                                                                + " restitution"
-                                                                                + " demandée",
-                                                                        error);
-                                                        if (player.isOnline())
-                                                            player.sendMessage(
-                                                                    Component.text(
-                                                                            "Vente impossible : tes"
-                                                                                + " essences sont"
-                                                                                + " rendues ou"
-                                                                                + " disponibles"
-                                                                                + " dans /claim.",
-                                                                            NamedTextColor.RED));
-                                                        return;
-                                                    }
-                                                    if (!player.isOnline()) return;
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (error != null) {
+                                                var delivery =
+                                                        Bukkit.getServicesManager()
+                                                                .load(
+                                                                        fr.cliker.clikerv2.rewards
+                                                                                .ClaimService
+                                                                                .class);
+                                                if (delivery != null)
+                                                    delivery.give(
+                                                            player.getUniqueId(),
+                                                            player.getName(),
+                                                            clicked.clone());
+                                                plugin.getLogger()
+                                                        .log(
+                                                                java.util.logging.Level.SEVERE,
+                                                                "Vente d’essences"
+                                                                        + " impossible,"
+                                                                        + " restitution"
+                                                                        + " demandée",
+                                                                error);
+                                                if (player.isOnline())
                                                     player.sendMessage(
                                                             Component.text(
-                                                                            "✦ Vendu ",
-                                                                            NamedTextColor.GREEN)
-                                                                    .append(
-                                                                            Component.text(
-                                                                                    Numbers.compact(
-                                                                                                    amount)
-                                                                                            + " "
-                                                                                            + rarity
-                                                                                                    .label()
-                                                                                            + " "
-                                                                                            + tier
-                                                                                                    .essenceName(),
-                                                                                    NamedTextColor
-                                                                                            .YELLOW))
-                                                                    .append(
-                                                                            Component.text(
-                                                                                    " contre ",
-                                                                                    NamedTextColor
-                                                                                            .GREEN))
-                                                                    .append(
-                                                                            Component.text(
-                                                                                    "+"
-                                                                                            + Numbers
-                                                                                                    .compact(
-                                                                                                            gain)
-                                                                                            + " Écus",
-                                                                                    NamedTextColor
-                                                                                            .GOLD)));
-                                                }));
+                                                                    "Vente impossible : tes"
+                                                                            + " essences sont"
+                                                                            + " rendues ou"
+                                                                            + " disponibles"
+                                                                            + " dans /claim.",
+                                                                    NamedTextColor.RED));
+                                                return;
+                                            }
+                                            if (!player.isOnline()) return;
+                                            player.sendMessage(
+                                                    Component.text("✦ Vendu ", NamedTextColor.GREEN)
+                                                            .append(
+                                                                    Component.text(
+                                                                            Numbers.compact(amount)
+                                                                                    + " "
+                                                                                    + rarity.label()
+                                                                                    + " "
+                                                                                    + tier
+                                                                                            .essenceName(),
+                                                                            NamedTextColor.YELLOW))
+                                                            .append(
+                                                                    Component.text(
+                                                                            " contre ",
+                                                                            NamedTextColor.GREEN))
+                                                            .append(
+                                                                    Component.text(
+                                                                            "+"
+                                                                                    + Numbers
+                                                                                            .compact(
+                                                                                                    gain)
+                                                                                    + " Écus",
+                                                                            NamedTextColor.GOLD)));
+                                        }));
     }
 
     @EventHandler

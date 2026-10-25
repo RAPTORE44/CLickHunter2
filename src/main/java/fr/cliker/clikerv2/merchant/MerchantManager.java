@@ -5,6 +5,7 @@ import fr.cliker.clikerv2.MobTier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
@@ -23,7 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/** PNJ marchand par mob : villageois figé, ouvre le GUI d'achat de l'équipement du mob correspondant. */
+/**
+ * PNJ marchand par mob : villageois figé, ouvre le GUI d'achat de l'équipement du mob
+ * correspondant.
+ */
 public final class MerchantManager implements Listener {
     private final JavaPlugin plugin;
     private final MerchantStore store;
@@ -41,22 +45,45 @@ public final class MerchantManager implements Listener {
         this.mobIdKey = new NamespacedKey(plugin, "cliker_merchant_mob");
     }
 
-    /** Force le chargement des chunks avant de scanner/supprimer les anciens PNJ, sinon reload à chaud = doublons. */
+    /**
+     * Force le chargement des chunks avant de scanner/supprimer les anciens PNJ, sinon reload à
+     * chaud = doublons.
+     */
     public void load() {
-        store.loadAll().whenComplete((points, error) -> plugin.getServer().getScheduler().runTask(plugin, () -> {
-            if (error != null) { plugin.getLogger().severe("Impossible de charger les marchands : " + error.getMessage()); return; }
-            for (MerchantStore.MerchantPoint point : points) point.location().getWorld().getChunkAt(point.location()).load();
-            for (var world : plugin.getServer().getWorlds()) {
-                for (Entity entity : world.getEntities()) {
-                    if (entity.getPersistentDataContainer().has(mobIdKey, PersistentDataType.STRING)) entity.remove();
-                }
-            }
-            for (MerchantStore.MerchantPoint point : points) {
-                npcMobId.put(point.id(), point.mobId());
-                npcLocation.put(point.id(), point.location());
-                spawn(point.id());
-            }
-        }));
+        store.loadAll()
+                .whenComplete(
+                        (points, error) ->
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (error != null) {
+                                                plugin.getLogger()
+                                                        .severe(
+                                                                "Impossible de charger les"
+                                                                        + " marchands : "
+                                                                        + error.getMessage());
+                                                return;
+                                            }
+                                            for (MerchantStore.MerchantPoint point : points)
+                                                point.location()
+                                                        .getWorld()
+                                                        .getChunkAt(point.location())
+                                                        .load();
+                                            for (var world : plugin.getServer().getWorlds()) {
+                                                for (Entity entity : world.getEntities()) {
+                                                    if (entity.getPersistentDataContainer()
+                                                            .has(
+                                                                    mobIdKey,
+                                                                    PersistentDataType.STRING))
+                                                        entity.remove();
+                                                }
+                                            }
+                                            for (MerchantStore.MerchantPoint point : points) {
+                                                npcMobId.put(point.id(), point.mobId());
+                                                npcLocation.put(point.id(), point.location());
+                                                spawn(point.id());
+                                            }
+                                        }));
     }
 
     public void addNpc(String mobId, Location location) {
@@ -74,7 +101,10 @@ public final class MerchantManager implements Listener {
             Location location = entry.getValue();
             if (!location.getWorld().equals(near.getWorld())) continue;
             double distance = location.distanceSquared(near);
-            if (distance < bestDistance) { bestDistance = distance; nearest = entry.getKey(); }
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                nearest = entry.getKey();
+            }
         }
         if (nearest == null) return false;
         despawn(nearest);
@@ -101,7 +131,10 @@ public final class MerchantManager implements Listener {
         MobTier tier = mobId == null ? null : MobTier.parse(mobId);
         if (location == null || tier == null) return;
 
-        Villager villager = (Villager) location.getWorld().spawnEntity(location, org.bukkit.entity.EntityType.VILLAGER);
+        Villager villager =
+                (Villager)
+                        location.getWorld()
+                                .spawnEntity(location, org.bukkit.entity.EntityType.VILLAGER);
         villager.setAI(false);
         villager.setInvulnerable(true);
         villager.setSilent(true);
@@ -110,7 +143,11 @@ public final class MerchantManager implements Listener {
         villager.setRemoveWhenFarAway(false);
         villager.setVillagerType(Villager.Type.SWAMP);
         villager.setProfession(Villager.Profession.NONE);
-        villager.customName(Component.text("Marchand " + tier.label(), NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD));
+        villager.customName(
+                Component.text(
+                        "Marchand " + tier.label(),
+                        NamedTextColor.LIGHT_PURPLE,
+                        TextDecoration.BOLD));
         villager.setCustomNameVisible(true);
         villager.getPersistentDataContainer().set(mobIdKey, PersistentDataType.STRING, mobId);
         aliveByNpcId.put(npcId, villager.getUniqueId());
@@ -130,6 +167,7 @@ public final class MerchantManager implements Listener {
     @EventHandler
     public void onDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof LivingEntity entity)) return;
-        if (entity.getPersistentDataContainer().has(mobIdKey, PersistentDataType.STRING)) event.setCancelled(true);
+        if (entity.getPersistentDataContainer().has(mobIdKey, PersistentDataType.STRING))
+            event.setCancelled(true);
     }
 }

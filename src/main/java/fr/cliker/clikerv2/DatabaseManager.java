@@ -15,10 +15,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public final class DatabaseManager {
+    private final org.bukkit.plugin.java.JavaPlugin plugin;
     private final String jdbcUrl;
     private final ExecutorService executor;
 
     public DatabaseManager(JavaPlugin plugin, String relativePath) {
+        this.plugin = plugin;
         File database = new File(plugin.getDataFolder(), relativePath);
         File parent = database.getParentFile();
         if (parent != null && !parent.exists() && !parent.mkdirs()) {
@@ -234,6 +236,45 @@ public final class DatabaseManager {
                     }
                 },
                 executor);
+    }
+
+    public void invalidRecord(String table, String id, RuntimeException error) {
+        plugin.getLogger()
+                .log(
+                        java.util.logging.Level.WARNING,
+                        "Position invalide ignorée dans "
+                                + table
+                                + " ("
+                                + id
+                                + "). Enregistrement conservé.",
+                        error);
+    }
+
+    /** Ne bloque jamais le thread serveur en attendant un résultat SQL. */
+    public <T> CompletableFuture<T> onServerThread(java.util.function.Supplier<T> operation) {
+        if (org.bukkit.Bukkit.isPrimaryThread()) {
+            try {
+                return CompletableFuture.completedFuture(operation.get());
+            } catch (RuntimeException error) {
+                return CompletableFuture.failedFuture(error);
+            }
+        }
+        var future = new CompletableFuture<T>();
+        try {
+            org.bukkit.Bukkit.getScheduler()
+                    .runTask(
+                            plugin,
+                            () -> {
+                                try {
+                                    future.complete(operation.get());
+                                } catch (RuntimeException error) {
+                                    future.completeExceptionally(error);
+                                }
+                            });
+        } catch (RuntimeException error) {
+            future.completeExceptionally(error);
+        }
+        return future;
     }
 
     private Connection open() throws SQLException {

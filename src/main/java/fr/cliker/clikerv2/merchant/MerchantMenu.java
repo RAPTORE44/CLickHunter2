@@ -68,6 +68,7 @@ public final class MerchantMenu implements Listener {
                                 TextDecoration.BOLD));
         holder.inventory = inventory;
         decorate(player, inventory, tier);
+        fr.cliker.clikerv2.ui.MenuNavigation.back(plugin, inventory, 49);
         player.openInventory(inventory);
     }
 
@@ -330,52 +331,50 @@ public final class MerchantMenu implements Listener {
                                 fr.cliker.clikerv2.rewards.ClaimService.serialize(reward));
         purchase.whenComplete(
                 (paid, error) ->
-                        Bukkit.getScheduler()
-                                .runTask(
-                                        plugin,
-                                        () -> {
-                                            pending.remove(owner);
-                                            if (error == null) delivery.notifyAndDeliver(owner);
-                                            if (error != null || !Boolean.TRUE.equals(paid)) {
-                                                if (essenceCost > 0 && error != null)
-                                                    delivery.give(
-                                                            owner,
-                                                            player.getName(),
-                                                            EssenceItem.create(
-                                                                    tier, required, essenceCost));
-                                                if (player.isOnline())
-                                                    player.sendMessage(
-                                                            Component.text(
-                                                                    error == null
-                                                                            ? "Écus insuffisants."
-                                                                                  + " Tes essences"
-                                                                                  + " ont été"
-                                                                                  + " rendues."
-                                                                            : "Achat impossible."
-                                                                                  + " Tes essences"
-                                                                                  + " ont été"
-                                                                                  + " rendues.",
-                                                                    NamedTextColor.RED));
-                                                if (error != null)
-                                                    plugin.getLogger()
-                                                            .log(
-                                                                    java.util.logging.Level.SEVERE,
-                                                                    "Achat marchand"
-                                                                            + " impossible",
-                                                                    error);
-                                            } else {
-                                                delivery.notifyAndDeliver(owner);
-                                                if (player.isOnline())
-                                                    player.sendMessage(
-                                                            Component.text(
-                                                                    "✦ Achat effectué !"
-                                                                            + " L’objet est"
-                                                                            + " livré ou"
-                                                                            + " disponible dans"
-                                                                            + " /claim.",
-                                                                    NamedTextColor.GREEN));
-                                            }
-                                        }));
+                        fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                plugin,
+                                () -> {
+                                    pending.remove(owner);
+                                    if (error == null) delivery.notifyAndDeliver(owner);
+                                    if (error != null || !Boolean.TRUE.equals(paid)) {
+                                        if (essenceCost > 0 && error != null)
+                                            delivery.give(
+                                                    owner,
+                                                    player.getName(),
+                                                    EssenceItem.create(
+                                                            tier, required, essenceCost));
+                                        if (player.isOnline())
+                                            player.sendMessage(
+                                                    Component.text(
+                                                            error == null
+                                                                    ? "Écus insuffisants."
+                                                                            + " Tes essences"
+                                                                            + " ont été"
+                                                                            + " rendues."
+                                                                    : "Achat impossible."
+                                                                            + " Tes essences"
+                                                                            + " ont été"
+                                                                            + " rendues.",
+                                                            NamedTextColor.RED));
+                                        if (error != null)
+                                            plugin.getLogger()
+                                                    .log(
+                                                            java.util.logging.Level.SEVERE,
+                                                            "Achat marchand" + " impossible",
+                                                            error);
+                                    } else {
+                                        delivery.notifyAndDeliver(owner);
+                                        if (player.isOnline())
+                                            player.sendMessage(
+                                                    Component.text(
+                                                            "✦ Achat effectué !"
+                                                                    + " L’objet est"
+                                                                    + " livré ou"
+                                                                    + " disponible dans"
+                                                                    + " /claim.",
+                                                            NamedTextColor.GREEN));
+                                    }
+                                }));
     }
 
     @EventHandler

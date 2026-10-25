@@ -38,6 +38,7 @@ public final class AutoClickManager implements CommandExecutor, Listener {
     private final Set<UUID> active = new HashSet<>();
     private final java.util.Map<UUID, Integer> lastAttackTick = new java.util.HashMap<>();
     private int elapsedTicks = 0;
+    private org.bukkit.scheduler.BukkitTask task;
 
     public AutoClickManager(JavaPlugin plugin, UpgradeManager upgrades) {
         this.plugin = plugin;
@@ -45,7 +46,7 @@ public final class AutoClickManager implements CommandExecutor, Listener {
     }
 
     public void start() {
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 10L, 10L);
+        task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 10L, 10L);
     }
 
     private void tick() {
@@ -58,6 +59,11 @@ public final class AutoClickManager implements CommandExecutor, Listener {
                 continue;
             }
 
+            if (!player.hasPermission("cliker.autoclick.use")) {
+                active.remove(uuid);
+                lastAttackTick.remove(uuid);
+                continue;
+            }
             int interval = intervalFor(player);
             int last = lastAttackTick.getOrDefault(uuid, -interval);
             if (elapsedTicks - last < interval) continue;
@@ -79,6 +85,7 @@ public final class AutoClickManager implements CommandExecutor, Listener {
             if (result != null
                     && result.getHitEntity() instanceof LivingEntity living
                     && living.isValid()) {
+                if (!player.hasLineOfSight(living)) continue;
                 player.swingMainHand();
                 living.damage(1.0, player);
                 lastAttackTick.put(uuid, elapsedTicks);
@@ -126,13 +133,14 @@ public final class AutoClickManager implements CommandExecutor, Listener {
 
         UUID uuid = player.getUniqueId();
         if (active.remove(uuid)) {
+            lastAttackTick.remove(uuid);
             player.sendMessage(Component.text("Autoclick désactivé.", NamedTextColor.RED));
         } else {
             active.add(uuid);
             player.sendMessage(
                     Component.text(
                             "Autoclick activé : vise une créature. La cadence dépend de tes"
-                                + " améliorations et de ton équipement.",
+                                    + " améliorations et de ton équipement.",
                             NamedTextColor.GREEN));
         }
         return true;
@@ -141,5 +149,13 @@ public final class AutoClickManager implements CommandExecutor, Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         active.remove(event.getPlayer().getUniqueId());
+        lastAttackTick.remove(event.getPlayer().getUniqueId());
+    }
+
+    public void shutdown() {
+        if (task != null) task.cancel();
+        active.clear();
+        lastAttackTick.clear();
+        org.bukkit.event.HandlerList.unregisterAll(this);
     }
 }

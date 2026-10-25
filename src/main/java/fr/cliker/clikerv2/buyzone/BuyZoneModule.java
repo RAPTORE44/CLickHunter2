@@ -517,7 +517,8 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
     }
 
     private void sync(Runnable task) {
-        if (!stopped && plugin.isEnabled()) Bukkit.getScheduler().runTask(plugin, task);
+        if (!stopped && plugin.isEnabled())
+            fr.cliker.clikerv2.runtime.ServerTasks.run(plugin, task);
     }
 
     private void saveConfig() throws java.io.IOException {

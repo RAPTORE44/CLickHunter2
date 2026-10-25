@@ -89,14 +89,13 @@ public final class HuntUI implements Listener {
                     && !view.pending) {
                 view.pending = true;
                 int slot = e.getRawSlot();
-                Bukkit.getScheduler()
-                        .runTask(
-                                plugin,
-                                () -> {
-                                    view.pending = false;
-                                    if (e.getWhoClicked().getOpenInventory().getTopInventory()
-                                            == view.inventory) view.action.accept(slot);
-                                });
+                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                        plugin,
+                        () -> {
+                            view.pending = false;
+                            if (e.getWhoClicked().getOpenInventory().getTopInventory()
+                                    == view.inventory) view.action.accept(slot);
+                        });
             }
         }
     }

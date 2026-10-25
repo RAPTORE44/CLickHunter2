@@ -35,38 +35,87 @@ public final class UpgradeMenu implements Listener {
     };
 
     private final UpgradeManager manager;
+    private final JavaPlugin plugin;
+    private final fr.cliker.clikerv2.ui.ViewRequests requests;
     private final NamespacedKey typeKey;
 
     public UpgradeMenu(JavaPlugin plugin, UpgradeManager manager) {
         this.manager = manager;
+        this.plugin = plugin;
+        requests = new fr.cliker.clikerv2.ui.ViewRequests(plugin);
         this.typeKey = new NamespacedKey(plugin, "cliker_upgrade_type");
     }
 
     public void open(Player player) {
-        Holder holder = new Holder();
-        Inventory inventory =
-                Bukkit.createInventory(
-                        holder,
-                        27,
-                        Component.text(
-                                "Upgrades", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD));
-        holder.inventory = inventory;
-
-        UpgradeType[] types = UpgradeType.values();
-        for (int i = 0; i < types.length; i++)
-            inventory.setItem(SLOTS[i], buildItem(player, types[i], MATERIALS[i]));
-
-        player.openInventory(inventory);
+        if (!manager.isLoaded(player.getUniqueId())) {
+            player.sendMessage(
+                    Component.text(
+                            "Tes améliorations sont en cours de chargement. Réessaie dans un"
+                                    + " instant.",
+                            NamedTextColor.YELLOW));
+            return;
+        }
+        var request = requests.begin(player);
+        manager.gems(player)
+                .whenComplete(
+                        (balance, error) -> {
+                            if (!plugin.isEnabled()) return;
+                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                    plugin,
+                                    () -> {
+                                        if (!requests.complete(player, request)
+                                                || !player.hasPermission("cliker.upgrade.use"))
+                                            return;
+                                        if (error != null) {
+                                            plugin.getLogger()
+                                                    .log(
+                                                            java.util.logging.Level.WARNING,
+                                                            "Menu des améliorations indisponible",
+                                                            error);
+                                            player.sendMessage(
+                                                    Component.text(
+                                                            "Tes améliorations sont temporairement"
+                                                                    + " indisponibles.",
+                                                            NamedTextColor.RED));
+                                            return;
+                                        }
+                                        var holder = new Holder();
+                                        holder.owner = player.getUniqueId();
+                                        holder.gems = balance;
+                                        holder.inventory =
+                                                Bukkit.createInventory(
+                                                        holder,
+                                                        27,
+                                                        Component.text(
+                                                                "Améliorations",
+                                                                NamedTextColor.GREEN));
+                                        refresh(player, holder);
+                                        fr.cliker.clikerv2.ui.MenuNavigation.back(
+                                                plugin, holder.inventory, 26);
+                                        player.openInventory(holder.inventory);
+                                    });
+                        });
     }
 
-    private ItemStack buildItem(Player player, UpgradeType type, Material material) {
+    private void refresh(Player player, Holder holder) {
+        var types = UpgradeType.values();
+        for (int i = 0; i < types.length; i++)
+            holder.inventory.setItem(
+                    SLOTS[i], buildItem(player, types[i], MATERIALS[i], holder.gems));
+    }
+
+    private ItemStack buildItem(Player player, UpgradeType type, Material material, long gems) {
         int level = manager.getLevel(player.getUniqueId(), type);
         ItemStack item = new ItemStack(material);
         var meta = item.getItemMeta();
         meta.displayName(
                 Component.text(
                                 type.symbol() + " " + type.label(),
-                                type.color(),
+                                level >= UpgradeType.MAX_LEVEL
+                                        ? NamedTextColor.GOLD
+                                        : gems >= UpgradeType.costForLevel(level + 1) * 10
+                                                ? NamedTextColor.GREEN
+                                                : NamedTextColor.RED,
                                 TextDecoration.BOLD)
                         .decoration(TextDecoration.ITALIC, false));
 
@@ -119,8 +168,24 @@ public final class UpgradeMenu implements Listener {
                             Component.text(""),
                             nextLine,
                             costLine,
+                            Component.text(
+                                    "Ton solde : "
+                                            + fr.cliker.clikerv2.economy.CurrencyType.GEMMES_SOMBRES
+                                                    .format(gems)
+                                            + " Gemmes Sombres",
+                                    NamedTextColor.GRAY),
                             Component.text(""),
-                            Component.text("Clique pour acheter !", NamedTextColor.YELLOW)
+                            Component.text(
+                                            gems >= cost * 10
+                                                    ? "Clique pour acheter !"
+                                                    : "Il manque "
+                                                            + fr.cliker.clikerv2.economy
+                                                                    .CurrencyType.GEMMES_SOMBRES
+                                                                    .format(cost * 10 - gems)
+                                                            + " Gemmes Sombres.",
+                                            gems >= cost * 10
+                                                    ? NamedTextColor.GREEN
+                                                    : NamedTextColor.RED)
                                     .decoration(TextDecoration.ITALIC, false)));
         }
         meta.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, type.id());
@@ -141,16 +206,32 @@ public final class UpgradeMenu implements Listener {
         UpgradeType type = id == null ? null : UpgradeType.parse(id);
         if (type == null || !(event.getWhoClicked() instanceof Player player)) return;
 
+        if (event.getClickedInventory() != holder.inventory
+                || !holder.owner.equals(player.getUniqueId())
+                || !player.hasPermission("cliker.upgrade.use")
+                || holder.pending) return;
+        holder.pending = true;
         manager.purchase(
                 player,
                 type,
                 () -> {
-                    if (player.isOnline()
-                            && player.getOpenInventory().getTopInventory().getHolder() == holder) {
-                        int index = java.util.Arrays.asList(UpgradeType.values()).indexOf(type);
-                        holder.inventory.setItem(
-                                SLOTS[index], buildItem(player, type, MATERIALS[index]));
-                    }
+                    manager.gems(player)
+                            .whenComplete(
+                                    (balance, error) -> {
+                                        if (!plugin.isEnabled()) return;
+                                        fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                                plugin,
+                                                () -> {
+                                                    holder.pending = false;
+                                                    if (error != null
+                                                            || !player.isOnline()
+                                                            || player.getOpenInventory()
+                                                                            .getTopInventory()
+                                                                    != holder.inventory) return;
+                                                    holder.gems = balance;
+                                                    refresh(player, holder);
+                                                });
+                                    });
                 });
     }
 
@@ -161,6 +242,9 @@ public final class UpgradeMenu implements Listener {
     }
 
     private static final class Holder implements InventoryHolder {
+        private java.util.UUID owner;
+        private long gems;
+        private boolean pending;
         private Inventory inventory;
 
         @Override

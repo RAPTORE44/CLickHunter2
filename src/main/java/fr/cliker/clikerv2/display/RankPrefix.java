@@ -6,12 +6,19 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.cacheddata.CachedMetaData;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 /** Récupère le préfixe de grade LuckPerms (icônes ItemsAdder incluses) pour le tab et le chat. */
 public final class RankPrefix {
-    private static final boolean LUCKPERMS_PRESENT = Bukkit.getPluginManager().getPlugin("LuckPerms") != null;
+    private static volatile boolean LUCKPERMS_PRESENT;
+
+    public static void initialize() {
+        if (!Bukkit.isPrimaryThread())
+            throw new IllegalStateException("Initialisation des préfixes hors du thread serveur");
+        LUCKPERMS_PRESENT = Bukkit.getPluginManager().isPluginEnabled("LuckPerms");
+    }
 
     private RankPrefix() {}
 
@@ -33,7 +40,8 @@ public final class RankPrefix {
             try {
                 return MiniMessage.miniMessage().deserialize(raw);
             } catch (RuntimeException invalidMiniMessage) {
-                // certains préfixes ItemsAdder mélangent MiniMessage et légacy, on retente en légacy plus bas
+                // certains préfixes ItemsAdder mélangent MiniMessage et légacy, on retente en
+                // légacy plus bas
             }
         }
         return LegacyComponentSerializer.legacyAmpersand().deserialize(raw);

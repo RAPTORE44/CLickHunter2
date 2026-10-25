@@ -2,6 +2,7 @@ package fr.cliker.clikerv2.upgrade;
 
 import fr.cliker.clikerv2.EconomyService;
 import fr.cliker.clikerv2.Numbers;
+import fr.cliker.clikerv2.economy.CurrencyType;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -44,25 +45,21 @@ public final class UpgradeManager implements Listener {
         store.getLevels(player.getUniqueId())
                 .whenComplete(
                         (levels, error) ->
-                                plugin.getServer()
-                                        .getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    if (error != null) {
-                                                        plugin.getLogger()
-                                                                .severe(
-                                                                        "Impossible de charger les"
-                                                                                + " upgrades : "
-                                                                                + error
-                                                                                        .getMessage());
-                                                        return;
-                                                    }
-                                                    if (!player.isOnline()) return;
-                                                    cache.put(player.getUniqueId(), levels);
-                                                    if (player.isOnline())
-                                                        applyAttributes(player, levels);
-                                                }));
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (error != null) {
+                                                plugin.getLogger()
+                                                        .severe(
+                                                                "Impossible de charger les"
+                                                                        + " upgrades : "
+                                                                        + error.getMessage());
+                                                return;
+                                            }
+                                            if (!player.isOnline()) return;
+                                            cache.put(player.getUniqueId(), levels);
+                                            if (player.isOnline()) applyAttributes(player, levels);
+                                        }));
     }
 
     /**
@@ -76,6 +73,15 @@ public final class UpgradeManager implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         cache.remove(event.getPlayer().getUniqueId());
+    }
+
+    public boolean isLoaded(UUID owner) {
+        return cache.containsKey(owner);
+    }
+
+    public java.util.concurrent.CompletableFuture<Long> gems(Player player) {
+        return economy.getBalance(
+                player.getUniqueId(), player.getName(), CurrencyType.GEMMES_SOMBRES);
     }
 
     public int getLevel(UUID uuid, UpgradeType type) {
@@ -106,68 +112,68 @@ public final class UpgradeManager implements Listener {
             if (onComplete != null) onComplete.run();
             return;
         }
-        if (!pending.add(owner)) return;
+        if (!pending.add(owner)) {
+            player.sendMessage(
+                    Component.text(
+                            "Une amélioration est déjà en cours. Patiente un instant.",
+                            NamedTextColor.YELLOW));
+            if (onComplete != null) onComplete.run();
+            return;
+        }
         store.purchase(owner, type)
                 .whenComplete(
                         (level, error) -> {
                             if (!plugin.isEnabled()) return;
-                            plugin.getServer()
-                                    .getScheduler()
-                                    .runTask(
-                                            plugin,
-                                            () -> {
-                                                pending.remove(owner);
-                                                if (error != null) {
-                                                    plugin.getLogger()
-                                                            .log(
-                                                                    java.util.logging.Level.SEVERE,
-                                                                    "Achat d'amélioration"
-                                                                            + " impossible",
-                                                                    error);
-                                                    if (player.isOnline())
-                                                        player.sendMessage(
-                                                                Component.text(
-                                                                        "Achat impossible. Aucun"
-                                                                                + " débit validé.",
-                                                                        NamedTextColor.RED));
-                                                } else if (level < 0) {
-                                                    if (player.isOnline())
-                                                        player.sendMessage(
-                                                                Component.text(
-                                                                        level == -1
-                                                                                ? "Gemmes Sombres"
-                                                                                      + " insuffisantes."
-                                                                                : "Cette"
-                                                                                      + " amélioration"
-                                                                                      + " est déjà"
-                                                                                      + " au maximum.",
-                                                                        NamedTextColor.RED));
-                                                } else if (player.isOnline()) {
-                                                    cache.computeIfAbsent(
-                                                                    owner,
-                                                                    key ->
-                                                                            new EnumMap<>(
-                                                                                    UpgradeType
-                                                                                            .class))
-                                                            .put(type, level);
-                                                    applyAttributes(player, cache.get(owner));
-                                                    player.sendMessage(
-                                                            Component.text(
-                                                                    type.label()
-                                                                            + " : niveau "
-                                                                            + level
-                                                                            + "/"
-                                                                            + UpgradeType.MAX_LEVEL
-                                                                            + " ("
-                                                                            + formatBonus(
-                                                                                    type, level)
-                                                                            + " "
-                                                                            + type.unitLabel()
-                                                                            + ").",
-                                                                    NamedTextColor.GREEN));
-                                                }
-                                                if (onComplete != null) onComplete.run();
-                                            });
+                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                    plugin,
+                                    () -> {
+                                        pending.remove(owner);
+                                        if (error != null) {
+                                            plugin.getLogger()
+                                                    .log(
+                                                            java.util.logging.Level.SEVERE,
+                                                            "Achat d'amélioration" + " impossible",
+                                                            error);
+                                            if (player.isOnline())
+                                                player.sendMessage(
+                                                        Component.text(
+                                                                "Achat impossible. Aucun"
+                                                                        + " débit validé.",
+                                                                NamedTextColor.RED));
+                                        } else if (level < 0) {
+                                            if (player.isOnline())
+                                                player.sendMessage(
+                                                        Component.text(
+                                                                level == -1
+                                                                        ? "Gemmes Sombres"
+                                                                                + " insuffisantes."
+                                                                        : "Cette"
+                                                                                + " amélioration"
+                                                                                + " est déjà"
+                                                                                + " au maximum.",
+                                                                NamedTextColor.RED));
+                                        } else if (player.isOnline()) {
+                                            cache.computeIfAbsent(
+                                                            owner,
+                                                            key -> new EnumMap<>(UpgradeType.class))
+                                                    .put(type, level);
+                                            applyAttributes(player, cache.get(owner));
+                                            player.sendMessage(
+                                                    Component.text(
+                                                            type.label()
+                                                                    + " : niveau "
+                                                                    + level
+                                                                    + "/"
+                                                                    + UpgradeType.MAX_LEVEL
+                                                                    + " ("
+                                                                    + formatBonus(type, level)
+                                                                    + " "
+                                                                    + type.unitLabel()
+                                                                    + ").",
+                                                            NamedTextColor.GREEN));
+                                        }
+                                        if (onComplete != null) onComplete.run();
+                                    });
                         });
     }
 

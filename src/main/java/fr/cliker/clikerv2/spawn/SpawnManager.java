@@ -1,14 +1,17 @@
 package fr.cliker.clikerv2.spawn;
 
-import org.bukkit.Location;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-/** Point de spawn du serveur, persisté en BDD. */
+import java.util.concurrent.CompletableFuture;
+
+/** Le cache ne confirme jamais une position dont la sauvegarde a échoué. */
 public final class SpawnManager {
     private final JavaPlugin plugin;
     private final SpawnStore store;
     private Location spawn;
+    private long version;
 
     public SpawnManager(JavaPlugin plugin, SpawnStore store) {
         this.plugin = plugin;
@@ -16,24 +19,68 @@ public final class SpawnManager {
     }
 
     public void load() {
-        store.load().whenComplete((location, error) -> plugin.getServer().getScheduler().runTask(plugin, () -> {
-            if (error != null) { plugin.getLogger().severe("Impossible de charger le spawn : " + error.getMessage()); return; }
-            spawn = location;
-        }));
+        long requested = version;
+        store.load()
+                .whenComplete(
+                        (location, error) -> {
+                            if (!plugin.isEnabled()) return;
+                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                    plugin,
+                                    () -> {
+                                        if (error != null) {
+                                            plugin.getLogger()
+                                                    .log(
+                                                            java.util.logging.Level.SEVERE,
+                                                            "Chargement du point d’accueil"
+                                                                    + " impossible",
+                                                            error);
+                                            return;
+                                        }
+                                        if (version == requested) spawn = location;
+                                    });
+                        });
     }
 
-    public boolean hasSpawn() { return spawn != null; }
+    public boolean hasSpawn() {
+        return spawn != null;
+    }
 
-    public Location spawn() { return spawn == null ? null : spawn.clone(); }
+    public Location spawn() {
+        return spawn == null ? null : spawn.clone();
+    }
 
     public boolean teleport(Player player) {
-        if (spawn == null) return false;
-        player.teleport(spawn);
-        return true;
+        return spawn != null && player.teleport(spawn);
     }
 
-    public void setSpawn(Location location) {
-        spawn = location.clone();
-        store.save(spawn);
+    public CompletableFuture<Boolean> setSpawn(Location location) {
+        Location saved = location.clone();
+        var result = new CompletableFuture<Boolean>();
+        store.save(saved)
+                .whenComplete(
+                        (ignored, error) -> {
+                            if (!plugin.isEnabled()) {
+                                result.complete(false);
+                                return;
+                            }
+                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                    plugin,
+                                    () -> {
+                                        if (error != null) {
+                                            plugin.getLogger()
+                                                    .log(
+                                                            java.util.logging.Level.SEVERE,
+                                                            "Sauvegarde du point d’accueil"
+                                                                    + " impossible",
+                                                            error);
+                                            result.complete(false);
+                                        } else {
+                                            version++;
+                                            spawn = saved;
+                                            result.complete(true);
+                                        }
+                                    });
+                        });
+        return result;
     }
 }

@@ -3,28 +3,38 @@ package fr.cliker.clikerv2.essence;
 import fr.cliker.clikerv2.MobTier;
 
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-/**
- * Compresseur d'essences : tant qu'un joueur a le compresseur du bon mob dans son inventaire, compresse
- * automatiquement ses essences de ce mob (64 d'un palier de rareté -> 1 du palier suivant, en cascade)
- * à chaque coup porté sur un mob custom. Propre à chaque joueur, aucun bloc à poser.
- */
+/** Un relevé de l'inventaire par coup ; aucune recherche par compresseur et par palier. */
 public final class CompressorManager {
-    /** Appelé par CustomMobManager à chaque coup réussi sur un mob custom. */
     public void onHit(Player player) {
-        for (MobTier tier : compressorsOf(player)) EssenceCompression.cascade(player, tier);
-    }
-
-    private Set<MobTier> compressorsOf(Player player) {
-        Set<MobTier> tiers = new HashSet<>();
-        for (ItemStack stack : player.getInventory().getContents()) {
-            MobTier tier = CompressorItem.tierOf(stack);
-            if (tier != null) tiers.add(tier);
+        var contents = player.getInventory().getContents();
+        Set<MobTier> active = EnumSet.noneOf(MobTier.class);
+        for (var stack : contents) {
+            var tier = CompressorItem.tierOf(stack);
+            if (tier != null) active.add(tier);
         }
-        return tiers;
+        if (active.isEmpty()) return;
+        Map<MobTier, int[]> counts = new EnumMap<>(MobTier.class);
+        // Les 36 premières cases sont le stockage ; les essences en main secondaire ne sont pas
+        // consommées.
+        for (int slot = 0; slot < Math.min(36, contents.length); slot++) {
+            var stack = contents[slot];
+            var tier = EssenceItem.tierOf(stack);
+            if (tier != null && active.contains(tier))
+                counts.computeIfAbsent(tier, k -> new int[EssenceRarity.values().length])[
+                                EssenceItem.rarityOf(stack).ordinal()] +=
+                        stack.getAmount();
+        }
+        for (var tier : active) {
+            var count = counts.get(tier);
+            if (count == null) continue;
+            for (var rarity : EssenceRarity.values())
+                if (rarity.next() != null && count[rarity.ordinal()] >= EssenceCompression.RATIO) {
+                    EssenceCompression.cascade(player, tier);
+                    break;
+                }
+        }
     }
 }

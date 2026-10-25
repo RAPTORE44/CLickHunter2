@@ -1,7 +1,7 @@
 package fr.cliker.clikerv2.bag;
 
 import fr.cliker.clikerv2.MobTier;
-import org.bukkit.Bukkit;
+
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventHandler;
@@ -28,6 +28,10 @@ public final class BagManager implements Listener {
     private final JavaPlugin plugin;
     private final BagStore store;
     private final Map<UUID, List<ItemStack[]>> bags = new HashMap<>();
+
+    private record Bonuses(Map<MobTier, Double> mobs, boolean treasure) {}
+
+    private final Map<UUID, Bonuses> bonuses = new HashMap<>();
     private final Map<UUID, Object> loadingSessions = new HashMap<>();
 
     public BagManager(JavaPlugin plugin, BagStore store) {
@@ -51,46 +55,66 @@ public final class BagManager implements Listener {
     }
 
     public void setContents(UUID uuid, int bag, ItemStack[] contents) {
-        if (contents.length != STORAGE_SIZE) throw new IllegalArgumentException("Un sac doit contenir 54 cases");
+        if (contents.length != STORAGE_SIZE)
+            throw new IllegalArgumentException("Un sac doit contenir 54 cases");
         List<ItemStack[]> playerBags = requireBags(uuid);
+        if (Arrays.equals(playerBags.get(checkBag(bag)), contents)) return;
         playerBags.set(checkBag(bag), copy(contents));
-        store.save(uuid, serialize(playerBags)).whenComplete((ignored, error) -> {
-            if (error != null) plugin.getLogger().severe("Impossible de sauvegarder les sacs de " + uuid + " : " + error.getMessage());
-        });
+        refreshBonuses(uuid);
+        store.save(uuid, serialize(playerBags))
+                .whenComplete(
+                        (ignored, error) -> {
+                            if (error != null)
+                                plugin.getLogger()
+                                        .severe(
+                                                "Impossible de sauvegarder les sacs de "
+                                                        + uuid
+                                                        + " : "
+                                                        + error.getMessage());
+                        });
     }
 
     private List<ItemStack[]> requireBags(UUID uuid) {
         List<ItemStack[]> result = bags.get(uuid);
-        if (result == null) throw new IllegalStateException("Les sacs du joueur ne sont pas chargés");
+        if (result == null)
+            throw new IllegalStateException("Les sacs du joueur ne sont pas chargés");
         return result;
     }
 
     private static int checkBag(int bag) {
-        if (bag < 0 || bag >= MAX_CAPACITY) throw new IllegalArgumentException("Numéro de sac invalide");
+        if (bag < 0 || bag >= MAX_CAPACITY)
+            throw new IllegalArgumentException("Numéro de sac invalide");
         return bag;
     }
 
     private static ItemStack[] copy(ItemStack[] items) {
-        return Arrays.stream(items).map(item -> item == null ? null : item.clone()).toArray(ItemStack[]::new);
+        return Arrays.stream(items)
+                .map(item -> item == null ? null : item.clone())
+                .toArray(ItemStack[]::new);
     }
 
-    private List<ItemStack> items(UUID uuid) {
-        List<ItemStack[]> playerBags = bags.get(uuid);
-        if (playerBags == null) return List.of();
-        return playerBags.stream().flatMap(Arrays::stream).filter(item -> item != null && !item.getType().isAir()).toList();
+    private void refreshBonuses(UUID owner) {
+        Map<MobTier, Double> damage = new java.util.EnumMap<>(MobTier.class);
+        boolean treasure = false;
+        for (ItemStack[] bag : requireBags(owner))
+            for (ItemStack item : bag) {
+                if (item == null || item.getType().isAir()) continue;
+                MobTier tier = TalismanItem.mobTierOf(item);
+                if (tier != null)
+                    damage.merge(tier, TalismanItem.mobBonusPercent(tier), Double::sum);
+                treasure |= TalismanItem.isTreasure(item);
+            }
+        bonuses.put(owner, new Bonuses(Map.copyOf(damage), treasure));
     }
 
-    /** Les talismans conservent leur effet dans les coffres du /sac. */
-    public double mobDamageBonusPercent(UUID uuid, MobTier tier) {
-        double bonus = 0;
-        for (ItemStack item : items(uuid)) {
-            if (tier.equals(TalismanItem.mobTierOf(item))) bonus += TalismanItem.mobBonusPercent(tier);
-        }
-        return bonus;
+    public double mobDamageBonusPercent(UUID owner, MobTier tier) {
+        var bonus = bonuses.get(owner);
+        return bonus == null ? 0 : bonus.mobs().getOrDefault(tier, 0.0);
     }
 
-    public boolean hasTreasureTalisman(UUID uuid) {
-        return items(uuid).stream().anyMatch(TalismanItem::isTreasure);
+    public boolean hasTreasureTalisman(UUID owner) {
+        var bonus = bonuses.get(owner);
+        return bonus != null && bonus.treasure();
     }
 
     static String serialize(List<ItemStack[]> bags) {
@@ -111,52 +135,75 @@ public final class BagManager implements Listener {
             throw new InvalidConfigurationException(exception);
         }
         if (!config.contains("version")) {
-            if (!config.contains("items")) throw new InvalidConfigurationException("Ancien sac sans contenu reconnu");
+            if (!config.contains("items"))
+                throw new InvalidConfigurationException("Ancien sac sans contenu reconnu");
             readItems(config, "items", bags.getFirst());
         } else {
-            if (config.getInt("version") != 2) throw new InvalidConfigurationException("Version des sacs inconnue");
+            if (config.getInt("version") != 2)
+                throw new InvalidConfigurationException("Version des sacs inconnue");
             for (int i = 0; i < MAX_CAPACITY; i++) {
-                if (!config.contains("bags." + i)) throw new InvalidConfigurationException("Coffre manquant : " + i);
+                if (!config.contains("bags." + i))
+                    throw new InvalidConfigurationException("Coffre manquant : " + i);
                 readItems(config, "bags." + i, bags.get(i));
             }
         }
         return bags;
     }
 
-    private static void readItems(YamlConfiguration config, String path, ItemStack[] target) throws InvalidConfigurationException {
+    private static void readItems(YamlConfiguration config, String path, ItemStack[] target)
+            throws InvalidConfigurationException {
         if (!config.contains(path)) return;
         List<?> raw = config.getList(path);
-        if (raw == null || raw.size() > STORAGE_SIZE) throw new InvalidConfigurationException("Contenu du sac invalide : " + path);
+        if (raw == null || raw.size() > STORAGE_SIZE)
+            throw new InvalidConfigurationException("Contenu du sac invalide : " + path);
         for (int i = 0; i < raw.size(); i++) {
             Object item = raw.get(i);
-            if (item != null && !(item instanceof ItemStack)) throw new InvalidConfigurationException("Objet du sac invalide : " + path);
+            if (item != null && !(item instanceof ItemStack))
+                throw new InvalidConfigurationException("Objet du sac invalide : " + path);
             target[i] = item == null ? null : ((ItemStack) item).clone();
         }
     }
 
     public void loadOnlinePlayers() {
-        for (org.bukkit.entity.Player player : plugin.getServer().getOnlinePlayers()) loadPlayer(player.getUniqueId(), player.getName());
+        for (org.bukkit.entity.Player player : plugin.getServer().getOnlinePlayers())
+            loadPlayer(player.getUniqueId(), player.getName());
     }
 
     private void loadPlayer(UUID uuid, String name) {
         Object session = new Object();
         loadingSessions.put(uuid, session);
         bags.remove(uuid);
-        store.load(uuid).whenComplete((yaml, error) -> {
-            if (!plugin.isEnabled()) return;
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (loadingSessions.get(uuid) != session) return;
-                if (error != null) {
-                    plugin.getLogger().severe("Impossible de charger les sacs de " + name + " : " + error.getMessage());
-                    return;
-                }
-                try {
-                    bags.put(uuid, deserialize(yaml));
-                } catch (InvalidConfigurationException exception) {
-                    plugin.getLogger().severe("Sacs invalides pour " + name + " : " + exception.getMessage());
-                }
-            });
-        });
+        bonuses.remove(uuid);
+        store.load(uuid)
+                .whenComplete(
+                        (yaml, error) -> {
+                            if (!plugin.isEnabled()) return;
+                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                    plugin,
+                                    () -> {
+                                        if (loadingSessions.get(uuid) != session) return;
+                                        if (error != null) {
+                                            plugin.getLogger()
+                                                    .severe(
+                                                            "Impossible de charger les sacs de "
+                                                                    + name
+                                                                    + " : "
+                                                                    + error.getMessage());
+                                            return;
+                                        }
+                                        try {
+                                            bags.put(uuid, deserialize(yaml));
+                                            refreshBonuses(uuid);
+                                        } catch (InvalidConfigurationException exception) {
+                                            plugin.getLogger()
+                                                    .severe(
+                                                            "Sacs invalides pour "
+                                                                    + name
+                                                                    + " : "
+                                                                    + exception.getMessage());
+                                        }
+                                    });
+                        });
     }
 
     @EventHandler
@@ -169,5 +216,6 @@ public final class BagManager implements Listener {
         UUID uuid = event.getPlayer().getUniqueId();
         loadingSessions.remove(uuid);
         bags.remove(uuid);
+        bonuses.remove(uuid);
     }
 }

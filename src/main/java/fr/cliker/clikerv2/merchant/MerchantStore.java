@@ -1,13 +1,11 @@
 package fr.cliker.clikerv2.merchant;
 
 import fr.cliker.clikerv2.DatabaseManager;
+import fr.cliker.clikerv2.config.StoredLocation;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
 
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,44 +21,80 @@ public final class MerchantStore {
     public record MerchantPoint(String id, String mobId, Location location) {}
 
     public CompletableFuture<Void> save(String id, String mobId, Location location) {
-        return database.submit(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO merchants (id, mob_id, world, x, y, z, yaw) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-                statement.setString(1, id);
-                statement.setString(2, mobId);
-                statement.setString(3, location.getWorld().getName());
-                statement.setDouble(4, location.getX());
-                statement.setDouble(5, location.getY());
-                statement.setDouble(6, location.getZ());
-                statement.setFloat(7, location.getYaw());
-                statement.executeUpdate();
-            } catch (SQLException exception) { throw new DatabaseManager.DatabaseException(exception); }
-            return null;
-        });
+        StoredLocation saved = StoredLocation.capture(location);
+        return database.submit(
+                connection -> {
+                    try (PreparedStatement statement =
+                            connection.prepareStatement(
+                                    "INSERT INTO merchants (id, mob_id, world, x, y, z, yaw) VALUES"
+                                            + " (?, ?, ?, ?, ?, ?, ?)")) {
+                        statement.setString(1, id);
+                        statement.setString(2, mobId);
+                        statement.setString(3, saved.world());
+                        statement.setDouble(4, saved.x());
+                        statement.setDouble(5, saved.y());
+                        statement.setDouble(6, saved.z());
+                        statement.setFloat(7, saved.yaw());
+                        statement.executeUpdate();
+                    } catch (SQLException exception) {
+                        throw new DatabaseManager.DatabaseException(exception);
+                    }
+                    return null;
+                });
     }
 
     public CompletableFuture<Boolean> removeById(String id) {
-        return database.submit(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM merchants WHERE id = ?")) {
-                statement.setString(1, id);
-                return statement.executeUpdate() > 0;
-            } catch (SQLException exception) { throw new DatabaseManager.DatabaseException(exception); }
-        });
+        return database.submit(
+                connection -> {
+                    try (PreparedStatement statement =
+                            connection.prepareStatement("DELETE FROM merchants WHERE id = ?")) {
+                        statement.setString(1, id);
+                        return statement.executeUpdate() > 0;
+                    } catch (SQLException exception) {
+                        throw new DatabaseManager.DatabaseException(exception);
+                    }
+                });
     }
 
+    private record Row(String id, String value, StoredLocation position, boolean boss) {}
+
     public CompletableFuture<List<MerchantPoint>> loadAll() {
-        return database.submit(connection -> {
-            List<MerchantPoint> result = new ArrayList<>();
-            try (PreparedStatement statement = connection.prepareStatement("SELECT id, mob_id, world, x, y, z, yaw FROM merchants");
-                 ResultSet rows = statement.executeQuery()) {
-                while (rows.next()) {
-                    World world = Bukkit.getWorld(rows.getString("world"));
-                    if (world == null) continue;
-                    Location location = new Location(world, rows.getDouble("x"), rows.getDouble("y"), rows.getDouble("z"), rows.getFloat("yaw"), 0f);
-                    result.add(new MerchantPoint(rows.getString("id"), rows.getString("mob_id"), location));
-                }
-            } catch (SQLException exception) { throw new DatabaseManager.DatabaseException(exception); }
-            return result;
-        });
+        return database.submit(
+                        c -> {
+                            List<Row> rows = new ArrayList<>();
+                            try (var statement = c.prepareStatement("SELECT * FROM merchants");
+                                    var result = statement.executeQuery()) {
+                                while (result.next()) {
+                                    try {
+                                        rows.add(
+                                                new Row(
+                                                        result.getString("id"),
+                                                        result.getString("mob_id"),
+                                                        StoredLocation.read(result, true, false),
+                                                        false));
+                                    } catch (RuntimeException invalid) {
+                                        database.invalidRecord(
+                                                "merchants", result.getString("id"), invalid);
+                                    }
+                                }
+                            } catch (SQLException error) {
+                                throw new DatabaseManager.DatabaseException(error);
+                            }
+                            return rows;
+                        })
+                .thenCompose(
+                        rows ->
+                                database.onServerThread(
+                                        () -> {
+                                            List<MerchantPoint> points = new ArrayList<>();
+                                            for (var row : rows) {
+                                                Location location = row.position().resolve();
+                                                if (location == null) continue;
+                                                points.add(
+                                                        new MerchantPoint(
+                                                                row.id(), row.value(), location));
+                                            }
+                                            return points;
+                                        }));
     }
 }

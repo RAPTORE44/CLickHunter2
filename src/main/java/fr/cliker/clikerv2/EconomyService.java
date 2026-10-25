@@ -44,6 +44,31 @@ public final class EconomyService {
                 });
     }
 
+    public record PlayerSnapshot(Balances balances, long kills) {}
+
+    public CompletableFuture<PlayerSnapshot> playerSnapshot(UUID owner) {
+        return database.submit(
+                c -> {
+                    try (var s =
+                            c.prepareStatement(
+                                    "SELECT b.ecus,b.gemmes_sombres,b.cendres,COALESCE(k.total,0)"
+                                        + " FROM player_balances b LEFT JOIN player_mob_kills k ON"
+                                        + " k.uuid=b.uuid WHERE b.uuid=?")) {
+                        s.setString(1, owner.toString());
+                        try (var rs = s.executeQuery()) {
+                            return rs.next()
+                                    ? new PlayerSnapshot(
+                                            new Balances(
+                                                    rs.getLong(1), rs.getLong(2), rs.getLong(3)),
+                                            rs.getLong(4))
+                                    : new PlayerSnapshot(Balances.empty(), 0);
+                        }
+                    } catch (SQLException error) {
+                        throw new DatabaseManager.DatabaseException(error);
+                    }
+                });
+    }
+
     public CompletableFuture<Long> getBalance(UUID uuid, String playerName, CurrencyType currency) {
         return database.submit(
                 connection -> {
@@ -386,7 +411,7 @@ public final class EconomyService {
                                 return AuctionPurchase.INSUFFICIENT_FUNDS;
                             }
                         }
-                        long tax = price / 100 + (price % 100 >= 50 ? 1 : 0),
+                        long tax = fr.cliker.clikerv2.auction.AuctionListing.tax(price),
                                 proceeds = price - tax;
                         try (var s =
                                 c.prepareStatement(

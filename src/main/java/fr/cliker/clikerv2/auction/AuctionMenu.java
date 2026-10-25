@@ -1,36 +1,22 @@
 package fr.cliker.clikerv2.auction;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
+import fr.cliker.clikerv2.Numbers;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.*;
+
+import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.event.*;
+import org.bukkit.event.inventory.*;
+import org.bukkit.inventory.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-/**
- * GUI de l'hôtel des ventes : parcourir/acheter (avec confirmation), vendre (avec confirmation),
- * gérer ses annonces.
- */
+/** Chaque case garde l'identifiant affiché : une vente concurrente ne décale jamais sa cible. */
 public final class AuctionMenu implements Listener {
-    private static final int[] LISTING_SLOTS = buildRange(0, 45);
-    private static final int CONFIRM_SLOT = 11;
-    private static final int ITEM_SLOT = 13;
-    private static final int CANCEL_SLOT = 15;
-    private static final int MY_LISTINGS_SLOT = 49;
-    private static final int BACK_SLOT = 49;
-
+    private static final int PAGE_SIZE = 45, CONFIRM = 11, ITEM = 13, CANCEL = 15;
     private final JavaPlugin plugin;
     private final AuctionManager manager;
 
@@ -40,332 +26,309 @@ public final class AuctionMenu implements Listener {
     }
 
     public void openBrowse(Player player) {
-        BrowseHolder holder = new BrowseHolder();
-        Inventory inventory =
-                Bukkit.createInventory(
-                        holder,
-                        54,
-                        Component.text(
-                                "Hôtel des Ventes", NamedTextColor.GOLD, TextDecoration.BOLD));
-        holder.inventory = inventory;
-        List<AuctionListing> listings = manager.activeListings();
-        for (int i = 0; i < LISTING_SLOTS.length && i < listings.size(); i++) {
-            inventory.setItem(LISTING_SLOTS[i], browseItem(listings.get(i)));
-        }
-        inventory.setItem(
-                MY_LISTINGS_SLOT,
-                actionButton(Material.NAME_TAG, "Mes Annonces", NamedTextColor.LIGHT_PURPLE));
-        player.openInventory(inventory);
+        openListings(player, false, 0);
     }
 
     public void openMyListings(Player player) {
-        MyListingsHolder holder = new MyListingsHolder();
-        Inventory inventory =
+        openListings(player, true, 0);
+    }
+
+    private void openListings(Player player, boolean own, int requested) {
+        if (!player.hasPermission("cliker.ah.use")) return;
+        var listings = own ? manager.listingsOf(player.getUniqueId()) : manager.activeListings();
+        int page = Math.max(0, Math.min(requested, Math.max(0, (listings.size() - 1) / PAGE_SIZE)));
+        var visible =
+                List.copyOf(
+                        listings.subList(
+                                page * PAGE_SIZE,
+                                Math.min(listings.size(), (page + 1) * PAGE_SIZE)));
+        var holder =
+                new Listings(
+                        player.getUniqueId(),
+                        own,
+                        page,
+                        visible.stream().map(AuctionListing::id).toList());
+        var inventory =
                 Bukkit.createInventory(
                         holder,
                         54,
                         Component.text(
-                                "Mes Annonces", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD));
+                                (own ? "Mes annonces" : "Hôtel des ventes") + " • " + (page + 1),
+                                NamedTextColor.GREEN));
         holder.inventory = inventory;
-        List<AuctionListing> listings = manager.listingsOf(player.getUniqueId());
-        for (int i = 0; i < LISTING_SLOTS.length && i < listings.size(); i++) {
-            inventory.setItem(LISTING_SLOTS[i], myListingItem(listings.get(i)));
-        }
+        for (int i = 0; i < visible.size(); i++)
+            inventory.setItem(i, listingItem(visible.get(i), own));
+        for (int i = 45; i < 54; i++)
+            inventory.setItem(
+                    i, button(Material.BLACK_STAINED_GLASS_PANE, " ", NamedTextColor.GRAY));
+        if (page > 0)
+            inventory.setItem(45, button(Material.ARROW, "Page précédente", NamedTextColor.GREEN));
+        if ((page + 1) * PAGE_SIZE < listings.size())
+            inventory.setItem(53, button(Material.ARROW, "Page suivante", NamedTextColor.GREEN));
         inventory.setItem(
-                BACK_SLOT,
-                actionButton(Material.ARROW, "Retour à l'hôtel des ventes", NamedTextColor.YELLOW));
+                49,
+                button(
+                        own ? Material.ARROW : Material.NAME_TAG,
+                        own ? "Retour aux annonces" : "Mes annonces",
+                        NamedTextColor.GOLD));
+        inventory.setItem(
+                48,
+                button(
+                        Material.PAPER,
+                        "Page " + (page + 1) + " / " + Math.max(1, (listings.size() + 44) / 45),
+                        NamedTextColor.WHITE));
+        inventory.setItem(50, button(Material.SUNFLOWER, "Actualiser", NamedTextColor.GREEN));
+        if (visible.isEmpty())
+            inventory.setItem(22, button(Material.PAPER, "Aucune annonce", NamedTextColor.GRAY));
         player.openInventory(inventory);
     }
 
     public void openSellConfirm(Player player, ItemStack item, long price) {
-        SellConfirmHolder holder = new SellConfirmHolder(item.clone(), price);
-        Inventory inventory =
-                Bukkit.createInventory(
-                        holder,
-                        27,
-                        Component.text(
-                                "Confirmer la vente", NamedTextColor.GOLD, TextDecoration.BOLD));
-        holder.inventory = inventory;
-
-        long tax = Math.round(price * AuctionManager.TAX_RATE);
-        long proceeds = price - tax;
-        ItemStack display = item.clone();
-        appendLore(
-                display,
+        if (price <= 0 || item == null || item.getType().isAir()) return;
+        var holder = new Confirmation(player.getUniqueId(), null, item.clone(), price);
+        confirmation(
+                player,
+                holder,
+                "Confirmer la vente",
                 List.of(
-                        Component.text(""),
-                        Component.text("Prix de vente : ", NamedTextColor.GRAY)
-                                .append(Component.text(price + " Écus", NamedTextColor.GOLD)),
-                        Component.text("Taxe (1%) : ", NamedTextColor.GRAY)
-                                .append(Component.text("-" + tax + " Écus", NamedTextColor.RED)),
-                        Component.text("Tu recevras : ", NamedTextColor.GRAY)
-                                .append(Component.text(proceeds + " Écus", NamedTextColor.GREEN))));
-        inventory.setItem(ITEM_SLOT, display);
-        inventory.setItem(
-                CONFIRM_SLOT,
-                actionButton(Material.LIME_WOOL, "Confirmer la vente", NamedTextColor.GREEN));
-        inventory.setItem(
-                CANCEL_SLOT, actionButton(Material.RED_WOOL, "Annuler", NamedTextColor.RED));
-        player.openInventory(inventory);
+                        "Prix : " + String.format(Locale.FRANCE, "%,d", price) + " Écus",
+                        "Taxe de 1 % : "
+                                + String.format(Locale.FRANCE, "%,d", AuctionListing.tax(price))
+                                + " Écus",
+                        "Tu recevras : "
+                                + String.format(
+                                        Locale.FRANCE, "%,d", price - AuctionListing.tax(price))
+                                + " Écus"));
     }
 
     private void openBuyConfirm(Player player, AuctionListing listing) {
-        BuyConfirmHolder holder = new BuyConfirmHolder(listing.id());
-        Inventory inventory =
-                Bukkit.createInventory(
-                        holder,
-                        27,
-                        Component.text(
-                                "Confirmer l'achat", NamedTextColor.GOLD, TextDecoration.BOLD));
-        holder.inventory = inventory;
-
-        ItemStack item = AuctionManager.deserialize(listing.itemYaml());
-        if (item == null) item = new ItemStack(Material.BARRIER);
-        ItemStack display = item.clone();
-        appendLore(
-                display,
+        var item = AuctionManager.deserialize(listing.itemYaml());
+        if (item == null || item.getType().isAir()) {
+            player.sendMessage(
+                    Component.text(
+                            "Cette annonce est indisponible. Contacte un administrateur.",
+                            NamedTextColor.RED));
+            return;
+        }
+        confirmation(
+                player,
+                new Confirmation(player.getUniqueId(), listing.id(), item, listing.price()),
+                "Confirmer l’achat",
                 List.of(
-                        Component.text(""),
-                        Component.text("Vendeur : ", NamedTextColor.GRAY)
-                                .append(Component.text(listing.sellerName(), NamedTextColor.WHITE)),
-                        Component.text("Prix : ", NamedTextColor.GRAY)
-                                .append(
-                                        Component.text(
-                                                listing.price() + " Écus", NamedTextColor.GOLD))));
-        inventory.setItem(ITEM_SLOT, display);
-        inventory.setItem(
-                CONFIRM_SLOT,
-                actionButton(Material.LIME_WOOL, "Confirmer l'achat", NamedTextColor.GREEN));
-        inventory.setItem(
-                CANCEL_SLOT, actionButton(Material.RED_WOOL, "Annuler", NamedTextColor.RED));
-        player.openInventory(inventory);
+                        "Prix : " + String.format(Locale.FRANCE, "%,d", listing.price()) + " Écus",
+                        "Vendeur : " + listing.sellerName()));
     }
 
-    private ItemStack browseItem(AuctionListing listing) {
-        ItemStack item = AuctionManager.deserialize(listing.itemYaml());
-        if (item == null) return new ItemStack(Material.BARRIER);
-        ItemStack display = item.clone();
-        appendLore(
-                display,
-                List.of(
-                        Component.text(""),
-                        Component.text("Vendeur : ", NamedTextColor.GRAY)
-                                .append(Component.text(listing.sellerName(), NamedTextColor.WHITE)),
-                        Component.text("Prix : ", NamedTextColor.GRAY)
-                                .append(
-                                        Component.text(
-                                                listing.price() + " Écus", NamedTextColor.GOLD)),
-                        expiryLine(listing),
-                        Component.text(""),
-                        Component.text(
-                                "Clique pour acheter !",
-                                NamedTextColor.GREEN,
-                                TextDecoration.BOLD)));
-        return display;
+    private void confirmation(
+            Player player, Confirmation holder, String title, List<String> details) {
+        holder.inventory =
+                Bukkit.createInventory(holder, 27, Component.text(title, NamedTextColor.GREEN));
+        var display = holder.item.clone();
+        var meta = display.getItemMeta();
+        var lore = new ArrayList<Component>(meta.hasLore() ? meta.lore() : List.of());
+        lore.add(Component.empty());
+        details.forEach(
+                line ->
+                        lore.add(
+                                Component.text(line, NamedTextColor.GRAY)
+                                        .decoration(TextDecoration.ITALIC, false)));
+        meta.lore(lore);
+        display.setItemMeta(meta);
+        holder.inventory.setItem(ITEM, display);
+        holder.inventory.setItem(
+                CONFIRM, button(Material.LIME_WOOL, "Confirmer", NamedTextColor.GREEN));
+        holder.inventory.setItem(CANCEL, button(Material.RED_WOOL, "Annuler", NamedTextColor.RED));
+        player.openInventory(holder.inventory);
     }
 
-    private ItemStack myListingItem(AuctionListing listing) {
-        ItemStack item = AuctionManager.deserialize(listing.itemYaml());
-        if (item == null) return new ItemStack(Material.BARRIER);
-        ItemStack display = item.clone();
-        appendLore(
-                display,
-                List.of(
-                        Component.text(""),
-                        Component.text("Prix : ", NamedTextColor.GRAY)
-                                .append(
-                                        Component.text(
-                                                listing.price() + " Écus", NamedTextColor.GOLD)),
-                        expiryLine(listing),
-                        Component.text(""),
-                        Component.text(
-                                "Clique pour retirer l'annonce.",
-                                NamedTextColor.RED,
-                                TextDecoration.BOLD)));
-        return display;
-    }
-
-    private Component expiryLine(AuctionListing listing) {
-        long remainingMillis =
-                AuctionManager.EXPIRY_MILLIS - (System.currentTimeMillis() - listing.listedAt());
-        long hours = Math.max(0, remainingMillis) / (1000 * 60 * 60);
-        long minutes = (Math.max(0, remainingMillis) / (1000 * 60)) % 60;
-        return Component.text(
-                "Expire dans " + hours + "h" + minutes + "min", NamedTextColor.DARK_GRAY);
-    }
-
-    private ItemStack actionButton(Material material, String label, NamedTextColor color) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        meta.displayName(
-                Component.text(label, color, TextDecoration.BOLD)
-                        .decoration(TextDecoration.ITALIC, false));
+    private ItemStack listingItem(AuctionListing listing, boolean own) {
+        var item = AuctionManager.deserialize(listing.itemYaml());
+        if (item == null)
+            return button(Material.BARRIER, "Annonce indisponible", NamedTextColor.RED);
+        item = item.clone();
+        var meta = item.getItemMeta();
+        var lore = new ArrayList<Component>(meta.hasLore() ? meta.lore() : List.of());
+        lore.add(Component.empty());
+        lore.add(Component.text("Vendeur : " + listing.sellerName(), NamedTextColor.GRAY));
+        lore.add(
+                Component.text(
+                        "Prix : " + Numbers.compact(listing.price()) + " Écus",
+                        NamedTextColor.GOLD));
+        long minutes =
+                Math.max(
+                                0,
+                                AuctionManager.EXPIRY_MILLIS
+                                        - (System.currentTimeMillis() - listing.listedAt()))
+                        / 60000;
+        lore.add(
+                Component.text(
+                        "Expire dans " + minutes / 60 + " h " + minutes % 60 + " min",
+                        NamedTextColor.GRAY));
+        lore.add(
+                Component.text(
+                        own
+                                ? "Clique pour retirer l’annonce."
+                                : "Clique pour voir et confirmer l’achat.",
+                        own ? NamedTextColor.YELLOW : NamedTextColor.GREEN));
+        meta.lore(
+                lore.stream().map(line -> line.decoration(TextDecoration.ITALIC, false)).toList());
         item.setItemMeta(meta);
         return item;
     }
 
-    private void appendLore(ItemStack item, List<Component> extra) {
-        ItemMeta meta = item.getItemMeta();
-        List<Component> lore = new ArrayList<>(meta.hasLore() ? meta.lore() : List.of());
-        for (Component line : extra) lore.add(line.decoration(TextDecoration.ITALIC, false));
-        meta.lore(lore);
+    private ItemStack button(Material material, String title, NamedTextColor color) {
+        var item = new ItemStack(material);
+        var meta = item.getItemMeta();
+        meta.displayName(Component.text(title, color).decoration(TextDecoration.ITALIC, false));
         item.setItemMeta(meta);
-    }
-
-    private static int[] buildRange(int from, int count) {
-        int[] slots = new int[count];
-        for (int i = 0; i < count; i++) slots[i] = from + i;
-        return slots;
+        return item;
     }
 
     @EventHandler
-    public void onClick(InventoryClickEvent event) {
-        InventoryHolder rawHolder = event.getInventory().getHolder();
-        if (!(event.getWhoClicked() instanceof Player player)) return;
-
-        if (rawHolder instanceof BrowseHolder) {
-            event.setCancelled(true);
-            if (event.getClickedInventory() != event.getView().getTopInventory()) return;
-            if (event.getSlot() == MY_LISTINGS_SLOT) {
-                openMyListings(player);
-                return;
-            }
-            int index = indexOf(event.getSlot());
-            if (index < 0) return;
-            List<AuctionListing> listings = manager.activeListings();
-            if (index >= listings.size()) return;
-            openBuyConfirm(player, listings.get(index));
-            return;
-        }
-
-        if (rawHolder instanceof MyListingsHolder) {
-            event.setCancelled(true);
-            if (event.getClickedInventory() != event.getView().getTopInventory()) return;
-            if (event.getSlot() == BACK_SLOT) {
-                openBrowse(player);
-                return;
-            }
-            int index = indexOf(event.getSlot());
-            if (index < 0) return;
-            List<AuctionListing> listings = manager.listingsOf(player.getUniqueId());
-            if (index >= listings.size()) return;
-            if (manager.cancel(player, listings.get(index).id(), false)) {
-                player.sendMessage(
-                        Component.text(
-                                "Retrait demandé. L’objet sera livré ou disponible dans /claim.",
-                                NamedTextColor.GREEN));
-            }
-            openMyListings(player);
-            return;
-        }
-
-        if (rawHolder instanceof BuyConfirmHolder holder) {
-            event.setCancelled(true);
-            if (event.getClickedInventory() != event.getView().getTopInventory()) return;
-            if (event.getSlot() == CONFIRM_SLOT) {
-                manager.buy(
-                        player,
-                        holder.listingId,
-                        () ->
-                                Bukkit.getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    if (player.isOnline()) openBrowse(player);
-                                                }));
-            } else if (event.getSlot() == CANCEL_SLOT) {
-                openBrowse(player);
-            }
-            return;
-        }
-
-        if (rawHolder instanceof SellConfirmHolder holder) {
-            event.setCancelled(true);
-            if (event.getClickedInventory() != event.getView().getTopInventory()) return;
-            if (event.getSlot() == CONFIRM_SLOT) {
-                ItemStack hand = player.getInventory().getItemInMainHand();
-                if (!hand.isSimilar(holder.item) || hand.getAmount() < holder.item.getAmount()) {
-                    player.sendMessage(
-                            Component.text(
-                                    "Tu ne tiens plus le bon item en main, vente annulée.",
-                                    NamedTextColor.RED));
-                    player.closeInventory();
-                    return;
-                }
-                hand.setAmount(hand.getAmount() - holder.item.getAmount());
-                manager.createListing(player, holder.item, holder.price);
-                player.sendMessage(
-                        Component.text("Publication en cours : ", NamedTextColor.GREEN)
-                                .append(
+    public void click(InventoryClickEvent event) {
+        if (!(event.getView().getTopInventory().getHolder() instanceof View holder)) return;
+        event.setCancelled(true);
+        if (!(event.getWhoClicked() instanceof Player player)
+                || !holder.owner.equals(player.getUniqueId())
+                || !player.hasPermission("cliker.ah.use")
+                || event.getClickedInventory() != holder.inventory
+                || (!event.isLeftClick() && !event.isRightClick())
+                || holder.pending) return;
+        int slot = event.getRawSlot();
+        holder.pending = true;
+        fr.cliker.clikerv2.runtime.ServerTasks.run(
+                plugin,
+                () -> {
+                    if (!player.isOnline()
+                            || player.getOpenInventory().getTopInventory() != holder.inventory)
+                        return;
+                    if (!player.hasPermission("cliker.ah.use")) {
+                        holder.pending = false;
+                        return;
+                    }
+                    if (holder instanceof Listings page) {
+                        holder.pending = false;
+                        if (slot == 45 && page.page > 0) {
+                            openListings(player, page.own, page.page - 1);
+                            return;
+                        }
+                        if (slot == 53) {
+                            openListings(player, page.own, page.page + 1);
+                            return;
+                        }
+                        if (slot == 49) {
+                            openListings(player, !page.own, 0);
+                            return;
+                        }
+                        if (slot == 50) {
+                            openListings(player, page.own, page.page);
+                            return;
+                        }
+                        if (slot < 0 || slot >= page.ids.size()) return;
+                        String id = page.ids.get(slot);
+                        var listing = manager.get(id);
+                        if (listing == null) {
+                            player.sendMessage(
+                                    Component.text(
+                                            "Cette annonce n’est plus disponible.",
+                                            NamedTextColor.YELLOW));
+                            openListings(player, page.own, page.page);
+                            return;
+                        }
+                        if (page.own) {
+                            if (manager.cancel(player, id, false))
+                                player.sendMessage(
                                         Component.text(
-                                                holder.price + " Écus", NamedTextColor.GOLD)));
-                player.closeInventory();
-            } else if (event.getSlot() == CANCEL_SLOT) {
-                player.sendMessage(Component.text("Vente annulée.", NamedTextColor.GRAY));
-                player.closeInventory();
-            }
-        }
+                                                "Retrait demandé. Objet livré ou disponible dans"
+                                                        + " /claim.",
+                                                NamedTextColor.GREEN));
+                            openListings(player, true, page.page);
+                        } else openBuyConfirm(player, listing);
+                    } else if (holder instanceof Confirmation confirm) {
+                        if (slot == CANCEL) {
+                            openBrowse(player);
+                            return;
+                        }
+                        if (slot != CONFIRM) {
+                            holder.pending = false;
+                            return;
+                        }
+                        if (confirm.listing != null) {
+                            manager.buy(
+                                    player,
+                                    confirm.listing,
+                                    () -> {
+                                        if (player.isOnline()
+                                                && player.getOpenInventory().getTopInventory()
+                                                        == holder.inventory) openBrowse(player);
+                                    });
+                            return;
+                        }
+                        var hand = player.getInventory().getItemInMainHand();
+                        if (!hand.isSimilar(confirm.item)
+                                || hand.getAmount() < confirm.item.getAmount()) {
+                            player.sendMessage(
+                                    Component.text(
+                                            "Tu ne tiens plus le même objet. Vente annulée.",
+                                            NamedTextColor.RED));
+                            player.closeInventory();
+                            return;
+                        }
+                        int remaining = hand.getAmount() - confirm.item.getAmount();
+                        hand.setAmount(remaining);
+                        player.getInventory().setItemInMainHand(remaining == 0 ? null : hand);
+                        manager.createListing(player, confirm.item, confirm.price);
+                        player.sendMessage(
+                                Component.text(
+                                        "Publication de l’annonce en cours…",
+                                        NamedTextColor.GREEN));
+                        player.closeInventory();
+                    }
+                });
     }
 
     @EventHandler
-    public void onDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
-        Object holder = event.getView().getTopInventory().getHolder();
-        if (holder instanceof BrowseHolder
-                || holder instanceof MyListingsHolder
-                || holder instanceof BuyConfirmHolder
-                || holder instanceof SellConfirmHolder) event.setCancelled(true);
+    public void drag(InventoryDragEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof View) event.setCancelled(true);
     }
 
-    private int indexOf(int slot) {
-        for (int i = 0; i < LISTING_SLOTS.length; i++) if (LISTING_SLOTS[i] == slot) return i;
-        return -1;
-    }
+    private abstract static class View implements InventoryHolder {
+        final UUID owner;
+        Inventory inventory;
+        boolean pending;
 
-    private static final class BrowseHolder implements InventoryHolder {
-        private Inventory inventory;
+        View(UUID owner) {
+            this.owner = owner;
+        }
 
-        @Override
         public Inventory getInventory() {
             return inventory;
         }
     }
 
-    private static final class MyListingsHolder implements InventoryHolder {
-        private Inventory inventory;
+    private static final class Listings extends View {
+        final boolean own;
+        final int page;
+        final List<String> ids;
 
-        @Override
-        public Inventory getInventory() {
-            return inventory;
+        Listings(UUID owner, boolean own, int page, List<String> ids) {
+            super(owner);
+            this.own = own;
+            this.page = page;
+            this.ids = ids;
         }
     }
 
-    private static final class BuyConfirmHolder implements InventoryHolder {
-        private final String listingId;
-        private Inventory inventory;
+    private static final class Confirmation extends View {
+        final String listing;
+        final ItemStack item;
+        final long price;
 
-        private BuyConfirmHolder(String listingId) {
-            this.listingId = listingId;
-        }
-
-        @Override
-        public Inventory getInventory() {
-            return inventory;
-        }
-    }
-
-    private static final class SellConfirmHolder implements InventoryHolder {
-        private final ItemStack item;
-        private final long price;
-        private Inventory inventory;
-
-        private SellConfirmHolder(ItemStack item, long price) {
+        Confirmation(UUID owner, String listing, ItemStack item, long price) {
+            super(owner);
+            this.listing = listing;
             this.item = item;
             this.price = price;
-        }
-
-        @Override
-        public Inventory getInventory() {
-            return inventory;
         }
     }
 }

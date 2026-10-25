@@ -3,6 +3,7 @@ package fr.cliker.clikerv2.bag;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -25,7 +26,8 @@ import java.util.UUID;
 public final class BagMenu implements Listener {
     private static final int MENU_SIZE = 9;
     private static final int FIRST_BAG_SLOT = 1;
-    private static final List<String> RANKS = List.of("Joueur", "Mini-VIP", "VIP", "VIP+", "MVP", "MVP+", "Legend");
+    private static final List<String> RANKS =
+            List.of("Joueur", "Mini-VIP", "VIP", "VIP+", "MVP", "MVP+", "Legend");
 
     private final JavaPlugin plugin;
     private final BagManager bagManager;
@@ -39,11 +41,18 @@ public final class BagMenu implements Listener {
         // Fermer d'abord un coffre déjà ouvert pour enregistrer son contenu.
         player.closeInventory();
         if (!bagManager.isLoaded(player.getUniqueId())) {
-            player.sendMessage(Component.text("Tes sacs ne sont pas encore disponibles. Réessaie dans un instant.", NamedTextColor.RED));
+            player.sendMessage(
+                    Component.text(
+                            "Tes sacs ne sont pas encore disponibles. Réessaie dans un instant.",
+                            NamedTextColor.RED));
             return;
         }
         Holder holder = new Holder(player.getUniqueId(), -1);
-        Inventory inventory = Bukkit.createInventory(holder, MENU_SIZE, Component.text("Sacs", NamedTextColor.GOLD, TextDecoration.BOLD));
+        Inventory inventory =
+                Bukkit.createInventory(
+                        holder,
+                        MENU_SIZE,
+                        Component.text("Sacs", NamedTextColor.GOLD, TextDecoration.BOLD));
         holder.inventory = inventory;
         ItemStack border = icon(Material.BLACK_STAINED_GLASS_PANE, Component.text(" "), List.of());
         for (int slot = 0; slot < MENU_SIZE; slot++) inventory.setItem(slot, border);
@@ -51,20 +60,40 @@ public final class BagMenu implements Listener {
         for (int bag = 0; bag < BagManager.MAX_CAPACITY; bag++) {
             boolean unlocked = bag < capacity;
             String rank = RANKS.get(bag);
-            List<Component> lore = List.of(text(rank, NamedTextColor.GRAY), Component.empty(),
-                    text(unlocked ? "54 emplacements personnels" : "Débloque ce rang pour accéder au sac.", NamedTextColor.GRAY),
-                    text(unlocked ? "Clique pour ouvrir" : "Accès verrouillé", unlocked ? NamedTextColor.GREEN : NamedTextColor.RED));
-            inventory.setItem(FIRST_BAG_SLOT + bag, icon(unlocked ? Material.NETHER_STAR : Material.BARRIER,
-                    text("Sac " + (bag + 1) + (unlocked ? "" : " — Verrouillé"), unlocked ? NamedTextColor.GOLD : NamedTextColor.RED), lore));
+            List<Component> lore =
+                    List.of(
+                            text(rank, NamedTextColor.GRAY),
+                            Component.empty(),
+                            text(
+                                    unlocked
+                                            ? "54 emplacements personnels"
+                                            : "Débloque ce rang pour accéder au sac.",
+                                    NamedTextColor.GRAY),
+                            text(
+                                    unlocked ? "Clique pour ouvrir" : "Accès verrouillé",
+                                    unlocked ? NamedTextColor.GREEN : NamedTextColor.RED));
+            inventory.setItem(
+                    FIRST_BAG_SLOT + bag,
+                    icon(
+                            unlocked ? Material.NETHER_STAR : Material.BARRIER,
+                            text(
+                                    "Sac " + (bag + 1) + (unlocked ? "" : " — Verrouillé"),
+                                    unlocked ? NamedTextColor.GOLD : NamedTextColor.RED),
+                            lore));
         }
         player.openInventory(inventory);
     }
 
     private void openStorage(Player player, int bag) {
-        if (!bagManager.isLoaded(player.getUniqueId()) || bag >= bagManager.capacity(player)) return;
+        if (!bagManager.isLoaded(player.getUniqueId()) || bag >= bagManager.capacity(player))
+            return;
         Holder holder = new Holder(player.getUniqueId(), bag);
-        Inventory inventory = Bukkit.createInventory(holder, BagManager.STORAGE_SIZE,
-                Component.text("Sac " + (bag + 1), NamedTextColor.GOLD, TextDecoration.BOLD));
+        Inventory inventory =
+                Bukkit.createInventory(
+                        holder,
+                        BagManager.STORAGE_SIZE,
+                        Component.text(
+                                "Sac " + (bag + 1), NamedTextColor.GOLD, TextDecoration.BOLD));
         holder.inventory = inventory;
         inventory.setContents(bagManager.contents(player.getUniqueId(), bag));
         player.openInventory(inventory);
@@ -86,7 +115,8 @@ public final class BagMenu implements Listener {
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getView().getTopInventory().getHolder() instanceof Holder holder)) return;
-        if (!(event.getWhoClicked() instanceof Player player) || !holder.uuid.equals(player.getUniqueId())) {
+        if (!(event.getWhoClicked() instanceof Player player)
+                || !holder.uuid.equals(player.getUniqueId())) {
             event.setCancelled(true);
             return;
         }
@@ -95,15 +125,20 @@ public final class BagMenu implements Listener {
         int bag = event.getRawSlot() - FIRST_BAG_SLOT;
         if (bag < 0 || bag >= BagManager.MAX_CAPACITY || bag >= bagManager.capacity(player)) return;
         if (!event.isLeftClick() && !event.isRightClick()) return;
-        plugin.getServer().getScheduler().runTask(plugin, () -> {
-            if (player.isOnline() && player.getOpenInventory().getTopInventory() == holder.inventory) openStorage(player, bag);
-        });
+        fr.cliker.clikerv2.runtime.ServerTasks.run(
+                plugin,
+                () -> {
+                    if (player.isOnline()
+                            && player.getOpenInventory().getTopInventory() == holder.inventory)
+                        openStorage(player, bag);
+                });
     }
 
     @EventHandler
     public void onDrag(InventoryDragEvent event) {
         if (!(event.getView().getTopInventory().getHolder() instanceof Holder holder)) return;
-        if (holder.bag < 0 || !holder.uuid.equals(event.getWhoClicked().getUniqueId())) event.setCancelled(true);
+        if (holder.bag < 0 || !holder.uuid.equals(event.getWhoClicked().getUniqueId()))
+            event.setCancelled(true);
     }
 
     private void save(Holder holder) {
@@ -119,7 +154,8 @@ public final class BagMenu implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        if (event.getPlayer().getOpenInventory().getTopInventory().getHolder() instanceof Holder holder) save(holder);
+        if (event.getPlayer().getOpenInventory().getTopInventory().getHolder()
+                instanceof Holder holder) save(holder);
     }
 
     public void shutdown() {
@@ -136,7 +172,15 @@ public final class BagMenu implements Listener {
         private final UUID uuid;
         private final int bag; // -1 : sélecteur ; 0-6 : coffre personnel.
         private Inventory inventory;
-        private Holder(UUID uuid, int bag) { this.uuid = uuid; this.bag = bag; }
-        @Override public Inventory getInventory() { return inventory; }
+
+        private Holder(UUID uuid, int bag) {
+            this.uuid = uuid;
+            this.bag = bag;
+        }
+
+        @Override
+        public Inventory getInventory() {
+            return inventory;
+        }
     }
 }

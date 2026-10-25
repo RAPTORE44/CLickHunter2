@@ -204,4 +204,31 @@ class HuntingStoreTest {
         server.getScheduler().performOneTick();
         assertEquals(20, player.getTotalExperience());
     }
+
+    @Test
+    void refusedLootboxLeavesDurableRefundWithoutWaitingForPlayerCallback() {
+        economy.set(owner, "Joueur", CurrencyType.CENDRES, Long.MAX_VALUE).join();
+        assertFalse(
+                ledger.grantOrReturn(
+                                "overflow-box",
+                                owner,
+                                "Joueur",
+                                Gains.of(10, 5, 1, 20),
+                                "saved-box")
+                        .join());
+        assertEquals(0, economy.getBalances(owner).join().ecus());
+        assertEquals(0, economy.getBalances(owner).join().gemmesSombres());
+        var page = new MailStore(db).page(owner, 0).join();
+        assertEquals(1, page.total());
+        assertEquals("saved-box", page.entries().getFirst().payload());
+        assertFalse(
+                ledger.grantOrReturn(
+                                "overflow-box",
+                                owner,
+                                "Joueur",
+                                Gains.of(10, 5, 1, 20),
+                                "saved-box")
+                        .join());
+        assertEquals(1, new MailStore(db).page(owner, 0).join().total());
+    }
 }

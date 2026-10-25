@@ -52,25 +52,22 @@ public final class AuctionManager implements Listener {
         store.loadActive()
                 .whenComplete(
                         (points, error) ->
-                                plugin.getServer()
-                                        .getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    if (error != null) {
-                                                        plugin.getLogger()
-                                                                .severe(
-                                                                        "Impossible de charger"
-                                                                            + " l'hôtel des ventes"
-                                                                            + " : "
-                                                                                + error
-                                                                                        .getMessage());
-                                                        return;
-                                                    }
-                                                    for (AuctionListing listing : points)
-                                                        listings.put(listing.id(), listing);
-                                                    sweepExpired();
-                                                }));
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (error != null) {
+                                                plugin.getLogger()
+                                                        .severe(
+                                                                "Impossible de charger"
+                                                                        + " l'hôtel des ventes"
+                                                                        + " : "
+                                                                        + error.getMessage());
+                                                return;
+                                            }
+                                            for (AuctionListing listing : points)
+                                                listings.put(listing.id(), listing);
+                                            sweepExpired();
+                                        }));
     }
 
     /**
@@ -102,36 +99,31 @@ public final class AuctionManager implements Listener {
         store.returnToOwner(listing.id())
                 .whenComplete(
                         (ok, error) ->
-                                Bukkit.getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    locked.remove(listing.id());
-                                                    if (error != null) {
-                                                        listings.put(listing.id(), listing);
-                                                        plugin.getLogger()
-                                                                .log(
-                                                                        java.util.logging.Level
-                                                                                .SEVERE,
-                                                                        "Retour d'annonce"
-                                                                                + " impossible",
-                                                                        error);
-                                                        return;
-                                                    }
-                                                    listings.remove(listing.id());
-                                                    delivery()
-                                                            .notifyAndDeliver(listing.sellerUuid());
-                                                    Player seller =
-                                                            Bukkit.getPlayer(listing.sellerUuid());
-                                                    if (Boolean.TRUE.equals(ok) && seller != null)
-                                                        seller.sendMessage(
-                                                                Component.text(
-                                                                        "Annonce retirée ou expirée"
-                                                                            + " : objet livré ou"
-                                                                            + " disponible dans"
-                                                                            + " /claim.",
-                                                                        NamedTextColor.YELLOW));
-                                                }));
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            locked.remove(listing.id());
+                                            if (error != null) {
+                                                listings.put(listing.id(), listing);
+                                                plugin.getLogger()
+                                                        .log(
+                                                                java.util.logging.Level.SEVERE,
+                                                                "Retour d'annonce" + " impossible",
+                                                                error);
+                                                return;
+                                            }
+                                            listings.remove(listing.id());
+                                            delivery().notifyAndDeliver(listing.sellerUuid());
+                                            Player seller = Bukkit.getPlayer(listing.sellerUuid());
+                                            if (Boolean.TRUE.equals(ok) && seller != null)
+                                                seller.sendMessage(
+                                                        Component.text(
+                                                                "Annonce retirée ou expirée"
+                                                                        + " : objet livré ou"
+                                                                        + " disponible dans"
+                                                                        + " /claim.",
+                                                                NamedTextColor.YELLOW));
+                                        }));
     }
 
     private void deliverOrMarkExpired(AuctionListing listing) {
@@ -144,21 +136,22 @@ public final class AuctionManager implements Listener {
         store.loadExpiredFor(event.getPlayer().getUniqueId())
                 .whenComplete(
                         (expired, error) ->
-                                Bukkit.getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    if (error != null) return;
-                                                    for (var listing : expired)
-                                                        if (locked.add(listing.id()))
-                                                            returnListing(listing);
-                                                }));
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (error != null) return;
+                                            for (var listing : expired)
+                                                if (locked.add(listing.id()))
+                                                    returnListing(listing);
+                                        }));
     }
 
     public List<AuctionListing> activeListings() {
         List<AuctionListing> result = new ArrayList<>(listings.values());
         result.removeIf(listing -> locked.contains(listing.id()));
-        result.sort(Comparator.comparingLong(AuctionListing::listedAt));
+        result.sort(
+                Comparator.comparingLong(AuctionListing::listedAt)
+                        .thenComparing(AuctionListing::id));
         return result;
     }
 
@@ -167,7 +160,9 @@ public final class AuctionManager implements Listener {
         for (AuctionListing listing : listings.values()) {
             if (listing.sellerUuid().equals(seller)) result.add(listing);
         }
-        result.sort(Comparator.comparingLong(AuctionListing::listedAt));
+        result.sort(
+                Comparator.comparingLong(AuctionListing::listedAt)
+                        .thenComparing(AuctionListing::id));
         return result;
     }
 
@@ -204,43 +199,41 @@ public final class AuctionManager implements Listener {
         store.save(listing)
                 .whenComplete(
                         (ignored, error) ->
-                                Bukkit.getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    if (error != null) {
-                                                        delivery()
-                                                                .give(
-                                                                        seller.getUniqueId(),
-                                                                        seller.getName(),
-                                                                        item);
-                                                        plugin.getLogger()
-                                                                .log(
-                                                                        java.util.logging.Level
-                                                                                .SEVERE,
-                                                                        "Création d'annonce"
-                                                                            + " impossible ; objet"
-                                                                            + " rendu",
-                                                                        error);
-                                                        if (seller.isOnline())
-                                                            seller.sendMessage(
-                                                                    Component.text(
-                                                                            "Annonce impossible :"
-                                                                                + " objet rendu ou"
-                                                                                + " disponible dans"
-                                                                                + " /claim.",
-                                                                            NamedTextColor.RED));
-                                                    } else {
-                                                        listings.put(id, listing);
-                                                        if (seller.isOnline())
-                                                            seller.sendMessage(
-                                                                    Component.text(
-                                                                            "Annonce publiée : "
-                                                                                    + price
-                                                                                    + " Écus.",
-                                                                            NamedTextColor.GREEN));
-                                                    }
-                                                }));
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (error != null) {
+                                                delivery()
+                                                        .give(
+                                                                seller.getUniqueId(),
+                                                                seller.getName(),
+                                                                item);
+                                                plugin.getLogger()
+                                                        .log(
+                                                                java.util.logging.Level.SEVERE,
+                                                                "Création d'annonce"
+                                                                        + " impossible ; objet"
+                                                                        + " rendu",
+                                                                error);
+                                                if (seller.isOnline())
+                                                    seller.sendMessage(
+                                                            Component.text(
+                                                                    "Annonce impossible :"
+                                                                            + " objet rendu ou"
+                                                                            + " disponible dans"
+                                                                            + " /claim.",
+                                                                    NamedTextColor.RED));
+                                            } else {
+                                                listings.put(id, listing);
+                                                if (seller.isOnline())
+                                                    seller.sendMessage(
+                                                            Component.text(
+                                                                    "Annonce publiée : "
+                                                                            + price
+                                                                            + " Écus.",
+                                                                    NamedTextColor.GREEN));
+                                            }
+                                        }));
     }
 
     public void buy(Player buyer, String listingId, Runnable onDone) {
@@ -263,78 +256,71 @@ public final class AuctionManager implements Listener {
         economy.purchaseAuction(buyer.getUniqueId(), buyer.getName(), listingId)
                 .whenComplete(
                         (result, error) ->
-                                Bukkit.getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    locked.remove(listingId);
-                                                    if (error != null
-                                                            || result
-                                                                    != EconomyService
-                                                                            .AuctionPurchase
-                                                                            .PURCHASED) {
-                                                        if (result
-                                                                == EconomyService.AuctionPurchase
-                                                                        .UNAVAILABLE)
-                                                            listings.remove(listingId);
-                                                        if (buyer.isOnline())
-                                                            buyer.sendMessage(
-                                                                    Component.text(
-                                                                            error != null
-                                                                                    ? "Achat"
-                                                                                          + " impossible."
-                                                                                          + " Aucun"
-                                                                                          + " débit"
-                                                                                          + " validé."
-                                                                                    : result
-                                                                                                    == EconomyService
-                                                                                                            .AuctionPurchase
-                                                                                                            .INSUFFICIENT_FUNDS
-                                                                                            ? "Écus insuffisants."
-                                                                                            : "Cette"
-                                                                                                  + " annonce"
-                                                                                                  + " n’est"
-                                                                                                  + " plus"
-                                                                                                  + " disponible.",
-                                                                            NamedTextColor.RED));
-                                                        if (error != null)
-                                                            plugin.getLogger()
-                                                                    .log(
-                                                                            java.util.logging.Level
-                                                                                    .SEVERE,
-                                                                            "Transaction d'annonce"
-                                                                                    + " impossible",
-                                                                            error);
-                                                    } else {
-                                                        listings.remove(listingId);
-                                                        delivery()
-                                                                .notifyAndDeliver(
-                                                                        buyer.getUniqueId());
-                                                        if (buyer.isOnline())
-                                                            buyer.sendMessage(
-                                                                    Component.text(
-                                                                            "Achat effectué : -"
-                                                                                    + listing
-                                                                                            .price()
-                                                                                    + " Écus. Objet"
-                                                                                    + " livré ou"
-                                                                                    + " disponible"
-                                                                                    + " dans"
-                                                                                    + " /claim.",
-                                                                            NamedTextColor.GREEN));
-                                                        Player seller =
-                                                                Bukkit.getPlayer(
-                                                                        listing.sellerUuid());
-                                                        if (seller != null)
-                                                            seller.sendMessage(
-                                                                    Component.text(
-                                                                            "Annonce vendue ! Écus"
-                                                                                + " crédités après"
-                                                                                + " taxe de 1 %.",
-                                                                            NamedTextColor.GREEN));
-                                                    }
-                                                    if (onDone != null) onDone.run();
-                                                }));
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            locked.remove(listingId);
+                                            if (error != null
+                                                    || result
+                                                            != EconomyService.AuctionPurchase
+                                                                    .PURCHASED) {
+                                                if (result
+                                                        == EconomyService.AuctionPurchase
+                                                                .UNAVAILABLE)
+                                                    listings.remove(listingId);
+                                                if (buyer.isOnline())
+                                                    buyer.sendMessage(
+                                                            Component.text(
+                                                                    error != null
+                                                                            ? "Achat"
+                                                                                    + " impossible."
+                                                                                    + " Aucun"
+                                                                                    + " débit"
+                                                                                    + " validé."
+                                                                            : result
+                                                                                            == EconomyService
+                                                                                                    .AuctionPurchase
+                                                                                                    .INSUFFICIENT_FUNDS
+                                                                                    ? "Écus insuffisants."
+                                                                                    : "Cette"
+                                                                                          + " annonce"
+                                                                                          + " n’est"
+                                                                                          + " plus"
+                                                                                          + " disponible.",
+                                                                    NamedTextColor.RED));
+                                                if (error != null)
+                                                    plugin.getLogger()
+                                                            .log(
+                                                                    java.util.logging.Level.SEVERE,
+                                                                    "Transaction d'annonce"
+                                                                            + " impossible",
+                                                                    error);
+                                            } else {
+                                                listings.remove(listingId);
+                                                delivery().notifyAndDeliver(buyer.getUniqueId());
+                                                if (buyer.isOnline())
+                                                    buyer.sendMessage(
+                                                            Component.text(
+                                                                    "Achat effectué : -"
+                                                                            + listing.price()
+                                                                            + " Écus. Objet"
+                                                                            + " livré ou"
+                                                                            + " disponible"
+                                                                            + " dans"
+                                                                            + " /claim.",
+                                                                    NamedTextColor.GREEN));
+                                                Player seller =
+                                                        Bukkit.getPlayer(listing.sellerUuid());
+                                                if (seller != null)
+                                                    seller.sendMessage(
+                                                            Component.text(
+                                                                    "Annonce vendue ! Écus"
+                                                                            + " crédités après"
+                                                                            + " taxe de 1 %.",
+                                                                    NamedTextColor.GREEN));
+                                            }
+                                            if (onDone != null) onDone.run();
+                                        }));
     }
 
     public boolean cancel(Player seller, String listingId, boolean admin) {

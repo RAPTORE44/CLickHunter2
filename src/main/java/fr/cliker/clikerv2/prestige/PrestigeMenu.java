@@ -28,6 +28,7 @@ public final class PrestigeMenu implements Listener {
     private final PrestigeManager manager;
     private final MobKillStore killStore;
     private final TabListManager tabList;
+    private final fr.cliker.clikerv2.ui.ViewRequests requests;
 
     public PrestigeMenu(
             JavaPlugin plugin,
@@ -35,36 +36,41 @@ public final class PrestigeMenu implements Listener {
             MobKillStore killStore,
             TabListManager tabList) {
         this.plugin = plugin;
+        requests = new fr.cliker.clikerv2.ui.ViewRequests(plugin);
         this.manager = manager;
         this.killStore = killStore;
         this.tabList = tabList;
     }
 
     public void open(Player player) {
+        var request = requests.begin(player);
         killStore
                 .getTotal(player.getUniqueId())
                 .whenComplete(
                         (kills, error) ->
-                                Bukkit.getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    if (error != null || !player.isOnline()) return;
-                                                    Holder holder = new Holder();
-                                                    Inventory inventory =
-                                                            Bukkit.createInventory(
-                                                                    holder,
-                                                                    27,
-                                                                    Component.text(
-                                                                            "Prestige",
-                                                                            NamedTextColor
-                                                                                    .LIGHT_PURPLE,
-                                                                            TextDecoration.BOLD));
-                                                    holder.inventory = inventory;
-                                                    inventory.setItem(
-                                                            BUTTON_SLOT, buildItem(player, kills));
-                                                    player.openInventory(inventory);
-                                                }));
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (!requests.complete(player, request)
+                                                    || error != null
+                                                    || !player.hasPermission("cliker.prestige.use"))
+                                                return;
+                                            Holder holder = new Holder();
+                                            Inventory inventory =
+                                                    Bukkit.createInventory(
+                                                            holder,
+                                                            27,
+                                                            Component.text(
+                                                                    "Prestige",
+                                                                    NamedTextColor.LIGHT_PURPLE,
+                                                                    TextDecoration.BOLD));
+                                            holder.inventory = inventory;
+                                            inventory.setItem(
+                                                    BUTTON_SLOT, buildItem(player, kills));
+                                            fr.cliker.clikerv2.ui.MenuNavigation.back(
+                                                    plugin, inventory, 26);
+                                            player.openInventory(inventory);
+                                        }));
     }
 
     private ItemStack buildItem(Player player, long kills) {
@@ -158,20 +164,19 @@ public final class PrestigeMenu implements Listener {
                             .getTotal(player.getUniqueId())
                             .whenComplete(
                                     (kills, error) ->
-                                            Bukkit.getScheduler()
-                                                    .runTask(
-                                                            plugin,
-                                                            () -> {
-                                                                if (error != null
-                                                                        || !player.isOnline()
-                                                                        || player.getOpenInventory()
-                                                                                        .getTopInventory()
-                                                                                        .getHolder()
-                                                                                != holder) return;
-                                                                holder.inventory.setItem(
-                                                                        BUTTON_SLOT,
-                                                                        buildItem(player, kills));
-                                                            }));
+                                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                                    plugin,
+                                                    () -> {
+                                                        if (error != null
+                                                                || !player.isOnline()
+                                                                || player.getOpenInventory()
+                                                                                .getTopInventory()
+                                                                                .getHolder()
+                                                                        != holder) return;
+                                                        holder.inventory.setItem(
+                                                                BUTTON_SLOT,
+                                                                buildItem(player, kills));
+                                                    }));
                 });
     }
 

@@ -65,6 +65,10 @@ public final class MainMenu implements CommandExecutor, Listener {
                 for (String id : buttons.getKeys(false))
                     occupied.add(config.getInt("boutons." + id + ".slot"));
             boolean changed = false;
+            if ("&8NorthBlue &7• &8Menu principal".equals(config.getString("titre"))) {
+                config.set("titre", "&2ClickHunter &8• &2Menu principal");
+                changed = true;
+            }
             for (String id : java.util.List.of("bestiaire", "contrats", "raid", "avantposte")) {
                 String path = "boutons." + id;
                 if (config.contains(path)) continue;
@@ -134,7 +138,7 @@ public final class MainMenu implements CommandExecutor, Listener {
                 Bukkit.createInventory(
                         holder,
                         size,
-                        DailySettings.color(config.getString("titre", "NorthBlue • Menu")));
+                        DailySettings.color(config.getString("titre", "ClickHunter • Menu")));
         for (int slot = 0; slot < size; slot++) holder.inventory.setItem(slot, background);
         for (var entry : actions.entrySet()) {
             Action action = entry.getValue();
@@ -163,19 +167,18 @@ public final class MainMenu implements CommandExecutor, Listener {
         if (action == null) return;
         if (!action.permission.isBlank() && !player.hasPermission(action.permission)) return;
         holder.pending = true;
-        Bukkit.getScheduler()
-                .runTask(
-                        plugin,
-                        () -> {
-                            if (!player.isOnline()
-                                    || player.getOpenInventory().getTopInventory()
-                                            != holder.inventory) return;
-                            player.closeInventory();
-                            if (!player.hasPermission("cliker.menu")
-                                    || (!action.permission.isBlank()
-                                            && !player.hasPermission(action.permission))) return;
-                            if (!action.command.isBlank()) player.performCommand(action.command);
-                        });
+        fr.cliker.clikerv2.runtime.ServerTasks.run(
+                plugin,
+                () -> {
+                    if (!player.isOnline()
+                            || player.getOpenInventory().getTopInventory() != holder.inventory)
+                        return;
+                    player.closeInventory();
+                    if (!player.hasPermission("cliker.menu")
+                            || (!action.permission.isBlank()
+                                    && !player.hasPermission(action.permission))) return;
+                    if (!action.command.isBlank()) player.performCommand(action.command);
+                });
     }
 
     @EventHandler

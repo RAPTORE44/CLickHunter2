@@ -151,80 +151,65 @@ public final class CustomMobManager implements Listener {
         store.loadAll()
                 .whenComplete(
                         (points, error) ->
-                                plugin.getServer()
-                                        .getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    if (error != null) {
-                                                        plugin.getLogger()
-                                                                .severe(
-                                                                        "Impossible de charger les"
-                                                                            + " zones de spawn : "
-                                                                                + error
-                                                                                        .getMessage());
-                                                        return;
-                                                    }
-                                                    for (MobSpawnStore.SpawnPoint point : points) {
-                                                        point.location()
-                                                                .getWorld()
-                                                                .getChunkAt(point.location())
-                                                                .load();
-                                                    }
-                                                    // 1 tick de délai après le chargement des
-                                                    // chunks : sur Paper les entités d'un chunk qui
-                                                    // vient d'être
-                                                    // chargé ne sont pas toujours visibles via
-                                                    // world.getEntities() dans le même tick, ce qui
-                                                    // laissait
-                                                    // passer des mobs existants au scan et en
-                                                    // spawnait des doublons par-dessus lors d'un
-                                                    // reload à chaud.
-                                                    plugin.getServer()
-                                                            .getScheduler()
-                                                            .runTask(
-                                                                    plugin,
-                                                                    () -> {
-                                                                        for (var world :
-                                                                                plugin.getServer()
-                                                                                        .getWorlds()) {
-                                                                            for (Entity entity :
-                                                                                    world
-                                                                                            .getEntities()) {
-                                                                                if (entity.getPersistentDataContainer()
-                                                                                        .has(
-                                                                                                mobIdKey,
-                                                                                                PersistentDataType
-                                                                                                        .STRING))
-                                                                                    entity.remove();
-                                                                            }
-                                                                        }
-                                                                        for (MobSpawnStore
-                                                                                        .SpawnPoint
-                                                                                point : points) {
-                                                                            spawnMobId.put(
-                                                                                    point.id(),
-                                                                                    point.mobId());
-                                                                            spawnLocation.put(
-                                                                                    point.id(),
-                                                                                    point
-                                                                                            .location());
-                                                                            spawnIdsByMob
-                                                                                    .computeIfAbsent(
-                                                                                            point
-                                                                                                    .mobId(),
-                                                                                            key ->
-                                                                                                    new ArrayList<>())
-                                                                                    .add(
-                                                                                            point
-                                                                                                    .id());
-                                                                            if (point.boss())
-                                                                                bossSpawnIds.add(
-                                                                                        point.id());
-                                                                            spawn(point.id());
-                                                                        }
-                                                                    });
-                                                }));
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (error != null) {
+                                                plugin.getLogger()
+                                                        .severe(
+                                                                "Impossible de charger les"
+                                                                        + " zones de spawn : "
+                                                                        + error.getMessage());
+                                                return;
+                                            }
+                                            for (MobSpawnStore.SpawnPoint point : points) {
+                                                point.location()
+                                                        .getWorld()
+                                                        .getChunkAt(point.location())
+                                                        .load();
+                                            }
+                                            // 1 tick de délai après le chargement des
+                                            // chunks : sur Paper les entités d'un chunk qui
+                                            // vient d'être
+                                            // chargé ne sont pas toujours visibles via
+                                            // world.getEntities() dans le même tick, ce qui
+                                            // laissait
+                                            // passer des mobs existants au scan et en
+                                            // spawnait des doublons par-dessus lors d'un
+                                            // reload à chaud.
+                                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                                    plugin,
+                                                    () -> {
+                                                        for (var world :
+                                                                plugin.getServer().getWorlds()) {
+                                                            for (Entity entity :
+                                                                    world.getEntities()) {
+                                                                if (entity.getPersistentDataContainer()
+                                                                        .has(
+                                                                                mobIdKey,
+                                                                                PersistentDataType
+                                                                                        .STRING))
+                                                                    entity.remove();
+                                                            }
+                                                        }
+                                                        for (MobSpawnStore.SpawnPoint point :
+                                                                points) {
+                                                            spawnMobId.put(
+                                                                    point.id(), point.mobId());
+                                                            spawnLocation.put(
+                                                                    point.id(), point.location());
+                                                            spawnIdsByMob
+                                                                    .computeIfAbsent(
+                                                                            point.mobId(),
+                                                                            key ->
+                                                                                    new ArrayList<>())
+                                                                    .add(point.id());
+                                                            if (point.boss())
+                                                                bossSpawnIds.add(point.id());
+                                                            spawn(point.id());
+                                                        }
+                                                    });
+                                        }));
     }
 
     public void startPeriodicReset() {
@@ -242,43 +227,40 @@ public final class CustomMobManager implements Listener {
         for (Location location : spawnLocation.values())
             location.getWorld().getChunkAt(location).load();
 
-        plugin.getServer()
-                .getScheduler()
-                .runTask(
-                        plugin,
-                        () -> {
-                            for (String spawnId : new ArrayList<>(aliveBySpawnId.keySet())) {
-                                if (!bossSpawnIds.contains(spawnId)) despawn(spawnId);
-                            }
-                            for (Map.Entry<String, BukkitTask> entry :
-                                    new HashMap<>(pendingRespawns).entrySet()) {
-                                if (bossSpawnIds.contains(entry.getKey())) continue;
-                                entry.getValue().cancel();
-                                pendingRespawns.remove(entry.getKey());
-                            }
-                            for (var world : plugin.getServer().getWorlds()) {
-                                for (Entity entity : world.getEntities()) {
-                                    String spawnId =
-                                            entity.getPersistentDataContainer()
-                                                    .get(spawnIdKey, PersistentDataType.STRING);
-                                    if (spawnId != null && bossSpawnIds.contains(spawnId)) continue;
-                                    if (entity.getPersistentDataContainer()
-                                            .has(mobIdKey, PersistentDataType.STRING))
-                                        entity.remove();
-                                }
-                            }
-                            int resetCount = 0;
-                            for (String spawnId : spawnLocation.keySet()) {
-                                if (bossSpawnIds.contains(spawnId)) continue;
-                                spawn(spawnId);
-                                resetCount++;
-                            }
-                            plugin.getLogger()
-                                    .info(
-                                            "Reset périodique des mobs custom effectué ("
-                                                    + resetCount
-                                                    + " zones, boss ignorés).");
-                        });
+        fr.cliker.clikerv2.runtime.ServerTasks.run(
+                plugin,
+                () -> {
+                    for (String spawnId : new ArrayList<>(aliveBySpawnId.keySet())) {
+                        if (!bossSpawnIds.contains(spawnId)) despawn(spawnId);
+                    }
+                    for (Map.Entry<String, BukkitTask> entry :
+                            new HashMap<>(pendingRespawns).entrySet()) {
+                        if (bossSpawnIds.contains(entry.getKey())) continue;
+                        entry.getValue().cancel();
+                        pendingRespawns.remove(entry.getKey());
+                    }
+                    for (var world : plugin.getServer().getWorlds()) {
+                        for (Entity entity : world.getEntities()) {
+                            String spawnId =
+                                    entity.getPersistentDataContainer()
+                                            .get(spawnIdKey, PersistentDataType.STRING);
+                            if (spawnId != null && bossSpawnIds.contains(spawnId)) continue;
+                            if (entity.getPersistentDataContainer()
+                                    .has(mobIdKey, PersistentDataType.STRING)) entity.remove();
+                        }
+                    }
+                    int resetCount = 0;
+                    for (String spawnId : spawnLocation.keySet()) {
+                        if (bossSpawnIds.contains(spawnId)) continue;
+                        spawn(spawnId);
+                        resetCount++;
+                    }
+                    plugin.getLogger()
+                            .info(
+                                    "Reset périodique des mobs custom effectué ("
+                                            + resetCount
+                                            + " zones, boss ignorés).");
+                });
     }
 
     public void shutdown() {
@@ -671,48 +653,45 @@ public final class CustomMobManager implements Listener {
                     .whenComplete(
                             (ok, error) -> {
                                 if (!plugin.isEnabled()) return;
-                                plugin.getServer()
-                                        .getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    if (error != null) {
-                                                        plugin.getLogger()
-                                                                .log(
-                                                                        java.util.logging.Level
-                                                                                .SEVERE,
-                                                                        "Enregistrement des gains"
-                                                                                + " impossible",
-                                                                        error);
-                                                        return;
-                                                    }
-                                                    if (Boolean.TRUE.equals(ok)) {
-                                                        ledger.flushXP(owner);
-                                                        if (killer.isOnline())
-                                                            killer.sendActionBar(
-                                                                    Component.text(
-                                                                            "+"
-                                                                                    + earned.amount(
-                                                                                            CurrencyType
-                                                                                                    .ECUS)
-                                                                                    + " Écus · +"
-                                                                                    + CurrencyType
-                                                                                            .GEMMES_SOMBRES
-                                                                                            .format(
-                                                                                                    earned
-                                                                                                            .amount(
-                                                                                                                    CurrencyType
-                                                                                                                            .GEMMES_SOMBRES))
-                                                                                    + " Gemmes · +"
-                                                                                    + earned.amount(
-                                                                                            CurrencyType
-                                                                                                    .CENDRES)
-                                                                                    + " Cendres · +"
-                                                                                    + earned.xp()
-                                                                                    + " XP",
-                                                                            NamedTextColor.GREEN));
-                                                    }
-                                                });
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (error != null) {
+                                                plugin.getLogger()
+                                                        .log(
+                                                                java.util.logging.Level.SEVERE,
+                                                                "Enregistrement des gains"
+                                                                        + " impossible",
+                                                                error);
+                                                return;
+                                            }
+                                            if (Boolean.TRUE.equals(ok)) {
+                                                ledger.flushXP(owner);
+                                                if (killer.isOnline())
+                                                    killer.sendActionBar(
+                                                            Component.text(
+                                                                    "+"
+                                                                            + earned.amount(
+                                                                                    CurrencyType
+                                                                                            .ECUS)
+                                                                            + " Écus · +"
+                                                                            + CurrencyType
+                                                                                    .GEMMES_SOMBRES
+                                                                                    .format(
+                                                                                            earned
+                                                                                                    .amount(
+                                                                                                            CurrencyType
+                                                                                                                    .GEMMES_SOMBRES))
+                                                                            + " Gemmes · +"
+                                                                            + earned.amount(
+                                                                                    CurrencyType
+                                                                                            .CENDRES)
+                                                                            + " Cendres · +"
+                                                                            + earned.xp()
+                                                                            + " XP",
+                                                                    NamedTextColor.GREEN));
+                                            }
+                                        });
                             });
             rollLootboxDrops(killer);
             rollTalismanDrop(killer, tier);

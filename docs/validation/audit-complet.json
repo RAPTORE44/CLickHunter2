@@ -1,0 +1,71 @@
+{
+  "reference": "bea94b6",
+  "paper": "1.21.4-232",
+  "java": "21.0.9",
+  "tests": {
+    "tests": 145,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "jar_sha256": "42a15b08ee1e697401c51784887b66de30618e9e36d7c2b4f713f34de069a2c4",
+  "client_checks": {
+    "audit-v2-results": {
+      "success": true,
+      "checks": [
+        "amélioration: solde actualisé après achat",
+        "retour au menu et identité ClickHunter",
+        "ouverture groupée des trois coffres",
+        "autoclick bloqué par le mur",
+        "autoclick reprend quand la cible redevient visible",
+        "priorité de réapparition du raid",
+        "station physique: retour sans perte de l’équipement",
+        "vente en français et liste personnelle"
+      ]
+    },
+    "race-results": {
+      "success": true,
+      "price": 12345,
+      "proceeds": 12222,
+      "wallets": [
+        {
+          "player_name": "AuditBuyerC",
+          "ecus": 37655
+        },
+        {
+          "player_name": "AuditBuyerD",
+          "ecus": 50000
+        }
+      ],
+      "swordCount": 1
+    },
+    "reload-results": {
+      "success": true,
+      "storedSlot": 53,
+      "swordCount": 1,
+      "metadataPreserved": true
+    },
+    "refund-results": {
+      "success": true,
+      "noPartialCredit": true,
+      "boxesRestored": 1
+    }
+  },
+  "benchmark": {
+    "iterations": 300,
+    "separate_ms": 342.6,
+    "combined_ms": 176.2,
+    "scope": "local SQLite microbenchmark; not a Paper load test"
+  },
+  "reload_certified": false,
+  "observed_server_anomalies": [
+    {
+      "operation": "reload confirm",
+      "exception": "ConcurrentModificationException",
+      "stack": "Commands.sendAsync -> CommandNode.hashCode (Paper/Brigadier)",
+      "scope": "Bag persistence client check passed; complete reload is not certified",
+      "root_cause": "not isolated",
+      "deployment": "stop and restart"
+    }
+  ]
+}

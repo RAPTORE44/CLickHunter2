@@ -35,59 +35,48 @@ public final class TutoJoinListener implements Listener {
                 .thenCompose(v -> levelStore.countTotal())
                 .whenComplete(
                         (total, error) ->
-                                plugin.getServer()
-                                        .getScheduler()
-                                        .runTask(
-                                                plugin,
-                                                () -> {
-                                                    if (error != null || !player.isOnline()) return;
-                                                    Bukkit.broadcast(
-                                                            Component.text(
-                                                                            "✦ ",
-                                                                            NamedTextColor
-                                                                                    .LIGHT_PURPLE,
-                                                                            TextDecoration.BOLD)
-                                                                    .append(
-                                                                            Component.text(
-                                                                                    player
-                                                                                            .getName(),
-                                                                                    NamedTextColor
-                                                                                            .WHITE,
-                                                                                    TextDecoration
-                                                                                            .BOLD))
-                                                                    .append(
-                                                                            Component.text(
-                                                                                    " rejoint"
-                                                                                        + " ClickHunter"
-                                                                                        + " pour la"
-                                                                                        + " première"
-                                                                                        + " fois !"
-                                                                                        + " (",
-                                                                                    NamedTextColor
-                                                                                            .GRAY))
-                                                                    .append(
-                                                                            Component.text(
-                                                                                    total
-                                                                                            + "e joueur",
-                                                                                    NamedTextColor
-                                                                                            .GOLD))
-                                                                    .append(
-                                                                            Component.text(
-                                                                                    ")",
-                                                                                    NamedTextColor
-                                                                                            .GRAY)));
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (error != null || !player.isOnline()) return;
+                                            Bukkit.broadcast(
+                                                    Component.text(
+                                                                    "✦ ",
+                                                                    NamedTextColor.LIGHT_PURPLE,
+                                                                    TextDecoration.BOLD)
+                                                            .append(
+                                                                    Component.text(
+                                                                            player.getName(),
+                                                                            NamedTextColor.WHITE,
+                                                                            TextDecoration.BOLD))
+                                                            .append(
+                                                                    Component.text(
+                                                                            " rejoint"
+                                                                                    + " ClickHunter"
+                                                                                    + " pour la"
+                                                                                    + " première"
+                                                                                    + " fois !"
+                                                                                    + " (",
+                                                                            NamedTextColor.GRAY))
+                                                            .append(
+                                                                    Component.text(
+                                                                            total + "e joueur",
+                                                                            NamedTextColor.GOLD))
+                                                            .append(
+                                                                    Component.text(
+                                                                            ")",
+                                                                            NamedTextColor.GRAY)));
 
-                                                    plugin.getServer()
-                                                            .getScheduler()
-                                                            .runTaskLater(
-                                                                    plugin,
-                                                                    () -> {
-                                                                        if (player.isOnline())
-                                                                            player.openBook(
-                                                                                    TutoBook
-                                                                                            .create());
-                                                                    },
-                                                                    40L);
-                                                }));
+                                            plugin.getServer()
+                                                    .getScheduler()
+                                                    .runTaskLater(
+                                                            plugin,
+                                                            () -> {
+                                                                if (player.isOnline())
+                                                                    player.openBook(
+                                                                            TutoBook.create());
+                                                            },
+                                                            40L);
+                                        }));
     }
 }

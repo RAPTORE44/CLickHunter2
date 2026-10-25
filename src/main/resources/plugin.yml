@@ -76,11 +76,11 @@ commands:
     usage: /coffre <joueur> <rareté> [quantité]
     permission: cliker.mob.admin
   autoclick:
-    description: Active/désactive l'attaque automatique sur la cible visée (toutes les 2s)
+    description: Active/désactive l'attaque automatique sur la cible visée (cadence selon ton équipement)
     usage: /autoclick
     permission: cliker.autoclick.use
   upgrade:
-    description: Ouvre le menu d'upgrades (payées en Gemmes Sombres)
+    description: Ouvre les améliorations payées en Gemmes Sombres
     usage: /upgrade
     permission: cliker.upgrade.use
   stats:
@@ -128,15 +128,15 @@ commands:
     usage: /holotop <spawn <level|kills|ecus|gemmes|cendres|bosstimer>|remove>
     permission: cliker.mob.admin
   ah:
-    description: Hotel des ventes (taxe 1% sur chaque vente)
-    usage: /ah [sell <prix>|mylistings]
+    description: Hôtel des ventes (taxe de 1 % par vente)
+    usage: /ah [vendre <prix>|mesannonces]
     permission: cliker.ah.use
   tuto:
     description: Ouvre le livre-guide du serveur
     usage: /tuto
     permission: cliker.tuto.use
   spawn:
-    description: Teleporte au spawn du serveur
+    description: Téléporte au point d’accueil du serveur
     usage: /spawn
     permission: cliker.spawn.use
   setspawn:
@@ -148,7 +148,7 @@ commands:
     usage: /station <spawn <enchant|reforge|rune>|remove>
     permission: cliker.mob.admin
   sac:
-    description: Ouvre tes sacs personnels de 54 cases, debloques selon ton rang
+    description: Ouvre tes sacs personnels de 54 cases, débloqués selon ton rang
     usage: /sac
     permission: cliker.sac.use
   talisman:

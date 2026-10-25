@@ -124,21 +124,20 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
         future.whenComplete(
                 (value, error) -> {
                     if (stopped || !plugin.isEnabled()) return;
-                    Bukkit.getScheduler()
-                            .runTask(
-                                    plugin,
-                                    () -> {
-                                        if (player != null) busy.remove(player.getUniqueId());
-                                        if (error != null) {
-                                            plugin.getLogger()
-                                                    .log(
-                                                            java.util.logging.Level.SEVERE,
-                                                            "Erreur d'avant-poste",
-                                                            error);
-                                            if (player != null && player.isOnline())
-                                                message(player, "erreur");
-                                        } else action.accept(value);
-                                    });
+                    fr.cliker.clikerv2.runtime.ServerTasks.run(
+                            plugin,
+                            () -> {
+                                if (player != null) busy.remove(player.getUniqueId());
+                                if (error != null) {
+                                    plugin.getLogger()
+                                            .log(
+                                                    java.util.logging.Level.SEVERE,
+                                                    "Erreur d'avant-poste",
+                                                    error);
+                                    if (player != null && player.isOnline())
+                                        message(player, "erreur");
+                                } else action.accept(value);
+                            });
                 });
     }
 
@@ -263,6 +262,7 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
                                         "&f/avantposte retirer <pseudo>",
                                         "&f/avantposte top",
                                         "&f/avantposte sortir")));
+        fr.cliker.clikerv2.ui.MenuNavigation.back(plugin, view.getInventory(), 26);
         player.openInventory(view.getInventory());
     }
 

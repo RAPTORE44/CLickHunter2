@@ -117,6 +117,51 @@ public final class RewardLedger implements Listener {
                 });
     }
 
+    /**
+     * L'original reste dans /claim si un crédit est refusé, même si le serveur s'arrête avant le
+     * retour UI.
+     */
+    public CompletableFuture<Boolean> grantOrReturn(
+            String source, UUID owner, String name, Gains gains, String original) {
+        return database.submit(
+                c -> {
+                    try {
+                        c.setAutoCommit(false);
+                        try {
+                            boolean paid = grant(c, source, owner, name, gains);
+                            c.commit();
+                            return paid;
+                        } catch (SQLException refused) {
+                            c.rollback();
+                            fr.cliker.clikerv2.rewards.MailStore.insert(
+                                    c, owner, source + ":refund", original);
+                            try (var statement =
+                                    c.prepareStatement(
+                                            "INSERT OR IGNORE INTO reward_ledger(source,owner,kind)"
+                                                + " VALUES(?,?,'refund')")) {
+                                statement.setString(1, source);
+                                statement.setString(2, owner.toString());
+                                statement.executeUpdate();
+                            }
+                            c.commit();
+                            plugin.getLogger()
+                                    .log(
+                                            java.util.logging.Level.WARNING,
+                                            "Crédit de coffre refusé ; original conservé dans"
+                                                + " /claim",
+                                            refused);
+                            return false;
+                        }
+                    } catch (SQLException error) {
+                        try {
+                            c.rollback();
+                        } catch (SQLException ignored) {
+                        }
+                        throw new DatabaseManager.DatabaseException(error);
+                    }
+                });
+    }
+
     public void flushXP(UUID owner) {
         if (stopped) return;
         if (!pendingXP.add(owner)) {
@@ -132,13 +177,9 @@ public final class RewardLedger implements Listener {
                                         .whenComplete(
                                                 (total, error) -> {
                                                     if (stopped || !plugin.isEnabled()) return;
-                                                    Bukkit.getScheduler()
-                                                            .runTask(
-                                                                    plugin,
-                                                                    () ->
-                                                                            applyXP(
-                                                                                    owner, total,
-                                                                                    error));
+                                                    fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                                            plugin,
+                                                            () -> applyXP(owner, total, error));
                                                 }),
                         20L);
     }

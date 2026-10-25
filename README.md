@@ -78,4 +78,6 @@ Récompenses différées et communauté : [/claim et /parrain](docs/CLAIM-PARRAI
 
 Activités intégrées : [bestiaire, contrats, raid et avant-postes](docs/ACTIVITES.md).
 
-Dernière revue : [correctifs, vérifications et limites du 25 octobre 2026](docs/AUDIT-2026-10-25.md).
+Revue précédente : [correctifs, vérifications et limites du 25 octobre 2026](docs/AUDIT-2026-10-25.md).
+
+Audit complémentaire : [constats classés, corrections et validations](docs/AUDIT-COMPLET.md), [inventaire des composants](docs/INVENTAIRE-AUDIT.md) et [suivi des évolutions](docs/SUIVI-EVOLUTIONS.md).

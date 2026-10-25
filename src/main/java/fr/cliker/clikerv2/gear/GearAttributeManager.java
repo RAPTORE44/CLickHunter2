@@ -20,11 +20,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-/** Applique en continu les bonus d'armure passifs (enchants/reforge/runes) : vie max, régénération, vitesse, réduction de dégâts. */
+/**
+ * Applique en continu les bonus d'armure passifs (enchants/reforge/runes) : vie max, régénération,
+ * vitesse, réduction de dégâts.
+ */
 public final class GearAttributeManager implements Listener {
     private static final double MAX_REDUCTION_PERCENT = 80.0;
 
     private final JavaPlugin plugin;
+    private org.bukkit.scheduler.BukkitTask task;
     private final NamespacedKey healthKey;
     private final NamespacedKey speedKey;
     private final Map<UUID, Double> damageReduction = new HashMap<>();
@@ -36,7 +40,7 @@ public final class GearAttributeManager implements Listener {
     }
 
     public void start() {
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 0L, 20L);
+        task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 0L, 20L);
     }
 
     private void tick() {
@@ -47,12 +51,17 @@ public final class GearAttributeManager implements Listener {
         double health = 0, reduction = 0, speed = 0;
         for (ItemStack piece : player.getInventory().getArmorContents()) {
             if (piece == null || !piece.hasItemMeta()) continue;
-            String tierId = piece.getItemMeta().getPersistentDataContainer().get(TierGear.ARMOR_KEY, PersistentDataType.STRING);
+            String tierId =
+                    piece.getItemMeta()
+                            .getPersistentDataContainer()
+                            .get(TierGear.ARMOR_KEY, PersistentDataType.STRING);
             if (tierId == null) continue;
             MobTier tier = MobTier.parse(tierId);
             if (tier == null) continue;
 
-            reduction += EnchantType.DEFENCE.magnitudeAt(tier, ItemMods.getEnchantLevel(piece, EnchantType.DEFENCE));
+            reduction +=
+                    EnchantType.DEFENCE.magnitudeAt(
+                            tier, ItemMods.getEnchantLevel(piece, EnchantType.DEFENCE));
 
             ReforgeType reforge = ItemMods.getReforge(piece);
             if (reforge != null) {
@@ -67,15 +76,23 @@ public final class GearAttributeManager implements Listener {
         damageReduction.put(player.getUniqueId(), Math.min(MAX_REDUCTION_PERCENT, reduction));
     }
 
-    private void applyAttribute(Player player, Attribute attribute, NamespacedKey key, double amount) {
+    private void applyAttribute(
+            Player player, Attribute attribute, NamespacedKey key, double amount) {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
         AttributeModifier existing = instance.getModifier(key);
+        if (existing != null
+                && Double.compare(existing.getAmount(), amount) == 0
+                && existing.getOperation() == AttributeModifier.Operation.ADD_NUMBER) return;
         if (existing != null) instance.removeModifier(key);
-        if (amount > 0) instance.addModifier(new AttributeModifier(key, amount, AttributeModifier.Operation.ADD_NUMBER));
+        if (amount > 0)
+            instance.addModifier(
+                    new AttributeModifier(key, amount, AttributeModifier.Operation.ADD_NUMBER));
     }
 
-    /** Réduit les dégâts reçus par le joueur selon ses bonus d'armure (Absorption/Ferme/Résistance). */
+    /**
+     * Réduit les dégâts reçus par le joueur selon ses bonus d'armure (Absorption/Ferme/Résistance).
+     */
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onPlayerDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
@@ -87,5 +104,17 @@ public final class GearAttributeManager implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         damageReduction.remove(event.getPlayer().getUniqueId());
+    }
+
+    public void shutdown() {
+        if (task != null) task.cancel();
+        org.bukkit.event.HandlerList.unregisterAll(this);
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            var health = player.getAttribute(Attribute.MAX_HEALTH);
+            if (health != null) health.removeModifier(healthKey);
+            var speed = player.getAttribute(Attribute.MOVEMENT_SPEED);
+            if (speed != null) speed.removeModifier(speedKey);
+        }
+        damageReduction.clear();
     }
 }
