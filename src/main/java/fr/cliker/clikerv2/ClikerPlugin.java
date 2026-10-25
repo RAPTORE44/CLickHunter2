@@ -105,6 +105,9 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.ui.MainMenu mainMenu;
     private fr.cliker.clikerv2.daily.DailyModule dailyModule;
     private fr.cliker.clikerv2.buyzone.BuyZoneModule buyZoneModule;
+    private fr.cliker.clikerv2.comfort.PlayerComfort playerComfort;
+    private fr.cliker.clikerv2.comfort.FarmTelemetry farmTelemetry;
+    private fr.cliker.clikerv2.comfort.ProgressNavigation progressNavigation;
 
     @Override
     public void onEnable() {
@@ -130,7 +133,9 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         }
         economy = new EconomyService(database, startingBalances);
         getServer().getPluginManager().registerEvents(this, this);
-        getServer().getPluginManager().registerEvents(new fr.cliker.clikerv2.mobs.VanillaSpawnListener(this), this);
+        getServer()
+                .getPluginManager()
+                .registerEvents(new fr.cliker.clikerv2.mobs.VanillaSpawnListener(this), this);
         for (var player : getServer().getOnlinePlayers()) initializeAccount(player);
         claims = new fr.cliker.clikerv2.rewards.ClaimService(this, database);
         claims.start();
@@ -194,6 +199,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         getServer().getPluginManager().registerEvents(upgradeMenu, this);
         setExecutor("upgrade", new UpgradeCommand(upgradeMenu));
         upgradeManager.loadOnlinePlayers();
+        setExecutor("guide", new fr.cliker.clikerv2.comfort.UpgradeGuide(this, upgradeManager));
 
         CompressorManager compressorManager = new CompressorManager();
         getServer().getPluginManager().registerEvents(compressorManager, this);
@@ -492,11 +498,21 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
                                 return true;
                             });
         }
+        playerComfort = new fr.cliker.clikerv2.comfort.PlayerComfort(this);
+        playerComfort.start();
+        farmTelemetry = new fr.cliker.clikerv2.comfort.FarmTelemetry(this);
+        farmTelemetry.start();
+        progressNavigation =
+                new fr.cliker.clikerv2.comfort.ProgressNavigation(this, buyZoneModule, mobManager);
+        progressNavigation.start();
         getLogger().info("Economie active avec SQLite.");
     }
 
     @Override
     public void onDisable() {
+        if (playerComfort != null) playerComfort.shutdown();
+        if (farmTelemetry != null) farmTelemetry.shutdown();
+        if (progressNavigation != null) progressNavigation.shutdown();
         // Restituer les objets déposés dans les interfaces avant d'arrêter /claim et SQLite.
         for (var player : getServer().getOnlinePlayers()) {
             var holder = player.getOpenInventory().getTopInventory().getHolder();

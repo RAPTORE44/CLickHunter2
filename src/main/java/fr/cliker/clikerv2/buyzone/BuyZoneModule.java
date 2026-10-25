@@ -185,6 +185,18 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
                 || unlocked.getOrDefault(player.getUniqueId(), Set.of()).contains(zone.id());
     }
 
+    /** Même règle d'accès que les portails, sans déduire un droit d'une simple découverte. */
+    public boolean canTravel(Player player, String id) {
+        if (!config.contains("zones." + id)) return false;
+        if (id.equals("vache")) return true;
+        if (!unlocked.containsKey(player.getUniqueId())) return false;
+        String permission = config.getString("zones." + id + ".permission", "cliker.zone." + id);
+        return player.getGameMode() == org.bukkit.GameMode.CREATIVE
+                || player.hasPermission(BYPASS)
+                || player.hasPermission(permission)
+                || unlocked.get(player.getUniqueId()).contains(id);
+    }
+
     private void load(Player player) {
         UUID uuid = player.getUniqueId();
         Object token = new Object();
@@ -503,8 +515,7 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
             target.setYaw(0);
             target.setPitch(0);
             player.teleport(target);
-        }
-        else
+        } else
             plugin.getLogger()
                     .warning(
                             "Aucun retour sûr pour "

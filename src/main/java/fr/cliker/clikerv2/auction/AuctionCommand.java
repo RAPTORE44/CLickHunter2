@@ -59,6 +59,12 @@ public final class AuctionCommand implements CommandExecutor {
                 return true;
             }
 
+            if (fr.cliker.clikerv2.comfort.PlayerComfort.protectedForSale(player, hand)) {
+                player.sendMessage(
+                        "Équipement protégé : /lock pour déverrouiller, puis /antidrop autoriser"
+                                + " pour autoriser sa vente.");
+                return true;
+            }
             menu.openSellConfirm(player, hand, price);
             return true;
         }

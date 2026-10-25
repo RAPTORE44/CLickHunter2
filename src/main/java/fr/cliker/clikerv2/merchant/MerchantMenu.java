@@ -25,6 +25,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
@@ -83,7 +84,10 @@ public final class MerchantMenu implements Listener {
 
         inventory.setItem(
                 SWORD_SLOT,
-                purchaseItem(TierGear.createSword(tier), swordEcus, swordEssence, tier));
+                compareSword(
+                        player,
+                        purchaseItem(TierGear.createSword(tier), swordEcus, swordEssence, tier),
+                        tier));
         inventory.setItem(
                 HELMET_SLOT,
                 purchaseItem(
@@ -209,6 +213,46 @@ public final class MerchantMenu implements Listener {
         meta.lore(lore);
         item.setItemMeta(meta);
         return item;
+    }
+
+    private ItemStack compareSword(Player player, ItemStack offered, MobTier tier) {
+        var held = player.getInventory().getItemInMainHand();
+        MobTier current = null;
+        if (held.hasItemMeta()) {
+            String id =
+                    held.getItemMeta()
+                            .getPersistentDataContainer()
+                            .get(TierGear.SWORD_KEY, PersistentDataType.STRING);
+            if (id != null) current = MobTier.parse(id);
+        }
+        long before = current == null ? 0 : TierGear.pieceDamage(current);
+        var starterKey = fr.cliker.clikerv2.combat.SwordCommand.SWORD_KEY;
+        if (current == null
+                && starterKey != null
+                && held.hasItemMeta()
+                && held.getItemMeta()
+                        .getPersistentDataContainer()
+                        .has(starterKey, PersistentDataType.BYTE)) before = 25;
+        long after = TierGear.pieceDamage(tier);
+        long delta = after - before;
+        var meta = offered.getItemMeta();
+        var lore = new ArrayList<Component>(meta.lore() == null ? List.of() : meta.lore());
+        lore.add(
+                Component.text("Comparaison des dégâts de base (hors bonus)", NamedTextColor.GRAY));
+        String percent =
+                before == 0
+                        ? ""
+                        : String.format(
+                                java.util.Locale.FRANCE,
+                                " (%+.1f %%)",
+                                (double) delta * 100 / before);
+        lore.add(
+                Component.text(
+                        (delta >= 0 ? "+" : "") + Numbers.compact(delta) + " dégâts" + percent,
+                        delta >= 0 ? NamedTextColor.GREEN : NamedTextColor.RED));
+        meta.lore(lore);
+        offered.setItemMeta(meta);
+        return offered;
     }
 
     private ItemStack purchaseItem(ItemStack base, long ecusCost, int essenceCost, MobTier tier) {

@@ -8,23 +8,35 @@ import java.util.*;
 
 /** Un relevé de l'inventaire par coup ; aucune recherche par compresseur et par palier. */
 public final class CompressorManager implements org.bukkit.event.Listener {
-    @org.bukkit.event.EventHandler(priority = org.bukkit.event.EventPriority.HIGH, ignoreCancelled = true)
+    @org.bukkit.event.EventHandler(
+            priority = org.bukkit.event.EventPriority.HIGH,
+            ignoreCancelled = true)
     public void onUse(org.bukkit.event.player.PlayerInteractEvent event) {
         if (!event.getAction().isRightClick() || event.getHand() == null) return;
         var tier = CompressorItem.tierOf(event.getItem());
         if (tier == null) return;
         event.setCancelled(true);
         var player = event.getPlayer();
-        var key = new org.bukkit.NamespacedKey(CompressorItem.MOB_KEY.getNamespace(), "compressor_active_" + tier.id());
+        var key =
+                new org.bukkit.NamespacedKey(
+                        CompressorItem.MOB_KEY.getNamespace(), "compressor_active_" + tier.id());
         var data = player.getPersistentDataContainer();
         if (data.has(key, org.bukkit.persistence.PersistentDataType.BYTE)) {
-            player.sendMessage(net.kyori.adventure.text.Component.text("Cet autocompresseur est déjà activé.", net.kyori.adventure.text.format.NamedTextColor.YELLOW));
+            player.sendMessage(
+                    net.kyori.adventure.text.Component.text(
+                            "Cet autocompresseur est déjà activé.",
+                            net.kyori.adventure.text.format.NamedTextColor.YELLOW));
             return;
         }
         data.set(key, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
         event.getItem().subtract(1);
         player.saveData();
-        player.sendMessage(net.kyori.adventure.text.Component.text("Autocompresseur " + tier.label() + " activé ! 64 ressources donnent 1 du palier suivant.", net.kyori.adventure.text.format.NamedTextColor.GREEN));
+        player.sendMessage(
+                net.kyori.adventure.text.Component.text(
+                        "Autocompresseur "
+                                + tier.label()
+                                + " activé ! 64 ressources donnent 1 du palier suivant.",
+                        net.kyori.adventure.text.format.NamedTextColor.GREEN));
         onHit(player);
     }
 
@@ -32,8 +44,12 @@ public final class CompressorManager implements org.bukkit.event.Listener {
         var contents = player.getInventory().getContents();
         Set<MobTier> active = EnumSet.noneOf(MobTier.class);
         for (var tier : MobTier.values()) {
-            var key = new org.bukkit.NamespacedKey(CompressorItem.MOB_KEY.getNamespace(), "compressor_active_" + tier.id());
-            if (player.getPersistentDataContainer().has(key, org.bukkit.persistence.PersistentDataType.BYTE)) active.add(tier);
+            var key =
+                    new org.bukkit.NamespacedKey(
+                            CompressorItem.MOB_KEY.getNamespace(),
+                            "compressor_active_" + tier.id());
+            if (player.getPersistentDataContainer()
+                    .has(key, org.bukkit.persistence.PersistentDataType.BYTE)) active.add(tier);
         }
         if (active.isEmpty()) return;
         Map<MobTier, int[]> counts = new EnumMap<>(MobTier.class);
@@ -52,7 +68,15 @@ public final class CompressorManager implements org.bukkit.event.Listener {
             if (count == null) continue;
             for (var rarity : EssenceRarity.values())
                 if (rarity.next() != null && count[rarity.ordinal()] >= EssenceCompression.RATIO) {
-                    EssenceCompression.cascade(player, tier);
+                    int converted = EssenceCompression.cascade(player, tier);
+                    if (converted > 0
+                            && fr.cliker.clikerv2.comfort.PlayerComfort.enabled(
+                                    player, "compression_sound", true))
+                        player.playSound(
+                                player.getLocation(),
+                                org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP,
+                                0.35f,
+                                1.4f);
                     break;
                 }
         }

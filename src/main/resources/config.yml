@@ -15,3 +15,9 @@ displays:
 # Bloque les apparitions vanilla, conserve les entités créées par les plugins.
 mobs:
   disable-vanilla-spawns: true
+
+# Confort de jeu : appliqué aux joueurs dans tous les mondes.
+comfort:
+  no-player-collisions: true
+  no-hunger: true
+  no-fall-damage: true

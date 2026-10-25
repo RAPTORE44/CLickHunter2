@@ -75,6 +75,10 @@ public final class UpgradeStore {
 
     /** Retourne le nouveau niveau, -1 si le solde manque, -2 si le niveau maximal est atteint. */
     public CompletableFuture<Integer> purchase(UUID uuid, UpgradeType type) {
+        return purchase(uuid, type, false);
+    }
+
+    public CompletableFuture<Integer> purchase(UUID uuid, UpgradeType type, boolean maximum) {
         return database.submit(
                 c -> {
                     try {
@@ -102,8 +106,28 @@ public final class UpgradeStore {
                             c.rollback();
                             return -2;
                         }
-                        int next = current + 1;
-                        long price = Math.multiplyExact(UpgradeType.costForLevel(next), 10);
+                        long balance = 0;
+                        try (var s =
+                                c.prepareStatement(
+                                        "SELECT gemmes_sombres FROM player_balances WHERE"
+                                                + " uuid=?")) {
+                            s.setString(1, uuid.toString());
+                            try (var rs = s.executeQuery()) {
+                                if (rs.next()) balance = rs.getLong(1);
+                            }
+                        }
+                        int next = current;
+                        long price = 0;
+                        do {
+                            long step = Math.multiplyExact(UpgradeType.costForLevel(next + 1), 10);
+                            if (step > balance - price) break;
+                            price = Math.addExact(price, step);
+                            next++;
+                        } while (maximum && next < UpgradeType.MAX_LEVEL);
+                        if (next == current) {
+                            c.rollback();
+                            return -1;
+                        }
                         try (var s =
                                 c.prepareStatement(
                                         "UPDATE player_balances SET gemmes_sombres=gemmes_sombres-?"

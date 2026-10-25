@@ -70,6 +70,25 @@ L'autocompresseur s'achète chez le marchand puis s'active par clic droit : l'ob
 
 `balance` peut être abrégé en `bal`. Sans argument, `/ecus`, `/gemmes` et `/cendres` affichent le solde du joueur qui les exécute.
 
+### Confort, protection et navigation
+
+| Commande | Utilité |
+| --- | --- |
+| `/guide` | Conseiller le prochain palier d’amélioration le moins cher, selon les niveaux et le solde réel. |
+| `/zone <numéro>` | Rejoindre une zone déjà débloquée et configurée ; alias `/z`. |
+| `/boss` | Rejoindre l’entrée du boss de sa zone accessible la plus avancée. |
+| `/progression` | Afficher pendant dix secondes la progression dans les zones configurées. |
+| `/settings` | Régler les textes de dégâts, le son de compression et la dispersion des textes ; alias `/parametres`. |
+| `/antidrop <autoriser\|bloquer>` | Autoriser ou bloquer le jet d’objets et la vente AH des équipements protégés, jusqu’à la déconnexion. |
+| `/ramassage <autoriser\|bloquer>` | Autoriser ou bloquer le ramassage au sol jusqu’à la déconnexion. Les récompenses directes du plugin restent livrées. |
+| `/lock` | Verrouiller ou déverrouiller une épée, une armure ClickHunter ou un compresseur tenu, contre le jet et la vente AH. |
+
+Les protections de jet et de ramassage sont actives à chaque connexion. Les réglages visuels persistent. Les téléportations vérifient l’accès BuyZone et refusent une arrivée dangereuse. Permissions : `cliker.navigation.use` pour la navigation, `cliker.comfort.use` pour les protections et paramètres, `cliker.upgrade.use` pour le guide.
+
+Dans `/stats`, les gains confirmés des 60 dernières secondes sont séparés par créature. Le compteur des coups validés est conservé, et la session précédente est résumée à la reconnexion. Les boss disposent d’un chronomètre et d’un record personnel, avec une célébration de première victoire.
+
+Dans `/upgrade`, clic gauche : acheter un niveau ; clic droit : acheter le maximum abordable au tarif habituel. Le menu des marchands compare les dégâts **de base** des épées, hors bonus.
+
 ### Avant-postes
 
 Toutes ces commandes acceptent aussi `/is` et `/avantpostes` à la place de `/avantposte`.
@@ -180,3 +199,5 @@ Activités intégrées : [bestiaire, contrats, raid et avant-postes](docs/ACTIVI
 Revue précédente : [correctifs, vérifications et limites du 25 octobre 2026](docs/AUDIT-2026-10-25.md).
 
 Audit complémentaire : [constats classés, corrections et validations](docs/AUDIT-COMPLET.md), [inventaire des composants](docs/INVENTAIRE-AUDIT.md) et [suivi des évolutions](docs/SUIVI-EVOLUTIONS.md).
+
+Sélection du classeur : [suivi des 141 lignes jaunes, livraisons et travail restant](docs/SELECTION-JAUNE.md).

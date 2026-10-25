@@ -42,6 +42,15 @@ class CompressionTest {
     }
 
     @Test
+    void compressedEssencesUseNativeGlintWithoutFakeEnchantments() {
+        var compressed = EssenceItem.create(MobTier.VACHE, EssenceRarity.PEU_COMMUNE, 1);
+        assertTrue(compressed.getItemMeta().getEnchantmentGlintOverride());
+        assertTrue(compressed.getEnchantments().isEmpty());
+        assertFalse(
+                EssenceItem.create(MobTier.VACHE, 1).getItemMeta().getEnchantmentGlintOverride());
+    }
+
+    @Test
     void bulkConversionPreservesValueAcrossBothRaritySteps() {
         player.getInventory()
                 .setItem(0, EssenceItem.create(MobTier.VACHE, EssenceRarity.COMMUNE, 64));
@@ -63,7 +72,13 @@ class CompressionTest {
         var manager = new CompressorManager();
         manager.onHit(player);
         assertEquals(64, EssenceItem.count(player, MobTier.VACHE, EssenceRarity.COMMUNE));
-        player.getPersistentDataContainer().set(new NamespacedKey(CompressorItem.MOB_KEY.getNamespace(), "compressor_active_" + MobTier.VACHE.id()), org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        player.getPersistentDataContainer()
+                .set(
+                        new NamespacedKey(
+                                CompressorItem.MOB_KEY.getNamespace(),
+                                "compressor_active_" + MobTier.VACHE.id()),
+                        org.bukkit.persistence.PersistentDataType.BYTE,
+                        (byte) 1);
         manager.onHit(player);
         assertEquals(1, EssenceItem.count(player, MobTier.VACHE, EssenceRarity.PEU_COMMUNE));
         assertEquals(64, EssenceItem.count(player, MobTier.COCHON, EssenceRarity.COMMUNE));

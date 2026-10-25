@@ -207,6 +207,12 @@ public final class StatsMenu implements Listener {
                                             "(niv. " + level + "/" + UpgradeType.MAX_LEVEL + ")",
                                             NamedTextColor.DARK_GRAY)));
         }
+        var telemetry =
+                Bukkit.getServicesManager().load(fr.cliker.clikerv2.comfort.FarmTelemetry.class);
+        if (telemetry != null) {
+            lore.add(Component.text(""));
+            lore.addAll(telemetry.lore(player));
+        }
         meta.lore(lore);
         head.setItemMeta(meta);
         return head;

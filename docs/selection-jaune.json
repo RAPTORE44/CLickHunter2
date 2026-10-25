@@ -1,0 +1,848 @@
+[
+  {
+    "ligne": 12,
+    "rang": 5,
+    "id": 819,
+    "idee": "Sauvegarde Automatique Asynchrone : sauvegarde des données du joueur toutes les 3 minutes sans aucun lag serveur (évite toute perte de progression en cas de crash)."
+  },
+  {
+    "ligne": 13,
+    "rang": 6,
+    "id": 826,
+    "idee": "Prévention du \"Softlock\" : il est impossible de vendre ou de jeter sa seule épée ou son Auto-Compresseur de départ. Ajoute donc un anti drop par defaut activé mes le joueur peut le desactivé avec une commande dailleur ca lui dit quil peut pas drop sauf si il fait la commande qui ce redesactif si il deco la meme pour recuperer un drop il ne peut pas faut si la cmd et activé et donc ca lui dit dans le tchat quil ne peut pas recup litem et quil doit faire tel cmd qui ce desactiv a la deco du joueur"
+  },
+  {
+    "ligne": 16,
+    "rang": 9,
+    "id": 823,
+    "idee": "Bouton \"Que faire maintenant ?\" (`/guide`) : analyse le profil du joueur et lui donne le conseil le plus rentable à l'instant T (ex: \"Vous avez assez de Cuir pour améliorer vos Bottes au Niv. 4\")."
+  },
+  {
+    "ligne": 18,
+    "rang": 11,
+    "id": 35,
+    "idee": "Numérotation abrégée lisible : formatage automatique des grands nombres (1.5K, 2.4M, 8.9B, 1.2T, 4.5Qa) partout sur le serveur."
+  },
+  {
+    "ligne": 19,
+    "rang": 12,
+    "id": 24,
+    "idee": "Aperçu des statistiques comparatives : dans le shop, survoler la nouvelle épée affiche \"+45 Dégâts (+22%)\" en vert par rapport à l'épée équipée."
+  },
+  {
+    "ligne": 20,
+    "rang": 13,
+    "id": 36,
+    "idee": "Bouton \"Acheter le Max\" (Buy Max) : dans le menu d'amélioration du PNJ, un clic droit dépense toutes les ressources disponibles pour monter de plusieurs niveaux d'un coup."
+  },
+  {
+    "ligne": 21,
+    "rang": 14,
+    "id": 960,
+    "idee": "Hitbox Élargie Confortable (Interaction Entities) : superposer une entité `minecraft:interaction` invisible légèrement plus large sur le mob statique pour que le joueur ne rate jamais son clic même en bougeant."
+  },
+  {
+    "ligne": 24,
+    "rang": 17,
+    "id": 997,
+    "idee": "Collecte Automatique des Ressources Oubliées (`/claim) : si un drop rare de Boss n'a pas pu entrer dans l'inventaire, il est stocké dans une boîte aux lettres sécurisée au spawn."
+  },
+  {
+    "ligne": 27,
+    "rang": 20,
+    "id": 961,
+    "idee": "Commande Rapide `/zone <numéro>` ou `/z <numéro>` : téléporte instantanément devant le quadrillage de n'importe quelle zone déjà débloquée."
+  },
+  {
+    "ligne": 28,
+    "rang": 21,
+    "id": 981,
+    "idee": "Objet \"Menu ClickHunter\" Fixé au Slot 9 (Étoile du Nether / Boussole) : un clic droit dessus ouvre le Hub de toutes les fonctionnalités (Zones, Équipement, Auto-Compresseur, Pets, Prestige, Paramètres)."
+  },
+  {
+    "ligne": 31,
+    "rang": 24,
+    "id": 51,
+    "idee": "Mob Doré (Shiny) : 0,01% de chance au respawn du stack que le mobs soit dorée (effet glow orange) et donne x3 ressources."
+  },
+  {
+    "ligne": 32,
+    "rang": 25,
+    "id": 820,
+    "idee": "Journal de Progression Visuel (`/progression`) : montre une barre globale de complétion du serveur de 0.0% à 100.0%. La zone du joueur on focntion de la derniere zone du serveur la bar sous forme whiter ne reste que 10 seconde a lecran puis dois^parais"
+  },
+  {
+    "ligne": 33,
+    "rang": 26,
+    "id": 995,
+    "idee": "Synchronisation Visuelle du Temps de Recharge (Item Cooldown Packet) : utiliser l'effet blanc natif d'Ender Pearl sur l'icône de l'épée ou des compétences dans la hotbar pour indiquer visuellement le temps de recharge restant."
+  },
+  {
+    "ligne": 34,
+    "rang": 27,
+    "id": 971,
+    "idee": "Bouton \"Retour\" Universel sur le Slot 49 (Bas-Milieu) : dans absolument tous les sous-menus du serveur, le bouton de retour ou de fermeture est toujours au même endroit pour la mémoire musculaire."
+  },
+  {
+    "ligne": 37,
+    "rang": 30,
+    "id": 829,
+    "idee": "Logs de Progression Anti-Duplication : alerte automatique aux administrateurs si un joueur génère plus de ressources en 1 minute que le maximum mathématiquement possible dans sa zone."
+  },
+  {
+    "ligne": 38,
+    "rang": 31,
+    "id": 815,
+    "idee": "Indicateur de Probabilité de Victoire contre le Boss : devant l'arène du Boss, un texte indique au joueur : `Chances de victoire estimées : Faibles (Améliorez votre Épée)` ou `Élevées (Prêt au combat !)`."
+  },
+  {
+    "ligne": 42,
+    "rang": 35,
+    "id": 974,
+    "idee": "Désactivation Totale des Collisions Joueur-Joueur (`collisionRule never`) : aucun joueur ne peut pousser un autre joueur hors d'une dalle de bonus ou devant un Boss."
+  },
+  {
+    "ligne": 43,
+    "rang": 36,
+    "id": 975,
+    "idee": "Désactivation des Dégâts de Chute et de la Faim : la barre de faim reste toujours pleine ou sert de jauge d'énergie secondaire, et sauter de haut ne blesse jamais le joueur."
+  },
+  {
+    "ligne": 47,
+    "rang": 40,
+    "id": 847,
+    "idee": "Statistiques Détaillées par Minute (`/stats`) : permet aux joueurs optimisateurs de comparer leur rendement exact entre deux zones."
+  },
+  {
+    "ligne": 50,
+    "rang": 43,
+    "id": 297,
+    "idee": "Coffre de Butin de Boss dans la Zone : après avoir battu le Boss, un coffre physique s'ouvre devant le PNJ avec le choix entre 3 récompenses. Xp copins ou gems sombre"
+  },
+  {
+    "ligne": 51,
+    "rang": 44,
+    "id": 348,
+    "idee": "Immunité de Transition Courte : les phases d'invulnérabilité du Boss ne durent jamais plus de 3 secondes pour ne pas frustrer les gros joueurs."
+  },
+  {
+    "ligne": 52,
+    "rang": 45,
+    "id": 22,
+    "idee": "Indicateur de \"Coups restants\" : affiche à côté des PV du mob le nombre exact de clics nécessaires avec l'épée actuelle pour le tuer."
+  },
+  {
+    "ligne": 53,
+    "rang": 46,
+    "id": 2,
+    "idee": "Text Display de dégâts flottants : chiffres qui jaillissent du mob et tombent avec la gravité (Rouge = normal, Or = critique)."
+  },
+  {
+    "ligne": 56,
+    "rang": 49,
+    "id": 30,
+    "idee": "Jauge de Surchauffe dans le viseur : le sous-titre (Subtitle) utilise des caractères fins sous le viseur pour indiquer le temps de recharge de la capacité d'épée."
+  },
+  {
+    "ligne": 57,
+    "rang": 50,
+    "id": 846,
+    "idee": "Célébration du Premier Boss Battu : feux d'artifice personnels et message d'encouragement quand le joueur bat le Boss de la Zone 1 pour la toute première fois."
+  },
+  {
+    "ligne": 58,
+    "rang": 51,
+    "id": 275,
+    "idee": "Enclume de Fusion sans XP Vanilla : une interface custom très claire où l'on place deux objets à gauche et à droite pour voir le résultat au centre avant de valider."
+  },
+  {
+    "ligne": 59,
+    "rang": 52,
+    "id": 828,
+    "idee": "Testeur d'Équilibrage Admin (`/sim <zone> <prestige>`) : commande réservée aux créateurs du serveur qui simule en 1 seconde combien de temps il faut à un joueur moyen pour finir une zone."
+  },
+  {
+    "ligne": 61,
+    "rang": 54,
+    "id": 833,
+    "idee": "Réduction de la Fatigue Visuelle : possibilité de passer les flashs d'éclairs et d'explosions en mode \"Doux\" dans les paramètres."
+  },
+  {
+    "ligne": 62,
+    "rang": 55,
+    "id": 325,
+    "idee": "Système de \"Pitié\" (RNG Meter sur le Boss) : inspiré d'Hypixel Slayer, chaque kill du Boss remplit une jauge ; au bout de 50 kills sans avoir eu le drop rare à 2%, le drop est garanti à 100%."
+  },
+  {
+    "ligne": 63,
+    "rang": 56,
+    "id": 330,
+    "idee": "Annonce de Première Victoire (First Clear) : la toute première fois qu'un joueur bat le Boss d'une zone, son nom est annoncé dans le chat de cette zone et il reçoit un bonus unique."
+  },
+  {
+    "ligne": 64,
+    "rang": 57,
+    "id": 338,
+    "idee": "Parchemin d'Invocation Instantanée : objet rare permettant d'affronter le Boss immédiatement sans payer le coût d'entrée ni farmer les kills prérequis."
+  },
+  {
+    "ligne": 67,
+    "rang": 60,
+    "id": 455,
+    "idee": "Récompenses Automatiques de Fin de Semaine : tous les dimanches à 20h, les Top 10 des classements hebdomadaires reçoivent automatiquement des caisses et un titre temporaire."
+  },
+  {
+    "ligne": 68,
+    "rang": 61,
+    "id": 457,
+    "idee": "Lien `[Item]` et `[Stats]` dans le Chat : taper `[item]` dans le chat affiche son épée ou son Auto-Compresseur avec toutes ses statistiques au survol de la souris."
+  },
+  {
+    "ligne": 69,
+    "rang": 62,
+    "id": 460,
+    "idee": "Événement Horaire \"Rush de Récolte\" (10 min) : toutes les heures, les joueurs ont 10 minutes pour récolter le plus de ressources compressées possible ; classement en direct dans la BossBar."
+  },
+  {
+    "ligne": 70,
+    "rang": 63,
+    "id": 461,
+    "idee": "Événement Horaire \"La Piñata Géante du Spawn\" : une Vache Dorée Géante à 10 000 clics apparaît au spawn ; chaque clic de n'importe quel joueur donne des récompenses, et l'explosion finale arrose tout le monde."
+  },
+  {
+    "ligne": 72,
+    "rang": 65,
+    "id": 489,
+    "idee": "Alertes Discord des Événements Majeurs : un salon sur le Discord qui ping uniquement les joueurs qui le souhaitent quand un World Boss ou une Zone Bénie commence."
+  },
+  {
+    "ligne": 73,
+    "rang": 66,
+    "id": 956,
+    "idee": "Composant `enchantment_glint_override` (1.20.5+) : faire briller les items compressés sans afficher de faux enchantements \"Unbreaking I\" dans la description."
+  },
+  {
+    "ligne": 74,
+    "rang": 67,
+    "id": 957,
+    "idee": "Composant `custom_name` et `lore` en JSON Riche avec Dégradés (MiniMessage) : utiliser des dégradés hexadécimaux propres par zone (Vert Prairie en Zone 1, Orange Lave en Zone 26)."
+  },
+  {
+    "ligne": 75,
+    "rang": 68,
+    "id": 993,
+    "idee": "Protection Contre le Clic Droit Involontaire sur les Blocs : désactiver l'ouverture des trappes, portillons ou pots de fleurs du décor pour ne jamais interrompre un joueur qui utilise sa compétence d'épée."
+  },
+  {
+    "ligne": 76,
+    "rang": 69,
+    "id": 890,
+    "idee": "Transparence Totale des Probabilités : afficher le pourcentage exact de chaque objet sur toutes les caisses du serveur (en jeu et en boutique)."
+  },
+  {
+    "ligne": 77,
+    "rang": 70,
+    "id": 336,
+    "idee": "Classement par Boss à l'Entrée de l'Arène : hologramme affichant le Top 5 des joueurs ayant le plus tué ce Boss précis et le Top 5 des kills les plus rapides."
+  },
+  {
+    "ligne": 79,
+    "rang": 72,
+    "id": 825,
+    "idee": "Formule de Défense Lisible : afficher directement le pourcentage de réduction des dégâts dans le menu d'armure (ex: `Armure : 450 (Réduit les dégâts des Boss de 64%)`)."
+  },
+  {
+    "ligne": 80,
+    "rang": 73,
+    "id": 843,
+    "idee": "Sauvegarde de Combo à la Déconnexion Involontaire : si un joueur perd sa connexion (Time out) et revient en moins de 2 minutes, son combo et son instance de Boss lui sont restitués."
+  },
+  {
+    "ligne": 81,
+    "rang": 74,
+    "id": 274,
+    "idee": "Échange Sécurisé (`/trade`) : interface à double validation pour échanger des Pets, des Runes ou des équipements rares entre joueurs."
+  },
+  {
+    "ligne": 82,
+    "rang": 75,
+    "id": 967,
+    "idee": "Commande `/dps` : affiche dans le chat un résumé propre sur 4 lignes du DPS théorique du joueur et de la répartition de ses bonus (Épée, Armure, Pet, Prestige)."
+  },
+  {
+    "ligne": 83,
+    "rang": 76,
+    "id": 836,
+    "idee": "Clarté des Multiplicateurs (Additif vs Multiplicatif) : détailler clairement dans le profil : `Dégâts de base x Bonus d'Épée x Bonus d'Armure x Bonus de Prestige = DPS Total`."
+  },
+  {
+    "ligne": 84,
+    "rang": 77,
+    "id": 384,
+    "idee": "Bonus de Retour Rapide (Rubberbanding) : pendant les 5 premières minutes après un Prestige, la vitesse de marche et les gains de ressources sont doublés pour dynamiser le redémarrage."
+  },
+  {
+    "ligne": 87,
+    "rang": 80,
+    "id": 253,
+    "idee": "Réduction de Fidélité du PNJ : plus le joueur achète d'améliorations chez les PNJ au fil de ses Prestiges, plus sa \"Réputation Marchande\" baisse les prix de 1% à 20%. (que pour le /shop)"
+  },
+  {
+    "ligne": 88,
+    "rang": 81,
+    "id": 347,
+    "idee": "Phase de Frénésie Finale (0 à 15% PV) : pendant les derniers 15% de vie du Boss, le temps de recharge de l'épée du joueur est réduit à 0 et ses clics font des éclairs."
+  },
+  {
+    "ligne": 92,
+    "rang": 85,
+    "id": 822,
+    "idee": "Aide Contextuelle Automatique : si un joueur garde son inventaire plein de ressources brutes sans avoir équipé son Auto-Compresseur en main gauche, un rappel visuel amical s'affiche."
+  },
+  {
+    "ligne": 96,
+    "rang": 89,
+    "id": 21,
+    "idee": "Mode Performance (Low-Spec) : bouton permettant au joueur de désactiver les particules et les dégâts flottants des autres joueurs."
+  },
+  {
+    "ligne": 98,
+    "rang": 91,
+    "id": 989,
+    "idee": "Son de Notification Personnalisable à 100% de Progression : choisir quel son retentit quand la barre de Boss ou d'amélioration atteint 100%."
+  },
+  {
+    "ligne": 99,
+    "rang": 92,
+    "id": 979,
+    "idee": "Compatibilité Cross-Version (ViaVersion 1.20 à 1.21.4+) : permettre à tous les joueurs utilisant une version moderne de rejoindre sans erreur."
+  },
+  {
+    "ligne": 102,
+    "rang": 95,
+    "id": 315,
+    "idee": "Compteur de Temps au Millimètre (Speedrun de Boss) : affiche le temps exact mis pour tuer le Boss (ex: `04.82 secondes`) et le compare au record du serveur."
+  },
+  {
+    "ligne": 105,
+    "rang": 98,
+    "id": 834,
+    "idee": "Sondage de Rétention au Niveau 5 : après 30 minutes de jeu, une petite question en 1 clic demande au nouveau joueur s'il a bien compris le système d'Auto-Compresseur et lui donne 100 pièces."
+  },
+  {
+    "ligne": 107,
+    "rang": 100,
+    "id": 830,
+    "idee": "Verrouillage de Sécurité des Échanges : un joueur qui vient de rejoindre le serveur depuis moins d'une heure ne peut pas recevoir une épée de Zone 50 (évite de gâcher la progression par le don d'un ami riche)."
+  },
+  {
+    "ligne": 111,
+    "rang": 104,
+    "id": 969,
+    "idee": "Système de Polices d'Icônes Légères (Unicode / Mini-Pack) : afficher de petites icônes d'épée `🗡`, de bouclier `🛡`, de pièce `⛃` et de vache à côté des chiffres sans alourdir l'écran."
+  },
+  {
+    "ligne": 112,
+    "rang": 105,
+    "id": 816,
+    "idee": "Système de Rattrapage pour Nouveaux Joueurs (Catch-up Mechanic) : si le serveur est ouvert depuis 1 mois, les joueurs Prestige 0 à 3 bénéficient d'un bonus \"Vent Arrière +50% XP\" jusqu'au Prestige 5."
+  },
+  {
+    "ligne": 114,
+    "rang": 107,
+    "id": 988,
+    "idee": "Mode Nuit d'Interface (Dark Mode GUI) : option dans `/settings` pour remplacer les vitres grises claires des menus par des vitres noires teintées plus reposantes pour les yeux."
+  },
+  {
+    "ligne": 115,
+    "rang": 108,
+    "id": 978,
+    "idee": "Sauvegarde Redis / Base de Données Instantanée : permet de faire évoluer ClickHunter en plusieurs sous-serveurs (Lobby, Serveur Zones 1-25, Serveur Zones 26-50, Serveur Donjons) avec synchronisation transparente de l'inventaire."
+  },
+  {
+    "ligne": 118,
+    "rang": 111,
+    "id": 821,
+    "idee": "Récompense de Retour (Welcome Back Bonus) : un joueur qui ne s'est pas connecté depuis plus de 3 jours reçoit une potion de boost x2 de 30 minutes à son retour."
+  },
+  {
+    "ligne": 119,
+    "rang": 112,
+    "id": 990,
+    "idee": "Exportation de Profil en Image sur Discord (`/profil` Bot Discord) : taper `/stats <pseudo>` sur le Discord du serveur génère une belle carte graphique avec le skin du joueur, son Prestige et son Épée."
+  },
+  {
+    "ligne": 121,
+    "rang": 114,
+    "id": 850,
+    "idee": "Rapport de Bug Récompensé (`/bug`) : signaler un bug confirmé par le staff donne un titre unique `[Chasseur de Bugs]` et une boîte de récompense."
+  },
+  {
+    "ligne": 124,
+    "rang": 117,
+    "id": 296,
+    "idee": "Verrouillage d'Objet (`/lock`) : empêche de vendre, recycler ou sacrifier par erreur un équipement précieux."
+  },
+  {
+    "ligne": 126,
+    "rang": 119,
+    "id": 328,
+    "idee": "Contrainte de Défi (No-Hit Bonus) : si le joueur tue le Boss sans avoir subi un seul point de dégât des zones rouges au sol, ses récompenses sont doublées."
+  },
+  {
+    "ligne": 127,
+    "rang": 120,
+    "id": 952,
+    "idee": "Attribut natif `generic.scale` (1.20.5+) : agrandir les Mini-Boss (`Scale: 1.8`) et les Boss (`Scale: 3.0`) ou rétrécir les Pets sans avoir besoin de modèles 3D lourds."
+  },
+  {
+    "ligne": 128,
+    "rang": 121,
+    "id": 279,
+    "idee": "PNJ Évaluateur de Puissance (Gear Score) : calcule une note globale de l'équipement du joueur (ex: \"Score de Chasseur : 1,450\") et lui indique quelle pièce ralentit sa progression."
+  },
+  {
+    "ligne": 131,
+    "rang": 124,
+    "id": 295,
+    "idee": "Historique des Achats : un petit livre dans le coin du shop indiquant les 10 dernières améliorations achetées par le joueur."
+  },
+  {
+    "ligne": 136,
+    "rang": 129,
+    "id": 324,
+    "idee": "Coffre de Fin de Combat Physique : à la mort du Boss, il se transforme en un coffre géant que le joueur doit frapper 10 fois pour en faire jaillir les récompenses."
+  },
+  {
+    "ligne": 138,
+    "rang": 131,
+    "id": 314,
+    "idee": "Coopération de Boss (Mode Raid 2 à 4 Joueurs) : possibilité d'inviter jusqu'à 3 amis dans son instance de Boss ; les PV du Boss sont multipliés par 3 mais tout le monde reçoit du butin."
+  },
+  {
+    "ligne": 145,
+    "rang": 138,
+    "id": 339,
+    "idee": "Boss Mondial (World Boss Horaire) : toutes les 2 heures, un Boss titanesque à 1 milliard de PV apparaît dans une arène centrale ; tous les joueurs du serveur le tapent ensemble et gagnent des récompenses selon leur % de dégâts."
+  },
+  {
+    "ligne": 149,
+    "rang": 142,
+    "id": 46,
+    "idee": "Confirmation rapide par double-clic : pour le Prestige, pas de sous-menu lent, mais un bouton qui passe de l'orange au vert au premier clic."
+  },
+  {
+    "ligne": 158,
+    "rang": 151,
+    "id": 266,
+    "idee": "Pack \"Tout Améliorer\" (One-Click Gear Up) : un bouton d'émeraude au centre du GUI du PNJ qui répartit automatiquement les ressources du joueur sur l'amélioration la moins chère disponible."
+  },
+  {
+    "ligne": 162,
+    "rang": 155,
+    "id": 15,
+    "idee": "Scoreboard contextuel : affiche les stats de farm dans la grille, puis bascule automatiquement sur les stats de combat face au Boss."
+  },
+  {
+    "ligne": 165,
+    "rang": 158,
+    "id": 44,
+    "idee": "Hologramme de rentabilité : affiche quelle zone est actuellement la plus rentable pour le joueur selon son DPS."
+  },
+  {
+    "ligne": 168,
+    "rang": 161,
+    "id": 398,
+    "idee": "Bénédiction Quotidienne de Prestige : le tout premier Prestige effectué chaque jour donne +50% d'Éclats bonus."
+  },
+  {
+    "ligne": 183,
+    "rang": 176,
+    "id": 34,
+    "idee": "Notification Toast (Advancement) personnalisée : utilise les pop-ups de succès en haut à droite pour annoncer les paliers de Bestiaire et de Prestige."
+  },
+  {
+    "ligne": 186,
+    "rang": 179,
+    "id": 199,
+    "idee": "Personnalisation du Message de Kill de Boss : l'épée affiche un message custom dans le chat quand elle achève un Boss."
+  },
+  {
+    "ligne": 187,
+    "rang": 180,
+    "id": 849,
+    "idee": "Pause Café Officielle (Mode Pause de 5 min) : une commande `/pause` utilisable 1 fois par heure qui gèle tous les chronos de potions et de combos du joueur pendant 5 minutes."
+  },
+  {
+    "ligne": 192,
+    "rang": 185,
+    "id": 302,
+    "idee": "Bouclier Directionnel : le Boss s'entoure de particules devant lui ; le joueur doit se déplacer à gauche, à droite ou derrière lui tout en cliquant pour infliger des dégâts."
+  },
+  {
+    "ligne": 193,
+    "rang": 186,
+    "id": 341,
+    "idee": "Réduction du Coût d'Invocation : maîtriser le Bestiaire de la zone réduit de 50% les ressources demandées pour lancer le Boss."
+  },
+  {
+    "ligne": 195,
+    "rang": 188,
+    "id": 305,
+    "idee": "Onde de Choc Sautée : un anneau de particules s'étend au ras du sol depuis le Boss ; le joueur doit sauter par-dessus tout en continuant de cliquer pour ne pas être étourdi."
+  },
+  {
+    "ligne": 196,
+    "rang": 189,
+    "id": 318,
+    "idee": "Pilier d'Abri : toutes les 20 secondes, le Boss prépare une explosion globale d'arène ; le joueur doit se cacher 1 seconde derrière un pilier d'obsidienne puis ressortir taper."
+  },
+  {
+    "ligne": 197,
+    "rang": 190,
+    "id": 331,
+    "idee": "Rayon Tournant (Laser Sweep) : un rayon de particules tourne autour du Boss statique comme l'aiguille d'une horloge ; le joueur doit tourner autour du Boss en même temps qu'il clique."
+  },
+  {
+    "ligne": 198,
+    "rang": 191,
+    "id": 308,
+    "idee": "Cristaux de Faiblesse : 3 cristaux de l'End apparaissent en hauteur autour du Boss ; les frapper inflige 15% des PV max du Boss d'un coup."
+  },
+  {
+    "ligne": 199,
+    "rang": 192,
+    "id": 321,
+    "idee": "Poussée du Boss (Knockback Pulse) : le Boss repousse le joueur au fond de l'arène ; le joueur doit sprinter vers lui en esquivant des lignes de feu pour reprendre le clic."
+  },
+  {
+    "ligne": 200,
+    "rang": 193,
+    "id": 334,
+    "idee": "Boss \"Miroir de Couleur\" : le sol contient un carré Rouge et un carré Bleu ; le joueur doit se tenir sur le carré de la même couleur que le nom du Boss pour lui faire des dégâts."
+  },
+  {
+    "ligne": 201,
+    "rang": 194,
+    "id": 311,
+    "idee": "Difficultés Multiples par Boss : Normal (débloque la zone suivante), Brutal (requiert 5x plus de DPS, donne un Talisman), Cauchemar (requiert un Prestige, donne le Pet du Boss)."
+  },
+  {
+    "ligne": 202,
+    "rang": 195,
+    "id": 350,
+    "idee": "Collection de Cœurs de Boss : réunir le Cœur des Boss des Zones 1 à 10 permet de forger la Relique Suprême du Chasseur."
+  },
+  {
+    "ligne": 204,
+    "rang": 197,
+    "id": 977,
+    "idee": "Mise à Jour Dynamique du Lore des Items (Packet Lore) : les descriptions des épées dans l'inventaire se mettent à jour toutes seules quand les statistiques du joueur changent, sans modifier l'item NBT en continu."
+  },
+  {
+    "ligne": 205,
+    "rang": 198,
+    "id": 304,
+    "idee": "Télégraphes d'Attaque au Sol (Zones Rouges) : des tapis rouges ou cercles de particules apparaissent sous les pieds du joueur et explosent 2 secondes plus tard (teste à la fois l'armure et le mouvement)."
+  },
+  {
+    "ligne": 206,
+    "rang": 199,
+    "id": 343,
+    "idee": "Spectateur d'Arène : les joueurs dans la zone peuvent regarder à travers une vitre ou un balcon un autre joueur en train d'affronter le Boss."
+  },
+  {
+    "ligne": 207,
+    "rang": 200,
+    "id": 307,
+    "idee": "Mécanique de \"Duel de Clics\" (Clash Phase) : à 10% de PV, le Boss canalise une attaque fatale ; le joueur doit faire 30 clics en 4 secondes pour briser la canalisation et l'achever."
+  },
+  {
+    "ligne": 208,
+    "rang": 201,
+    "id": 333,
+    "idee": "Siphon de Vie du Boss : un lien violet relie le Boss au joueur ; le joueur doit reculer à 7 blocs pendant 1 seconde pour casser le fil avant de revenir au corps-à-corps."
+  },
+  {
+    "ligne": 209,
+    "rang": 202,
+    "id": 346,
+    "idee": "Statue du Vainqueur : le joueur qui détient le record de vitesse du jour sur le Boss de la Zone 1 a sa statue exposée juste devant l'arène du Boss."
+  },
+  {
+    "ligne": 212,
+    "rang": 205,
+    "id": 323,
+    "idee": "Aura de Gel de Clic : si le joueur reste immobile sur le même bloc pendant plus de 4 secondes face au Boss, sa vitesse d'attaque diminue de 50%."
+  },
+  {
+    "ligne": 213,
+    "rang": 206,
+    "id": 326,
+    "idee": "Trophée de Boss Équipable : la tête du Boss peut être placée dans un menu de Trophées pour donner un bonus permanent contre tous les mobs de cette zone."
+  },
+  {
+    "ligne": 214,
+    "rang": 207,
+    "id": 976,
+    "idee": "Maintien de l'Armure Équipée au Clic Droit : faire clic droit avec une nouvelle pièce d'armure en main l'échange instantanément avec celle portée, même si elle est déjà équipée."
+  },
+  {
+    "ligne": 215,
+    "rang": 208,
+    "id": 303,
+    "idee": "Phase d'Invocation de Sbires : à 50% de PV, le Boss devient invincible et fait apparaître 4 stacks `Garde x5` aux 4 coins de l'arène qu'il faut éliminer pour briser son immunité."
+  },
+  {
+    "ligne": 216,
+    "rang": 209,
+    "id": 953,
+    "idee": "Attribut natif `player.entity_interaction_range` (1.20.5+) : gérer la portée d'attaque des épées (de 3.0 à 6.0 blocs) directement via les attributs Minecraft natifs sans raycasting coûteux côté serveur."
+  },
+  {
+    "ligne": 218,
+    "rang": 211,
+    "id": 332,
+    "idee": "Plancher piégé en Damier : le sol de l'arène du Boss est un damier noir et blanc ; le Boss électrifie alternativement les cases noires puis les cases blanches."
+  },
+  {
+    "ligne": 219,
+    "rang": 212,
+    "id": 309,
+    "idee": "Alternance d'Arme / Main : pendant 5 secondes, le Boss brille en bleu et ne prend des dégâts que si le joueur utilise sa compétence Clic Droit ou s'accroupit en frappant."
+  },
+  {
+    "ligne": 220,
+    "rang": 213,
+    "id": 335,
+    "idee": "Exécution Cinématique : quand le Boss tombe à 0 PV, il lévite pendant 2 secondes en tremblant avant d'exploser en une pluie de ressources compressées."
+  },
+  {
+    "ligne": 221,
+    "rang": 214,
+    "id": 985,
+    "idee": "Animation de Coffre par `Block Display` : créer des coffres de Boss qui s'ouvrent en tournant sur eux-mêmes et en s'élevant dans les airs grâce aux interpolations de `Block Display`."
+  },
+  {
+    "ligne": 222,
+    "rang": 215,
+    "id": 312,
+    "idee": "Invocation par Offrande : frapper un gong ou déposer 10 ressources compressées sur un piédestal au fond de la zone pour réveiller le Boss."
+  },
+  {
+    "ligne": 223,
+    "rang": 216,
+    "id": 962,
+    "idee": "Commande `/boss` : téléporte directement devant l'entrée de l'arène du Boss de sa zone la plus haute actuelle."
+  },
+  {
+    "ligne": 225,
+    "rang": 218,
+    "id": 29,
+    "idee": "Récapitulatif de session à la déconnexion/reconnexion : affiche au retour les statistiques de la session précédente."
+  },
+  {
+    "ligne": 226,
+    "rang": 219,
+    "id": 42,
+    "idee": "Indicateur de record personnel : si le joueur tue un stack plus vite que son record, un petit texte \"Nouveau Record : 1.2s !\" apparaît."
+  },
+  {
+    "ligne": 229,
+    "rang": 222,
+    "id": 344,
+    "idee": "Pari sur le Combat : en mode Brutal/Cauchemar, le joueur peut parier 2x plus de ressources à l'entrée pour obtenir 3x plus de butin s'il gagne."
+  },
+  {
+    "ligne": 230,
+    "rang": 223,
+    "id": 48,
+    "idee": "Compteur de clics totaux sur le profil : statistique globale affichée au survol du pseudo dans le chat."
+  },
+  {
+    "ligne": 232,
+    "rang": 225,
+    "id": 272,
+    "idee": "Puits à Souhaits du Spawn : jeter des ressources compressées dedans donne une petite chance de déclencher un boost global ou de recevoir une relique."
+  },
+  {
+    "ligne": 236,
+    "rang": 229,
+    "id": 14,
+    "idee": "Transition de zone cinématique : court effet d'aveuglement (0.5s) + grand Title affichant le nom de la nouvelle zone et son multiplicateur."
+  },
+  {
+    "ligne": 237,
+    "rang": 230,
+    "id": 998,
+    "idee": "Mode Cinématique pour Trailers (`/cinema`) : permet de cacher tous les HUD et de faire voler la caméra autour des quadrillages de zones pour filmer des TikToks et Shorts promotionnels du serveur."
+  },
+  {
+    "ligne": 238,
+    "rang": 231,
+    "id": 13,
+    "idee": "Mannequin de mesure CPS/DPS : un épouvantail au début de chaque zone affiche le record de dégâts sur 5 secondes."
+  },
+  {
+    "ligne": 246,
+    "rang": 239,
+    "id": 45,
+    "idee": "Cadre d'item brillant dans les menus : l'amélioration recommandée par le serveur dans le shop du PNJ possède un effet d'enchantement clignotant."
+  },
+  {
+    "ligne": 249,
+    "rang": 242,
+    "id": 370,
+    "idee": "Effet Global du Prestige d'un Joueur : quand quelqu'un sur le serveur passe un palier de Prestige majeur (P10, P25, P50), un éclair retentit au spawn et tout le serveur gagne +10% de ressources pendant 2 minutes."
+  },
+  {
+    "ligne": 251,
+    "rang": 244,
+    "id": 9,
+    "idee": "Alerte sonore d'amélioration (Upgrade Ping) : une cloche sonne dès que le joueur a assez de ressources pour acheter l'upgrade suivant."
+  },
+  {
+    "ligne": 256,
+    "rang": 249,
+    "id": 12,
+    "idee": "GUI Shop en frise chronologique : les améliorations sont reliées par des vitres (Vert = acquis, Jaune = achetable, Rouge = bloqué)."
+  },
+  {
+    "ligne": 257,
+    "rang": 250,
+    "id": 25,
+    "idee": "Particules de traînée d'épée (Slash Trail) : chaque niveau d'épée change la particule de balayage (Critique, Flamme, Lame d'âme, End Rod)."
+  },
+  {
+    "ligne": 258,
+    "rang": 251,
+    "id": 38,
+    "idee": "Effet de tremblement (Camera Shake) au spawn du Boss : utilise de rapides téléportations d'angle de 0.1 degré lors du cri du Boss."
+  },
+  {
+    "ligne": 262,
+    "rang": 255,
+    "id": 28,
+    "idee": "Animation d'ouverture de nouvelle zone : la barrière invisible ou la grille de fer s'ouvre avec un effet d'éclair sans dégâts quand le Boss est battu."
+  },
+  {
+    "ligne": 268,
+    "rang": 261,
+    "id": 18,
+    "idee": "Son de \"Caisse enregistreuse\" ou d'émeraude : joué uniquement lorsque l'Auto-Compresseur crée un bloc de Tier supérieur."
+  },
+  {
+    "ligne": 274,
+    "rang": 267,
+    "id": 11,
+    "idee": "Présentoir d'armure de zone : un ArmorStand à côté du PNJ montre visuellement l'armure et l'épée finales de la zone."
+  },
+  {
+    "ligne": 279,
+    "rang": 272,
+    "id": 453,
+    "idee": "Classement par Zone : chaque zone possède son propre petit tableau affichant le joueur ayant le plus tué le mob de cette zone et le record de vitesse du Boss."
+  },
+  {
+    "ligne": 286,
+    "rang": 279,
+    "id": 482,
+    "idee": "Protection Anti-Vol de Mob Optionnelle : dans une grille publique, un stack entamé à plus de 50% par un joueur peut lui être réservé pendant 3 secondes ou partager le butin équitablement."
+  },
+  {
+    "ligne": 309,
+    "rang": 302,
+    "id": 452,
+    "idee": "Classements Multi-Périodes : boutons au bas de l'hologramme de classement pour basculer entre `Aujourd'hui`, `Cette Semaine`, `Ce Mois` et `Toujours`."
+  },
+  {
+    "ligne": 314,
+    "rang": 307,
+    "id": 955,
+    "idee": "Composants d'Items `max_stack_size` (1.20.5+) : permettre aux ressources compressées ou aux jetons de se stacker par 99 au lieu de 64 dans l'inventaire."
+  },
+  {
+    "ligne": 315,
+    "rang": 308,
+    "id": 968,
+    "idee": "Commande `/drops <zone>` : ouvre une fenêtre montrant tous les drops possibles de la zone choisie et combien le joueur en a déjà récolté."
+  },
+  {
+    "ligne": 319,
+    "rang": 312,
+    "id": 951,
+    "idee": "Utilisation des `Text Display` (1.19.4+) au lieu des ArmorStands pour tous les hologrammes de stacks et de dégâts : divise par 4 l'utilisation CPU client et permet une mise à l'échelle fluide (Scale)."
+  },
+  {
+    "ligne": 322,
+    "rang": 315,
+    "id": 999,
+    "idee": "Compteur Global en Temps Réel au Spawn : un panneau géant qui additionne en direct le nombre total de clics effectués par tous les joueurs depuis l'ouverture de ClickHunter."
+  },
+  {
+    "ligne": 331,
+    "rang": 324,
+    "id": 86,
+    "idee": "Mobs Dorés Fugitifs : même s'ils ne marchent pas, ils disparaissent au bout de 8 secondes si le joueur ne finit pas leur stack à temps."
+  },
+  {
+    "ligne": 334,
+    "rang": 327,
+    "id": 842,
+    "idee": "Recyclage Automatique des Entités Fantômes : nettoie toutes les 60 secondes les Text Displays de dégâts qui auraient pu rester bloqués en l'air."
+  },
+  {
+    "ligne": 339,
+    "rang": 332,
+    "id": 5,
+    "idee": "Saut d'impact : le mob statique monte de 0.1 bloc pendant 2 ticks à chaque coup critique."
+  },
+  {
+    "ligne": 342,
+    "rang": 335,
+    "id": 47,
+    "idee": "Musique d'ambiance en NoteBlocks : une mélodie discrète et rythmée propre à chaque zone pour accompagner le clic."
+  },
+  {
+    "ligne": 351,
+    "rang": 344,
+    "id": 365,
+    "idee": "Icône et Couleur de Chat Évolutives : le préfixe `[P1]` évolue avec des symboles et des dégradés de couleurs Hexadécimaux (`[#FF5500]★ P50`)."
+  },
+  {
+    "ligne": 352,
+    "rang": 345,
+    "id": 4,
+    "idee": "Micro-rotation au clic : le mob statique pivote de 5 degrés à gauche ou à droite à chaque coup reçu pour simuler l'impact."
+  },
+  {
+    "ligne": 353,
+    "rang": 346,
+    "id": 17,
+    "idee": "Compteur de Combo à l'écran : un texte au-dessus de la barre d'XP grossit à mesure que le joueur clique sans s'arrêter plus de 2 secondes."
+  },
+  {
+    "ligne": 356,
+    "rang": 349,
+    "id": 20,
+    "idee": "Filtre anti-spam de chat : option dans un menu `/settings` pour masquer les messages de compression ou de drops communs."
+  },
+  {
+    "ligne": 357,
+    "rang": 350,
+    "id": 33,
+    "idee": "Effet de zoom léger (Speed FOV) : léger boost de vitesse quand le joueur est en plein combo pour dynamiser l'écran."
+  },
+  {
+    "ligne": 361,
+    "rang": 354,
+    "id": 39,
+    "idee": "Onglet TabList illustré par zone : la TabList regroupe les joueurs par zone actuelle (Zone 1 : Vaches, Zone 2 : Cochons, etc.)."
+  },
+  {
+    "ligne": 1488,
+    "rang": 1481,
+    "id": 1344,
+    "idee": "Salut d'Ordre : croiser un membre de son propre Ordre et s'accroupir deux fois active un petit buff de fraternité (+5% vitesse pendant 2 min)."
+  }
+]

@@ -44,6 +44,7 @@ public final class EssenceItem {
                 List.of(
                         Component.text(rarity.label(), rarity.color())
                                 .decoration(TextDecoration.ITALIC, false)));
+        meta.setEnchantmentGlintOverride(rarity != EssenceRarity.COMMUNE);
         meta.getPersistentDataContainer().set(TIER_KEY, PersistentDataType.STRING, tier.id());
         meta.getPersistentDataContainer().set(RARITY_KEY, PersistentDataType.STRING, rarity.name());
         item.setItemMeta(meta);

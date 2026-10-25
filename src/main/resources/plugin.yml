@@ -5,6 +5,39 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, DecentHolograms, Citizens, ItemsAdder]
 commands:
+  lock:
+    description: Verrouiller ou déverrouiller l’équipement tenu contre le jet et la vente
+    usage: /lock
+    permission: cliker.comfort.use
+  guide:
+    description: Conseiller la prochaine amélioration selon les niveaux et le solde réel
+    usage: /guide
+    permission: cliker.upgrade.use
+  zone:
+    description: Rejoindre une zone déjà débloquée
+    usage: /zone <numéro>
+    aliases: [z]
+    permission: cliker.navigation.use
+  boss:
+    description: Rejoindre l’entrée du boss de sa zone la plus avancée
+    usage: /boss
+    permission: cliker.navigation.use
+  progression:
+    description: Afficher la progression des zones pendant dix secondes
+    usage: /progression
+    permission: cliker.navigation.use
+  antidrop:
+    description: Protéger ou autoriser le jet d’objets jusqu’à la déconnexion
+    usage: /antidrop <autoriser|bloquer>
+    permission: cliker.comfort.use
+  ramassage:
+    description: Autoriser ou bloquer le ramassage au sol jusqu’à la déconnexion
+    usage: /ramassage <autoriser|bloquer>
+    permission: cliker.comfort.use
+  settings:
+    description: Régler les textes de dégâts, les sons et le confort visuel
+    aliases: [parametres]
+    permission: cliker.comfort.use
   bestiaire:
     description: Découvertes, gains cumulés et maîtrises par créature
     permission: cliker.bestiaire
@@ -156,6 +189,10 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.navigation.use:
+    default: true
+  cliker.comfort.use:
+    default: true
   cliker.bestiaire:
     default: true
   cliker.contrats:

@@ -274,6 +274,14 @@ public final class AuctionMenu implements Listener {
                             player.closeInventory();
                             return;
                         }
+                        if (fr.cliker.clikerv2.comfort.PlayerComfort.protectedForSale(
+                                player, hand)) {
+                            player.sendMessage(
+                                    "Équipement protégé : vente annulée. Vérifie /lock et"
+                                            + " /antidrop.");
+                            player.closeInventory();
+                            return;
+                        }
                         int remaining = hand.getAmount() - confirm.item.getAmount();
                         hand.setAmount(remaining);
                         player.getInventory().setItemInMainHand(remaining == 0 ? null : hand);

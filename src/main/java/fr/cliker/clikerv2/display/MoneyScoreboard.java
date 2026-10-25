@@ -113,12 +113,21 @@ public final class MoneyScoreboard implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
+        if (plugin.getConfig().getBoolean("comfort.no-player-collisions", true))
+            for (var session : sessions.values()) {
+                var team = session.board.getTeam("cliker_no_push");
+                if (team != null) team.addEntry(event.getPlayer().getName());
+            }
         setup(event.getPlayer());
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         sessions.remove(event.getPlayer().getUniqueId());
+        for (var session : sessions.values()) {
+            var team = session.board.getTeam("cliker_no_push");
+            if (team != null) team.removeEntry(event.getPlayer().getName());
+        }
     }
 
     private void refreshAll() {
@@ -135,6 +144,13 @@ public final class MoneyScoreboard implements Listener {
             var score = objective.getScore(entry(i));
             score.setScore(lines.size() - i);
             scoreFormatter.accept(score);
+        }
+        if (plugin.getConfig().getBoolean("comfort.no-player-collisions", true)) {
+            var team = board.registerNewTeam("cliker_no_push");
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+            for (var online : plugin.getServer().getOnlinePlayers())
+                team.addEntry(online.getName());
+            team.addEntry(player.getName());
         }
         Session session = new Session(board, player.getScoreboard());
         sessions.put(player.getUniqueId(), session);

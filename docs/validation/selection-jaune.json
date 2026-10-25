@@ -1,0 +1,35 @@
+{
+  "selection_file": "ClickHunter_classement_1500_idees.xlsx",
+  "selected_yellow_rows": 141,
+  "complete_rows": 10,
+  "partial_rows": 13,
+  "existing_rows": 4,
+  "pending_rows": 106,
+  "dependency_or_arbitration_rows": 8,
+  "unit_tests": {
+    "tests": 159,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "paper_version": "1.21.4 build 232",
+  "java_version": "21.0.9",
+  "local_client_checks": [
+    "verrouillage de vente indépendant de l’autorisation de jet",
+    "jet bloqué et épée conservée",
+    "paramètres et rafraîchissement sécurisé",
+    "guide basé sur le profil réel",
+    "barre de progression supprimée après dix secondes",
+    "navigation vers zone configurée",
+    "TextDisplay réel visible, ascendant et supprimé",
+    "compteurs et rendement dans stats après combat réel",
+    "récapitulatif de session conservé après reconnexion"
+  ],
+  "jar_sha256": "eb581498f10c41e546068470233ef2c825a691133706d0ae833a56b1b6ca3210",
+  "limits": [
+    "Les 141 lignes jaunes ne sont pas toutes livrées.",
+    "Citizens, DecentHolograms et charge multi-joueurs non validés dans cette série.",
+    "Exception Paper de rechargement global précédemment observée : arrêt/redémarrage requis.",
+    "Tests natifs effectués avant une dernière correction grammaticale du récapitulatif ; compilation et tests automatisés relancés après cette correction."
+  ]
+}

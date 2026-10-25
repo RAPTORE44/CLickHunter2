@@ -74,7 +74,7 @@ class UpgradeMenuTest {
                         .lore()
                         .toString();
         assertTrue(lore.contains("50K"));
-        assertTrue(lore.contains("Clique pour acheter"));
+        assertTrue(lore.contains("Gauche : +1"));
     }
 
     @Test

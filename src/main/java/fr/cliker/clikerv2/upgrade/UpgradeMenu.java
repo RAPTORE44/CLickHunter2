@@ -177,7 +177,7 @@ public final class UpgradeMenu implements Listener {
                             Component.text(""),
                             Component.text(
                                             gems >= cost * 10
-                                                    ? "Clique pour acheter !"
+                                                    ? "Gauche : +1 | Droite : acheter le maximum"
                                                     : "Il manque "
                                                             + fr.cliker.clikerv2.economy
                                                                     .CurrencyType.GEMMES_SOMBRES
@@ -209,11 +209,14 @@ public final class UpgradeMenu implements Listener {
         if (event.getClickedInventory() != holder.inventory
                 || !holder.owner.equals(player.getUniqueId())
                 || !player.hasPermission("cliker.upgrade.use")
-                || holder.pending) return;
+                || holder.pending
+                || (event.getClick() != org.bukkit.event.inventory.ClickType.LEFT
+                        && event.getClick() != org.bukkit.event.inventory.ClickType.RIGHT)) return;
         holder.pending = true;
         manager.purchase(
                 player,
                 type,
+                event.getClick() == org.bukkit.event.inventory.ClickType.RIGHT,
                 () -> {
                     manager.gems(player)
                             .whenComplete(

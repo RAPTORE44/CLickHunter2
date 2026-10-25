@@ -37,6 +37,24 @@ class UpgradeSafetyTest {
     }
 
     @Test
+    void maximumBuysOnlyAffordableLevelsAtUnchangedPrices() {
+        economy.set(owner, "Joueur", CurrencyType.GEMMES_SOMBRES, 65000).join();
+        assertEquals(3, store.purchase(owner, UpgradeType.FORCE, true).join());
+        assertEquals(5000, economy.getBalances(owner).join().gemmesSombres());
+        assertEquals(-1, store.purchase(owner, UpgradeType.FORCE, true).join());
+    }
+
+    @Test
+    void simultaneousMaximumAndSingleNeverOverspendOrSkipLevels() {
+        economy.set(owner, "Joueur", CurrencyType.GEMMES_SOMBRES, 65000).join();
+        var bulk = store.purchase(owner, UpgradeType.FORCE, true);
+        var single = store.purchase(owner, UpgradeType.FORCE);
+        assertEquals(3, bulk.join());
+        assertEquals(-1, single.join());
+        assertEquals(5000, economy.getBalances(owner).join().gemmesSombres());
+    }
+
+    @Test
     void concurrentPurchasesUseActualDatabaseLevelAndChargeEachNextPrice() {
         economy.set(owner, "Joueur", CurrencyType.GEMMES_SOMBRES, 100000).join();
         var a = store.purchase(owner, UpgradeType.FORCE);

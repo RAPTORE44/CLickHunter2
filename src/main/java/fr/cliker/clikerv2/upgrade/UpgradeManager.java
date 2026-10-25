@@ -103,6 +103,10 @@ public final class UpgradeManager implements Listener {
     }
 
     public void purchase(Player player, UpgradeType type, Runnable onComplete) {
+        purchase(player, type, false, onComplete);
+    }
+
+    public void purchase(Player player, UpgradeType type, boolean maximum, Runnable onComplete) {
         UUID owner = player.getUniqueId();
         if (!cache.containsKey(owner)) {
             player.sendMessage(
@@ -120,7 +124,7 @@ public final class UpgradeManager implements Listener {
             if (onComplete != null) onComplete.run();
             return;
         }
-        store.purchase(owner, type)
+        store.purchase(owner, type, maximum)
                 .whenComplete(
                         (level, error) -> {
                             if (!plugin.isEnabled()) return;

@@ -310,6 +310,18 @@ public final class CustomMobManager implements Listener {
         return ids.size();
     }
 
+    /** Copie des points déjà chargés : aucun accès SQLite pendant la navigation. */
+    public java.util.Optional<Location> travelPoint(MobTier tier, boolean boss) {
+        return spawnLocation.entrySet().stream()
+                .filter(
+                        e ->
+                                tier.id().equals(spawnMobId.get(e.getKey()))
+                                        && bossSpawnIds.contains(e.getKey()) == boss)
+                .sorted(java.util.Map.Entry.comparingByKey())
+                .map(e -> e.getValue().clone())
+                .findFirst();
+    }
+
     public int countSpawns(String mobId) {
         return spawnIdsByMob.getOrDefault(mobId, List.of()).size();
     }
@@ -434,6 +446,10 @@ public final class CustomMobManager implements Listener {
             event.setDamage(0.0);
             return;
         }
+        var telemetry =
+                org.bukkit.Bukkit.getServicesManager()
+                        .load(fr.cliker.clikerv2.comfort.FarmTelemetry.class);
+        if (telemetry != null) telemetry.hit(player, victim.getUniqueId());
         boolean boss = bossSpawnIds.contains(spawnId);
         long maxHp = boss ? bossHealth(tier) : Math.round(tier.maxHealth());
         long hpBefore = currentHealth.getOrDefault(spawnId, maxHp);
@@ -633,6 +649,11 @@ public final class CustomMobManager implements Listener {
 
         boolean boss = bossSpawnIds.remove(spawnId);
 
+        var combatTelemetry =
+                org.bukkit.Bukkit.getServicesManager()
+                        .load(fr.cliker.clikerv2.comfort.FarmTelemetry.class);
+        long fightDuration =
+                combatTelemetry == null ? 0 : combatTelemetry.finishFight(victim.getUniqueId());
         Player killer = victim.getKiller();
         if (killer != null) {
             int amount = ThreadLocalRandom.current().nextInt(1, 4);
@@ -667,6 +688,22 @@ public final class CustomMobManager implements Listener {
                                                 return;
                                             }
                                             if (Boolean.TRUE.equals(ok)) {
+                                                var telemetry =
+                                                        org.bukkit.Bukkit.getServicesManager()
+                                                                .load(
+                                                                        fr.cliker.clikerv2.comfort
+                                                                                .FarmTelemetry
+                                                                                .class);
+                                                if (telemetry != null
+                                                        && killer.isOnline()
+                                                        && org.bukkit.Bukkit.getPlayer(owner)
+                                                                == killer)
+                                                    telemetry.confirmedKill(
+                                                            killer,
+                                                            tier,
+                                                            boss,
+                                                            earned,
+                                                            fightDuration);
                                                 ledger.flushXP(owner);
                                                 if (killer.isOnline())
                                                     killer.sendActionBar(
