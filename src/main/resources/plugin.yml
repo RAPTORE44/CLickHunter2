@@ -5,6 +5,10 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  gm:
+    description: Changer le mode de jeu ou basculer entre survie et créatif
+    usage: /gm [0|1|2|3] [joueur]
+    permission: cliker.gamemode.admin
   lock:
     description: Verrouiller ou déverrouiller l’équipement tenu contre le jet et la vente
     usage: /lock
@@ -189,6 +193,8 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.gamemode.admin:
+    default: op
   cliker.navigation.use:
     default: true
   cliker.comfort.use:

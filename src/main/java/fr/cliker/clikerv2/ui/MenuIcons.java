@@ -79,7 +79,14 @@ public final class MenuIcons implements Listener {
             }
     }
 
+    public static void decorate(Inventory inventory) {
+        var service = Bukkit.getServicesManager().load(MenuIcons.class);
+        if (service != null) service.render(inventory);
+    }
+
     public void start() {
+        Bukkit.getServicesManager()
+                .register(MenuIcons.class, this, plugin, org.bukkit.plugin.ServicePriority.Normal);
         if (config.getBoolean("active", true))
             plugin.getServer().getPluginManager().registerEvents(this, plugin);
         try {
@@ -306,6 +313,7 @@ public final class MenuIcons implements Listener {
     }
 
     public void shutdown() {
+        Bukkit.getServicesManager().unregister(MenuIcons.class, this);
         if (task != null) task.cancel();
         task = null;
         views.clear();

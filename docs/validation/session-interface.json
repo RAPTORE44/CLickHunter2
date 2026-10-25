@@ -1,0 +1,31 @@
+{
+  "tests": {
+    "tests": 188,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "native_checks": [
+    "étoile présente en neuvième case après connexion",
+    "clic droit dans l’air sur étoile ouvre le menu",
+    "étoile non vendable",
+    "créatif conservé après reconnexion malgré force-gamemode=true",
+    "étoile conservée sans doublon après reconnexion"
+  ],
+  "paper": "1.21.4 build 232",
+  "java": "21.0.9",
+  "test_server_force_gamemode": true,
+  "daily_icons_test": "Cinq secondes simulées, icônes présentes immédiatement après chaque refresh, avec résolveur ItemsAdder de test.",
+  "gain_colors": [
+    "Écus jaune",
+    "Gemmes vert",
+    "Cendres violet clair",
+    "XP bleu clair"
+  ],
+  "jar_sha256": "870fdf34a7fe68ce30ae60587ce39e88d04ec75e8848aacaf33dd6d1a7f10ebb",
+  "limits": [
+    "ItemsAdder réel absent du serveur de test ; vérifier le rendu graphique sur le serveur utilisateur.",
+    "Aucun objet déplacé si inventaire entièrement plein : libérer une case pour installer l’étoile.",
+    "Arrêt/redémarrage requis pour déployer."
+  ]
+}

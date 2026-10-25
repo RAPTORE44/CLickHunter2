@@ -106,6 +106,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.daily.DailyModule dailyModule;
     private fr.cliker.clikerv2.buyzone.BuyZoneModule buyZoneModule;
     private PrestigeManager prestigeManager;
+    private fr.cliker.clikerv2.comfort.SessionConvenience sessionConvenience;
     private MerchantManager merchantManager;
     private fr.cliker.clikerv2.ui.MenuIcons menuIcons;
     private fr.cliker.clikerv2.comfort.PlayerComfort playerComfort;
@@ -520,11 +521,14 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
                                     + " disponibles.",
                             error);
         }
+        sessionConvenience = new fr.cliker.clikerv2.comfort.SessionConvenience(this);
+        sessionConvenience.start();
         getLogger().info("Economie active avec SQLite.");
     }
 
     @Override
     public void onDisable() {
+        if (sessionConvenience != null) sessionConvenience.shutdown();
         if (merchantManager != null) merchantManager.shutdown();
         if (menuIcons != null) menuIcons.shutdown();
         if (prestigeManager != null) prestigeManager.shutdown();

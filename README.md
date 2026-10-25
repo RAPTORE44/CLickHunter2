@@ -114,6 +114,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 
 | Commande | Utilité | Permission |
 | --- | --- | --- |
+| `/gm [0\|1\|2\|3] [joueur]` | Changer de mode ; sans argument, basculer entre survie et créatif. Modes : 0 survie, 1 créatif, 2 aventure, 3 spectateur. | `cliker.gamemode.admin` |
 | `/setspawn` | Définir le point d'accueil à la position actuelle. | `cliker.spawn.admin` |
 | `/buyzone spawn <zone>` | Placer un portail d'achat pour une zone configurée. | `cliker.buyzone.admin` |
 | `/buyzone remove <zone>` | Supprimer ce portail. | `cliker.buyzone.admin` |
@@ -211,3 +212,7 @@ Audit de suivi : [corrections de reconnexion, sauvegarde, compresseur et achats]
 Icônes des boutons : [utilisation des items `icons:*` déjà installés dans ItemsAdder](docs/ICONES-MENUS.md). Aucun pack supplémentaire à installer. Aucune commande supplémentaire : les 46 commandes et leurs permissions restent inchangées.
 
 PNJ : [intégration ZNPCsPlus 2.0.0, installation et migration](docs/PNJ-ZNPCSPLUS.md).
+
+Confort de session : mode de jeu conservé à la déconnexion, étoile de menu en neuvième case de la barre rapide (clic droit), gains colorés et icônes Daily réappliquées immédiatement à chaque actualisation. L’objet déjà présent en neuvième case est déplacé vers une case libre ; si l’inventaire est plein, libérer une case puis fermer l’inventaire pour installer l’étoile sans perte. L’étoile ne se déplace pas, ne se jette pas et ne se vend pas.
+
+Détails et validations : [session, barre rapide et calendrier](docs/SESSION-ET-INTERFACE.md).

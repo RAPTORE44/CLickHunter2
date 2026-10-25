@@ -17,7 +17,7 @@ Arbitrage confirmé par le propriétaire : les demandes antérieures prévalent,
 | 960 | 21 | À développer | **Hitbox Élargie Confortable (Interaction Entities) ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 997 | 24 | Existant / à compléter | **Collecte Automatique des Ressources Oubliées (`/claim) ** — Déjà présent : les drops passent par ItemDelivery et /claim si l’inventaire est plein. |
 | 961 | 27 | Intégré | **Commande Rapide `/zone <numéro>` ou `/z <numéro>` ** — `/zone <numéro>` et `/z` ; permissions BuyZone vérifiées avant la téléportation. |
-| 981 | 28 | À développer | **Objet "Menu ClickHunter" Fixé au Slot 9 (Étoile du Nether / Boussole) ** — Non livré ; conserver la demande dans le périmètre de développement. |
+| 981 | 28 | Intégré (modules existants) | **Étoile Menu ClickHunter en case 9** — Clic droit vers le hub existant, position réservée, conservation des objets précédents, protection contre déplacement/jet/vente et reconnexion sans doublon. Les fonctionnalités absentes comme les pets ne sont pas ajoutées. |
 | 51 | 31 | À développer | **Mob Doré (Shiny) ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 820 | 32 | Intégré | **Journal de Progression Visuel (`/progression`) ** — `/progression` : barre des zones configurées, durée de dix secondes, nettoyage à la déconnexion. |
 | 995 | 33 | Partiel / adapté | **Synchronisation Visuelle du Temps de Recharge (Item Cooldown Packet) ** — Animation native de recharge sur l’épée pendant l’autoclick, synchronisée sur la cadence effective du moteur. Pas de compétence active fictive ajoutée. |

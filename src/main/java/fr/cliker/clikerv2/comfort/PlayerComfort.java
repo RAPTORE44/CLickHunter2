@@ -83,7 +83,7 @@ public final class PlayerComfort implements Listener, CommandExecutor {
     }
 
     public static boolean protectedForSale(Player player, ItemStack item) {
-        if (locked(item)) return true;
+        if (locked(item) || SessionConvenience.protectedMenu(item)) return true;
         PlayerComfort service = Bukkit.getServicesManager().load(PlayerComfort.class);
         return service != null
                 && !service.dropsAllowed.contains(player.getUniqueId())

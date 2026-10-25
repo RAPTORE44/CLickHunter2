@@ -6,7 +6,6 @@ import fr.cliker.clikerv2.Numbers;
 import fr.cliker.clikerv2.bag.BagManager;
 import fr.cliker.clikerv2.bag.TalismanItem;
 import fr.cliker.clikerv2.combat.SwordCommand;
-import fr.cliker.clikerv2.economy.CurrencyType;
 import fr.cliker.clikerv2.economy.PermissionBonus;
 import fr.cliker.clikerv2.essence.CompressorManager;
 import fr.cliker.clikerv2.essence.EssenceItem;
@@ -712,27 +711,8 @@ public final class CustomMobManager implements Listener {
                                                                         "farm_actionbar",
                                                                         true))
                                                     killer.sendActionBar(
-                                                            Component.text(
-                                                                    "+"
-                                                                            + earned.amount(
-                                                                                    CurrencyType
-                                                                                            .ECUS)
-                                                                            + " Écus · +"
-                                                                            + CurrencyType
-                                                                                    .GEMMES_SOMBRES
-                                                                                    .format(
-                                                                                            earned
-                                                                                                    .amount(
-                                                                                                            CurrencyType
-                                                                                                                    .GEMMES_SOMBRES))
-                                                                            + " Gemmes · +"
-                                                                            + earned.amount(
-                                                                                    CurrencyType
-                                                                                            .CENDRES)
-                                                                            + " Cendres · +"
-                                                                            + earned.xp()
-                                                                            + " XP",
-                                                                    NamedTextColor.GREEN));
+                                                            fr.cliker.clikerv2.ui.GainBar.format(
+                                                                    earned));
                                             }
                                         });
                             });
