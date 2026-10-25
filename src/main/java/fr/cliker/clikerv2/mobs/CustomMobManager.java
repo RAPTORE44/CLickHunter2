@@ -77,6 +77,8 @@ public final class CustomMobManager implements Listener {
     private final PrestigeManager prestige;
     private final CompressorManager compressorManager;
     private final BagManager bagManager;
+    private final String bossDeathMessage;
+    private final boolean bossAnnouncements;
     private final NamespacedKey mobIdKey;
     private final NamespacedKey spawnIdKey;
 
@@ -110,9 +112,13 @@ public final class CustomMobManager implements Listener {
         this.damagePopups = new fr.cliker.clikerv2.combat.DamagePopups(plugin);
         java.io.File bossFile = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "boss.yml");
         if (!bossFile.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "boss.yml");
-        bossHpMultiplier =
-                org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(bossFile)
-                        .getDouble("multiplicateur-pv", 100);
+        var bossConfig =
+                org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(bossFile);
+        bossHpMultiplier = bossConfig.getDouble("multiplicateur-pv", 100);
+        bossAnnouncements = bossConfig.getBoolean("annonces.actives", true);
+        bossDeathMessage =
+                bossConfig.getString(
+                        "annonces.mort", "&c⚔ Le boss &e{boss} &ca été vaincu par &a{joueur}&c !");
         if (!Double.isFinite(bossHpMultiplier) || bossHpMultiplier <= 0)
             throw new IllegalArgumentException("Multiplicateur boss invalide");
         this.store = store;
@@ -738,6 +744,17 @@ public final class CustomMobManager implements Listener {
         long fightDuration =
                 combatTelemetry == null ? 0 : combatTelemetry.finishFight(victim.getUniqueId());
         Player killer = victim.getKiller();
+        if (boss && bossAnnouncements) {
+            var message =
+                    fr.cliker.clikerv2.daily.DailySettings.color(
+                            bossDeathMessage
+                                    .replace("{boss}", tier.label())
+                                    .replace("{zone}", Integer.toString(tier.ordinal() + 1))
+                                    .replace(
+                                            "{joueur}",
+                                            killer == null ? "l’environnement" : killer.getName()));
+            for (var viewer : plugin.getServer().getOnlinePlayers()) viewer.sendMessage(message);
+        }
         if (killer != null) {
             int amount = ThreadLocalRandom.current().nextInt(1, 4);
             ItemStack essence = EssenceItem.create(tier, amount);

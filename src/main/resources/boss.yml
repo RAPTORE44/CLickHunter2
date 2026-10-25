@@ -2,3 +2,9 @@
 intervalle-secondes: 1800
 avertissement-secondes: 300
 multiplicateur-pv: 100
+
+annonces:
+  actives: true
+  reapparition: '&c&l⚔ Tous les boss de zone ont réapparu ! ⚔'
+  mort: '&c⚔ Le boss &e{boss} &ca été vaincu par &a{joueur}&c !'
+# Variables : {nombre} pour la vague ; {boss}, {joueur}, {zone} pour une mort.

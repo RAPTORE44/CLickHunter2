@@ -3,8 +3,6 @@ package fr.cliker.clikerv2.mobs;
 import fr.cliker.clikerv2.hologram.HologramManager;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
@@ -46,6 +44,12 @@ public final class BossEventManager implements Listener {
         if (!settingsFile.exists())
             fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "boss.yml");
         settings = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(settingsFile);
+        settings.addDefault("annonces.actives", true);
+        settings.addDefault(
+                "annonces.reapparition", "&c&l⚔ Tous les boss de zone ont réapparu ! ⚔");
+        settings.addDefault(
+                "annonces.mort", "&c⚔ Le boss &e{boss} &ca été vaincu par &a{joueur}&c !");
+        settings.options().copyDefaults(true);
         interval = settings.getLong("intervalle-secondes", INTERVAL_SECONDS);
         warning = settings.getLong("avertissement-secondes", WARNING_SECONDS);
         if (interval < 1 || interval > 31_536_000 || warning < 0 || warning > interval)
@@ -91,12 +95,17 @@ public final class BossEventManager implements Listener {
     private void spawnWave() {
         mobManager.triggerBossWave();
         hideBossBar();
-        Component message =
-                Component.text(
-                        "⚔ Un Golem est apparu sur la carte ! ⚔",
-                        NamedTextColor.DARK_RED,
-                        TextDecoration.BOLD);
-        for (Player player : plugin.getServer().getOnlinePlayers()) player.sendMessage(message);
+        if (settings.getBoolean("annonces.actives", true)) {
+            Component message =
+                    fr.cliker.clikerv2.daily.DailySettings.color(
+                            settings.getString(
+                                            "annonces.reapparition",
+                                            "&c&l⚔ Tous les boss de zone ont réapparu ! ⚔")
+                                    .replace(
+                                            "{nombre}",
+                                            Integer.toString(mobManager.bossSpawnIds().size())));
+            for (Player player : plugin.getServer().getOnlinePlayers()) player.sendMessage(message);
+        }
         if (hologramManager != null) {
             hologramManager.updateBossTimer("⚔ Golem ⚔", List.of("&c&lLES GOLEMS SONT ARRIVÉS !"));
         }
