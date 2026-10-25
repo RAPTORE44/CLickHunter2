@@ -9,6 +9,7 @@ import fr.cliker.clikerv2.economy.PermissionBonus;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,7 +26,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.ArrayList;
 import java.util.List;
 
-/** GUI /sell : vide, le prix s'affiche directement sur les essences dans l'inventaire du joueur tant que le menu est ouvert. */
+/**
+ * GUI /sell : vide, le prix s'affiche directement sur les essences dans l'inventaire du joueur tant
+ * que le menu est ouvert.
+ */
 public final class SellMenu implements Listener {
     private final JavaPlugin plugin;
     private final EconomyService economy;
@@ -37,11 +41,21 @@ public final class SellMenu implements Listener {
 
     public void open(Player player) {
         Holder holder = new Holder();
-        Inventory inventory = Bukkit.createInventory(holder, 9, Component.text("Vente d'essences", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD));
+        Inventory inventory =
+                Bukkit.createInventory(
+                        holder,
+                        9,
+                        Component.text(
+                                "Vente d'essences",
+                                NamedTextColor.LIGHT_PURPLE,
+                                TextDecoration.BOLD));
         holder.inventory = inventory;
         player.openInventory(inventory);
         showPrices(player);
-        player.sendMessage(Component.text("Clique une essence dans ton inventaire pour la vendre !", NamedTextColor.GRAY));
+        player.sendMessage(
+                Component.text(
+                        "Clique une essence dans ton inventaire pour la vendre !",
+                        NamedTextColor.GRAY));
     }
 
     private void showPrices(Player player) {
@@ -59,7 +73,8 @@ public final class SellMenu implements Listener {
             MobTier tier = EssenceItem.tierOf(contents[slot]);
             if (tier == null) continue;
             EssenceRarity rarity = EssenceItem.rarityOf(contents[slot]);
-            player.getInventory().setItem(slot, EssenceItem.create(tier, rarity, contents[slot].getAmount()));
+            player.getInventory()
+                    .setItem(slot, EssenceItem.create(tier, rarity, contents[slot].getAmount()));
         }
     }
 
@@ -67,18 +82,37 @@ public final class SellMenu implements Listener {
         ItemStack item = original.clone();
         ItemMeta meta = item.getItemMeta();
         EssenceRarity rarity = EssenceItem.rarityOf(original);
-        long price = tier.sellPricePerUnit() * rarity.valueMultiplier() * PermissionBonus.multiplier(player, "vente");
+        long price =
+                tier.sellPricePerUnit()
+                        * rarity.valueMultiplier()
+                        * PermissionBonus.multiplier(player, "vente");
         long total = price * item.getAmount();
 
         List<Component> lore = new ArrayList<>();
-        lore.add(Component.text(rarity.label(), rarity.color()).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text(rarity.label(), rarity.color())
+                        .decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(""));
-        lore.add(Component.text("Prix : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                .append(Component.text(Numbers.compact(price) + " Écus/unité", NamedTextColor.GOLD)));
-        lore.add(Component.text("Valeur de la pile : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                .append(Component.text(Numbers.compact(total) + " Écus", NamedTextColor.GOLD)));
+        lore.add(
+                Component.text("Prix : ", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
+                        .append(
+                                Component.text(
+                                        Numbers.compact(price) + " Écus/unité",
+                                        NamedTextColor.GOLD)));
+        lore.add(
+                Component.text("Valeur de la pile : ", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
+                        .append(
+                                Component.text(
+                                        Numbers.compact(total) + " Écus", NamedTextColor.GOLD)));
         lore.add(Component.text(""));
-        lore.add(Component.text("Clique pour vendre cette pile !", NamedTextColor.GREEN, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text(
+                                "Clique pour vendre cette pile !",
+                                NamedTextColor.GREEN,
+                                TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
         return item;
@@ -87,16 +121,84 @@ public final class SellMenu implements Listener {
     private void sell(Player player, int slot, ItemStack clicked, MobTier tier) {
         EssenceRarity rarity = EssenceItem.rarityOf(clicked);
         int amount = clicked.getAmount();
-        long gain = tier.sellPricePerUnit() * rarity.valueMultiplier() * PermissionBonus.multiplier(player, "vente") * amount;
+        long gain =
+                tier.sellPricePerUnit()
+                        * rarity.valueMultiplier()
+                        * PermissionBonus.multiplier(player, "vente")
+                        * amount;
         player.getInventory().setItem(slot, null);
-        economy.change(player.getUniqueId(), player.getName(), CurrencyType.ECUS, gain).whenComplete((balance, error) ->
-                Bukkit.getScheduler().runTask(plugin, () -> {
-            if (error != null || !player.isOnline()) return;
-            player.sendMessage(Component.text("✦ Vendu ", NamedTextColor.GREEN)
-                    .append(Component.text(Numbers.compact(amount) + " " + rarity.label() + " " + tier.essenceName(), NamedTextColor.YELLOW))
-                    .append(Component.text(" contre ", NamedTextColor.GREEN))
-                    .append(Component.text("+" + Numbers.compact(gain) + " Écus", NamedTextColor.GOLD)));
-        }));
+        economy.change(player.getUniqueId(), player.getName(), CurrencyType.ECUS, gain)
+                .whenComplete(
+                        (balance, error) ->
+                                Bukkit.getScheduler()
+                                        .runTask(
+                                                plugin,
+                                                () -> {
+                                                    if (error != null) {
+                                                        var delivery =
+                                                                Bukkit.getServicesManager()
+                                                                        .load(
+                                                                                fr.cliker.clikerv2
+                                                                                        .rewards
+                                                                                        .ClaimService
+                                                                                        .class);
+                                                        if (delivery != null)
+                                                            delivery.give(
+                                                                    player.getUniqueId(),
+                                                                    player.getName(),
+                                                                    clicked.clone());
+                                                        plugin.getLogger()
+                                                                .log(
+                                                                        java.util.logging.Level
+                                                                                .SEVERE,
+                                                                        "Vente d’essences"
+                                                                                + " impossible,"
+                                                                                + " restitution"
+                                                                                + " demandée",
+                                                                        error);
+                                                        if (player.isOnline())
+                                                            player.sendMessage(
+                                                                    Component.text(
+                                                                            "Vente impossible : tes"
+                                                                                + " essences sont"
+                                                                                + " rendues ou"
+                                                                                + " disponibles"
+                                                                                + " dans /claim.",
+                                                                            NamedTextColor.RED));
+                                                        return;
+                                                    }
+                                                    if (!player.isOnline()) return;
+                                                    player.sendMessage(
+                                                            Component.text(
+                                                                            "✦ Vendu ",
+                                                                            NamedTextColor.GREEN)
+                                                                    .append(
+                                                                            Component.text(
+                                                                                    Numbers.compact(
+                                                                                                    amount)
+                                                                                            + " "
+                                                                                            + rarity
+                                                                                                    .label()
+                                                                                            + " "
+                                                                                            + tier
+                                                                                                    .essenceName(),
+                                                                                    NamedTextColor
+                                                                                            .YELLOW))
+                                                                    .append(
+                                                                            Component.text(
+                                                                                    " contre ",
+                                                                                    NamedTextColor
+                                                                                            .GREEN))
+                                                                    .append(
+                                                                            Component.text(
+                                                                                    "+"
+                                                                                            + Numbers
+                                                                                                    .compact(
+                                                                                                            gain)
+                                                                                            + " Écus",
+                                                                                    NamedTextColor
+                                                                                            .GOLD)));
+                                                }));
     }
 
     @EventHandler
@@ -118,7 +220,8 @@ public final class SellMenu implements Listener {
     @EventHandler
     public void onDrag(InventoryDragEvent event) {
         if (!(event.getView().getTopInventory().getHolder() instanceof Holder)) return;
-        if (event.getRawSlots().stream().anyMatch(slot -> slot < event.getView().getTopInventory().getSize())) {
+        if (event.getRawSlots().stream()
+                .anyMatch(slot -> slot < event.getView().getTopInventory().getSize())) {
             event.setCancelled(true);
         }
     }
@@ -132,6 +235,10 @@ public final class SellMenu implements Listener {
 
     private static final class Holder implements InventoryHolder {
         private Inventory inventory;
-        @Override public Inventory getInventory() { return inventory; }
+
+        @Override
+        public Inventory getInventory() {
+            return inventory;
+        }
     }
 }

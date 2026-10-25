@@ -73,5 +73,12 @@ Voir [les améliorations UX/UI et les optimisations](UX-UI-OPTIMISATIONS.md).
 
 ## Révision claim et parrainage
 
-La boîte `/claim` et `/parrein` sont implémentées ; voir `CLAIM-PARRAINAGE.md`.
+La boîte `/claim` et `/parrain` sont implémentées ; voir `CLAIM-PARRAINAGE.md`.
 Cela ne certifie pas les autres transactions historiques du plugin.
+
+
+## Activités et revue du 25 octobre 2026
+
+Les modules bestiaire/maîtrises, contrats de PNJ, raid coopératif et avant-postes sont désormais intégrés.
+Voir [les règles, configurations et commandes](ACTIVITES.md) et [la revue technique et ses limites](AUDIT-2026-10-25.md).
+Les périmètres restant à implémenter ci-dessus ne sont pas déclarés terminés par cette mise à jour.

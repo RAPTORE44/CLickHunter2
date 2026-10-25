@@ -9,6 +9,7 @@ import fr.cliker.clikerv2.upgrade.UpgradeType;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -51,17 +52,33 @@ public final class AutoClickManager implements CommandExecutor, Listener {
         elapsedTicks += 10;
         for (UUID uuid : new HashSet<>(active)) {
             Player player = Bukkit.getPlayer(uuid);
-            if (player == null || !player.isOnline()) { active.remove(uuid); lastAttackTick.remove(uuid); continue; }
+            if (player == null || !player.isOnline()) {
+                active.remove(uuid);
+                lastAttackTick.remove(uuid);
+                continue;
+            }
 
             int interval = intervalFor(player);
             int last = lastAttackTick.getOrDefault(uuid, -interval);
             if (elapsedTicks - last < interval) continue;
 
             Location eye = player.getEyeLocation();
-            RayTraceResult result = player.getWorld().rayTraceEntities(eye, eye.getDirection(), 5.0, 0.4,
-                    entity -> entity instanceof LivingEntity
-                            && entity.getPersistentDataContainer().has(CustomMobManager.MOB_ID_KEY, PersistentDataType.STRING));
-            if (result != null && result.getHitEntity() instanceof LivingEntity living && living.isValid()) {
+            RayTraceResult result =
+                    player.getWorld()
+                            .rayTraceEntities(
+                                    eye,
+                                    eye.getDirection(),
+                                    5.0,
+                                    0.4,
+                                    entity ->
+                                            entity instanceof LivingEntity
+                                                    && entity.getPersistentDataContainer()
+                                                            .has(
+                                                                    CustomMobManager.MOB_ID_KEY,
+                                                                    PersistentDataType.STRING));
+            if (result != null
+                    && result.getHitEntity() instanceof LivingEntity living
+                    && living.isValid()) {
                 player.swingMainHand();
                 living.damage(1.0, player);
                 lastAttackTick.put(uuid, elapsedTicks);
@@ -69,12 +86,20 @@ public final class AutoClickManager implements CommandExecutor, Listener {
         }
     }
 
-    /** Délai entre deux attaques auto : réduit par la reforge Vif de l'épée équipée + l'upgrade Cadence. */
+    /**
+     * Délai entre deux attaques auto : réduit par la reforge Vif de l'épée équipée + l'upgrade
+     * Cadence.
+     */
     private int intervalFor(Player player) {
         double ticks = BASE_INTERVAL_TICKS;
 
         ItemStack weapon = player.getInventory().getItemInMainHand();
-        String tierId = weapon.hasItemMeta() ? weapon.getItemMeta().getPersistentDataContainer().get(TierGear.SWORD_KEY, PersistentDataType.STRING) : null;
+        String tierId =
+                weapon.hasItemMeta()
+                        ? weapon.getItemMeta()
+                                .getPersistentDataContainer()
+                                .get(TierGear.SWORD_KEY, PersistentDataType.STRING)
+                        : null;
         if (tierId != null) {
             ReforgeType reforge = ItemMods.getReforge(weapon);
             if (reforge != null) ticks *= (1 - reforge.swordAutoclickSpeedPercent() / 100.0);
@@ -88,15 +113,27 @@ public final class AutoClickManager implements CommandExecutor, Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player player)) { sender.sendMessage(Component.text("Commande réservée aux joueurs.", NamedTextColor.RED)); return true; }
-        if (!sender.hasPermission("cliker.autoclick.use")) { sender.sendMessage(Component.text("Vous n'avez pas la permission.", NamedTextColor.RED)); return true; }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(
+                    Component.text("Commande réservée aux joueurs.", NamedTextColor.RED));
+            return true;
+        }
+        if (!sender.hasPermission("cliker.autoclick.use")) {
+            sender.sendMessage(
+                    Component.text("Vous n'avez pas la permission.", NamedTextColor.RED));
+            return true;
+        }
 
         UUID uuid = player.getUniqueId();
         if (active.remove(uuid)) {
             player.sendMessage(Component.text("Autoclick désactivé.", NamedTextColor.RED));
         } else {
             active.add(uuid);
-            player.sendMessage(Component.text("Autoclick activé (attaque la cible visée toutes les 1.5 secondes).", NamedTextColor.GREEN));
+            player.sendMessage(
+                    Component.text(
+                            "Autoclick activé : vise une créature. La cadence dépend de tes"
+                                + " améliorations et de ton équipement.",
+                            NamedTextColor.GREEN));
         }
         return true;
     }

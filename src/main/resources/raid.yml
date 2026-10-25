@@ -1,0 +1,30 @@
+# Monde dédié créé automatiquement avec arène de 63 × 63 blocs utiles.
+# Ne pas utiliser le nom d'un monde contenant des constructions existantes.
+monde: clickhunter_raid
+mobs:
+  maximum: 12
+  pv: 500
+  degats: 4
+  recompenses:
+    ecus: 25
+    gemmes-sombres: 1 # dixièmes
+    cendres: 1
+    xp: 5
+boss:
+  tous-les-mobs: 100
+  pv: 10000000000 # boss de fin de progression, PV virtuels non limités par Minecraft
+  degats: 12 # dégâts infligés toutes les 2 secondes aux joueurs à portée
+  portee: 6
+  recompenses: # cagnotte globale partagée selon les dégâts, même après déconnexion
+    ecus: 100000
+    gemmes-sombres: 1000
+    cendres: 500
+    xp: 5000
+messages:
+  aide: '&e/raid pour rejoindre ; /raid quitter pour repartir.'
+  absent: '&7Tu n’es pas dans l’arène de raid.'
+  interdit: '&cTu ne peux pas rejoindre le raid.'
+  entree: '&aBienvenue dans le raid ! &7/raid quitter pour repartir. Inventaire conservé à la mort.'
+  boss: '&4⚔ Le Gardien colossal arrive ! &cFrappez-le ensemble et évitez ses attaques.'
+  arme: '&eUtilise ton épée de clicker pour infliger des dégâts.'
+  victoire: '&aGardien vaincu ! Voici ta part selon tes dégâts :'

@@ -1,0 +1,25 @@
+# Gemmes Sombres exprimées en dixièmes : 10 = 1 gemme.
+# Les 38 contrats sont ajoutés ici au premier démarrage et restent modifiables.
+fuseau: Europe/Paris
+maitrise:
+  # Maîtrises de collection ; aucun bonus de combat caché.
+  paliers: [10, 50, 100, 500, 1000, 5000, 10000]
+  paliers-boss: [1, 5, 10, 50, 100, 500, 1000]
+pnj:
+  actif: false
+  skin: Nati144378
+  titre: '&6Contrats de chasse'
+  sous-titre: '&eClic droit pour consulter'
+messages:
+  interdit: '&cTu ne peux pas utiliser cette commande.'
+  erreur: '&cUne erreur est survenue. Réessaie dans quelques instants.'
+  inconnu: '&7Découvre d’abord cette créature.'
+  accepte: '&aContrat accepté ! Les prochaines éliminations comptent.'
+  incomplet: '&eL’objectif de ce contrat n’est pas encore atteint.'
+  deja: '&7Tu as déjà récupéré ce contrat aujourd’hui.'
+  recompense: '&aContrat terminé ! Tes monnaies et ton XP sont crédités.'
+  citizens: '&cCitizens est nécessaire pour créer le PNJ. /contrats reste disponible.'
+  cree: '&aPNJ des contrats créé.'
+  existant: '&eLe PNJ existe déjà.'
+  supprime: '&aPNJ supprimé.'
+  absent: '&7Aucun PNJ à supprimer.'

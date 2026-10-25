@@ -75,3 +75,7 @@ Combat : [textes de dégâts qui montent puis disparaissent](docs/TEXTES-DE-DEGA
 Communauté : [commande Discord et placement du PNJ](docs/PNJ-DISCORD.md).
 
 Récompenses différées et communauté : [/claim et /parrain](docs/CLAIM-PARRAINAGE.md).
+
+Activités intégrées : [bestiaire, contrats, raid et avant-postes](docs/ACTIVITES.md).
+
+Dernière revue : [correctifs, vérifications et limites du 25 octobre 2026](docs/AUDIT-2026-10-25.md).

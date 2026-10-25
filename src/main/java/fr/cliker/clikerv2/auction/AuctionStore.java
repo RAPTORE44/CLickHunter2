@@ -18,70 +18,137 @@ public final class AuctionStore {
     }
 
     public CompletableFuture<Void> save(AuctionListing listing) {
-        return database.submit(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO auctions (id, seller_uuid, seller_name, item, price, listed_at) VALUES (?, ?, ?, ?, ?, ?)")) {
-                statement.setString(1, listing.id());
-                statement.setString(2, listing.sellerUuid().toString());
-                statement.setString(3, listing.sellerName());
-                statement.setString(4, listing.itemYaml());
-                statement.setLong(5, listing.price());
-                statement.setLong(6, listing.listedAt());
-                statement.executeUpdate();
-            } catch (SQLException exception) { throw new DatabaseManager.DatabaseException(exception); }
-            return null;
-        });
+        return database.submit(
+                connection -> {
+                    try (PreparedStatement statement =
+                            connection.prepareStatement(
+                                    "INSERT INTO auctions (id, seller_uuid, seller_name, item,"
+                                            + " price, listed_at) VALUES (?, ?, ?, ?, ?, ?)")) {
+                        statement.setString(1, listing.id());
+                        statement.setString(2, listing.sellerUuid().toString());
+                        statement.setString(3, listing.sellerName());
+                        statement.setString(4, listing.itemYaml());
+                        statement.setLong(5, listing.price());
+                        statement.setLong(6, listing.listedAt());
+                        statement.executeUpdate();
+                    } catch (SQLException exception) {
+                        throw new DatabaseManager.DatabaseException(exception);
+                    }
+                    return null;
+                });
     }
 
     public CompletableFuture<Void> removeById(String id) {
-        return database.submit(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("DELETE FROM auctions WHERE id = ?")) {
-                statement.setString(1, id);
-                statement.executeUpdate();
-            } catch (SQLException exception) { throw new DatabaseManager.DatabaseException(exception); }
-            return null;
-        });
+        return database.submit(
+                connection -> {
+                    try (PreparedStatement statement =
+                            connection.prepareStatement("DELETE FROM auctions WHERE id = ?")) {
+                        statement.setString(1, id);
+                        statement.executeUpdate();
+                    } catch (SQLException exception) {
+                        throw new DatabaseManager.DatabaseException(exception);
+                    }
+                    return null;
+                });
     }
 
     /** Annonces encore actives (non expirées), pour peupler le cache mémoire au démarrage. */
     public CompletableFuture<List<AuctionListing>> loadActive() {
-        return query("SELECT id, seller_uuid, seller_name, item, price, listed_at FROM auctions WHERE expired = 0");
+        return query(
+                "SELECT id, seller_uuid, seller_name, item, price, listed_at FROM auctions WHERE"
+                        + " expired = 0");
     }
 
-    /** Annonces expirées d'un vendeur en attente de retour (le joueur était hors-ligne au moment de l'expiration). */
+    /**
+     * Annonces expirées d'un vendeur en attente de retour (le joueur était hors-ligne au moment de
+     * l'expiration).
+     */
     public CompletableFuture<List<AuctionListing>> loadExpiredFor(UUID seller) {
-        return database.submit(connection -> {
-            List<AuctionListing> result = new ArrayList<>();
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT id, seller_uuid, seller_name, item, price, listed_at FROM auctions WHERE expired = 1 AND seller_uuid = ?")) {
-                statement.setString(1, seller.toString());
-                try (ResultSet rows = statement.executeQuery()) {
-                    while (rows.next()) result.add(read(rows));
-                }
-            } catch (SQLException exception) { throw new DatabaseManager.DatabaseException(exception); }
-            return result;
-        });
+        return database.submit(
+                connection -> {
+                    List<AuctionListing> result = new ArrayList<>();
+                    try (PreparedStatement statement =
+                            connection.prepareStatement(
+                                    "SELECT id, seller_uuid, seller_name, item, price, listed_at"
+                                        + " FROM auctions WHERE expired = 1 AND seller_uuid = ?")) {
+                        statement.setString(1, seller.toString());
+                        try (ResultSet rows = statement.executeQuery()) {
+                            while (rows.next()) result.add(read(rows));
+                        }
+                    } catch (SQLException exception) {
+                        throw new DatabaseManager.DatabaseException(exception);
+                    }
+                    return result;
+                });
     }
 
     public CompletableFuture<Void> markExpired(String id) {
-        return database.submit(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("UPDATE auctions SET expired = 1 WHERE id = ?")) {
-                statement.setString(1, id);
-                statement.executeUpdate();
-            } catch (SQLException exception) { throw new DatabaseManager.DatabaseException(exception); }
-            return null;
-        });
+        return database.submit(
+                connection -> {
+                    try (PreparedStatement statement =
+                            connection.prepareStatement(
+                                    "UPDATE auctions SET expired = 1 WHERE id = ?")) {
+                        statement.setString(1, id);
+                        statement.executeUpdate();
+                    } catch (SQLException exception) {
+                        throw new DatabaseManager.DatabaseException(exception);
+                    }
+                    return null;
+                });
+    }
+
+    /**
+     * Le retour d'une annonce supprimée est conservé dans /claim, propriétaire hors ligne compris.
+     */
+    public CompletableFuture<Boolean> returnToOwner(String id) {
+        return database.submit(
+                c -> {
+                    try {
+                        c.setAutoCommit(false);
+                        String owner, item;
+                        try (var s =
+                                c.prepareStatement(
+                                        "SELECT seller_uuid,item FROM auctions WHERE id=?")) {
+                            s.setString(1, id);
+                            try (var rs = s.executeQuery()) {
+                                if (!rs.next()) {
+                                    c.rollback();
+                                    return false;
+                                }
+                                owner = rs.getString(1);
+                                item = rs.getString(2);
+                            }
+                        }
+                        fr.cliker.clikerv2.rewards.MailStore.insert(
+                                c, UUID.fromString(owner), "auction-return:" + id, item);
+                        try (var s = c.prepareStatement("DELETE FROM auctions WHERE id=?")) {
+                            s.setString(1, id);
+                            s.executeUpdate();
+                        }
+                        c.commit();
+                        return true;
+                    } catch (SQLException e) {
+                        try {
+                            c.rollback();
+                        } catch (SQLException ignored) {
+                        }
+                        throw new DatabaseManager.DatabaseException(e);
+                    }
+                });
     }
 
     private CompletableFuture<List<AuctionListing>> query(String sql) {
-        return database.submit(connection -> {
-            List<AuctionListing> result = new ArrayList<>();
-            try (PreparedStatement statement = connection.prepareStatement(sql);
-                 ResultSet rows = statement.executeQuery()) {
-                while (rows.next()) result.add(read(rows));
-            } catch (SQLException exception) { throw new DatabaseManager.DatabaseException(exception); }
-            return result;
-        });
+        return database.submit(
+                connection -> {
+                    List<AuctionListing> result = new ArrayList<>();
+                    try (PreparedStatement statement = connection.prepareStatement(sql);
+                            ResultSet rows = statement.executeQuery()) {
+                        while (rows.next()) result.add(read(rows));
+                    } catch (SQLException exception) {
+                        throw new DatabaseManager.DatabaseException(exception);
+                    }
+                    return result;
+                });
     }
 
     private AuctionListing read(ResultSet rows) throws SQLException {

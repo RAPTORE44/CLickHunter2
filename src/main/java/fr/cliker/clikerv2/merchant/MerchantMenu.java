@@ -14,6 +14,7 @@ import fr.cliker.clikerv2.gear.TierGear;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -29,7 +30,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.ArrayList;
 import java.util.List;
 
-/** GUI ouvert par un PNJ marchand : achète l'épée/l'armure/le compresseur du mob contre Écus + Essences Communes du mob. */
+/**
+ * GUI ouvert par un PNJ marchand : achète l'épée/l'armure/le compresseur du mob contre Écus +
+ * Essences Communes du mob.
+ */
 public final class MerchantMenu implements Listener {
     // Colonne gauche (col 2) : épée en haut, armure en colonne dessous.
     private static final int SWORD_SLOT = 2;
@@ -54,8 +58,14 @@ public final class MerchantMenu implements Listener {
 
     public void open(Player player, MobTier tier) {
         Holder holder = new Holder(tier);
-        Inventory inventory = Bukkit.createInventory(holder, 54,
-                Component.text("Marchand " + tier.label(), NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD));
+        Inventory inventory =
+                Bukkit.createInventory(
+                        holder,
+                        54,
+                        Component.text(
+                                "Marchand " + tier.label(),
+                                NamedTextColor.LIGHT_PURPLE,
+                                TextDecoration.BOLD));
         holder.inventory = inventory;
         decorate(player, inventory, tier);
         player.openInventory(inventory);
@@ -70,13 +80,41 @@ public final class MerchantMenu implements Listener {
         int armorEssence = armorEssenceUnits(tier);
         int swordEssence = swordEssenceUnits(tier);
 
-        inventory.setItem(SWORD_SLOT, purchaseItem(TierGear.createSword(tier), swordEcus, swordEssence, tier));
-        inventory.setItem(HELMET_SLOT, purchaseItem(TierGear.createArmor(tier, TierGear.ArmorSlot.HELMET), armorEcus, armorEssence, tier));
-        inventory.setItem(CHESTPLATE_SLOT, purchaseItem(TierGear.createArmor(tier, TierGear.ArmorSlot.CHESTPLATE), armorEcus, armorEssence, tier));
-        inventory.setItem(LEGGINGS_SLOT, purchaseItem(TierGear.createArmor(tier, TierGear.ArmorSlot.LEGGINGS), armorEcus, armorEssence, tier));
-        inventory.setItem(BOOTS_SLOT, purchaseItem(TierGear.createArmor(tier, TierGear.ArmorSlot.BOOTS), armorEcus, armorEssence, tier));
-        inventory.setItem(COMPRESSOR_SLOT, purchaseItem(CompressorItem.create(tier), armorEcus, 0, tier));
-        inventory.setItem(CHARM_SLOT, purchaseItem(CharmItem.create(tier), armorEcus, armorEssence, tier));
+        inventory.setItem(
+                SWORD_SLOT,
+                purchaseItem(TierGear.createSword(tier), swordEcus, swordEssence, tier));
+        inventory.setItem(
+                HELMET_SLOT,
+                purchaseItem(
+                        TierGear.createArmor(tier, TierGear.ArmorSlot.HELMET),
+                        armorEcus,
+                        armorEssence,
+                        tier));
+        inventory.setItem(
+                CHESTPLATE_SLOT,
+                purchaseItem(
+                        TierGear.createArmor(tier, TierGear.ArmorSlot.CHESTPLATE),
+                        armorEcus,
+                        armorEssence,
+                        tier));
+        inventory.setItem(
+                LEGGINGS_SLOT,
+                purchaseItem(
+                        TierGear.createArmor(tier, TierGear.ArmorSlot.LEGGINGS),
+                        armorEcus,
+                        armorEssence,
+                        tier));
+        inventory.setItem(
+                BOOTS_SLOT,
+                purchaseItem(
+                        TierGear.createArmor(tier, TierGear.ArmorSlot.BOOTS),
+                        armorEcus,
+                        armorEssence,
+                        tier));
+        inventory.setItem(
+                COMPRESSOR_SLOT, purchaseItem(CompressorItem.create(tier), armorEcus, 0, tier));
+        inventory.setItem(
+                CHARM_SLOT, purchaseItem(CharmItem.create(tier), armorEcus, armorEssence, tier));
         decorateSteps(player, inventory, tier);
     }
 
@@ -92,39 +130,81 @@ public final class MerchantMenu implements Listener {
             EssenceRarity rarity = rarities[i + 1];
             EssenceRarity previous = rarity.previous();
             if (previous == null) continue;
-            inventory.setItem(DECOMPRESS_SLOTS[i], decompressStepButton(player, tier, rarity, previous));
+            inventory.setItem(
+                    DECOMPRESS_SLOTS[i], decompressStepButton(player, tier, rarity, previous));
         }
     }
 
-    private ItemStack compressStepButton(Player player, MobTier tier, EssenceRarity rarity, EssenceRarity next) {
+    private ItemStack compressStepButton(
+            Player player, MobTier tier, EssenceRarity rarity, EssenceRarity next) {
         int owned = EssenceItem.count(player, tier, rarity);
         ItemStack item = EssenceItem.create(tier, rarity, 1);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text(rarity.label() + " -> " + next.label(), next.color(), TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(
+                Component.text(
+                                rarity.label() + " -> " + next.label(),
+                                next.color(),
+                                TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         List<Component> lore = new ArrayList<>();
-        lore.add(Component.text("En stock : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                .append(Component.text(Numbers.compact(owned) + "/" + EssenceCompression.RATIO, owned >= EssenceCompression.RATIO ? NamedTextColor.GREEN : NamedTextColor.RED)));
-        lore.add(Component.text("Donne : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                .append(Component.text("1 " + next.label(), next.color())));
+        lore.add(
+                Component.text("En stock : ", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
+                        .append(
+                                Component.text(
+                                        Numbers.compact(owned) + "/" + EssenceCompression.RATIO,
+                                        owned >= EssenceCompression.RATIO
+                                                ? NamedTextColor.GREEN
+                                                : NamedTextColor.RED)));
+        lore.add(
+                Component.text("Donne : ", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
+                        .append(Component.text("1 " + next.label(), next.color())));
         lore.add(Component.text(""));
-        lore.add(Component.text("Gratuit, clique pour compresser !", NamedTextColor.GREEN, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text(
+                                "Gratuit, clique pour compresser !",
+                                NamedTextColor.GREEN,
+                                TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
         return item;
     }
 
-    private ItemStack decompressStepButton(Player player, MobTier tier, EssenceRarity rarity, EssenceRarity previous) {
+    private ItemStack decompressStepButton(
+            Player player, MobTier tier, EssenceRarity rarity, EssenceRarity previous) {
         int owned = EssenceItem.count(player, tier, rarity);
         ItemStack item = EssenceItem.create(tier, rarity, 1);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text(rarity.label() + " -> " + previous.label(), previous.color(), TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(
+                Component.text(
+                                rarity.label() + " -> " + previous.label(),
+                                previous.color(),
+                                TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         List<Component> lore = new ArrayList<>();
-        lore.add(Component.text("En stock : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                .append(Component.text(Numbers.compact(owned) + "/1", owned >= 1 ? NamedTextColor.GREEN : NamedTextColor.RED)));
-        lore.add(Component.text("Donne : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                .append(Component.text(EssenceCompression.RATIO + " " + previous.label(), previous.color())));
+        lore.add(
+                Component.text("En stock : ", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
+                        .append(
+                                Component.text(
+                                        Numbers.compact(owned) + "/1",
+                                        owned >= 1 ? NamedTextColor.GREEN : NamedTextColor.RED)));
+        lore.add(
+                Component.text("Donne : ", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
+                        .append(
+                                Component.text(
+                                        EssenceCompression.RATIO + " " + previous.label(),
+                                        previous.color())));
         lore.add(Component.text(""));
-        lore.add(Component.text("Gratuit, clique pour décompresser !", NamedTextColor.GREEN, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text(
+                                "Gratuit, clique pour décompresser !",
+                                NamedTextColor.GREEN,
+                                TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
         return item;
@@ -135,25 +215,46 @@ public final class MerchantMenu implements Listener {
         ItemMeta meta = item.getItemMeta();
         List<Component> lore = new ArrayList<>(meta.hasLore() ? meta.lore() : List.of());
         lore.add(Component.text(""));
-        lore.add(Component.text("Prix : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                .append(Component.text(Numbers.compact(ecusCost) + " Écus", NamedTextColor.GOLD)));
+        lore.add(
+                Component.text("Prix : ", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
+                        .append(
+                                Component.text(
+                                        Numbers.compact(ecusCost) + " Écus", NamedTextColor.GOLD)));
         if (essenceCost > 0) {
             EssenceRarity required = requiredRarity(tier);
-            lore.add(Component.text("  + ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                    .append(Component.text(Numbers.compact(essenceCost) + " " + tier.essenceName() + " " + required.label(), required.color())));
+            lore.add(
+                    Component.text("  + ", NamedTextColor.GRAY)
+                            .decoration(TextDecoration.ITALIC, false)
+                            .append(
+                                    Component.text(
+                                            Numbers.compact(essenceCost)
+                                                    + " "
+                                                    + tier.essenceName()
+                                                    + " "
+                                                    + required.label(),
+                                            required.color())));
         }
-        lore.add(Component.text("Clique pour acheter !", NamedTextColor.GREEN, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text("Clique pour acheter !", NamedTextColor.GREEN, TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
         return item;
     }
 
-    /** Équivalent en essences Commune du "prix" de l'armure de ce tier : double à chaque tier (Vache=2, Cochon=4, Poulet=8, ...). */
+    /**
+     * Équivalent en essences Commune du "prix" de l'armure de ce tier : double à chaque tier
+     * (Vache=2, Cochon=4, Poulet=8, ...).
+     */
     private long communeEquivalent(MobTier tier) {
         return 1L << (tier.ordinal() + 1);
     }
 
-    /** Rareté d'essence exigée pour ce mob, déterminée par la valeur (64 Commune = 1 Peu Commune, 64 Peu Commune = 1 Rare). */
+    /**
+     * Rareté d'essence exigée pour ce mob, déterminée par la valeur (64 Commune = 1 Peu Commune, 64
+     * Peu Commune = 1 Rare).
+     */
     private EssenceRarity requiredRarity(MobTier tier) {
         return EssenceRarity.forCommuneEquivalent(communeEquivalent(tier));
     }
@@ -191,23 +292,96 @@ public final class MerchantMenu implements Listener {
         return pane;
     }
 
-    private void purchase(Player player, MobTier tier, ItemStack reward, long ecusCost, int essenceCost) {
+    private final java.util.Set<java.util.UUID> pending = new java.util.HashSet<>();
+
+    private void purchase(
+            Player player, MobTier tier, ItemStack reward, long ecusCost, int essenceCost) {
+        java.util.UUID owner = player.getUniqueId();
+        if (!pending.add(owner)) return;
         EssenceRarity required = requiredRarity(tier);
-        if (essenceCost > 0 && EssenceItem.count(player, tier, required) < essenceCost) {
-            player.sendMessage(Component.text("Pas assez d'Essences " + tier.label() + " " + required.label() + " (" + essenceCost + " requises).", NamedTextColor.RED));
+        if (essenceCost > 0 && !EssenceItem.remove(player, tier, required, essenceCost)) {
+            pending.remove(owner);
+            player.sendMessage(
+                    Component.text("Pas assez d’essences pour cet achat.", NamedTextColor.RED));
             return;
         }
-        economy.change(player.getUniqueId(), player.getName(), CurrencyType.ECUS, -ecusCost).whenComplete((balance, error) ->
-                Bukkit.getScheduler().runTask(plugin, () -> {
-            if (!player.isOnline()) return;
-            if (error != null) {
-                player.sendMessage(Component.text("Écus insuffisants.", NamedTextColor.RED));
-                return;
-            }
-            if (essenceCost > 0) EssenceItem.remove(player, tier, required, essenceCost);
-            fr.cliker.clikerv2.rewards.ItemDelivery.give(player, reward);
-            player.sendMessage(Component.text("✦ Achat effectué !", NamedTextColor.GREEN));
-        }));
+        var delivery =
+                org.bukkit.Bukkit.getServicesManager()
+                        .load(fr.cliker.clikerv2.rewards.ClaimService.class);
+        if (delivery == null) throw new IllegalStateException("Livraison indisponible");
+        String source = "merchant:" + java.util.UUID.randomUUID();
+        var purchase =
+                essenceCost > 0
+                        ? economy.transformItem(
+                                owner,
+                                player.getName(),
+                                source,
+                                CurrencyType.ECUS,
+                                ecusCost,
+                                fr.cliker.clikerv2.rewards.ClaimService.serialize(
+                                        EssenceItem.create(tier, required, essenceCost)),
+                                fr.cliker.clikerv2.rewards.ClaimService.serialize(reward))
+                        : economy.purchaseItem(
+                                owner,
+                                player.getName(),
+                                source,
+                                CurrencyType.ECUS,
+                                ecusCost,
+                                fr.cliker.clikerv2.rewards.ClaimService.serialize(reward));
+        purchase.whenComplete(
+                (paid, error) ->
+                        Bukkit.getScheduler()
+                                .runTask(
+                                        plugin,
+                                        () -> {
+                                            pending.remove(owner);
+                                            if (error == null) delivery.notifyAndDeliver(owner);
+                                            if (error != null || !Boolean.TRUE.equals(paid)) {
+                                                if (essenceCost > 0 && error != null)
+                                                    delivery.give(
+                                                            owner,
+                                                            player.getName(),
+                                                            EssenceItem.create(
+                                                                    tier, required, essenceCost));
+                                                if (player.isOnline())
+                                                    player.sendMessage(
+                                                            Component.text(
+                                                                    error == null
+                                                                            ? "Écus insuffisants."
+                                                                                  + " Tes essences"
+                                                                                  + " ont été"
+                                                                                  + " rendues."
+                                                                            : "Achat impossible."
+                                                                                  + " Tes essences"
+                                                                                  + " ont été"
+                                                                                  + " rendues.",
+                                                                    NamedTextColor.RED));
+                                                if (error != null)
+                                                    plugin.getLogger()
+                                                            .log(
+                                                                    java.util.logging.Level.SEVERE,
+                                                                    "Achat marchand"
+                                                                            + " impossible",
+                                                                    error);
+                                            } else {
+                                                delivery.notifyAndDeliver(owner);
+                                                if (player.isOnline())
+                                                    player.sendMessage(
+                                                            Component.text(
+                                                                    "✦ Achat effectué !"
+                                                                            + " L’objet est"
+                                                                            + " livré ou"
+                                                                            + " disponible dans"
+                                                                            + " /claim.",
+                                                                    NamedTextColor.GREEN));
+                                            }
+                                        }));
+    }
+
+    @EventHandler
+    public void onDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (event.getView().getTopInventory().getHolder() instanceof Holder)
+            event.setCancelled(true);
     }
 
     @EventHandler
@@ -223,13 +397,40 @@ public final class MerchantMenu implements Listener {
         int armorEssence = armorEssenceUnits(tier);
         int swordEssence = swordEssenceUnits(tier);
         int slot = event.getSlot();
-        if (slot == SWORD_SLOT) purchase(player, tier, TierGear.createSword(tier), swordEcus, swordEssence);
-        else if (slot == HELMET_SLOT) purchase(player, tier, TierGear.createArmor(tier, TierGear.ArmorSlot.HELMET), armorEcus, armorEssence);
-        else if (slot == CHESTPLATE_SLOT) purchase(player, tier, TierGear.createArmor(tier, TierGear.ArmorSlot.CHESTPLATE), armorEcus, armorEssence);
-        else if (slot == LEGGINGS_SLOT) purchase(player, tier, TierGear.createArmor(tier, TierGear.ArmorSlot.LEGGINGS), armorEcus, armorEssence);
-        else if (slot == BOOTS_SLOT) purchase(player, tier, TierGear.createArmor(tier, TierGear.ArmorSlot.BOOTS), armorEcus, armorEssence);
-        else if (slot == COMPRESSOR_SLOT) purchase(player, tier, CompressorItem.create(tier), armorEcus, 0);
-        else if (slot == CHARM_SLOT) purchase(player, tier, CharmItem.create(tier), armorEcus, armorEssence);
+        if (slot == SWORD_SLOT)
+            purchase(player, tier, TierGear.createSword(tier), swordEcus, swordEssence);
+        else if (slot == HELMET_SLOT)
+            purchase(
+                    player,
+                    tier,
+                    TierGear.createArmor(tier, TierGear.ArmorSlot.HELMET),
+                    armorEcus,
+                    armorEssence);
+        else if (slot == CHESTPLATE_SLOT)
+            purchase(
+                    player,
+                    tier,
+                    TierGear.createArmor(tier, TierGear.ArmorSlot.CHESTPLATE),
+                    armorEcus,
+                    armorEssence);
+        else if (slot == LEGGINGS_SLOT)
+            purchase(
+                    player,
+                    tier,
+                    TierGear.createArmor(tier, TierGear.ArmorSlot.LEGGINGS),
+                    armorEcus,
+                    armorEssence);
+        else if (slot == BOOTS_SLOT)
+            purchase(
+                    player,
+                    tier,
+                    TierGear.createArmor(tier, TierGear.ArmorSlot.BOOTS),
+                    armorEcus,
+                    armorEssence);
+        else if (slot == COMPRESSOR_SLOT)
+            purchase(player, tier, CompressorItem.create(tier), armorEcus, 0);
+        else if (slot == CHARM_SLOT)
+            purchase(player, tier, CharmItem.create(tier), armorEcus, armorEssence);
         else {
             for (int i = 0; i < STEP_SLOTS.length; i++) {
                 if (STEP_SLOTS[i] != slot) continue;
@@ -237,11 +438,33 @@ public final class MerchantMenu implements Listener {
                 EssenceRarity next = rarity.next();
                 if (next == null) return;
                 if (EssenceItem.remove(player, tier, rarity, EssenceCompression.RATIO)) {
-                    fr.cliker.clikerv2.rewards.ItemDelivery.give(player, EssenceItem.create(tier, next, 1));
-                    player.sendMessage(Component.text("✦ " + EssenceCompression.RATIO + " " + rarity.label() + " ", NamedTextColor.GREEN)
-                            .append(Component.text("-> 1 " + next.label() + " " + tier.label() + " !", next.color())));
+                    fr.cliker.clikerv2.rewards.ItemDelivery.give(
+                            player, EssenceItem.create(tier, next, 1));
+                    player.sendMessage(
+                            Component.text(
+                                            "✦ "
+                                                    + EssenceCompression.RATIO
+                                                    + " "
+                                                    + rarity.label()
+                                                    + " ",
+                                            NamedTextColor.GREEN)
+                                    .append(
+                                            Component.text(
+                                                    "-> 1 "
+                                                            + next.label()
+                                                            + " "
+                                                            + tier.label()
+                                                            + " !",
+                                                    next.color())));
                 } else {
-                    player.sendMessage(Component.text("Pas assez d'Essences " + rarity.label() + " " + tier.label() + ".", NamedTextColor.RED));
+                    player.sendMessage(
+                            Component.text(
+                                    "Pas assez d'Essences "
+                                            + rarity.label()
+                                            + " "
+                                            + tier.label()
+                                            + ".",
+                                    NamedTextColor.RED));
                 }
                 decorateSteps(player, holder.inventory, tier);
                 return;
@@ -252,11 +475,25 @@ public final class MerchantMenu implements Listener {
                 EssenceRarity previous = rarity.previous();
                 if (previous == null) return;
                 if (EssenceItem.remove(player, tier, rarity, 1)) {
-                    fr.cliker.clikerv2.rewards.ItemDelivery.give(player, EssenceItem.create(tier, previous, EssenceCompression.RATIO));
-                    player.sendMessage(Component.text("✦ 1 " + rarity.label() + " ", NamedTextColor.YELLOW)
-                            .append(Component.text("-> " + EssenceCompression.RATIO + " " + previous.label() + " " + tier.label() + " !", previous.color())));
+                    fr.cliker.clikerv2.rewards.ItemDelivery.give(
+                            player, EssenceItem.create(tier, previous, EssenceCompression.RATIO));
+                    player.sendMessage(
+                            Component.text("✦ 1 " + rarity.label() + " ", NamedTextColor.YELLOW)
+                                    .append(
+                                            Component.text(
+                                                    "-> "
+                                                            + EssenceCompression.RATIO
+                                                            + " "
+                                                            + previous.label()
+                                                            + " "
+                                                            + tier.label()
+                                                            + " !",
+                                                    previous.color())));
                 } else {
-                    player.sendMessage(Component.text("Pas d'Essence " + rarity.label() + " " + tier.label() + ".", NamedTextColor.RED));
+                    player.sendMessage(
+                            Component.text(
+                                    "Pas d'Essence " + rarity.label() + " " + tier.label() + ".",
+                                    NamedTextColor.RED));
                 }
                 decorateSteps(player, holder.inventory, tier);
                 return;
@@ -267,7 +504,14 @@ public final class MerchantMenu implements Listener {
     private static final class Holder implements InventoryHolder {
         private final MobTier tier;
         private Inventory inventory;
-        private Holder(MobTier tier) { this.tier = tier; }
-        @Override public Inventory getInventory() { return inventory; }
+
+        private Holder(MobTier tier) {
+            this.tier = tier;
+        }
+
+        @Override
+        public Inventory getInventory() {
+            return inventory;
+        }
     }
 }

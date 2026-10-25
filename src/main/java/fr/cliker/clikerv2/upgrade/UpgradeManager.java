@@ -2,10 +2,10 @@ package fr.cliker.clikerv2.upgrade;
 
 import fr.cliker.clikerv2.EconomyService;
 import fr.cliker.clikerv2.Numbers;
-import fr.cliker.clikerv2.economy.CurrencyType;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -21,12 +21,12 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletionException;
 
 public final class UpgradeManager implements Listener {
     private final JavaPlugin plugin;
     private final UpgradeStore store;
     private final EconomyService economy;
+    private final java.util.Set<UUID> pending = new java.util.HashSet<>();
     private final Map<UUID, Map<UpgradeType, Integer>> cache = new HashMap<>();
 
     public UpgradeManager(JavaPlugin plugin, UpgradeStore store, EconomyService economy) {
@@ -41,14 +41,34 @@ public final class UpgradeManager implements Listener {
     }
 
     private void loadPlayer(Player player) {
-        store.getLevels(player.getUniqueId()).whenComplete((levels, error) -> plugin.getServer().getScheduler().runTask(plugin, () -> {
-            if (error != null) { plugin.getLogger().severe("Impossible de charger les upgrades : " + error.getMessage()); return; }
-            cache.put(player.getUniqueId(), levels);
-            if (player.isOnline()) applyAttributes(player, levels);
-        }));
+        store.getLevels(player.getUniqueId())
+                .whenComplete(
+                        (levels, error) ->
+                                plugin.getServer()
+                                        .getScheduler()
+                                        .runTask(
+                                                plugin,
+                                                () -> {
+                                                    if (error != null) {
+                                                        plugin.getLogger()
+                                                                .severe(
+                                                                        "Impossible de charger les"
+                                                                                + " upgrades : "
+                                                                                + error
+                                                                                        .getMessage());
+                                                        return;
+                                                    }
+                                                    if (!player.isOnline()) return;
+                                                    cache.put(player.getUniqueId(), levels);
+                                                    if (player.isOnline())
+                                                        applyAttributes(player, levels);
+                                                }));
     }
 
-    /** Recharge le cache pour tous les joueurs déjà connectés — nécessaire après un reload à chaud (PlugMan, /reload) qui ne redéclenche pas PlayerJoinEvent. */
+    /**
+     * Recharge le cache pour tous les joueurs déjà connectés — nécessaire après un reload à chaud
+     * (PlugMan, /reload) qui ne redéclenche pas PlayerJoinEvent.
+     */
     public void loadOnlinePlayers() {
         for (Player player : plugin.getServer().getOnlinePlayers()) loadPlayer(player);
     }
@@ -67,37 +87,88 @@ public final class UpgradeManager implements Listener {
     }
 
     public Map<UpgradeType, Integer> levelsOf(UUID uuid) {
-        return new EnumMap<>(cache.getOrDefault(uuid, Map.of()));
+        var result = new EnumMap<UpgradeType, Integer>(UpgradeType.class);
+        result.putAll(cache.getOrDefault(uuid, Map.of()));
+        return result;
     }
 
-    public void purchase(Player player, UpgradeType type) { purchase(player, type, null); }
+    public void purchase(Player player, UpgradeType type) {
+        purchase(player, type, null);
+    }
 
     public void purchase(Player player, UpgradeType type, Runnable onComplete) {
-        int currentLevel = getLevel(player.getUniqueId(), type);
-        if (currentLevel >= UpgradeType.MAX_LEVEL) {
-            player.sendMessage(Component.text(type.label() + " est déjà au niveau maximum (" + UpgradeType.MAX_LEVEL + ").", NamedTextColor.RED));
+        UUID owner = player.getUniqueId();
+        if (!cache.containsKey(owner)) {
+            player.sendMessage(
+                    Component.text(
+                            "Tes améliorations sont encore en cours de chargement.",
+                            NamedTextColor.YELLOW));
             if (onComplete != null) onComplete.run();
             return;
         }
-        int nextLevel = currentLevel + 1;
-        long costTenths = UpgradeType.costForLevel(nextLevel) * 10L;
-
-        economy.change(player.getUniqueId(), player.getName(), CurrencyType.GEMMES_SOMBRES, -costTenths).whenComplete((balance, error) ->
-                plugin.getServer().getScheduler().runTask(plugin, () -> {
-            if (error != null) {
-                Throwable cause = error instanceof CompletionException && error.getCause() != null ? error.getCause() : error;
-                player.sendMessage(Component.text(cause.getMessage() == null ? "Erreur : Gemmes Sombres insuffisantes." : cause.getMessage(), NamedTextColor.RED));
-                if (onComplete != null) onComplete.run();
-                return;
-            }
-            store.setLevel(player.getUniqueId(), type, nextLevel);
-            cache.computeIfAbsent(player.getUniqueId(), key -> new EnumMap<>(UpgradeType.class)).put(type, nextLevel);
-            applyAttributes(player, cache.get(player.getUniqueId()));
-            player.sendMessage(Component.text(type.symbol() + " " + type.label() + " ", type.color())
-                    .append(Component.text("niveau " + nextLevel + "/" + UpgradeType.MAX_LEVEL + " ! ", NamedTextColor.GREEN))
-                    .append(Component.text("(" + formatBonus(type, nextLevel) + " " + type.unitLabel() + ")", NamedTextColor.GRAY)));
-            if (onComplete != null) onComplete.run();
-        }));
+        if (!pending.add(owner)) return;
+        store.purchase(owner, type)
+                .whenComplete(
+                        (level, error) -> {
+                            if (!plugin.isEnabled()) return;
+                            plugin.getServer()
+                                    .getScheduler()
+                                    .runTask(
+                                            plugin,
+                                            () -> {
+                                                pending.remove(owner);
+                                                if (error != null) {
+                                                    plugin.getLogger()
+                                                            .log(
+                                                                    java.util.logging.Level.SEVERE,
+                                                                    "Achat d'amélioration"
+                                                                            + " impossible",
+                                                                    error);
+                                                    if (player.isOnline())
+                                                        player.sendMessage(
+                                                                Component.text(
+                                                                        "Achat impossible. Aucun"
+                                                                                + " débit validé.",
+                                                                        NamedTextColor.RED));
+                                                } else if (level < 0) {
+                                                    if (player.isOnline())
+                                                        player.sendMessage(
+                                                                Component.text(
+                                                                        level == -1
+                                                                                ? "Gemmes Sombres"
+                                                                                      + " insuffisantes."
+                                                                                : "Cette"
+                                                                                      + " amélioration"
+                                                                                      + " est déjà"
+                                                                                      + " au maximum.",
+                                                                        NamedTextColor.RED));
+                                                } else if (player.isOnline()) {
+                                                    cache.computeIfAbsent(
+                                                                    owner,
+                                                                    key ->
+                                                                            new EnumMap<>(
+                                                                                    UpgradeType
+                                                                                            .class))
+                                                            .put(type, level);
+                                                    applyAttributes(player, cache.get(owner));
+                                                    player.sendMessage(
+                                                            Component.text(
+                                                                    type.label()
+                                                                            + " : niveau "
+                                                                            + level
+                                                                            + "/"
+                                                                            + UpgradeType.MAX_LEVEL
+                                                                            + " ("
+                                                                            + formatBonus(
+                                                                                    type, level)
+                                                                            + " "
+                                                                            + type.unitLabel()
+                                                                            + ").",
+                                                                    NamedTextColor.GREEN));
+                                                }
+                                                if (onComplete != null) onComplete.run();
+                                            });
+                        });
     }
 
     public String formatBonus(UpgradeType type, int level) {
@@ -105,9 +176,21 @@ public final class UpgradeManager implements Listener {
     }
 
     private void applyAttributes(Player player, Map<UpgradeType, Integer> levels) {
-        applyAttribute(player, Attribute.MAX_HEALTH, "cliker_upgrade_vitalite", UpgradeType.VITALITE.bonusAt(levels.getOrDefault(UpgradeType.VITALITE, 0)));
-        applyAttribute(player, Attribute.MOVEMENT_SPEED, "cliker_upgrade_vitesse", UpgradeType.VITESSE.bonusAt(levels.getOrDefault(UpgradeType.VITESSE, 0)));
-        applyAttribute(player, Attribute.ARMOR, "cliker_upgrade_resistance", UpgradeType.RESISTANCE.bonusAt(levels.getOrDefault(UpgradeType.RESISTANCE, 0)));
+        applyAttribute(
+                player,
+                Attribute.MAX_HEALTH,
+                "cliker_upgrade_vitalite",
+                UpgradeType.VITALITE.bonusAt(levels.getOrDefault(UpgradeType.VITALITE, 0)));
+        applyAttribute(
+                player,
+                Attribute.MOVEMENT_SPEED,
+                "cliker_upgrade_vitesse",
+                UpgradeType.VITESSE.bonusAt(levels.getOrDefault(UpgradeType.VITESSE, 0)));
+        applyAttribute(
+                player,
+                Attribute.ARMOR,
+                "cliker_upgrade_resistance",
+                UpgradeType.RESISTANCE.bonusAt(levels.getOrDefault(UpgradeType.RESISTANCE, 0)));
     }
 
     private void applyAttribute(Player player, Attribute attribute, String key, double amount) {
@@ -117,7 +200,9 @@ public final class UpgradeManager implements Listener {
         AttributeModifier existing = instance.getModifier(modifierKey);
         if (existing != null) instance.removeModifier(modifierKey);
         if (amount > 0) {
-            instance.addModifier(new AttributeModifier(modifierKey, amount, AttributeModifier.Operation.ADD_NUMBER));
+            instance.addModifier(
+                    new AttributeModifier(
+                            modifierKey, amount, AttributeModifier.Operation.ADD_NUMBER));
         }
     }
 }

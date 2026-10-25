@@ -5,6 +5,20 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, DecentHolograms, Citizens, ItemsAdder]
 commands:
+  bestiaire:
+    description: Découvertes, gains cumulés et maîtrises par créature
+    permission: cliker.bestiaire
+  contrats:
+    description: Contrats quotidiens de chasse et PNJ
+    usage: /contrats [pnj spawn|remove]
+  raid:
+    description: Rejoindre l'arène coopérative
+    usage: /raid [quitter]
+    permission: cliker.raid
+  avantposte:
+    description: Terrain personnel, extensions, visites et richesse
+    aliases: [is, avantpostes]
+    permission: cliker.avantposte
   claim:
     description: Récupérer les récompenses en objets non livrées
     usage: /claim
@@ -142,6 +156,19 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.bestiaire:
+    default: true
+  cliker.contrats:
+    default: true
+  cliker.contrats.admin:
+    default: op
+  cliker.raid:
+    default: true
+  cliker.avantposte:
+    default: true
+  cliker.avantposte.admin:
+    description: Modifier les avant-postes de tous les joueurs
+    default: op
   cliker.claim:
     default: true
   cliker.parrein:
@@ -156,8 +183,8 @@ permissions:
     description: Créer ou supprimer les portails d'achat de zone
     default: op
   cliker.buyzone.bypass:
-    description: Traverser les portails sans devoir acheter les zones
-    default: op
+    description: Traverser les portails sans devoir acheter les zones (attribution explicite)
+    default: false
   cliker.daily.use:
     description: Ouvrir le calendrier et réclamer sa récompense journalière
     default: true

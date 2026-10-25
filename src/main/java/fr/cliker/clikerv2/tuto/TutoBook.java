@@ -3,6 +3,7 @@ package fr.cliker.clikerv2.tuto;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -14,19 +15,32 @@ public final class TutoBook {
     public static ItemStack create() {
         ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
         BookMeta meta = (BookMeta) book.getItemMeta();
-        meta.title(Component.text("Guide Northblue Cliker"));
-        meta.author(Component.text("Northblue"));
+        meta.title(Component.text("Guide ClickHunter"));
+        meta.author(Component.text("ClickHunter"));
 
         meta.addPages(
-                page("★ Bienvenue ★",
+                page(
+                        "✦ Tes activités",
+                        NamedTextColor.GREEN,
+                        "/menu : tout retrouver",
+                        "/bestiaire : tes découvertes",
+                        "/contrats : objectifs de chasse",
+                        "/raid : combat coopératif",
+                        "/avantposte : ton terrain",
+                        "/claim : objets en attente",
+                        "/daily : cadeau du jour",
+                        "/parrain <pseudo> : invitation"),
+                page(
+                        "★ Bienvenue ★",
                         NamedTextColor.LIGHT_PURPLE,
-                        "Bienvenue sur Northblue Cliker !",
+                        "Bienvenue sur ClickHunter !",
                         "",
                         "Ce livre explique toutes les mécaniques du serveur.",
                         "",
                         "Tourne les pages pour tout découvrir.",
                         "Retape /tuto à tout moment pour le relire."),
-                page("✦ Économie",
+                page(
+                        "✦ Économie",
                         NamedTextColor.GOLD,
                         "3 monnaies :",
                         "✦ Écus - monnaie principale",
@@ -35,16 +49,18 @@ public final class TutoBook {
                         "",
                         "/ecus /gemmes /cendres",
                         "pour voir ton solde."),
-                page("☠ Mobs Custom",
+                page(
+                        "☠ Mobs Custom",
                         NamedTextColor.RED,
-                        "19 mobs custom, Vache -> Warden,",
-                        "PV croissants (100 -> 100M).",
+                        "Des créatures à découvrir,",
+                        "de plus en plus résistantes.",
                         "",
                         "Ils sont figés, tape-les !",
                         "",
                         "/autoclick pour attaquer",
                         "automatiquement la cible visée."),
-                page("⚔ Stuff",
+                page(
+                        "⚔ Stuff",
                         NamedTextColor.RED,
                         "Chaque mob a son épée + armure,",
                         "disponibles au PNJ du mob.",
@@ -53,7 +69,8 @@ public final class TutoBook {
                         "= 8% des PV du mob d'origine.",
                         "",
                         "Set complet (épée+4 armure) = 40%."),
-                page("◆ Essences",
+                page(
+                        "◆ Essences",
                         NamedTextColor.YELLOW,
                         "Tuer un mob donne son essence",
                         "(Commune au départ).",
@@ -63,7 +80,8 @@ public final class TutoBook {
                         "au PNJ du mob.",
                         "",
                         "/sell pour vendre tes essences."),
-                page("⚒ Compresseur & Amulette",
+                page(
+                        "⚒ Compresseur & Amulette",
                         NamedTextColor.AQUA,
                         "Compresseur : dans l'inventaire,",
                         "compresse tes essences à chaque",
@@ -73,7 +91,8 @@ public final class TutoBook {
                         "passif tant qu'elle est portée.",
                         "",
                         "Les deux s'achètent au PNJ."),
-                page("🏪 PNJ Marchand",
+                page(
+                        "🏪 PNJ Marchand",
                         NamedTextColor.LIGHT_PURPLE,
                         "Un PNJ par mob : achète son",
                         "épée, son armure, son",
@@ -82,7 +101,8 @@ public final class TutoBook {
                         "",
                         "Compresse aussi tes essences",
                         "gratuitement sur place."),
-                page("✦ Enchant / Reforge / Runes",
+                page(
+                        "✦ Enchant / Reforge / Runes",
                         NamedTextColor.GREEN,
                         "/enchant, /reforge, /runes :",
                         "dépose ton épée/armure,",
@@ -90,10 +110,11 @@ public final class TutoBook {
                         "",
                         "Max 1 actif à la fois par item,",
                         "chaque tentative remplace",
-                        "le précédent (niveau I à XX)."),
-                page("⚔ Golems (Boss)",
+                        "le précédent. Enchants I-V, runes I-XX."),
+                page(
+                        "⚔ Golems (Boss)",
                         NamedTextColor.DARK_RED,
-                        "Un boss par mob (PV x10+),",
+                        "Un boss associé à chaque mob,",
                         "posé par un admin.",
                         "",
                         "Toute la vague apparaît",
@@ -101,7 +122,8 @@ public final class TutoBook {
                         "(annonce + barre de boss).",
                         "",
                         "Loot bien meilleur qu'un mob normal."),
-                page("★ Upgrades & Prestige",
+                page(
+                        "★ Upgrades & Prestige",
                         NamedTextColor.DARK_PURPLE,
                         "/upgrade : bonus permanents",
                         "payés en Gemmes Sombres.",
@@ -112,7 +134,8 @@ public final class TutoBook {
                         "",
                         "Niveau XP donne aussi",
                         "+0.1% dégâts/niveau."),
-                page("💰 Hôtel des Ventes",
+                page(
+                        "💰 Hôtel des Ventes",
                         NamedTextColor.GOLD,
                         "/ah : vends et achète des items",
                         "entre joueurs.",
@@ -122,7 +145,8 @@ public final class TutoBook {
                         "",
                         "Une annonce expire au bout",
                         "de 72h (item rendu)."),
-                page("✦ Et le reste",
+                page(
+                        "✦ Et le reste",
                         NamedTextColor.WHITE,
                         "Coffres du Nether : tu as une",
                         "chance d'en gagner en tuant",
@@ -134,18 +158,21 @@ public final class TutoBook {
                         "Hologrammes en jeu : classements",
                         "niveaux/kills/monnaies.",
                         "",
-                        "Bon jeu sur Northblue !")
-        );
+                        "Bon jeu sur ClickHunter !"));
 
         book.setItemMeta(meta);
         return book;
     }
 
     private static Component page(String title, NamedTextColor color, String... lines) {
-        Component page = Component.text(title, color, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false)
-                .append(Component.newline());
+        Component page =
+                Component.text(title, color, TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false)
+                        .append(Component.newline());
         for (String line : lines) {
-            page = page.append(Component.newline()).append(Component.text(line, NamedTextColor.BLACK));
+            page =
+                    page.append(Component.newline())
+                            .append(Component.text(line, NamedTextColor.BLACK));
         }
         return page;
     }

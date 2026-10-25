@@ -8,6 +8,7 @@ import fr.cliker.clikerv2.prestige.PrestigeType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -26,7 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-/** GUI /enchant : dépose une épée ou armure tier, enchante au hasard (type ET niveau I-XX) en Écus. Max 1 enchant actif à la fois. */
+/**
+ * GUI /enchant : dépose une épée ou armure tier, enchante au hasard (type ET niveau I-XX) en Écus.
+ * Max 1 enchant actif à la fois.
+ */
 public final class EnchantMenu implements Listener {
     private static final int DEPOSIT_SLOT = 4;
     private static final int BUTTON_SLOT = 13;
@@ -48,11 +52,20 @@ public final class EnchantMenu implements Listener {
         EnchantRoll.validate(weights);
     }
 
-    public void open(Player player) { open(player, null); }
+    public void open(Player player) {
+        open(player, null);
+    }
 
     public void open(Player player, ItemStack preload) {
         Holder holder = new Holder();
-        Inventory inventory = Bukkit.createInventory(holder, 27, Component.text("Table d'Enchantement", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD));
+        Inventory inventory =
+                Bukkit.createInventory(
+                        holder,
+                        27,
+                        Component.text(
+                                "Table d'Enchantement",
+                                NamedTextColor.LIGHT_PURPLE,
+                                TextDecoration.BOLD));
         holder.inventory = inventory;
         decorate(inventory);
         if (preload != null) {
@@ -88,27 +101,46 @@ public final class EnchantMenu implements Listener {
         }
         ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Enchanter", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(
+                Component.text("Enchanter", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
 
         List<Component> lore = new ArrayList<>();
-        lore.add(Component.text("Enchant actuel :", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text("Enchant actuel :", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false));
         boolean hasEnchant = false;
         for (EnchantType type : EnchantType.of(category)) {
             int level = ItemMods.getEnchantLevel(deposited, type);
             if (level <= 0) continue;
             hasEnchant = true;
-            lore.add(Component.text("  ■ " + type.label() + " ", type.color())
-                    .append(Component.text(PrestigeType.toRoman(level), NamedTextColor.WHITE)));
-            lore.add(Component.text("     " + type.description(), NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
+            lore.add(
+                    Component.text("  ■ " + type.label() + " ", type.color())
+                            .append(
+                                    Component.text(
+                                            PrestigeType.toRoman(level), NamedTextColor.WHITE)));
+            lore.add(
+                    Component.text("     " + type.description(), NamedTextColor.DARK_GRAY)
+                            .decoration(TextDecoration.ITALIC, false));
         }
         if (!hasEnchant) lore.add(Component.text("  aucun", NamedTextColor.WHITE));
         lore.add(Component.text(""));
-        lore.add(Component.text("1 seul actif, tiré au sort (I-V).", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text("Universel possible : tous les effets.", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text("1 seul actif, tiré au sort (I-V).", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text("Universel possible : tous les effets.", NamedTextColor.GOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(""));
-        lore.add(Component.text("Coût : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                .append(Component.text(Numbers.compact(cost) + " Écus", NamedTextColor.GOLD)));
-        lore.add(Component.text("Clique pour enchanter !", NamedTextColor.GREEN, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text("Coût : ", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
+                        .append(
+                                Component.text(
+                                        Numbers.compact(cost) + " Écus", NamedTextColor.GOLD)));
+        lore.add(
+                Component.text("Clique pour enchanter !", NamedTextColor.GREEN, TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
         inventory.setItem(BUTTON_SLOT, item);
@@ -117,8 +149,10 @@ public final class EnchantMenu implements Listener {
     private EnchantType.Category categoryOf(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return null;
         var pdc = item.getItemMeta().getPersistentDataContainer();
-        if (pdc.has(TierGear.SWORD_KEY, PersistentDataType.STRING)) return EnchantType.Category.SWORD;
-        if (pdc.has(TierGear.ARMOR_KEY, PersistentDataType.STRING)) return EnchantType.Category.ARMOR;
+        if (pdc.has(TierGear.SWORD_KEY, PersistentDataType.STRING))
+            return EnchantType.Category.SWORD;
+        if (pdc.has(TierGear.ARMOR_KEY, PersistentDataType.STRING))
+            return EnchantType.Category.ARMOR;
         return null;
     }
 
@@ -129,45 +163,52 @@ public final class EnchantMenu implements Listener {
 
         EnchantType[] options = EnchantType.of(category);
 
-        economy.change(player.getUniqueId(), player.getName(), CurrencyType.ECUS, -cost).whenComplete((balance, error) ->
-                Bukkit.getScheduler().runTask(plugin, () -> {
-            if (!player.isOnline()) return;
-            if (error != null) {
-                player.sendMessage(Component.text("Écus insuffisants.", NamedTextColor.RED));
-                return;
-            }
-            ItemStack current = inventory.getItem(DEPOSIT_SLOT);
-            if (current == null) return;
+        GearTransactions.apply(
+                plugin,
+                economy,
+                player,
+                inventory,
+                DEPOSIT_SLOT,
+                CurrencyType.ECUS,
+                cost,
+                current -> {
+                    EnchantType chosen =
+                            options[ThreadLocalRandom.current().nextInt(options.length)];
+                    int oldLevel = ItemMods.getEnchantLevel(current, chosen);
+                    int newLevel =
+                            EnchantRoll.level(weights, ThreadLocalRandom.current().nextDouble(100));
+                    ItemMods.clearEnchants(current);
 
-            EnchantType chosen = options[ThreadLocalRandom.current().nextInt(options.length)];
-            int oldLevel = ItemMods.getEnchantLevel(current, chosen);
-            int newLevel = EnchantRoll.level(weights, ThreadLocalRandom.current().nextDouble(100));
-            ItemMods.clearEnchants(current);
+                    if (chosen.isUniversal()) {
+                        for (EnchantType type : options)
+                            if (!type.isUniversal())
+                                ItemMods.setEnchantLevel(current, type, newLevel);
+                        GearLore.refresh(current);
+                        return;
+                    }
 
-            if (chosen.isUniversal()) {
-                for (EnchantType type : options) if (!type.isUniversal()) ItemMods.setEnchantLevel(current, type, newLevel);
-                GearLore.refresh(current);
-                inventory.setItem(DEPOSIT_SLOT, current);
-                player.sendMessage(Component.text("✦✦✦ ENCHANTEMENT UNIVERSEL ", NamedTextColor.GOLD, TextDecoration.BOLD)
-                        .append(Component.text("niveau " + PrestigeType.toRoman(newLevel) + " ! Tous les enchants actifs !", NamedTextColor.LIGHT_PURPLE)));
-                refreshButton(inventory);
-                return;
-            }
-
-            ItemMods.setEnchantLevel(current, chosen, newLevel);
-            GearLore.refresh(current);
-            inventory.setItem(DEPOSIT_SLOT, current);
-            NamedTextColor resultColor = newLevel > oldLevel ? NamedTextColor.GREEN : newLevel < oldLevel ? NamedTextColor.RED : NamedTextColor.YELLOW;
-            player.sendMessage(Component.text("🎲 " + chosen.label() + " ", chosen.color())
-                    .append(Component.text("niveau " + PrestigeType.toRoman(newLevel) + " !", resultColor)));
-            refreshButton(inventory);
-        }));
+                    ItemMods.setEnchantLevel(current, chosen, newLevel);
+                    GearLore.refresh(current);
+                    NamedTextColor resultColor =
+                            newLevel > oldLevel
+                                    ? NamedTextColor.GREEN
+                                    : newLevel < oldLevel
+                                            ? NamedTextColor.RED
+                                            : NamedTextColor.YELLOW;
+                },
+                () -> refreshButton(inventory));
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof Holder holder)) return;
         if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (GearTransactions.busy(holder.inventory)
+                || event.isShiftClick()
+                || event.getClick() == org.bukkit.event.inventory.ClickType.DOUBLE_CLICK) {
+            event.setCancelled(true);
+            return;
+        }
         if (event.getClickedInventory() != event.getView().getTopInventory()) return;
 
         int slot = event.getSlot();
@@ -177,6 +218,17 @@ public final class EnchantMenu implements Listener {
         }
         event.setCancelled(true);
         if (slot == BUTTON_SLOT) enchant(player, holder.inventory);
+    }
+
+    @EventHandler
+    public void onDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (!(event.getView().getTopInventory().getHolder() instanceof Holder holder)) return;
+        if (GearTransactions.busy(holder.inventory)
+                || event.getRawSlots().stream()
+                        .anyMatch(
+                                slot -> slot < holder.inventory.getSize() && slot != DEPOSIT_SLOT))
+            event.setCancelled(true);
+        else Bukkit.getScheduler().runTask(plugin, () -> refreshButton(holder.inventory));
     }
 
     @EventHandler
@@ -191,6 +243,10 @@ public final class EnchantMenu implements Listener {
 
     private static final class Holder implements InventoryHolder {
         private Inventory inventory;
-        @Override public Inventory getInventory() { return inventory; }
+
+        @Override
+        public Inventory getInventory() {
+            return inventory;
+        }
     }
 }

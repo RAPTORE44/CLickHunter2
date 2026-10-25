@@ -16,25 +16,134 @@ public final class PrestigeStore {
     }
 
     public CompletableFuture<Integer> getLevel(UUID uuid) {
-        return database.submit(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("SELECT level FROM player_prestige WHERE uuid = ?")) {
-                statement.setString(1, uuid.toString());
-                try (ResultSet result = statement.executeQuery()) {
-                    return result.next() ? result.getInt("level") : 0;
-                }
-            } catch (SQLException exception) { throw new DatabaseManager.DatabaseException(exception); }
-        });
+        return database.submit(
+                connection -> {
+                    try (PreparedStatement statement =
+                            connection.prepareStatement(
+                                    "SELECT level FROM player_prestige WHERE uuid = ?")) {
+                        statement.setString(1, uuid.toString());
+                        try (ResultSet result = statement.executeQuery()) {
+                            return result.next() ? result.getInt("level") : 0;
+                        }
+                    } catch (SQLException exception) {
+                        throw new DatabaseManager.DatabaseException(exception);
+                    }
+                });
+    }
+
+    public record Reset(int level, long earnedXP) {}
+
+    public CompletableFuture<Boolean> advance(UUID owner, int expected, long requiredKills) {
+        return database.submit(
+                c -> {
+                    try {
+                        c.setAutoCommit(false);
+                        int current = 0;
+                        long kills = 0, xp = 0;
+                        try (var s =
+                                c.prepareStatement(
+                                        "SELECT level FROM player_prestige WHERE uuid=?")) {
+                            s.setString(1, owner.toString());
+                            try (var rs = s.executeQuery()) {
+                                if (rs.next()) current = rs.getInt(1);
+                            }
+                        }
+                        try (var s =
+                                c.prepareStatement(
+                                        "SELECT total FROM player_mob_kills WHERE uuid=?")) {
+                            s.setString(1, owner.toString());
+                            try (var rs = s.executeQuery()) {
+                                if (rs.next()) kills = rs.getLong(1);
+                            }
+                        }
+                        if (current != expected || current >= 100 || kills < requiredKills) {
+                            c.rollback();
+                            return false;
+                        }
+                        try (var s =
+                                c.prepareStatement("SELECT total FROM earned_xp WHERE owner=?")) {
+                            s.setString(1, owner.toString());
+                            try (var rs = s.executeQuery()) {
+                                if (rs.next()) xp = rs.getLong(1);
+                            }
+                        }
+                        try (var s =
+                                c.prepareStatement(
+                                        "INSERT INTO player_prestige(uuid,level) VALUES(?,?) ON"
+                                                + " CONFLICT(uuid) DO UPDATE SET"
+                                                + " level=excluded.level")) {
+                            s.setString(1, owner.toString());
+                            s.setInt(2, current + 1);
+                            s.executeUpdate();
+                        }
+                        try (var s =
+                                c.prepareStatement(
+                                        "INSERT INTO prestige_resets(owner,level,earned_xp)"
+                                            + " VALUES(?,?,?) ON CONFLICT(owner) DO UPDATE SET"
+                                            + " level=excluded.level,earned_xp=excluded.earned_xp")) {
+                            s.setString(1, owner.toString());
+                            s.setInt(2, current + 1);
+                            s.setLong(3, xp);
+                            s.executeUpdate();
+                        }
+                        c.commit();
+                        return true;
+                    } catch (SQLException e) {
+                        try {
+                            c.rollback();
+                        } catch (SQLException ignored) {
+                        }
+                        throw new DatabaseManager.DatabaseException(e);
+                    }
+                });
+    }
+
+    public CompletableFuture<Reset> pendingReset(UUID owner) {
+        return database.submit(
+                c -> {
+                    try (var s =
+                            c.prepareStatement(
+                                    "SELECT level,earned_xp FROM prestige_resets WHERE owner=?")) {
+                        s.setString(1, owner.toString());
+                        try (var rs = s.executeQuery()) {
+                            return rs.next() ? new Reset(rs.getInt(1), rs.getLong(2)) : null;
+                        }
+                    } catch (SQLException e) {
+                        throw new DatabaseManager.DatabaseException(e);
+                    }
+                });
+    }
+
+    public CompletableFuture<Void> acknowledgeReset(UUID owner, int level) {
+        return database.submit(
+                c -> {
+                    try (var s =
+                            c.prepareStatement(
+                                    "DELETE FROM prestige_resets WHERE owner=? AND level=?")) {
+                        s.setString(1, owner.toString());
+                        s.setInt(2, level);
+                        s.executeUpdate();
+                        return null;
+                    } catch (SQLException e) {
+                        throw new DatabaseManager.DatabaseException(e);
+                    }
+                });
     }
 
     public CompletableFuture<Void> setLevel(UUID uuid, int level) {
-        return database.submit(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO player_prestige (uuid, level) VALUES (?, ?) ON CONFLICT(uuid) DO UPDATE SET level = excluded.level")) {
-                statement.setString(1, uuid.toString());
-                statement.setInt(2, level);
-                statement.executeUpdate();
-            } catch (SQLException exception) { throw new DatabaseManager.DatabaseException(exception); }
-            return null;
-        });
+        return database.submit(
+                connection -> {
+                    try (PreparedStatement statement =
+                            connection.prepareStatement(
+                                    "INSERT INTO player_prestige (uuid, level) VALUES (?, ?) ON"
+                                        + " CONFLICT(uuid) DO UPDATE SET level = excluded.level")) {
+                        statement.setString(1, uuid.toString());
+                        statement.setInt(2, level);
+                        statement.executeUpdate();
+                    } catch (SQLException exception) {
+                        throw new DatabaseManager.DatabaseException(exception);
+                    }
+                    return null;
+                });
     }
 }

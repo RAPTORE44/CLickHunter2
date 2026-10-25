@@ -8,6 +8,7 @@ import fr.cliker.clikerv2.economy.CurrencyType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -25,7 +26,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.ArrayList;
 import java.util.List;
 
-/** GUI /reforge : dépose une épée ou armure tier, applique un préfixe aléatoire en Gemmes Sombres. */
+/**
+ * GUI /reforge : dépose une épée ou armure tier, applique un préfixe aléatoire en Gemmes Sombres.
+ */
 public final class ReforgeMenu implements Listener {
     private static final int DEPOSIT_SLOT = 4;
     private static final int BUTTON_SLOT = 13;
@@ -38,11 +41,20 @@ public final class ReforgeMenu implements Listener {
         this.economy = economy;
     }
 
-    public void open(Player player) { open(player, null); }
+    public void open(Player player) {
+        open(player, null);
+    }
 
     public void open(Player player, ItemStack preload) {
         Holder holder = new Holder();
-        Inventory inventory = Bukkit.createInventory(holder, 27, Component.text("Enclume de Reforge", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD));
+        Inventory inventory =
+                Bukkit.createInventory(
+                        holder,
+                        27,
+                        Component.text(
+                                "Enclume de Reforge",
+                                NamedTextColor.LIGHT_PURPLE,
+                                TextDecoration.BOLD));
         holder.inventory = inventory;
         decorate(inventory);
         if (preload != null) {
@@ -82,20 +94,40 @@ public final class ReforgeMenu implements Listener {
 
         ItemStack item = new ItemStack(Material.ANVIL);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Reforger", NamedTextColor.GOLD, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(
+                Component.text("Reforger", NamedTextColor.GOLD, TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
 
         List<Component> lore = new ArrayList<>();
-        lore.add(Component.text("Reforge actuelle : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                .append(current == null ? Component.text("aucune", NamedTextColor.WHITE) : Component.text(current.label(), current.color())));
+        lore.add(
+                Component.text("Reforge actuelle : ", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
+                        .append(
+                                current == null
+                                        ? Component.text("aucune", NamedTextColor.WHITE)
+                                        : Component.text(current.label(), current.color())));
         if (current != null) {
-            lore.add(Component.text("  " + current.description(), NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
+            lore.add(
+                    Component.text("  " + current.description(), NamedTextColor.DARK_GRAY)
+                            .decoration(TextDecoration.ITALIC, false));
         }
         lore.add(Component.text(""));
-        lore.add(Component.text("Résultat aléatoire parmi les préfixes de cette catégorie.", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text(
+                                "Résultat aléatoire parmi les préfixes de cette catégorie.",
+                                NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(""));
-        lore.add(Component.text("Coût : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                .append(Component.text(Numbers.compact(cost) + " Gemmes Sombres", NamedTextColor.DARK_PURPLE)));
-        lore.add(Component.text("Clique pour reforger !", NamedTextColor.GREEN, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text("Coût : ", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
+                        .append(
+                                Component.text(
+                                        Numbers.compact(cost) + " Gemmes Sombres",
+                                        NamedTextColor.DARK_PURPLE)));
+        lore.add(
+                Component.text("Clique pour reforger !", NamedTextColor.GREEN, TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
         inventory.setItem(BUTTON_SLOT, item);
@@ -104,8 +136,10 @@ public final class ReforgeMenu implements Listener {
     private EnchantType.Category categoryOf(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return null;
         var pdc = item.getItemMeta().getPersistentDataContainer();
-        if (pdc.has(TierGear.SWORD_KEY, PersistentDataType.STRING)) return EnchantType.Category.SWORD;
-        if (pdc.has(TierGear.ARMOR_KEY, PersistentDataType.STRING)) return EnchantType.Category.ARMOR;
+        if (pdc.has(TierGear.SWORD_KEY, PersistentDataType.STRING))
+            return EnchantType.Category.SWORD;
+        if (pdc.has(TierGear.ARMOR_KEY, PersistentDataType.STRING))
+            return EnchantType.Category.ARMOR;
         return null;
     }
 
@@ -123,29 +157,32 @@ public final class ReforgeMenu implements Listener {
         MobTier tier = tierOf(deposited);
         long costTenths = ReforgeType.cost(tier) * 10L;
 
-        economy.change(player.getUniqueId(), player.getName(), CurrencyType.GEMMES_SOMBRES, -costTenths).whenComplete((balance, error) ->
-                Bukkit.getScheduler().runTask(plugin, () -> {
-            if (!player.isOnline()) return;
-            if (error != null) {
-                player.sendMessage(Component.text("Gemmes Sombres insuffisantes.", NamedTextColor.RED));
-                return;
-            }
-            ItemStack current = inventory.getItem(DEPOSIT_SLOT);
-            if (current == null) return;
-            ReforgeType result = ReforgeType.randomFor(category);
-            ItemMods.setReforge(current, result);
-            GearLore.refresh(current);
-            inventory.setItem(DEPOSIT_SLOT, current);
-            player.sendMessage(Component.text("⚒ Reforge : ", NamedTextColor.GRAY)
-                    .append(Component.text(result.label() + " !", result.color(), TextDecoration.BOLD)));
-            refreshButton(inventory);
-        }));
+        GearTransactions.apply(
+                plugin,
+                economy,
+                player,
+                inventory,
+                DEPOSIT_SLOT,
+                CurrencyType.GEMMES_SOMBRES,
+                costTenths,
+                current -> {
+                    ReforgeType result = ReforgeType.randomFor(category);
+                    ItemMods.setReforge(current, result);
+                    GearLore.refresh(current);
+                },
+                () -> refreshButton(inventory));
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof Holder holder)) return;
         if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (GearTransactions.busy(holder.inventory)
+                || event.isShiftClick()
+                || event.getClick() == org.bukkit.event.inventory.ClickType.DOUBLE_CLICK) {
+            event.setCancelled(true);
+            return;
+        }
         if (event.getClickedInventory() != event.getView().getTopInventory()) return;
 
         int slot = event.getSlot();
@@ -155,6 +192,17 @@ public final class ReforgeMenu implements Listener {
         }
         event.setCancelled(true);
         if (slot == BUTTON_SLOT) reforge(player, holder.inventory);
+    }
+
+    @EventHandler
+    public void onDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (!(event.getView().getTopInventory().getHolder() instanceof Holder holder)) return;
+        if (GearTransactions.busy(holder.inventory)
+                || event.getRawSlots().stream()
+                        .anyMatch(
+                                slot -> slot < holder.inventory.getSize() && slot != DEPOSIT_SLOT))
+            event.setCancelled(true);
+        else Bukkit.getScheduler().runTask(plugin, () -> refreshButton(holder.inventory));
     }
 
     @EventHandler
@@ -169,6 +217,10 @@ public final class ReforgeMenu implements Listener {
 
     private static final class Holder implements InventoryHolder {
         private Inventory inventory;
-        @Override public Inventory getInventory() { return inventory; }
+
+        @Override
+        public Inventory getInventory() {
+            return inventory;
+        }
     }
 }

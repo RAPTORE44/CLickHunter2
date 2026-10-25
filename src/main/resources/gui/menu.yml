@@ -87,3 +87,32 @@ boutons:
     nom: '&cFermer'
     description: []
     commande: ''
+
+  bestiaire:
+    slot: 19
+    materiau: BOOK
+    nom: '&2Bestiaire et maîtrises'
+    description: ['&7Découvre les créatures et suis tes gains.', '&eClique pour consulter.']
+    commande: bestiaire
+    permission: cliker.bestiaire
+  contrats:
+    slot: 22
+    materiau: PAPER
+    nom: '&6Contrats de chasse'
+    description: ['&7Accepte des objectifs quotidiens.', '&eClique pour consulter.']
+    commande: contrats
+    permission: cliker.contrats
+  raid:
+    slot: 25
+    materiau: IRON_SWORD
+    nom: '&cRaid coopératif'
+    description: ['&7Affronte le Gardien colossal avec les autres joueurs.', '&7Sans PvP. Récompenses selon tes dégâts.', '&cÉquipement avancé conseillé pour le boss.', '&eClique pour rejoindre.']
+    commande: raid
+    permission: cliker.raid
+  avantposte:
+    slot: 28
+    materiau: GRASS_BLOCK
+    nom: '&aMon avant-poste'
+    description: ['&7Construis, agrandis et invite tes amis.', '&eClique pour ouvrir.']
+    commande: avantposte
+    permission: cliker.avantposte

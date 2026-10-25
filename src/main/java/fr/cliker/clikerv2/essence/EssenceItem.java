@@ -5,6 +5,7 @@ import fr.cliker.clikerv2.MobTier;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -33,8 +34,16 @@ public final class EssenceItem {
     public static ItemStack create(MobTier tier, EssenceRarity rarity, int amount) {
         ItemStack item = new ItemStack(spawnEggFor(tier), amount);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text(rarity.label() + " " + tier.essenceName(), NamedTextColor.YELLOW, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
-        meta.lore(List.of(Component.text(rarity.label(), rarity.color()).decoration(TextDecoration.ITALIC, false)));
+        meta.displayName(
+                Component.text(
+                                rarity.label() + " " + tier.essenceName(),
+                                NamedTextColor.YELLOW,
+                                TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
+        meta.lore(
+                List.of(
+                        Component.text(rarity.label(), rarity.color())
+                                .decoration(TextDecoration.ITALIC, false)));
         meta.getPersistentDataContainer().set(TIER_KEY, PersistentDataType.STRING, tier.id());
         meta.getPersistentDataContainer().set(RARITY_KEY, PersistentDataType.STRING, rarity.name());
         item.setItemMeta(meta);
@@ -49,11 +58,16 @@ public final class EssenceItem {
     }
 
     public static EssenceRarity rarityOf(ItemStack item) {
-        if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) return EssenceRarity.COMMUNE;
+        if (item == null || item.getType() == Material.AIR || !item.hasItemMeta())
+            return EssenceRarity.COMMUNE;
         ItemMeta meta = item.getItemMeta();
         String id = meta.getPersistentDataContainer().get(RARITY_KEY, PersistentDataType.STRING);
         if (id == null) return EssenceRarity.COMMUNE;
-        try { return EssenceRarity.valueOf(id); } catch (IllegalArgumentException invalid) { return EssenceRarity.COMMUNE; }
+        try {
+            return EssenceRarity.valueOf(id);
+        } catch (IllegalArgumentException invalid) {
+            return EssenceRarity.COMMUNE;
+        }
     }
 
     public static int count(org.bukkit.entity.Player player, MobTier tier, EssenceRarity rarity) {
@@ -64,8 +78,12 @@ public final class EssenceItem {
         return total;
     }
 
-    /** Retire `amount` essences du tier/rareté donnés. Retourne false (sans rien retirer) si le joueur n'en a pas assez. */
-    public static boolean remove(org.bukkit.entity.Player player, MobTier tier, EssenceRarity rarity, int amount) {
+    /**
+     * Retire `amount` essences du tier/rareté donnés. Retourne false (sans rien retirer) si le
+     * joueur n'en a pas assez.
+     */
+    public static boolean remove(
+            org.bukkit.entity.Player player, MobTier tier, EssenceRarity rarity, int amount) {
         if (count(player, tier, rarity) < amount) return false;
         int remaining = amount;
         ItemStack[] contents = player.getInventory().getStorageContents();
@@ -74,6 +92,7 @@ public final class EssenceItem {
             if (tierOf(stack) != tier || rarityOf(stack) != rarity) continue;
             int take = Math.min(remaining, stack.getAmount());
             stack.setAmount(stack.getAmount() - take);
+            player.getInventory().setItem(slot, stack.getAmount() == 0 ? null : stack);
             remaining -= take;
         }
         return true;

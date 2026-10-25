@@ -8,6 +8,7 @@ import fr.cliker.clikerv2.prestige.PrestigeType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -26,7 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-/** GUI /runes : dépose une épée ou armure tier, grave une rune au hasard (type ET niveau I-XX) en Cendres. Max 1 rune active à la fois. */
+/**
+ * GUI /runes : dépose une épée ou armure tier, grave une rune au hasard (type ET niveau I-XX) en
+ * Cendres. Max 1 rune active à la fois.
+ */
 public final class RuneMenu implements Listener {
     private static final int DEPOSIT_SLOT = 4;
     private static final int BUTTON_SLOT = 13;
@@ -40,11 +44,20 @@ public final class RuneMenu implements Listener {
         this.economy = economy;
     }
 
-    public void open(Player player) { open(player, null); }
+    public void open(Player player) {
+        open(player, null);
+    }
 
     public void open(Player player, ItemStack preload) {
         Holder holder = new Holder();
-        Inventory inventory = Bukkit.createInventory(holder, 27, Component.text("Table de Runes", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD));
+        Inventory inventory =
+                Bukkit.createInventory(
+                        holder,
+                        27,
+                        Component.text(
+                                "Table de Runes",
+                                NamedTextColor.LIGHT_PURPLE,
+                                TextDecoration.BOLD));
         holder.inventory = inventory;
         decorate(inventory);
         if (preload != null) {
@@ -80,24 +93,43 @@ public final class RuneMenu implements Listener {
         }
         ItemStack item = new ItemStack(Material.NETHER_STAR);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Component.text("Graver une rune", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(
+                Component.text("Graver une rune", NamedTextColor.LIGHT_PURPLE, TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
 
         List<Component> lore = new ArrayList<>();
-        lore.add(Component.text("Runes actuelles :", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text("Runes actuelles :", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false));
         for (RuneType type : RuneType.of(category)) {
             int level = ItemMods.getRuneLevel(deposited, type);
             if (level <= 0) continue;
-            lore.add(Component.text("  ◆ " + type.label() + " ", type.color())
-                    .append(Component.text(PrestigeType.toRoman(level), NamedTextColor.WHITE)));
-            lore.add(Component.text("     " + type.description(), NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
+            lore.add(
+                    Component.text("  ◆ " + type.label() + " ", type.color())
+                            .append(
+                                    Component.text(
+                                            PrestigeType.toRoman(level), NamedTextColor.WHITE)));
+            lore.add(
+                    Component.text("     " + type.description(), NamedTextColor.DARK_GRAY)
+                            .decoration(TextDecoration.ITALIC, false));
         }
         lore.add(Component.text(""));
-        lore.add(Component.text("1 seule active, tirée au sort (I-XV).", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false));
-        lore.add(Component.text("Universelle possible : tous les effets.", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text("1 seule active, tirée au sort (I-XV).", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text("Universelle possible : tous les effets.", NamedTextColor.GOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         lore.add(Component.text(""));
-        lore.add(Component.text("Coût : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                .append(Component.text(Numbers.compact(COST) + " Cendres", NamedTextColor.GRAY)));
-        lore.add(Component.text("Clique pour graver !", NamedTextColor.GREEN, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        lore.add(
+                Component.text("Coût : ", NamedTextColor.GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
+                        .append(
+                                Component.text(
+                                        Numbers.compact(COST) + " Cendres", NamedTextColor.GRAY)));
+        lore.add(
+                Component.text("Clique pour graver !", NamedTextColor.GREEN, TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         meta.lore(lore);
         item.setItemMeta(meta);
         inventory.setItem(BUTTON_SLOT, item);
@@ -106,8 +138,10 @@ public final class RuneMenu implements Listener {
     private EnchantType.Category categoryOf(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return null;
         var pdc = item.getItemMeta().getPersistentDataContainer();
-        if (pdc.has(TierGear.SWORD_KEY, PersistentDataType.STRING)) return EnchantType.Category.SWORD;
-        if (pdc.has(TierGear.ARMOR_KEY, PersistentDataType.STRING)) return EnchantType.Category.ARMOR;
+        if (pdc.has(TierGear.SWORD_KEY, PersistentDataType.STRING))
+            return EnchantType.Category.SWORD;
+        if (pdc.has(TierGear.ARMOR_KEY, PersistentDataType.STRING))
+            return EnchantType.Category.ARMOR;
         return null;
     }
 
@@ -117,45 +151,49 @@ public final class RuneMenu implements Listener {
         if (category == null) return;
         RuneType[] pool = RuneType.of(category);
 
-        economy.change(player.getUniqueId(), player.getName(), CurrencyType.CENDRES, -COST).whenComplete((balance, error) ->
-                Bukkit.getScheduler().runTask(plugin, () -> {
-            if (!player.isOnline()) return;
-            if (error != null) {
-                player.sendMessage(Component.text("Cendres insuffisantes.", NamedTextColor.RED));
-                return;
-            }
-            ItemStack current = inventory.getItem(DEPOSIT_SLOT);
-            if (current == null) return;
+        GearTransactions.apply(
+                plugin,
+                economy,
+                player,
+                inventory,
+                DEPOSIT_SLOT,
+                CurrencyType.CENDRES,
+                COST,
+                current -> {
+                    RuneType chosen = pool[ThreadLocalRandom.current().nextInt(pool.length)];
+                    int oldLevel = ItemMods.getRuneLevel(current, chosen);
+                    int newLevel = 1 + ThreadLocalRandom.current().nextInt(RuneType.MAX_LEVEL);
+                    ItemMods.clearRunes(current);
 
-            RuneType chosen = pool[ThreadLocalRandom.current().nextInt(pool.length)];
-            int oldLevel = ItemMods.getRuneLevel(current, chosen);
-            int newLevel = 1 + ThreadLocalRandom.current().nextInt(RuneType.MAX_LEVEL);
-            ItemMods.clearRunes(current);
+                    if (chosen.isUniversal()) {
+                        for (RuneType type : pool)
+                            if (!type.isUniversal()) ItemMods.setRuneLevel(current, type, newLevel);
+                        GearLore.refresh(current);
+                        return;
+                    }
 
-            if (chosen.isUniversal()) {
-                for (RuneType type : pool) if (!type.isUniversal()) ItemMods.setRuneLevel(current, type, newLevel);
-                GearLore.refresh(current);
-                inventory.setItem(DEPOSIT_SLOT, current);
-                player.sendMessage(Component.text("✦✦✦ RUNE UNIVERSELLE ", NamedTextColor.GOLD, TextDecoration.BOLD)
-                        .append(Component.text("niveau " + PrestigeType.toRoman(newLevel) + " ! Toutes les runes actives !", NamedTextColor.LIGHT_PURPLE)));
-                refreshButton(inventory);
-                return;
-            }
-
-            ItemMods.setRuneLevel(current, chosen, newLevel);
-            GearLore.refresh(current);
-            inventory.setItem(DEPOSIT_SLOT, current);
-            NamedTextColor resultColor = newLevel > oldLevel ? NamedTextColor.GREEN : newLevel < oldLevel ? NamedTextColor.RED : NamedTextColor.YELLOW;
-            player.sendMessage(Component.text("🎲 Rune " + chosen.label() + " ", chosen.color())
-                    .append(Component.text("niveau " + PrestigeType.toRoman(newLevel) + " !", resultColor)));
-            refreshButton(inventory);
-        }));
+                    ItemMods.setRuneLevel(current, chosen, newLevel);
+                    GearLore.refresh(current);
+                    NamedTextColor resultColor =
+                            newLevel > oldLevel
+                                    ? NamedTextColor.GREEN
+                                    : newLevel < oldLevel
+                                            ? NamedTextColor.RED
+                                            : NamedTextColor.YELLOW;
+                },
+                () -> refreshButton(inventory));
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof Holder holder)) return;
         if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (GearTransactions.busy(holder.inventory)
+                || event.isShiftClick()
+                || event.getClick() == org.bukkit.event.inventory.ClickType.DOUBLE_CLICK) {
+            event.setCancelled(true);
+            return;
+        }
         if (event.getClickedInventory() != event.getView().getTopInventory()) return;
 
         int slot = event.getSlot();
@@ -165,6 +203,17 @@ public final class RuneMenu implements Listener {
         }
         event.setCancelled(true);
         if (slot == BUTTON_SLOT) engrave(player, holder.inventory);
+    }
+
+    @EventHandler
+    public void onDrag(org.bukkit.event.inventory.InventoryDragEvent event) {
+        if (!(event.getView().getTopInventory().getHolder() instanceof Holder holder)) return;
+        if (GearTransactions.busy(holder.inventory)
+                || event.getRawSlots().stream()
+                        .anyMatch(
+                                slot -> slot < holder.inventory.getSize() && slot != DEPOSIT_SLOT))
+            event.setCancelled(true);
+        else Bukkit.getScheduler().runTask(plugin, () -> refreshButton(holder.inventory));
     }
 
     @EventHandler
@@ -179,6 +228,10 @@ public final class RuneMenu implements Listener {
 
     private static final class Holder implements InventoryHolder {
         private Inventory inventory;
-        @Override public Inventory getInventory() { return inventory; }
+
+        @Override
+        public Inventory getInventory() {
+            return inventory;
+        }
     }
 }

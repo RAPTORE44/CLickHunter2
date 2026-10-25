@@ -4,6 +4,12 @@ import fr.cliker.clikerv2.auction.AuctionCommand;
 import fr.cliker.clikerv2.auction.AuctionManager;
 import fr.cliker.clikerv2.auction.AuctionMenu;
 import fr.cliker.clikerv2.auction.AuctionStore;
+import fr.cliker.clikerv2.bag.BagCommand;
+import fr.cliker.clikerv2.bag.BagManager;
+import fr.cliker.clikerv2.bag.BagMenu;
+import fr.cliker.clikerv2.bag.BagStore;
+import fr.cliker.clikerv2.bag.TalismanCommand;
+import fr.cliker.clikerv2.bag.TalismanItem;
 import fr.cliker.clikerv2.combat.AutoClickManager;
 import fr.cliker.clikerv2.combat.DeathLogFilter;
 import fr.cliker.clikerv2.combat.StarterSwordListener;
@@ -45,16 +51,7 @@ import fr.cliker.clikerv2.lootbox.LootboxManager;
 import fr.cliker.clikerv2.merchant.MerchantCommand;
 import fr.cliker.clikerv2.merchant.MerchantManager;
 import fr.cliker.clikerv2.merchant.MerchantMenu;
-import fr.cliker.clikerv2.bag.BagCommand;
-import fr.cliker.clikerv2.bag.BagManager;
-import fr.cliker.clikerv2.bag.BagMenu;
-import fr.cliker.clikerv2.bag.BagStore;
-import fr.cliker.clikerv2.bag.TalismanCommand;
-import fr.cliker.clikerv2.bag.TalismanItem;
 import fr.cliker.clikerv2.merchant.MerchantStore;
-import fr.cliker.clikerv2.station.StationCommand;
-import fr.cliker.clikerv2.station.StationManager;
-import fr.cliker.clikerv2.station.StationStore;
 import fr.cliker.clikerv2.mobs.BossEventManager;
 import fr.cliker.clikerv2.mobs.CustomMobManager;
 import fr.cliker.clikerv2.mobs.MobKillStore;
@@ -71,6 +68,9 @@ import fr.cliker.clikerv2.spawn.SetSpawnCommand;
 import fr.cliker.clikerv2.spawn.SpawnCommand;
 import fr.cliker.clikerv2.spawn.SpawnManager;
 import fr.cliker.clikerv2.spawn.SpawnStore;
+import fr.cliker.clikerv2.station.StationCommand;
+import fr.cliker.clikerv2.station.StationManager;
+import fr.cliker.clikerv2.station.StationStore;
 import fr.cliker.clikerv2.tuto.TutoCommand;
 import fr.cliker.clikerv2.tuto.TutoJoinListener;
 import fr.cliker.clikerv2.upgrade.UpgradeCommand;
@@ -85,7 +85,12 @@ import java.sql.SQLException;
 import java.util.EnumMap;
 import java.util.Map;
 
-public final class ClikerPlugin extends JavaPlugin {
+public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.Listener {
+    private fr.cliker.clikerv2.hunting.RewardLedger rewardLedger;
+    private fr.cliker.clikerv2.hunting.HuntingModule huntingModule;
+    private fr.cliker.clikerv2.raid.RaidModule raidModule;
+    private fr.cliker.clikerv2.outpost.OutpostModule outpostModule;
+    private fr.cliker.clikerv2.hunting.HuntUI activityUI;
     private DatabaseManager database;
     private EconomyService economy;
     private CustomMobManager mobManager;
@@ -103,7 +108,9 @@ public final class ClikerPlugin extends JavaPlugin {
         saveDefaultConfig();
         DeathLogFilter.install();
         try {
-            database = new DatabaseManager(this, getConfig().getString("database-file", "data/economy.db"));
+            database =
+                    new DatabaseManager(
+                            this, getConfig().getString("database-file", "data/economy.db"));
             database.initialize();
         } catch (SQLException | RuntimeException exception) {
             getLogger().severe("Impossible d'initialiser SQLite : " + exception.getMessage());
@@ -113,11 +120,17 @@ public final class ClikerPlugin extends JavaPlugin {
 
         Map<CurrencyType, Long> startingBalances = new EnumMap<>(CurrencyType.class);
         for (CurrencyType currency : CurrencyType.values()) {
-            startingBalances.put(currency, Math.max(0L, getConfig().getLong("starting-balances." + currency.key(), 0L)));
+            startingBalances.put(
+                    currency,
+                    Math.max(0L, getConfig().getLong("starting-balances." + currency.key(), 0L)));
         }
         economy = new EconomyService(database, startingBalances);
+        getServer().getPluginManager().registerEvents(this, this);
+        for (var player : getServer().getOnlinePlayers()) initializeAccount(player);
         claims = new fr.cliker.clikerv2.rewards.ClaimService(this, database);
         claims.start();
+        rewardLedger = new fr.cliker.clikerv2.hunting.RewardLedger(this, database);
+        activityUI = new fr.cliker.clikerv2.hunting.HuntUI(this);
         registerCurrencyCommand("ecus", CurrencyType.ECUS);
         registerCurrencyCommand("gemmes", CurrencyType.GEMMES_SOMBRES);
         registerCurrencyCommand("cendres", CurrencyType.CENDRES);
@@ -137,14 +150,19 @@ public final class ClikerPlugin extends JavaPlugin {
         PrestigeStore prestigeStore = new PrestigeStore(database);
         PrestigeManager prestigeManager = new PrestigeManager(this, prestigeStore, killStore);
         getServer().getPluginManager().registerEvents(prestigeManager, this);
-        getServer().getPluginManager().registerEvents(new PrestigeChatFormatter(prestigeManager), this);
+        getServer()
+                .getPluginManager()
+                .registerEvents(new PrestigeChatFormatter(prestigeManager), this);
 
         TabListManager tabListManager = new TabListManager(prestigeManager);
-        if (getConfig().getBoolean("displays.tab.enabled", false)) getServer().getPluginManager().registerEvents(tabListManager, this);
-        if (getConfig().getBoolean("displays.tab.enabled", false)) prestigeManager.setTabListManager(tabListManager);
+        if (getConfig().getBoolean("displays.tab.enabled", false))
+            getServer().getPluginManager().registerEvents(tabListManager, this);
+        if (getConfig().getBoolean("displays.tab.enabled", false))
+            prestigeManager.setTabListManager(tabListManager);
         prestigeManager.loadOnlinePlayers();
 
-        PrestigeMenu prestigeMenu = new PrestigeMenu(this, prestigeManager, killStore, tabListManager);
+        PrestigeMenu prestigeMenu =
+                new PrestigeMenu(this, prestigeManager, killStore, tabListManager);
         getServer().getPluginManager().registerEvents(prestigeMenu, this);
         setExecutor("prestige", new PrestigeCommand(prestigeMenu));
 
@@ -156,7 +174,11 @@ public final class ClikerPlugin extends JavaPlugin {
                 scoreboard.start();
             }
         } catch (IllegalArgumentException | IllegalStateException error) {
-            getLogger().log(java.util.logging.Level.SEVERE, "Scoreboard indisponible : vérifier scoreboard.yml", error);
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Scoreboard indisponible : vérifier scoreboard.yml",
+                            error);
         }
 
         UpgradeStore upgradeStore = new UpgradeStore(database);
@@ -182,7 +204,58 @@ public final class ClikerPlugin extends JavaPlugin {
         if (getCommand("talisman") != null) getCommand("talisman").setTabCompleter(talismanCommand);
 
         MobSpawnStore mobSpawnStore = new MobSpawnStore(database);
-        mobManager = new CustomMobManager(this, mobSpawnStore, economy, upgradeManager, killStore, prestigeManager, compressorManager, bagManager);
+        mobManager =
+                new CustomMobManager(
+                        this,
+                        mobSpawnStore,
+                        economy,
+                        upgradeManager,
+                        killStore,
+                        prestigeManager,
+                        compressorManager,
+                        bagManager);
+        var huntingStore = new fr.cliker.clikerv2.hunting.HuntingStore(rewardLedger);
+        mobManager.setHunting(huntingStore, rewardLedger);
+        try {
+            huntingModule =
+                    new fr.cliker.clikerv2.hunting.HuntingModule(
+                            this, huntingStore, rewardLedger, mobManager);
+            huntingModule.start();
+        } catch (Exception error) {
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Module de chasse indisponible : vérifier chasse.yml",
+                            error);
+            if (huntingModule != null) huntingModule.shutdown();
+            unavailable("bestiaire");
+            unavailable("contrats");
+        }
+        try {
+            raidModule = new fr.cliker.clikerv2.raid.RaidModule(this, rewardLedger, mobManager);
+            raidModule.start();
+        } catch (Exception error) {
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Raid indisponible : vérifier raid.yml",
+                            error);
+            if (raidModule != null) raidModule.shutdown();
+            unavailable("raid");
+        }
+        try {
+            outpostModule = new fr.cliker.clikerv2.outpost.OutpostModule(this, database, claims);
+            outpostModule.start();
+        } catch (Exception error) {
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Avant-postes indisponibles : vérifier avantpostes.yml",
+                            error);
+            if (activityUI != null) activityUI.shutdown();
+            if (outpostModule != null) outpostModule.shutdown();
+            unavailable("avantposte");
+        }
         getServer().getPluginManager().registerEvents(mobManager, this);
         getServer().getScheduler().runTaskLater(this, mobManager::load, 20L);
         mobManager.startAnchor();
@@ -223,7 +296,8 @@ public final class ClikerPlugin extends JavaPlugin {
         setExecutor("runes", new RuneCommand(runeMenu));
 
         StationStore stationStore = new StationStore(database);
-        StationManager stationManager = new StationManager(this, stationStore, enchantMenu, reforgeMenu, runeMenu);
+        StationManager stationManager =
+                new StationManager(this, stationStore, enchantMenu, reforgeMenu, runeMenu);
         getServer().getPluginManager().registerEvents(stationManager, this);
         getServer().getScheduler().runTaskLater(this, stationManager::load, 20L);
         StationCommand stationCommand = new StationCommand(stationManager);
@@ -279,7 +353,8 @@ public final class ClikerPlugin extends JavaPlugin {
         setExecutor("autoclick", autoClickManager);
 
         HologramStore hologramStore = new HologramStore(database);
-        HologramManager hologramManager = new HologramManager(this, hologramStore, levelStore, killStore, economy);
+        HologramManager hologramManager =
+                new HologramManager(this, hologramStore, levelStore, killStore, economy);
         getServer().getScheduler().runTaskLater(this, hologramManager::load, 20L);
         hologramManager.start();
         if (getCommand("holotop") != null) {
@@ -287,7 +362,8 @@ public final class ClikerPlugin extends JavaPlugin {
             setExecutor("holotop", hologramCommand);
             getCommand("holotop").setTabCompleter(hologramCommand);
         }
-        if (!hologramManager.isAvailable()) getLogger().warning("DecentHolograms introuvable : /holotop desactive.");
+        if (!hologramManager.isAvailable())
+            getLogger().warning("DecentHolograms introuvable : /holotop desactive.");
         bossEventManager.setHologramManager(hologramManager);
 
         AuctionStore auctionStore = new AuctionStore(database);
@@ -309,7 +385,8 @@ public final class ClikerPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TutoJoinListener(this, levelStore), this);
         setExecutor("tuto", new TutoCommand());
 
-        StatsMenu statsMenu = new StatsMenu(this, economy, upgradeManager, killStore, prestigeManager);
+        StatsMenu statsMenu =
+                new StatsMenu(this, economy, upgradeManager, killStore, prestigeManager);
         getServer().getPluginManager().registerEvents(statsMenu, this);
         setExecutor("stats", new StatsCommand(statsMenu));
 
@@ -318,34 +395,63 @@ public final class ClikerPlugin extends JavaPlugin {
             dailyModule.start();
             getLogger().info("Module de récompenses journalières NorthBlue actif.");
         } catch (Exception exception) {
-            getLogger().log(java.util.logging.Level.SEVERE, "Impossible de démarrer le module daily", exception);
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Impossible de démarrer le module daily",
+                            exception);
             if (dailyModule != null) dailyModule.shutdown();
             dailyModule = null;
-            if (getCommand("daily") != null) getCommand("daily").setExecutor((sender, command, label, args) -> {
-                sender.sendMessage(net.kyori.adventure.text.Component.text("Le calendrier est indisponible. Contacte un administrateur.", net.kyori.adventure.text.format.NamedTextColor.RED));
-                return true;
-            });
+            if (getCommand("daily") != null)
+                getCommand("daily")
+                        .setExecutor(
+                                (sender, command, label, args) -> {
+                                    sender.sendMessage(
+                                            net.kyori.adventure.text.Component.text(
+                                                    "Le calendrier est indisponible. Contacte un"
+                                                            + " administrateur.",
+                                                    net.kyori.adventure.text.format.NamedTextColor
+                                                            .RED));
+                                    return true;
+                                });
         }
         try {
             buyZoneModule = new fr.cliker.clikerv2.buyzone.BuyZoneModule(this, economy, database);
             buyZoneModule.start();
             getLogger().info("Module buyzone actif.");
         } catch (Exception exception) {
-            getLogger().log(java.util.logging.Level.SEVERE, "Impossible de démarrer le module buyzone", exception);
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Impossible de démarrer le module buyzone",
+                            exception);
             if (buyZoneModule != null) buyZoneModule.shutdown();
             buyZoneModule = null;
         }
-        getServer().getPluginManager().registerEvents(new fr.cliker.clikerv2.security.SystemEggProtection(), this);
+        getServer()
+                .getPluginManager()
+                .registerEvents(new fr.cliker.clikerv2.security.SystemEggProtection(), this);
         try {
             mainMenu = new fr.cliker.clikerv2.ui.MainMenu(this);
             getServer().getPluginManager().registerEvents(mainMenu, this);
             getCommand("menu").setExecutor(mainMenu);
         } catch (IllegalArgumentException error) {
-            getLogger().log(java.util.logging.Level.SEVERE, "Configuration du menu principal invalide", error);
-            getCommand("menu").setExecutor((sender, command, label, args) -> {
-                sender.sendMessage(net.kyori.adventure.text.Component.text("Le menu est indisponible. Contacte un administrateur.", net.kyori.adventure.text.format.NamedTextColor.RED));
-                return true;
-            });
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Configuration du menu principal invalide",
+                            error);
+            getCommand("menu")
+                    .setExecutor(
+                            (sender, command, label, args) -> {
+                                sender.sendMessage(
+                                        net.kyori.adventure.text.Component.text(
+                                                "Le menu est indisponible. Contacte un"
+                                                        + " administrateur.",
+                                                net.kyori.adventure.text.format.NamedTextColor
+                                                        .RED));
+                                return true;
+                            });
         }
         try {
             discordModule = new fr.cliker.clikerv2.discord.DiscordModule(this);
@@ -358,19 +464,41 @@ public final class ClikerPlugin extends JavaPlugin {
             referrals = new fr.cliker.clikerv2.referral.ReferralModule(this, database, claims);
             referrals.start();
         } catch (IllegalArgumentException | IllegalStateException error) {
-            getLogger().log(java.util.logging.Level.SEVERE, "Configuration du parrainage invalide : vérifier parrainage.yml", error);
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Configuration du parrainage invalide : vérifier parrainage.yml",
+                            error);
             if (referrals != null) referrals.shutdown();
             referrals = null;
-            getCommand("parrain").setExecutor((sender, command, label, args) -> {
-                sender.sendMessage(net.kyori.adventure.text.Component.text("Le parrainage est temporairement indisponible. Contacte un administrateur.", net.kyori.adventure.text.format.NamedTextColor.RED));
-                return true;
-            });
+            getCommand("parrain")
+                    .setExecutor(
+                            (sender, command, label, args) -> {
+                                sender.sendMessage(
+                                        net.kyori.adventure.text.Component.text(
+                                                "Le parrainage est temporairement indisponible."
+                                                        + " Contacte un administrateur.",
+                                                net.kyori.adventure.text.format.NamedTextColor
+                                                        .RED));
+                                return true;
+                            });
         }
         getLogger().info("Economie active avec SQLite.");
     }
 
     @Override
     public void onDisable() {
+        // Restituer les objets déposés dans les interfaces avant d'arrêter /claim et SQLite.
+        for (var player : getServer().getOnlinePlayers()) {
+            var holder = player.getOpenInventory().getTopInventory().getHolder();
+            if (holder != null && holder.getClass().getName().startsWith("fr.cliker.clikerv2."))
+                player.closeInventory();
+        }
+        if (activityUI != null) activityUI.shutdown();
+        if (outpostModule != null) outpostModule.shutdown();
+        if (raidModule != null) raidModule.shutdown();
+        if (huntingModule != null) huntingModule.shutdown();
+        if (rewardLedger != null) rewardLedger.shutdown();
         if (referrals != null) referrals.shutdown();
         if (discordModule != null) discordModule.shutdown();
         if (scoreboard != null) scoreboard.shutdown();
@@ -383,6 +511,40 @@ public final class ClikerPlugin extends JavaPlugin {
         if (database != null) database.close();
     }
 
+    @org.bukkit.event.EventHandler
+    public void accountJoined(org.bukkit.event.player.PlayerJoinEvent event) {
+        initializeAccount(event.getPlayer());
+    }
+
+    private void initializeAccount(org.bukkit.entity.Player player) {
+        var owner = player.getUniqueId();
+        economy.getBalance(owner, player.getName(), CurrencyType.ECUS)
+                .exceptionally(
+                        error -> {
+                            getLogger()
+                                    .log(
+                                            java.util.logging.Level.SEVERE,
+                                            "Chargement du compte économique impossible : " + owner,
+                                            error);
+                            return null;
+                        });
+    }
+
+    private void unavailable(String command) {
+        if (getCommand(command) != null)
+            getCommand(command)
+                    .setExecutor(
+                            (sender, cmd, label, args) -> {
+                                sender.sendMessage(
+                                        net.kyori.adventure.text.Component.text(
+                                                "Cette activité est temporairement indisponible."
+                                                        + " Contacte un administrateur.",
+                                                net.kyori.adventure.text.format.NamedTextColor
+                                                        .RED));
+                                return true;
+                            });
+    }
+
     private void registerCurrencyCommand(String name, CurrencyType currency) {
         if (getCommand(name) == null) return;
         CurrencyCommand executor = new CurrencyCommand(this, economy, currency);
@@ -390,7 +552,10 @@ public final class ClikerPlugin extends JavaPlugin {
         getCommand(name).setTabCompleter(executor);
     }
 
-    /** Enregistre l'exécuteur d'une commande avec un délai de 3s entre deux usages par le même joueur. */
+    /**
+     * Enregistre l'exécuteur d'une commande avec un délai de 3s entre deux usages par le même
+     * joueur.
+     */
     private void setExecutor(String name, CommandExecutor executor) {
         if (getCommand(name) != null) getCommand(name).setExecutor(new CooldownCommand(executor));
     }
