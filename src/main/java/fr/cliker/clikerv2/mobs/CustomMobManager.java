@@ -127,8 +127,41 @@ public final class CustomMobManager implements Listener {
         this.spawnIdKey = new NamespacedKey(plugin, "cliker_spawn_id");
     }
 
+    private BukkitTask recoveryTask;
+
     public void startAnchor() {
+        recoveryTask =
+                plugin.getServer()
+                        .getScheduler()
+                        .runTaskTimer(plugin, this::recoverMissingMobs, 40L, 40L);
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::anchorAll, 1L, 1L);
+    }
+
+    /** Répare les retraits externes et retrouve les entités après rechargement du chunk. */
+    private void recoverMissingMobs() {
+        for (String id : new ArrayList<>(spawnLocation.keySet())) {
+            if (oneShotSpawns.contains(id) || pendingRespawns.containsKey(id)) continue;
+            // Un boss réellement tué attend sa prochaine vague.
+            if (bossSpawnIds.contains(id) && !aliveBySpawnId.containsKey(id)) continue;
+            Location at = spawnLocation.get(id);
+            if (!at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4)) continue;
+            UUID tracked = aliveBySpawnId.get(id);
+            Entity current = tracked == null ? null : plugin.getServer().getEntity(tracked);
+            if (current != null && current.isValid() && !current.isDead()) continue;
+            LivingEntity found = null;
+            for (Entity entity : at.getChunk().getEntities()) {
+                if (entity instanceof LivingEntity living
+                        && !living.isDead()
+                        && id.equals(
+                                entity.getPersistentDataContainer()
+                                        .get(spawnIdKey, PersistentDataType.STRING))) {
+                    if (found == null) found = living;
+                    else living.remove();
+                }
+            }
+            if (found != null) aliveBySpawnId.put(id, found.getUniqueId());
+            else spawn(id);
+        }
     }
 
     private void anchorAll() {
@@ -273,6 +306,7 @@ public final class CustomMobManager implements Listener {
     }
 
     public void shutdown() {
+        if (recoveryTask != null) recoveryTask.cancel();
         damagePopups.shutdown();
         for (String spawnId : new ArrayList<>(aliveBySpawnId.keySet())) despawn(spawnId);
         for (BukkitTask task : pendingRespawns.values()) task.cancel();
@@ -404,7 +438,7 @@ public final class CustomMobManager implements Listener {
         location.setYaw(boss ? 270 : 0);
         location.setPitch(0);
         LivingEntity entity = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
-        entity.setPersistent(false);
+        entity.setPersistent(!oneShotSpawns.contains(spawnId));
         entity.setRemoveWhenFarAway(false);
         entity.setGravity(false);
         entity.setCollidable(false);

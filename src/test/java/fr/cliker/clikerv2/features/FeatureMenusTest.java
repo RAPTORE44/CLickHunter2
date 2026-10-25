@@ -161,6 +161,26 @@ class FeatureMenusTest {
             mobIds.put("z-permanent", "vache");
             var selected = mobs.travelPoint(fr.cliker.clikerv2.MobTier.VACHE, false).orElseThrow();
             assertEquals(100, selected.getX());
+            world.getChunkAt(6, 0).load();
+            var cow =
+                    world.spawnEntity(
+                            new Location(world, 100, 65, 0), org.bukkit.entity.EntityType.COW);
+            cow.getPersistentDataContainer()
+                    .set(
+                            new NamespacedKey(plugin, "cliker_spawn_id"),
+                            org.bukkit.persistence.PersistentDataType.STRING,
+                            "z-permanent");
+            var recover = mobs.getClass().getDeclaredMethod("recoverMissingMobs");
+            recover.setAccessible(true);
+            recover.invoke(mobs);
+            var aliveField = mobs.getClass().getDeclaredField("aliveBySpawnId");
+            aliveField.setAccessible(true);
+            var alive = (Map<String, UUID>) aliveField.get(mobs);
+            assertEquals(
+                    cow.getUniqueId(),
+                    alive.get("z-permanent"),
+                    "Existing entity is adopted, not duplicated");
+            assertFalse(alive.containsKey("a-egg"), "Temporary eggs are not restored");
             selected.setX(999);
             assertEquals(100, locations.get("z-permanent").getX(), "Returned location is a copy");
         } finally {

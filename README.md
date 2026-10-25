@@ -258,3 +258,5 @@ Le boss public apparaît à chaque nouveau milliard de créatures effectivement 
 Les talismans de créature et de boss s’ajoutent à cinq familles générales : lame, richesse, sagesse, fortune et vitalité, chacune sur cinq tiers. Les bonus sont actifs dans les sacs, avec le meilleur tier par famille générale. Le tier 5 se débloque dans la **dernière zone actuelle (zone 19)**, conformément au choix du propriétaire.
 
 Configuration SFTP organisée, migration des anciens fichiers avec copies de secours et détails de chaque module : [guide des nouveaux systèmes](docs/SERVICES-RAIDS-TALISMANS.md).
+
+Les créatures placées sont persistantes lors du déchargement des chunks. Une vérification toutes les deux secondes rétablit les créatures manquantes dans les chunks chargés, sans avancer la prochaine vague des boss tués.
