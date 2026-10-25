@@ -195,6 +195,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         upgradeManager.loadOnlinePlayers();
 
         CompressorManager compressorManager = new CompressorManager();
+        getServer().getPluginManager().registerEvents(compressorManager, this);
 
         TalismanItem.init(this);
         BagStore bagStore = new BagStore(database);

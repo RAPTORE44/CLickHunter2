@@ -28,8 +28,8 @@ public final class CompressorItem {
         ItemMeta meta = item.getItemMeta();
         meta.displayName(Component.text("Compresseur " + tier.label(), NamedTextColor.AQUA, TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
         meta.lore(List.of(
-                Component.text("Tant qu'il est dans ton inventaire,", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
-                Component.text("compresse tes essences " + tier.label() + ".", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
+                Component.text("Clic droit : consommer et activer", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
+                Component.text("la compression automatique : " + tier.label() + ".", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false),
                 Component.text(""),
                 Component.text("64 essences d'un palier = 1 du palier suivant.", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false)
         ));

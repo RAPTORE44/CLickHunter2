@@ -56,11 +56,15 @@ class CompressionTest {
     }
 
     @Test
-    void onlyOwnedCompressorTypesApplyIncludingOffhand() {
+    void onlyActivatedCompressorTypesApply() {
         player.getInventory().setItemInOffHand(CompressorItem.create(MobTier.VACHE));
         player.getInventory().setItem(0, EssenceItem.create(MobTier.VACHE, 64));
         player.getInventory().setItem(1, EssenceItem.create(MobTier.COCHON, 64));
-        new CompressorManager().onHit(player);
+        var manager = new CompressorManager();
+        manager.onHit(player);
+        assertEquals(64, EssenceItem.count(player, MobTier.VACHE, EssenceRarity.COMMUNE));
+        player.getPersistentDataContainer().set(new NamespacedKey(CompressorItem.MOB_KEY.getNamespace(), "compressor_active_" + MobTier.VACHE.id()), org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        manager.onHit(player);
         assertEquals(1, EssenceItem.count(player, MobTier.VACHE, EssenceRarity.PEU_COMMUNE));
         assertEquals(64, EssenceItem.count(player, MobTier.COCHON, EssenceRarity.COMMUNE));
     }

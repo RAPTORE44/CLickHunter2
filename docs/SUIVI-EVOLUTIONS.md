@@ -31,3 +31,7 @@ Une fonctionnalité terminée ne doit pas être réimplémentée pour chaque nou
 
 Ces propositions ne sont pas imposées par l’audit. Le code actuel reste la référence : les prix,
 les ratios de compression et les gains configurés existants sont préservés.
+
+### Autocompresseur consommable
+
+L'objet acheté chez le marchand s'utilise par clic droit et disparaît à l'activation. L'activation est conservée dans les données persistantes du joueur, par type de mob. Un objet déjà activé n'est pas consommé une seconde fois. La compression est exécutée après les gains de ressources des mobs : 64 ressources d'un palier deviennent une ressource du palier suivant, avec cascade. Les objets déjà achetés restent utilisables. Les prix restent identiques.

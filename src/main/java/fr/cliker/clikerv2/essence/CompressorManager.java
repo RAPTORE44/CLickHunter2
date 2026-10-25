@@ -7,13 +7,33 @@ import org.bukkit.entity.Player;
 import java.util.*;
 
 /** Un relevé de l'inventaire par coup ; aucune recherche par compresseur et par palier. */
-public final class CompressorManager {
+public final class CompressorManager implements org.bukkit.event.Listener {
+    @org.bukkit.event.EventHandler(priority = org.bukkit.event.EventPriority.HIGH, ignoreCancelled = true)
+    public void onUse(org.bukkit.event.player.PlayerInteractEvent event) {
+        if (!event.getAction().isRightClick() || event.getHand() == null) return;
+        var tier = CompressorItem.tierOf(event.getItem());
+        if (tier == null) return;
+        event.setCancelled(true);
+        var player = event.getPlayer();
+        var key = new org.bukkit.NamespacedKey(CompressorItem.MOB_KEY.getNamespace(), "compressor_active_" + tier.id());
+        var data = player.getPersistentDataContainer();
+        if (data.has(key, org.bukkit.persistence.PersistentDataType.BYTE)) {
+            player.sendMessage(net.kyori.adventure.text.Component.text("Cet autocompresseur est déjà activé.", net.kyori.adventure.text.format.NamedTextColor.YELLOW));
+            return;
+        }
+        data.set(key, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        event.getItem().subtract(1);
+        player.saveData();
+        player.sendMessage(net.kyori.adventure.text.Component.text("Autocompresseur " + tier.label() + " activé ! 64 ressources donnent 1 du palier suivant.", net.kyori.adventure.text.format.NamedTextColor.GREEN));
+        onHit(player);
+    }
+
     public void onHit(Player player) {
         var contents = player.getInventory().getContents();
         Set<MobTier> active = EnumSet.noneOf(MobTier.class);
-        for (var stack : contents) {
-            var tier = CompressorItem.tierOf(stack);
-            if (tier != null) active.add(tier);
+        for (var tier : MobTier.values()) {
+            var key = new org.bukkit.NamespacedKey(CompressorItem.MOB_KEY.getNamespace(), "compressor_active_" + tier.id());
+            if (player.getPersistentDataContainer().has(key, org.bukkit.persistence.PersistentDataType.BYTE)) active.add(tier);
         }
         if (active.isEmpty()) return;
         Map<MobTier, int[]> counts = new EnumMap<>(MobTier.class);

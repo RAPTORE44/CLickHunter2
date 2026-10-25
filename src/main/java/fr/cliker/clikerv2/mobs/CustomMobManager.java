@@ -638,6 +638,7 @@ public final class CustomMobManager implements Listener {
             int amount = ThreadLocalRandom.current().nextInt(1, 4);
             ItemStack essence = EssenceItem.create(tier, amount);
             fr.cliker.clikerv2.rewards.ItemDelivery.give(killer, essence);
+            compressorManager.onHit(killer);
             var gains = normalRewards(killer, tier);
             if (boss) gains = gains.plus(bossRewards(killer, tier));
             var earned = gains;
@@ -817,6 +818,7 @@ public final class CustomMobManager implements Listener {
 
     private void giveItem(Player player, ItemStack item) {
         fr.cliker.clikerv2.rewards.ItemDelivery.give(player, item);
+        compressorManager.onHit(player);
     }
 
     /**
