@@ -78,14 +78,18 @@ L'autocompresseur s'achète chez le marchand puis s'active par clic droit : l'ob
 | `/zone <numéro>` | Rejoindre une zone déjà débloquée et configurée ; alias `/z`. |
 | `/boss` | Rejoindre l’entrée du boss de sa zone accessible la plus avancée. |
 | `/progression` | Afficher pendant dix secondes la progression dans les zones configurées. |
-| `/settings` | Régler les textes de dégâts, le son de compression et la dispersion des textes ; alias `/parametres`. |
+| `/settings` | Régler les textes de dégâts, les effets doux, le son de compression et les messages de farm ; alias `/parametres`. |
 | `/antidrop <autoriser\|bloquer>` | Autoriser ou bloquer le jet d’objets et la vente AH des équipements protégés, jusqu’à la déconnexion. |
 | `/ramassage <autoriser\|bloquer>` | Autoriser ou bloquer le ramassage au sol jusqu’à la déconnexion. Les récompenses directes du plugin restent livrées. |
 | `/lock` | Verrouiller ou déverrouiller une épée, une armure ClickHunter ou un compresseur tenu, contre le jet et la vente AH. |
 
-Les protections de jet et de ramassage sont actives à chaque connexion. Les réglages visuels persistent. Les téléportations vérifient l’accès BuyZone et refusent une arrivée dangereuse. Permissions : `cliker.navigation.use` pour la navigation, `cliker.comfort.use` pour les protections et paramètres, `cliker.upgrade.use` pour le guide.
+Les protections de jet et de ramassage sont actives à chaque connexion. Les réglages visuels et les filtres de messages persistent. Les téléportations vérifient l’accès BuyZone et refusent une arrivée dangereuse. Permissions : `cliker.navigation.use` pour la navigation, `cliker.comfort.use` pour les protections et paramètres, `cliker.upgrade.use` pour le guide.
 
-Dans `/stats`, les gains confirmés des 60 dernières secondes sont séparés par créature. Le compteur des coups validés est conservé, et la session précédente est résumée à la reconnexion. Les boss disposent d’un chronomètre et d’un record personnel, avec une célébration de première victoire.
+Dans `/prestige`, un premier clic gauche prépare le prestige ; un second clic gauche dans les dix secondes le confirme. Fermer le menu annule la préparation.
+
+Les trappes, portillons et pots décoratifs sont protégés des clics involontaires (`comfort.protect-decoration`). L’épée affiche la recharge native pendant l’autoclick.
+
+Dans `/stats`, la réduction bonus de dégâts est affichée séparément de l’armure vanilla, et les gains confirmés des 60 dernières secondes sont séparés par créature. Le compteur des coups validés est conservé, et la session précédente est résumée à la reconnexion. Les boss disposent d’un chronomètre et d’un record personnel, avec une célébration de première victoire.
 
 Dans `/upgrade`, clic gauche : acheter un niveau ; clic droit : acheter le maximum abordable au tarif habituel. Le menu des marchands compare les dégâts **de base** des épées, hors bonus.
 

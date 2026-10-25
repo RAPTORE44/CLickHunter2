@@ -21,3 +21,4 @@ comfort:
   no-player-collisions: true
   no-hunger: true
   no-fall-damage: true
+  protect-decoration: true

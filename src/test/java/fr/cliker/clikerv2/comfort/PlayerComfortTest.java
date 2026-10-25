@@ -51,6 +51,57 @@ class PlayerComfortTest {
     }
 
     @Test
+    void messagePreferencesAreIndependentAndDoNotChangePickupAuthorization() {
+        command("settings");
+        for (int slot : new int[] {17, 4}) {
+            var event =
+                    new org.bukkit.event.inventory.InventoryClickEvent(
+                            player.getOpenInventory(),
+                            org.bukkit.event.inventory.InventoryType.SlotType.CONTAINER,
+                            slot,
+                            org.bukkit.event.inventory.ClickType.LEFT,
+                            org.bukkit.event.inventory.InventoryAction.PICKUP_ALL);
+            comfort.click(event);
+            server.getScheduler().performOneTick();
+        }
+        assertFalse(PlayerComfort.enabled(player, "common_drop_messages", true));
+        assertFalse(PlayerComfort.enabled(player, "farm_actionbar", true));
+        var pickup = new EntityPickupItemEvent(player, item, 0);
+        comfort.pickup(pickup);
+        assertTrue(pickup.isCancelled());
+    }
+
+    @Test
+    void protectsTrapdoorsButKeepsChestInteractionAndItemUse() {
+        var block = player.getWorld().getBlockAt(0, 65, 0);
+        block.setType(Material.OAK_TRAPDOOR);
+        var event =
+                new PlayerInteractEvent(
+                        player,
+                        org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK,
+                        new ItemStack(Material.WOODEN_SWORD),
+                        block,
+                        org.bukkit.block.BlockFace.UP,
+                        org.bukkit.inventory.EquipmentSlot.HAND);
+        var originalItemUse = event.useItemInHand();
+        comfort.decoration(event);
+        assertEquals(org.bukkit.event.Event.Result.DENY, event.useInteractedBlock());
+        assertEquals(originalItemUse, event.useItemInHand());
+        block.setType(Material.CHEST);
+        var chest =
+                new PlayerInteractEvent(
+                        player,
+                        org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK,
+                        new ItemStack(Material.WOODEN_SWORD),
+                        block,
+                        org.bukkit.block.BlockFace.UP,
+                        org.bukkit.inventory.EquipmentSlot.HAND);
+        var before = chest.useInteractedBlock();
+        comfort.decoration(chest);
+        assertEquals(before, chest.useInteractedBlock());
+    }
+
+    @Test
     void starterSwordIsAlsoLockable() {
         player.getInventory().setItemInMainHand(fr.cliker.clikerv2.combat.SwordCommand.create());
         command("lock");

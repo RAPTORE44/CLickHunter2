@@ -106,6 +106,14 @@ public final class PrestigeManager implements Listener {
      * après résolution (succès ou échec).
      */
     public void attemptPrestige(Player player, Runnable onComplete) {
+        if (!player.hasPermission("cliker.prestige.use")) {
+            player.sendMessage(
+                    Component.text(
+                            "Tu n’as pas la permission de passer un prestige.",
+                            NamedTextColor.RED));
+            if (onComplete != null) onComplete.run();
+            return;
+        }
         UUID owner = player.getUniqueId();
         if (!cache.containsKey(owner) || !pending.add(owner)) {
             if (onComplete != null) onComplete.run();

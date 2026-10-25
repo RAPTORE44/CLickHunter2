@@ -4,7 +4,7 @@ Source : `ClickHunter_classement_1500_idees.xlsx`, feuille « Classement 1-1500 
 
 Ce document distingue les livraisons des adaptations et du travail restant. **Les 141 idées ne sont pas toutes intégrées : ce suivi décrit un premier lot et le reste du chantier.** Les lignes non jaunes restent des propositions à valider. Les dépendances mentionnées dans le classeur (pets, Ordres, zones 50, instances de boss, réseau Redis, bot Discord) ne sont pas considérées comme déjà existantes.
 
-Les demandes antérieures restent appliquées dans l’attente de l’arbitrage sur les contradictions : dégâts qui montent d’un bloc et compression 64 → 1.
+Arbitrage confirmé par le propriétaire : les demandes antérieures prévalent, avec dégâts qui montent d’un bloc, piles de 64, compression 64 → 1 et autocompresseur consommé à l’activation. Développer les autres lignes jaunes dans les modules existants ; laisser les fondations absentes en attente. Les idées non jaunes ne sont pas validées par cet arbitrage.
 
 | ID | Ligne Excel | État | Idée et résultat |
 | --- | --- | --- | --- |
@@ -20,7 +20,7 @@ Les demandes antérieures restent appliquées dans l’attente de l’arbitrage 
 | 981 | 28 | À développer | **Objet "Menu ClickHunter" Fixé au Slot 9 (Étoile du Nether / Boussole) ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 51 | 31 | À développer | **Mob Doré (Shiny) ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 820 | 32 | Intégré | **Journal de Progression Visuel (`/progression`) ** — `/progression` : barre des zones configurées, durée de dix secondes, nettoyage à la déconnexion. |
-| 995 | 33 | À développer | **Synchronisation Visuelle du Temps de Recharge (Item Cooldown Packet) ** — Non livré ; conserver la demande dans le périmètre de développement. |
+| 995 | 33 | Partiel / adapté | **Synchronisation Visuelle du Temps de Recharge (Item Cooldown Packet) ** — Animation native de recharge sur l’épée pendant l’autoclick, synchronisée sur la cadence effective du moteur. Pas de compétence active fictive ajoutée. |
 | 971 | 34 | Dépendance / arbitrage | **Bouton "Retour" Universel sur le Slot 49 (Bas-Milieu) ** — Le slot 49 n’existe pas dans les menus de 9/27/36 cases et occupe du stockage dans les sacs ; garder les 54 cases utiles demande une adaptation du cahier. |
 | 829 | 37 | À développer | **Logs de Progression Anti-Duplication ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 815 | 38 | À développer | **Indicateur de Probabilité de Victoire contre le Boss ** — Non livré ; conserver la demande dans le périmètre de développement. |
@@ -30,7 +30,7 @@ Les demandes antérieures restent appliquées dans l’attente de l’arbitrage 
 | 297 | 50 | À développer | **Coffre de Butin de Boss dans la Zone ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 348 | 51 | Existant / à compléter | **Immunité de Transition Courte ** — Aucune transition invulnérable longue dans le boss actuel ; les nouvelles phases de boss restent à développer. |
 | 22 | 52 | À développer | **Indicateur de "Coups restants" ** — Non livré ; conserver la demande dans le périmètre de développement. |
-| 2 | 53 | Partiel / adapté | **Text Display de dégâts flottants ** — TextDisplay ajouté, mais animation ascendante d’un bloc préservée selon la demande antérieure, en attente de l’arbitrage demandé. |
+| 2 | 53 | Adapté selon arbitrage confirmé | **Text Display de dégâts flottants ** — Les TextDisplay montent d’un bloc puis disparaissent ; la chute avec gravité n’est pas retenue. |
 | 30 | 56 | À développer | **Jauge de Surchauffe dans le viseur ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 846 | 57 | Intégré | **Célébration du Premier Boss Battu ** — Première victoire suivie par type de boss : message et particules personnelles sans dégâts ; effets supprimés en mode doux. Le suivi commence à cette version. |
 | 275 | 58 | À développer | **Enclume de Fusion sans XP Vanilla ** — Non livré ; conserver la demande dans le périmètre de développement. |
@@ -46,10 +46,10 @@ Les demandes antérieures restent appliquées dans l’attente de l’arbitrage 
 | 489 | 72 | Dépendance / arbitrage | **Alertes Discord des Événements Majeurs ** — Nécessite la configuration d’une intégration Discord et les consentements de notification ; aucun message externe envoyé. |
 | 956 | 73 | Intégré | **Composant `enchantment_glint_override` (1.20.5+) ** — Les essences compressées utilisent enchantment_glint_override sans faux enchantement ; le ratio 64 → 1 reste inchangé. |
 | 957 | 74 | À développer | **Composant `custom_name` et `lore` en JSON Riche avec Dégradés (MiniMessage) ** — Non livré ; conserver la demande dans le périmètre de développement. |
-| 993 | 75 | À développer | **Protection Contre le Clic Droit Involontaire sur les Blocs ** — Non livré ; conserver la demande dans le périmètre de développement. |
+| 993 | 75 | Intégré | **Protection Contre le Clic Droit Involontaire sur les Blocs ** — Trappes, portillons et pots décoratifs ne s’ouvrent plus au clic droit. Les coffres et stations restent utilisables, l’usage de l’objet en main n’est pas modifié. |
 | 890 | 76 | Existant / à compléter | **Transparence Totale des Probabilités ** — Les coffres affichent déjà 100 % pour leurs gains déterministes et leur chance de base de drop. Le bonus Loot Finder peut augmenter la chance effective ; affichage contextuel par joueur et boutique externe à compléter. |
 | 336 | 77 | À développer | **Classement par Boss à l'Entrée de l'Arène ** — Non livré ; conserver la demande dans le périmètre de développement. |
-| 825 | 79 | À développer | **Formule de Défense Lisible ** — Non livré ; conserver la demande dans le périmètre de développement. |
+| 825 | 79 | Partiel / adapté | **Formule de Défense Lisible ** — `/stats` affiche la réduction bonus réelle des équipements, plafonnée à 80 %, en précisant qu’elle ne comprend pas l’armure vanilla. Même calcul partagé avec les dégâts reçus. |
 | 843 | 80 | À développer | **Sauvegarde de Combo à la Déconnexion Involontaire ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 274 | 81 | À développer | **Échange Sécurisé (`/trade`) ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 967 | 82 | À développer | **Commande `/dps` ** — Non livré ; conserver la demande dans le périmètre de développement. |
@@ -57,7 +57,7 @@ Les demandes antérieures restent appliquées dans l’attente de l’arbitrage 
 | 384 | 84 | À développer | **Bonus de Retour Rapide (Rubberbanding) ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 253 | 87 | À développer | **Réduction de Fidélité du PNJ ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 347 | 88 | À développer | **Phase de Frénésie Finale (0 à 15% PV) ** — Non livré ; conserver la demande dans le périmètre de développement. |
-| 822 | 92 | Dépendance / arbitrage | **Aide Contextuelle Automatique ** — Le compresseur est consommé à l’activation : aucun équipement en main gauche à conseiller. |
+| 822 | 92 | Adapté selon arbitrage confirmé | **Aide Contextuelle Automatique ** — Aucune demande d’équipement en main gauche : le compresseur disparaît à l’activation et fonctionne durablement. |
 | 21 | 96 | Partiel / adapté | **Mode Performance** — Les textes de dégâts sont désormais visibles seulement par leur auteur ; `/settings` permet de les désactiver. Le filtrage des autres particules reste à développer. |
 | 989 | 98 | À développer | **Son de Notification Personnalisable à 100% de Progression ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 979 | 99 | Dépendance / arbitrage | **Compatibilité Cross-Version (ViaVersion 1.20 à 1.21.4+) ** — Nécessite ViaVersion et une matrice de tests de versions clientes ; non certifié sans ces essais. |
@@ -79,7 +79,7 @@ Les demandes antérieures restent appliquées dans l’attente de l’arbitrage 
 | 324 | 136 | À développer | **Coffre de Fin de Combat Physique ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 314 | 138 | À développer | **Coopération de Boss (Mode Raid 2 à 4 Joueurs) ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 339 | 145 | À développer | **Boss Mondial (World Boss Horaire) ** — Non livré ; conserver la demande dans le périmètre de développement. |
-| 46 | 149 | À développer | **Confirmation rapide par double-clic ** — Non livré ; conserver la demande dans le périmètre de développement. |
+| 46 | 149 | Intégré | **Confirmation rapide par double-clic ** — Prestige préparé au premier clic, confirmé par un second clic gauche dans les dix secondes. Fermeture = annulation ; owner, permission, inventaire et concurrence vérifiés. |
 | 266 | 158 | À développer | **Pack "Tout Améliorer" (One-Click Gear Up) ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 15 | 162 | À développer | **Scoreboard contextuel ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 44 | 165 | À développer | **Hologramme de rentabilité ** — Non livré ; conserver la demande dans le périmètre de développement. |
@@ -134,7 +134,7 @@ Les demandes antérieures restent appliquées dans l’attente de l’arbitrage 
 | 453 | 279 | À développer | **Classement par Zone ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 482 | 286 | À développer | **Protection Anti-Vol de Mob Optionnelle ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 452 | 309 | À développer | **Classements Multi-Périodes ** — Non livré ; conserver la demande dans le périmètre de développement. |
-| 955 | 314 | Dépendance / arbitrage | **Composants d'Items `max_stack_size` (1.20.5+) ** — Conflit avec la demande précédente de piles de 64 ; question d’arbitrage posée. |
+| 955 | 314 | Non retenu selon arbitrage | **Composants d'Items `max_stack_size` (1.20.5+) ** — Les piles restent à 64 et la compression reste 64 → 1 ; aucune pile de 99. |
 | 968 | 315 | À développer | **Commande `/drops <zone>` ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 951 | 319 | Partiel / adapté | **Utilisation des `Text Display` (1.19.4+) au lieu des ArmorStands pour tous les hologrammes de stacks et de dégâts ** — Textes de dégâts convertis en TextDisplay, interpolation native, limites et nettoyage conservés ; pas de promesse chiffrée de gain CPU. |
 | 999 | 322 | À développer | **Compteur Global en Temps Réel au Spawn ** — Non livré ; conserver la demande dans le périmètre de développement. |
@@ -145,7 +145,7 @@ Les demandes antérieures restent appliquées dans l’attente de l’arbitrage 
 | 365 | 351 | À développer | **Icône et Couleur de Chat Évolutives ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 4 | 352 | À développer | **Micro-rotation au clic ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 17 | 353 | À développer | **Compteur de Combo à l'écran ** — Non livré ; conserver la demande dans le périmètre de développement. |
-| 20 | 356 | Partiel / adapté | **Filtre anti-spam de chat ** — `/settings` règle les textes de dégâts et le son de compression ; filtre des messages de drops encore à développer. |
+| 20 | 356 | Intégré | **Filtre anti-spam de chat ** — `/settings` filtre les messages de coffres communs et les récapitulatifs de gains en combat ; la remise des récompenses et les annonces de drops rares restent actives. |
 | 33 | 357 | À développer | **Effet de zoom léger (Speed FOV) ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 39 | 361 | À développer | **Onglet TabList illustré par zone ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 1344 | 1488 | Dépendance / arbitrage | **Salut d'Ordre ** — Dépend d’un système d’Ordres absent du plugin. |

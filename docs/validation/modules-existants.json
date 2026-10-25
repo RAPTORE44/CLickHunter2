@@ -1,0 +1,24 @@
+{
+  "scope": "Poursuite des lignes jaunes dans les modules existants ; arbitrages du propriétaire appliqués",
+  "unit_tests": {
+    "tests": 165,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "paper_client": {
+    "success": true,
+    "checks": [
+      "premier clic prépare sans réinitialiser",
+      "fermeture annule la confirmation",
+      "second clic valide réellement le prestige",
+      "nouveaux filtres de messages dans settings",
+      "réduction de dégâts affichée",
+      "recharge native envoyée pendant autoclick"
+    ],
+    "cooldowns": 2
+  },
+  "jar_sha256": "bf12f0d1cae057bbbf1e139a8ed4cebca2318df4e3d7c4469ffcb189cd369dba",
+  "remaining": "Les 141 idées ne sont pas toutes terminées. Les fondations absentes et les idées non jaunes restent en attente.",
+  "deployment": "Arrêt propre puis redémarrage ; pas de certification du reload global."
+}

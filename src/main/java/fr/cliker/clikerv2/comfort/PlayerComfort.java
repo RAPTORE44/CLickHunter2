@@ -171,6 +171,18 @@ public final class PlayerComfort implements Listener, CommandExecutor {
             event.setCancelled(true);
     }
 
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void decoration(PlayerInteractEvent event) {
+        if (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK
+                || event.getClickedBlock() == null
+                || !plugin.getConfig().getBoolean("comfort.protect-decoration", true)) return;
+        String type = event.getClickedBlock().getType().name();
+        if (type.endsWith("_TRAPDOOR")
+                || type.endsWith("_FENCE_GATE")
+                || type.equals("FLOWER_POT")
+                || type.startsWith("POTTED_")) event.setUseInteractedBlock(Event.Result.DENY);
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -245,11 +257,22 @@ public final class PlayerComfort implements Listener, CommandExecutor {
         return true;
     }
 
-    private static final String[] OPTIONS = {"damage_texts", "compression_sound", "soft_visuals"};
-    private static final String[] LABELS = {
-        "Textes de dégâts", "Son de compression", "Dispersion réduite des dégâts"
+    private static final String[] OPTIONS = {
+        "damage_texts",
+        "compression_sound",
+        "soft_visuals",
+        "common_drop_messages",
+        "farm_actionbar"
     };
-    private static final boolean[] DEFAULTS = {true, true, false};
+    private static final String[] LABELS = {
+        "Textes de dégâts",
+        "Son de compression",
+        "Effets doux et dispersion réduite",
+        "Messages des drops communs",
+        "Récapitulatif des gains en combat"
+    };
+    private static final boolean[] DEFAULTS = {true, true, false, true, true};
+    private static final int[] OPTION_SLOTS = {11, 13, 15, 17, 4};
 
     private void open(Player player) {
         SettingsView view = new SettingsView(player.getUniqueId());
@@ -258,7 +281,7 @@ public final class PlayerComfort implements Listener, CommandExecutor {
                         view,
                         27,
                         Component.text("Paramètres ClickHunter", NamedTextColor.DARK_GREEN));
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < OPTIONS.length; i++) {
             boolean active = enabled(player, OPTIONS[i], DEFAULTS[i]);
             var item = new ItemStack(active ? Material.LIME_DYE : Material.GRAY_DYE);
             var meta = item.getItemMeta();
@@ -270,7 +293,7 @@ public final class PlayerComfort implements Listener, CommandExecutor {
                                     active ? NamedTextColor.GREEN : NamedTextColor.GRAY),
                             Component.text("Clic gauche pour changer.", NamedTextColor.YELLOW)));
             item.setItemMeta(meta);
-            view.inventory.setItem(11 + i * 2, item);
+            view.inventory.setItem(OPTION_SLOTS[i], item);
         }
         fr.cliker.clikerv2.ui.MenuNavigation.back(plugin, view.inventory, 22);
         player.openInventory(view.inventory);
@@ -290,6 +313,8 @@ public final class PlayerComfort implements Listener, CommandExecutor {
                     case 11 -> 0;
                     case 13 -> 1;
                     case 15 -> 2;
+                    case 17 -> 3;
+                    case 4 -> 4;
                     default -> -1;
                 };
         if (index < 0 || !pendingMenus.add(player.getUniqueId())) return;

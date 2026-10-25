@@ -55,7 +55,7 @@ public final class PrestigeMenu implements Listener {
                                                     || error != null
                                                     || !player.hasPermission("cliker.prestige.use"))
                                                 return;
-                                            Holder holder = new Holder();
+                                            Holder holder = new Holder(player.getUniqueId(), kills);
                                             Inventory inventory =
                                                     Bukkit.createInventory(
                                                             holder,
@@ -78,9 +78,10 @@ public final class PrestigeMenu implements Listener {
         int nextPrestige = level + 1;
         int requiredLevel = PrestigeType.requiredLevel(nextPrestige);
         long requiredKills = PrestigeType.requiredKills(nextPrestige);
-        boolean eligible = player.getLevel() >= requiredLevel && kills >= requiredKills;
+        boolean eligible =
+                level < 100 && player.getLevel() >= requiredLevel && kills >= requiredKills;
 
-        ItemStack item = new ItemStack(Material.NETHER_STAR);
+        ItemStack item = new ItemStack(eligible ? Material.ORANGE_DYE : Material.NETHER_STAR);
         var meta = item.getItemMeta();
         meta.displayName(
                 Component.text(
@@ -121,7 +122,7 @@ public final class PrestigeMenu implements Listener {
         lore.add(
                 eligible
                         ? Component.text(
-                                        "Clique pour prestiger !",
+                                        "Clic gauche : préparer le prestige",
                                         NamedTextColor.GREEN,
                                         TextDecoration.BOLD)
                                 .decoration(TextDecoration.ITALIC, false)
@@ -151,12 +152,47 @@ public final class PrestigeMenu implements Listener {
     public void onClick(InventoryClickEvent event) {
         if (!(event.getInventory().getHolder() instanceof Holder holder)) return;
         event.setCancelled(true);
-        if (event.getSlot() != BUTTON_SLOT || !(event.getWhoClicked() instanceof Player player))
+        if (event.getClickedInventory() != holder.inventory
+                || event.getRawSlot() != BUTTON_SLOT
+                || event.getClick() != org.bukkit.event.inventory.ClickType.LEFT
+                || !(event.getWhoClicked() instanceof Player player)
+                || !holder.owner.equals(player.getUniqueId())
+                || !player.hasPermission("cliker.prestige.use")
+                || holder.pending) return;
+        int next = manager.getLevel(player.getUniqueId()) + 1;
+        if (next > 100
+                || player.getLevel() < PrestigeType.requiredLevel(next)
+                || holder.kills < PrestigeType.requiredKills(next)) return;
+        long now = System.nanoTime();
+        if (holder.confirmUntil == 0 || now > holder.confirmUntil) {
+            holder.confirmUntil = now + 10_000_000_000L;
+            var item = buildItem(player, holder.kills);
+            item.setType(Material.LIME_DYE);
+            var meta = item.getItemMeta();
+            meta.displayName(
+                    Component.text(
+                            "Confirmer le prestige", NamedTextColor.GREEN, TextDecoration.BOLD));
+            meta.lore(
+                    List.of(
+                            Component.text(
+                                    "Ton niveau et ton expérience seront remis à zéro.",
+                                    NamedTextColor.YELLOW),
+                            Component.text(
+                                    "Second clic gauche dans les 10 secondes pour confirmer.",
+                                    NamedTextColor.GREEN),
+                            Component.text(
+                                    "Fermer le menu annule cette confirmation.",
+                                    NamedTextColor.GRAY)));
+            item.setItemMeta(meta);
+            holder.inventory.setItem(BUTTON_SLOT, item);
             return;
-
+        }
+        holder.confirmUntil = 0;
+        holder.pending = true;
         manager.attemptPrestige(
                 player,
                 () -> {
+                    holder.pending = false;
                     if (player.isOnline()
                             && plugin.getConfig().getBoolean("displays.tab.enabled", false))
                         tabList.apply(player);
@@ -173,6 +209,7 @@ public final class PrestigeMenu implements Listener {
                                                                                 .getTopInventory()
                                                                                 .getHolder()
                                                                         != holder) return;
+                                                        holder.kills = kills;
                                                         holder.inventory.setItem(
                                                                 BUTTON_SLOT,
                                                                 buildItem(player, kills));
@@ -188,6 +225,14 @@ public final class PrestigeMenu implements Listener {
 
     private static final class Holder implements InventoryHolder {
         private Inventory inventory;
+        private final java.util.UUID owner;
+        private long kills, confirmUntil;
+        private boolean pending;
+
+        private Holder(java.util.UUID owner, long kills) {
+            this.owner = owner;
+            this.kills = kills;
+        }
 
         @Override
         public Inventory getInventory() {

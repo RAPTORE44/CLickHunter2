@@ -705,7 +705,12 @@ public final class CustomMobManager implements Listener {
                                                             earned,
                                                             fightDuration);
                                                 ledger.flushXP(owner);
-                                                if (killer.isOnline())
+                                                if (killer.isOnline()
+                                                        && fr.cliker.clikerv2.comfort.PlayerComfort
+                                                                .enabled(
+                                                                        killer,
+                                                                        "farm_actionbar",
+                                                                        true))
                                                     killer.sendActionBar(
                                                             Component.text(
                                                                     "+"
@@ -770,13 +775,16 @@ public final class CustomMobManager implements Listener {
                     < tier.dropChancePercent() + lootFinderBonus) {
                 ItemStack box = LootboxItem.create(tier);
                 fr.cliker.clikerv2.rewards.ItemDelivery.give(killer, box);
-                killer.sendMessage(
-                        Component.text("✦ Coffre obtenu : ", NamedTextColor.YELLOW)
-                                .append(
-                                        Component.text(
-                                                tier.boxName(),
-                                                tier.color(),
-                                                TextDecoration.BOLD)));
+                if (tier.ordinal() > LootboxTier.PEU_COMMUN.ordinal()
+                        || fr.cliker.clikerv2.comfort.PlayerComfort.enabled(
+                                killer, "common_drop_messages", true))
+                    killer.sendMessage(
+                            Component.text("✦ Coffre obtenu : ", NamedTextColor.YELLOW)
+                                    .append(
+                                            Component.text(
+                                                    tier.boxName(),
+                                                    tier.color(),
+                                                    TextDecoration.BOLD)));
             }
         }
     }

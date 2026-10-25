@@ -47,7 +47,9 @@ public final class GearAttributeManager implements Listener {
         for (Player player : plugin.getServer().getOnlinePlayers()) applyTo(player);
     }
 
-    private void applyTo(Player player) {
+    public record ArmorBonuses(double health, double reductionPercent, double speed) {}
+
+    public static ArmorBonuses armorBonuses(Player player) {
         double health = 0, reduction = 0, speed = 0;
         for (ItemStack piece : player.getInventory().getArmorContents()) {
             if (piece == null || !piece.hasItemMeta()) continue;
@@ -71,9 +73,14 @@ public final class GearAttributeManager implements Listener {
             }
         }
 
-        applyAttribute(player, Attribute.MAX_HEALTH, healthKey, health);
-        applyAttribute(player, Attribute.MOVEMENT_SPEED, speedKey, speed);
-        damageReduction.put(player.getUniqueId(), Math.min(MAX_REDUCTION_PERCENT, reduction));
+        return new ArmorBonuses(health, Math.min(MAX_REDUCTION_PERCENT, reduction), speed);
+    }
+
+    private void applyTo(Player player) {
+        ArmorBonuses bonuses = armorBonuses(player);
+        applyAttribute(player, Attribute.MAX_HEALTH, healthKey, bonuses.health());
+        applyAttribute(player, Attribute.MOVEMENT_SPEED, speedKey, bonuses.speed());
+        damageReduction.put(player.getUniqueId(), bonuses.reductionPercent());
     }
 
     private void applyAttribute(

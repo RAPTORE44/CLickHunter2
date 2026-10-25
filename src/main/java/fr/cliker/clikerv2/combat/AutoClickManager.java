@@ -64,7 +64,7 @@ public final class AutoClickManager implements CommandExecutor, Listener {
                 lastAttackTick.remove(uuid);
                 continue;
             }
-            int interval = intervalFor(player);
+            int interval = effectiveIntervalTicks(player);
             int last = lastAttackTick.getOrDefault(uuid, -interval);
             if (elapsedTicks - last < interval) continue;
 
@@ -89,8 +89,24 @@ public final class AutoClickManager implements CommandExecutor, Listener {
                 player.swingMainHand();
                 living.damage(1.0, player);
                 lastAttackTick.put(uuid, elapsedTicks);
+                var weapon = player.getInventory().getItemInMainHand();
+                if (!weapon.getType().isAir()
+                        && weapon.hasItemMeta()
+                        && (weapon.getItemMeta()
+                                        .getPersistentDataContainer()
+                                        .has(TierGear.SWORD_KEY, PersistentDataType.STRING)
+                                || weapon.getItemMeta()
+                                        .getPersistentDataContainer()
+                                        .has(SwordCommand.SWORD_KEY, PersistentDataType.BYTE))
+                        && player.getCooldown(weapon.getType()) <= interval)
+                    player.setCooldown(weapon.getType(), interval);
             }
         }
+    }
+
+    /** Cadence effective du moteur, vérifié par pas de dix ticks. */
+    public int effectiveIntervalTicks(Player player) {
+        return ((intervalFor(player) + 9) / 10) * 10;
     }
 
     /**

@@ -175,6 +175,17 @@ public final class StatsMenu implements Listener {
                         NamedTextColor.DARK_PURPLE));
         lore.add(line("Cendres", Numbers.compact(balances.cendres()), NamedTextColor.GRAY));
         lore.add(Component.text(""));
+        double reduction =
+                fr.cliker.clikerv2.gear.GearAttributeManager.armorBonuses(player)
+                        .reductionPercent();
+        lore.add(
+                line(
+                        "Réduction bonus de l’équipement",
+                        String.format(
+                                java.util.Locale.FRANCE,
+                                "%.1f %% (hors armure vanilla)",
+                                reduction),
+                        NamedTextColor.BLUE));
         lore.add(header("Progression", NamedTextColor.AQUA));
         lore.add(
                 line(
