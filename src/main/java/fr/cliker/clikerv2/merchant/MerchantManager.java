@@ -2,15 +2,10 @@ package fr.cliker.clikerv2.merchant;
 
 import fr.cliker.clikerv2.MobTier;
 
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
-
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -119,38 +114,46 @@ public final class MerchantManager implements Listener {
     }
 
     private void despawn(String npcId) {
+        var packet = packetNpcs.remove(npcId);
+        if (packet != null) packet.shutdown();
         UUID uuid = aliveByNpcId.remove(npcId);
         if (uuid == null) return;
         Entity entity = plugin.getServer().getEntity(uuid);
         if (entity != null) entity.remove();
     }
 
+    private final Map<String, fr.cliker.clikerv2.npc.ZnpcsNpc> packetNpcs = new HashMap<>();
+
+    public boolean available() {
+        return plugin.getServer().getPluginManager().isPluginEnabled("ZNPCsPlus");
+    }
+
     private void spawn(String npcId) {
         Location location = npcLocation.get(npcId);
         String mobId = npcMobId.get(npcId);
         MobTier tier = mobId == null ? null : MobTier.parse(mobId);
-        if (location == null || tier == null) return;
+        if (location == null || tier == null || !available()) return;
+        var config = new org.bukkit.configuration.file.YamlConfiguration();
+        config.set("pnj.actif", true);
+        fr.cliker.clikerv2.config.YamlFiles.location(config, "pnj.position", location);
+        config.set("pnj.skin", "Nati144378");
+        config.set("pnj.titre", "&aMarchand " + tier.label());
+        config.set("pnj.sous-titre", "&7Clic droit pour ouvrir");
+        var npc =
+                new fr.cliker.clikerv2.npc.ZnpcsNpc(
+                        plugin,
+                        config,
+                        () -> {},
+                        player -> menu.open(player, tier),
+                        "merchant-" + npcId,
+                        "Marchand");
+        packetNpcs.put(npcId, npc);
+        npc.start();
+    }
 
-        Villager villager =
-                (Villager)
-                        location.getWorld()
-                                .spawnEntity(location, org.bukkit.entity.EntityType.VILLAGER);
-        villager.setAI(false);
-        villager.setInvulnerable(true);
-        villager.setSilent(true);
-        villager.setCollidable(false);
-        villager.setPersistent(false);
-        villager.setRemoveWhenFarAway(false);
-        villager.setVillagerType(Villager.Type.SWAMP);
-        villager.setProfession(Villager.Profession.NONE);
-        villager.customName(
-                Component.text(
-                        "Marchand " + tier.label(),
-                        NamedTextColor.LIGHT_PURPLE,
-                        TextDecoration.BOLD));
-        villager.setCustomNameVisible(true);
-        villager.getPersistentDataContainer().set(mobIdKey, PersistentDataType.STRING, mobId);
-        aliveByNpcId.put(npcId, villager.getUniqueId());
+    public void shutdown() {
+        packetNpcs.values().forEach(fr.cliker.clikerv2.npc.ZnpcsNpc::shutdown);
+        packetNpcs.clear();
     }
 
     @EventHandler

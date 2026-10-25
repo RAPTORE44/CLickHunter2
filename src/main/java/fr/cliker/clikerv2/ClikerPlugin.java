@@ -106,6 +106,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.daily.DailyModule dailyModule;
     private fr.cliker.clikerv2.buyzone.BuyZoneModule buyZoneModule;
     private PrestigeManager prestigeManager;
+    private MerchantManager merchantManager;
     private fr.cliker.clikerv2.ui.MenuIcons menuIcons;
     private fr.cliker.clikerv2.comfort.PlayerComfort playerComfort;
     private fr.cliker.clikerv2.comfort.FarmTelemetry farmTelemetry;
@@ -344,7 +345,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         MerchantMenu merchantMenu = new MerchantMenu(this, economy);
         getServer().getPluginManager().registerEvents(merchantMenu, this);
         MerchantStore merchantStore = new MerchantStore(database);
-        MerchantManager merchantManager = new MerchantManager(this, merchantStore, merchantMenu);
+        merchantManager = new MerchantManager(this, merchantStore, merchantMenu);
         getServer().getPluginManager().registerEvents(merchantManager, this);
         getServer().getScheduler().runTaskLater(this, merchantManager::load, 20L);
         if (getCommand("pnj") != null) {
@@ -516,7 +517,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
                     .log(
                             java.util.logging.Level.WARNING,
                             "Icônes personnalisées désactivées ; les menus vanilla restent"
-                                + " disponibles.",
+                                    + " disponibles.",
                             error);
         }
         getLogger().info("Economie active avec SQLite.");
@@ -524,6 +525,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
 
     @Override
     public void onDisable() {
+        if (merchantManager != null) merchantManager.shutdown();
         if (menuIcons != null) menuIcons.shutdown();
         if (prestigeManager != null) prestigeManager.shutdown();
         if (playerComfort != null) playerComfort.shutdown();

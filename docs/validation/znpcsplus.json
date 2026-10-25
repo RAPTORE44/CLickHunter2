@@ -1,0 +1,31 @@
+{
+  "provider": "ZNPCsPlus 2.0.0",
+  "source": "https://github.com/Pyrbu/ZNPCsPlus/releases/tag/2.0.0",
+  "provider_sha256": "c135420790ebd185870af20d7c26855427415638745aa9f6df335299cf486714",
+  "paper": "1.21.4 build 232",
+  "java": "21.0.9",
+  "tests": {
+    "tests": 181,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "native_checks": [
+    "PNJ daily visible et clic droit ouvre le calendrier/contrats",
+    "doublon daily refusé",
+    "PNJ contrats visible et clic droit ouvre le calendrier/contrats",
+    "PNJ Discord donne le lien exact",
+    "marchand ZNPCsPlus ouvre sa boutique",
+    "daily restauré une seule fois à sa position",
+    "contrats restauré une seule fois à sa position",
+    "discord restauré une seule fois à sa position",
+    "marchand restauré une seule fois à sa position",
+    "suppression Discord sans supprimer le marchand"
+  ],
+  "jar_sha256": "aa929a51367b65c53b518249a74cf2c4aed1ea3ee0abdf65ae827ab84d565ad1",
+  "limits": [
+    "Rendu graphique exact du skin non certifié par le client sans affichage.",
+    "Migration des PNJ Citizens testée par frontière d’API et inspection ; Citizens non installé dans le test natif.",
+    "Aucun reload global certifié ; déploiement par arrêt/redémarrage."
+  ]
+}

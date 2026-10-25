@@ -3,7 +3,7 @@ messages:
   titre: '&9&lClickHunter &8• &fRejoins notre Discord !'
   survol: '&aClique pour ouvrir le Discord.'
   interdit: '&cTu n’as pas la permission nécessaire.'
-  citizens-absent: '&cInstalle Citizens compatible Paper 1.21.4 pour créer le PNJ Discord.'
+  citizens-absent: '&cInstalle ZNPCsPlus compatible Paper 1.21.4 pour créer le PNJ Discord.'
   joueur-uniquement: '&cPlace-toi en jeu pour créer le PNJ.'
   cree: '&aPNJ Discord créé à ta position.'
   existant: '&eUn PNJ Discord existe déjà. Utilise /discord pnj remove pour le déplacer.'

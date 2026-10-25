@@ -2,7 +2,7 @@ package fr.cliker.clikerv2.hunting;
 
 import fr.cliker.clikerv2.*;
 import fr.cliker.clikerv2.mobs.CustomMobManager;
-import fr.cliker.clikerv2.npc.CitizensNpc;
+import fr.cliker.clikerv2.npc.ZnpcsNpc;
 
 import org.bukkit.*;
 import org.bukkit.command.*;
@@ -28,7 +28,7 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
     private final File file;
     private final YamlConfiguration config;
     private final ZoneId zone;
-    private final CitizensNpc npc;
+    private final ZnpcsNpc npc;
     private final Set<UUID> busy = new HashSet<>();
 
     private record OpenRequest(long id, org.bukkit.inventory.Inventory inventory, UUID world) {}
@@ -77,7 +77,7 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
         if (added) save();
         Bukkit.getPluginManager().registerEvents(this, plugin);
         npc =
-                new CitizensNpc(
+                new ZnpcsNpc(
                         plugin,
                         config,
                         this::save,
@@ -109,7 +109,7 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
     private void message(Player player, String key) {
         player.sendMessage(
                 fr.cliker.clikerv2.daily.DailySettings.color(
-                        config.getString("messages." + key, key)));
+                        config.getString("messages." + key, key).replace("Citizens", "ZNPCsPlus")));
     }
 
     private <T> void result(Player player, CompletableFuture<T> future, Consumer<T> action) {

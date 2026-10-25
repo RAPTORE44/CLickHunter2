@@ -18,7 +18,7 @@ messages:
   incomplet: '&eL’objectif de ce contrat n’est pas encore atteint.'
   deja: '&7Tu as déjà récupéré ce contrat aujourd’hui.'
   recompense: '&aContrat terminé ! Tes monnaies et ton XP sont crédités.'
-  citizens: '&cCitizens est nécessaire pour créer le PNJ. /contrats reste disponible.'
+  citizens: '&cZNPCsPlus est nécessaire pour créer le PNJ. /contrats reste disponible.'
   cree: '&aPNJ des contrats créé.'
   existant: '&eLe PNJ existe déjà.'
   supprime: '&aPNJ supprimé.'

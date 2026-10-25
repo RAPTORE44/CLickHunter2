@@ -13,3 +13,7 @@ Le propriétaire a confirmé de conserver les demandes antérieures en cas de co
 ## Icônes des menus
 
 Les textures et items `icons:*` fournis sont déjà installés dans ItemsAdder sur le serveur. Utiliser directement ces items via l’API ItemsAdder, sans demander un nouveau pack ni générer des modèles `clickhunter:*`. La référence est la liste des items réellement déclarés dans les YAML du ZIP, et non toutes les textures présentes.
+
+## PNJ
+
+Utiliser ZNPCsPlus 2.0.0 pour les PNJ Daily, Discord, Contrats et marchands. Citizens n’est plus le fournisseur ; sa présence optionnelle sert uniquement à nettoyer les anciens PNJ balisés par ClikerV2 lors de la migration, sans toucher aux autres. Conserver les commandes, positions et orientations sauvegardées.

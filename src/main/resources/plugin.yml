@@ -3,7 +3,7 @@ version: ${project.version}
 main: fr.cliker.clikerv2.ClikerPlugin
 api-version: '1.21'
 author: Cliker
-softdepend: [LuckPerms, DecentHolograms, Citizens, ItemsAdder]
+softdepend: [LuckPerms, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
   lock:
     description: Verrouiller ou déverrouiller l’équipement tenu contre le jet et la vente

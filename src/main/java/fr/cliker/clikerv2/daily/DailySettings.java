@@ -96,7 +96,7 @@ public final class DailySettings {
     }
 
     public String message(String key) {
-        return config.getString("messages." + key, key);
+        return config.getString("messages." + key, key).replace("Citizens", "ZNPCsPlus");
     }
 
     public Component message(String key, Map<String, String> values) {

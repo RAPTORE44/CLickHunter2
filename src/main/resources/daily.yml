@@ -22,7 +22,7 @@ messages:
   verrouille: '&7Cette récompense sera disponible dans &f{temps}&7, si tu poursuis ta série.'
   erreur: '&cImpossible de traiter ta demande. Réessaie ou contacte un administrateur.'
   erreur-commande: '&cLa récupération est enregistrée, mais une commande a échoué. Contacte un administrateur.'
-  citizens-absent: '&cCitizens compatible avec Paper 1.21.4 est nécessaire pour le PNJ. /daily reste disponible.'
+  citizens-absent: '&cZNPCsPlus 2.0.0 est nécessaire pour le PNJ. /daily reste disponible.'
   pnj-cree: '&aLe PNJ des récompenses journalières a été créé.'
   pnj-existant: '&eUn PNJ existe déjà. Supprime-le avant d’en créer un autre.'
   pnj-supprime: '&aLe PNJ des récompenses journalières a été supprimé.'

@@ -5,7 +5,7 @@ intégrée : [configuration des tarifs, commandes et installation](docs/BUYZONE.
 Les prix d'accès manquants sont proposés à partir des prix actuels des armures, sans modifier les tarifs existants.
 
 Le module **NorthBlue de récompenses journalières** est intégré à ce même plugin :
-`/daily`, calendrier de 28 jours et PNJ Citizens optionnel.
+`/daily`, calendrier de 28 jours et PNJ ZNPCsPlus 2.0.0 optionnel.
 Voir [l'installation, la configuration et les règles du calendrier](docs/RECOMPENSES-JOURNALIERES.md).
 
 Plugin unique pour Paper 1.21.4 : économie SQLite et commandes de gestion des monnaies.
@@ -110,7 +110,7 @@ Toutes ces commandes acceptent aussi `/is` et `/avantpostes` à la place de `/av
 
 ### Administration : monde, zones et PNJ
 
-Ces commandes nécessitent les permissions administrateur correspondantes. Citizens est nécessaire pour les PNJ humains ; DecentHolograms est nécessaire pour `/holotop`.
+Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCsPlus 2.0.0 est nécessaire pour les PNJ ; DecentHolograms est nécessaire pour `/holotop`.
 
 | Commande | Utilité | Permission |
 | --- | --- | --- |
@@ -209,3 +209,5 @@ Sélection du classeur : [suivi des 141 lignes jaunes, livraisons et travail res
 Audit de suivi : [corrections de reconnexion, sauvegarde, compresseur et achats](docs/AUDIT-SUIVI-2026-10-25.md). Les boutons des marchands et de transformation répondent aux clics gauche/droit ; les touches de déplacement d’objets ne déclenchent pas de dépense. Le compresseur s’active dans l’air ou sur un bloc, selon les protections du serveur.
 
 Icônes des boutons : [utilisation des items `icons:*` déjà installés dans ItemsAdder](docs/ICONES-MENUS.md). Aucun pack supplémentaire à installer. Aucune commande supplémentaire : les 46 commandes et leurs permissions restent inchangées.
+
+PNJ : [intégration ZNPCsPlus 2.0.0, installation et migration](docs/PNJ-ZNPCSPLUS.md).

@@ -49,3 +49,7 @@ Le retour reste au nord du portail mais le joueur regarde vers le sud (y compris
 - Section 17 du nouveau cahier : aucune nouvelle idée renseignée ; aucun nouveau système majeur lancé.
 
 Voir `AUDIT-SUIVI-2026-10-25.md` et `validation/audit-suivi.json` pour les preuves et limites. Les autres lignes jaunes et les dépendances en attente conservent leur état.
+
+### Fournisseur de PNJ
+
+Terminée : migration vers ZNPCsPlus 2.0.0 pour Daily, Discord, Contrats et marchands. Les commandes et positions existantes sont conservées. Vérifications natives sur Paper : interactions des quatre types, refus de doublon, restauration après redémarrage et suppression ciblée. Voir `PNJ-ZNPCSPLUS.md` et `validation/znpcsplus.json`.

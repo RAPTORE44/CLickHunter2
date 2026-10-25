@@ -8,11 +8,7 @@ n'est à installer. Cible : **Paper 1.21.4 et Java 21**.
 1. Arrêter le serveur. Sauvegarder l'ancien JAR et le dossier `plugins/ClikerV2/`.
 2. Remplacer l'ancien plugin par le nouveau `ClikerV2.jar` dans `plugins/`.
    Ne pas garder deux versions du JAR et ne pas utiliser `/reload`.
-3. Pour le PNJ joueur avec skin, installer une version de **Citizens** explicitement
-   compatible avec **Paper 1.21.4**. Citizens est optionnel pour `/daily`, mais
-   obligatoire pour les commandes de PNJ. Télécharger Citizens auprès de sa source
-   officielle : <https://www.spigotmc.org/resources/citizens.13811/> et suivre ses
-   instructions de compatibilité. Le module ne nécessite pas Sentinel ou Denizen.
+3. Installer **ZNPCsPlus-2.0.0.jar** pour le PNJ joueur avec skin. Le calendrier `/daily` fonctionne aussi sans PNJ. Voir [installation et migration](PNJ-ZNPCSPLUS.md).
 4. Démarrer le serveur. La configuration française est créée automatiquement dans
    `plugins/ClikerV2/daily.yml`. Les autres modules de ClikerV2 sont conservés.
 5. Ouvrir `/daily`, ou créer le PNJ avec `/daily pnj spawn` depuis sa position
@@ -34,9 +30,9 @@ Le clic droit sur le PNJ ouvre directement le même calendrier et vérifie aussi
 `cliker.daily.use`. Le PNJ porte le skin `Nati144378`, reste immobile et protégé,
 et affiche « Récompenses journalières » en vert puis « Clic droit pour ouvrir ».
 La création est refusée si un PNJ est déjà enregistré. Au démarrage, les doublons
-portant la balise de ce module sont supprimés, sans toucher aux autres PNJ Citizens.
+sont évités par un identifiant ZNPCsPlus stable, sans toucher aux PNJ des autres modules.
 La suppression est persistante ; le PNJ est restauré automatiquement au redémarrage
-s'il est encore activé. Citizens assure le téléchargement et le cache du skin ;
+s'il est encore activé. ZNPCsPlus assure le téléchargement et le cache du skin ;
 l'accès aux services Mojang et aux textures doit être autorisé sur le serveur.
 
 ## Règle des journées calendaires
@@ -143,7 +139,7 @@ Tests automatisés : calendrier, minuit, jours manqués, fin du cycle, changemen
 d'heure, persistance UUID, concurrence, menu complet, commandes console et
 protection des objets. La bibliothèque SQLite incluse dans le JAR final a aussi
 été exécutée directement. L'apparence en jeu, le skin et le cycle de vie réel du
-PNJ Citizens doivent être vérifiés sur un serveur Paper avec Citizens installé ;
+PNJ ZNPCsPlus sont testés sur Paper avec ZNPCsPlus 2.0.0 ;
 ils ne sont pas validés par le serveur simulé utilisé pour les tests.
 
 ## Vérification en jeu recommandée

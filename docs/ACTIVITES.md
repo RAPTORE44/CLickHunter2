@@ -13,9 +13,9 @@ Les Gemmes Sombres sont exprimées **en dixièmes** dans les fichiers : `10 = 1 
 2. Remplacer l’ancien JAR par `ClikerV2.jar` dans `plugins/`. Conserver les configurations et la base existantes.
 3. Démarrer avec Java 21. Les nouvelles tables et configurations sont créées automatiquement.
 4. Configurer `chasse.yml`, `raid.yml`, `avantpostes.yml`, puis redémarrer pour appliquer les changements.
-5. Pour les PNJ humains uniquement, installer une version de **Citizens compatible Paper 1.21.4**.
+5. Pour les PNJ humains uniquement, installer **ZNPCsPlus 2.0.0**.
 
-Les menus et activités fonctionnent sans Citizens, sans ItemsAdder et sans pack de ressources.
+Les menus et activités fonctionnent sans ZNPCsPlus, sans ItemsAdder et sans pack de ressources.
 Les mondes `clickhunter_raid` et `clickhunter_avantpostes` sont générés automatiquement.
 Ne pas leur attribuer le nom d’un monde de jeu préexistant. Conserver leurs noms après ouverture aux joueurs.
 Les quatre boutons sont ajoutés à `/menu` en préservant les emplacements personnalisés ; un menu complet nécessite un placement manuel.
@@ -66,7 +66,7 @@ Les clics répétés ne peuvent pas payer deux fois le même contrat.
 
 Réinitialisation à minuit dans `Europe/Paris`, configurable. Réclamer les contrats terminés avant minuit :
 ils ne sont pas reportés au lendemain. Les contrats d’une créature inconnue restent anonymes.
-Le PNJ des contrats dispose de sa propre identité Citizens, de sa position sauvegardée et de ses textes.
+Le PNJ des contrats dispose de sa propre identité ZNPCsPlus, de sa position sauvegardée et de ses textes.
 Son retrait ne supprime pas les PNJ du calendrier ou de Discord.
 
 ## Raid

@@ -1,7 +1,7 @@
 package fr.cliker.clikerv2.discord;
 
 import fr.cliker.clikerv2.daily.DailySettings;
-import fr.cliker.clikerv2.npc.CitizensNpc;
+import fr.cliker.clikerv2.npc.ZnpcsNpc;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -25,7 +25,7 @@ public final class DiscordModule implements CommandExecutor, TabCompleter {
     private final JavaPlugin plugin;
     private final File file;
     private final YamlConfiguration config;
-    private final CitizensNpc npc;
+    private final ZnpcsNpc npc;
     private final String link;
 
     public DiscordModule(JavaPlugin plugin) {
@@ -40,7 +40,7 @@ public final class DiscordModule implements CommandExecutor, TabCompleter {
                 || uri.getUserInfo() != null)
             throw new IllegalArgumentException("Le lien Discord doit être une URL HTTPS valide");
         npc =
-                new CitizensNpc(
+                new ZnpcsNpc(
                         plugin,
                         config,
                         this::save,
@@ -85,7 +85,9 @@ public final class DiscordModule implements CommandExecutor, TabCompleter {
     }
 
     private void message(CommandSender sender, String key) {
-        sender.sendMessage(DailySettings.color(config.getString("messages." + key, key)));
+        sender.sendMessage(
+                DailySettings.color(
+                        config.getString("messages." + key, key).replace("Citizens", "ZNPCsPlus")));
     }
 
     @Override
