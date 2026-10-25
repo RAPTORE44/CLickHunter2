@@ -110,3 +110,11 @@ Le seuil du boss public a été franchi depuis un compteur de test à 999 999 99
 En visant un bloc à moins de cinq blocs : `/sacbloc set` ouvre les sacs personnels au clic droit ; `/upgradebloc set` ouvre `/upgrade`. Utiliser respectivement `/sacbloc remove` ou `/upgradebloc remove` pour retirer le raccourci et son hologramme. Permission : `cliker.services.admin`. Les permissions habituelles des menus restent appliquées.
 
 Les hologrammes utilisent les TextDisplay natifs de Paper, sans dépendance supplémentaire. Les positions persistent après redémarrage ; les hologrammes sont recréés dans les chunks chargés, sans forcer le chargement des autres chunks. Textes et couleurs sont configurables sous `hologrammes.sacs` et `hologrammes.upgrades` dans `navigation/warps.yml` (couleurs avec `&`, saut de ligne avec `\n` dans une chaîne YAML entre guillemets doubles).
+
+## Navigation par catégories
+
+Le marchand de construction de l’avant-poste ouvre les catégories Tous les blocs, Bois, Pierre et minerais, Couleurs et verre, Nature, Décoration et mécanismes. Chaque liste possède sa pagination et un bouton Catégories ; gauche achète un bloc, droite une pile.
+
+`/batonspawn` sans argument ouvre la sélection des créatures. Gauche donne le bâton de la créature, droite celui de son boss ; un clic sur un bloc définit ensuite le point d’apparition. La permission administrateur reste obligatoire.
+
+`/tallisement` présente uniquement les talismans débloqués. Le bouton Non débloqués ouvre les catégories Créatures, Boss et les cinq familles générales. Chaque catégorie masque les talismans déjà découverts et permet de revenir aux débloqués. Les noms des créatures non découvertes restent cachés.

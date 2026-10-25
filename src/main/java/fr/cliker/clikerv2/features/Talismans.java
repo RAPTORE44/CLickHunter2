@@ -251,6 +251,27 @@ public final class Talismans implements Listener, CommandExecutor {
     }
 
     private void open(Player p, int page) {
+        open(p, page, "debloques");
+    }
+
+    private void categories(Player p) {
+        var view = menus.create(p, 27, "Talismans non débloqués");
+        String[] kinds = {"mob", "boss", "lame", "richesse", "sagesse", "fortune", "vitalite"};
+        String[] labels = {
+            "Créatures", "Boss", "Lame", "Richesse", "Sagesse", "Fortune", "Vitalité"
+        };
+        for (int i = 0; i < kinds.length; i++) {
+            String kind = kinds[i];
+            view.put(10 + i, Menus.item(Material.BOOK, labels[i]), (who, r) -> open(who, 0, kind));
+        }
+        view.put(
+                22,
+                Menus.item(Material.ARROW, "Mes talismans débloqués"),
+                (who, r) -> open(who, 0));
+        view.show(p);
+    }
+
+    private void open(Player p, int page, String category) {
         if (!opening.add(p.getUniqueId())) return;
         var owned = new HashSet<String>();
         for (var item : p.getInventory().getContents()) {
@@ -323,15 +344,35 @@ public final class Talismans implements Listener, CommandExecutor {
                                                             "vitalite"))
                                                 for (int n = 1; n <= 5; n++)
                                                     ids.add("general:" + kind + ":" + n);
+                                            ids.removeIf(
+                                                    id ->
+                                                            category.equals("debloques")
+                                                                    ? !unlocked.contains(id)
+                                                                    : unlocked.contains(id)
+                                                                            || !(category.equals(
+                                                                                                    "mob")
+                                                                                            || category
+                                                                                                    .equals(
+                                                                                                            "boss")
+                                                                                    ? id.startsWith(
+                                                                                            category
+                                                                                                    + ":")
+                                                                                    : id.startsWith(
+                                                                                            "general:"
+                                                                                                    + category
+                                                                                                    + ":")));
                                             int max = (ids.size() - 1) / 45;
                                             int selected = Math.max(0, Math.min(page, max));
                                             var v =
                                                     menus.create(
                                                             p,
                                                             54,
-                                                            "Talismans — "
-                                                                    + unlocked.size()
-                                                                    + " / "
+                                                            (category.equals("debloques")
+                                                                            ? "Talismans débloqués"
+                                                                                    + " — "
+                                                                            : "Non débloqués — "
+                                                                                    + category
+                                                                                    + " — ")
                                                                     + ids.size());
                                             for (int i = 0;
                                                     i < 45 && selected * 45 + i < ids.size();
@@ -379,7 +420,7 @@ public final class Talismans implements Listener, CommandExecutor {
                                             v.put(
                                                     45,
                                                     Menus.item(Material.ARROW, "Page précédente"),
-                                                    (who, r) -> open(who, selected - 1));
+                                                    (who, r) -> open(who, selected - 1, category));
                                             v.put(
                                                     49,
                                                     Menus.item(
@@ -396,7 +437,27 @@ public final class Talismans implements Listener, CommandExecutor {
                                             v.put(
                                                     53,
                                                     Menus.item(Material.ARROW, "Page suivante"),
-                                                    (who, r) -> open(who, selected + 1));
+                                                    (who, r) -> open(who, selected + 1, category));
+                                            v.put(
+                                                    47,
+                                                    Menus.item(
+                                                            Material.BOOK,
+                                                            "Non débloqués — Catégories"),
+                                                    (who, r) -> categories(who));
+                                            if (!category.equals("debloques"))
+                                                v.put(
+                                                        51,
+                                                        Menus.item(
+                                                                Material.ARROW,
+                                                                "Mes talismans débloqués"),
+                                                        (who, r) -> open(who, 0));
+                                            if (ids.isEmpty())
+                                                v.put(
+                                                        22,
+                                                        Menus.item(
+                                                                Material.GRAY_DYE,
+                                                                "Aucun talisman dans cette liste"),
+                                                        null);
                                             v.show(p);
                                         }));
     }

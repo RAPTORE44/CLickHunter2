@@ -22,6 +22,7 @@ import java.util.concurrent.CompletableFuture;
 /** Boutique de construction : débit et livraison en attente sont une transaction SQLite. */
 public final class OutpostBlocks implements Listener {
     private final JavaPlugin plugin;
+    private final fr.cliker.clikerv2.features.Menus blockMenus;
     private final DatabaseManager db;
     private final YamlConfiguration config;
     private final World world;
@@ -40,6 +41,7 @@ public final class OutpostBlocks implements Listener {
     public OutpostBlocks(
             JavaPlugin plugin, DatabaseManager db, YamlConfiguration config, World world) {
         this.plugin = plugin;
+        blockMenus = new fr.cliker.clikerv2.features.Menus(plugin);
         this.db = db;
         this.config = config;
         this.world = world;
@@ -172,24 +174,95 @@ public final class OutpostBlocks implements Listener {
         return value > 0 && value <= 1_000_000_000_000L ? value : 10;
     }
 
+    private static final List<String> CATEGORIES =
+            List.of(
+                    "Tous les blocs",
+                    "Bois",
+                    "Pierre et minerais",
+                    "Couleurs et verre",
+                    "Nature",
+                    "Décoration et mécanismes");
+
+    static int category(Material material) {
+        String n = material.name();
+        if (n.contains("LOG")
+                || n.contains("WOOD")
+                || n.contains("PLANK")
+                || n.contains("BAMBOO")
+                || n.contains("STEM")
+                || n.contains("HYPHAE")) return 1;
+        if (n.contains("WOOL")
+                || n.contains("CONCRETE")
+                || n.contains("TERRACOTTA")
+                || n.contains("GLASS")
+                || n.contains("CARPET")) return 3;
+        if (n.contains("STONE")
+                || n.contains("ORE")
+                || n.contains("DEEPSLATE")
+                || n.contains("TUFF")
+                || n.contains("ANDESITE")
+                || n.contains("GRANITE")
+                || n.contains("DIORITE")
+                || n.contains("BRICK")
+                || n.contains("BASALT")) return 2;
+        if (n.contains("DIRT")
+                || n.contains("GRASS")
+                || n.contains("LEAVES")
+                || n.contains("FLOWER")
+                || n.contains("SAPLING")
+                || n.contains("MOSS")
+                || n.contains("SAND")
+                || n.contains("CORAL")
+                || n.contains("ICE")
+                || n.contains("SNOW")) return 4;
+        return 5;
+    }
+
     public void open(Player player, int page) {
         if (!ready || player.getWorld() != world || !WorldInventories.readyForBuilder(player)) {
             player.sendMessage("Boutique en cours de chargement.");
             return;
         }
-        int pages = (materials.size() + 44) / 45;
+        var menu = blockMenus.create(player, 27, "Blocs — Catégories");
+        Material[] icons = {
+            Material.CHEST,
+            Material.OAK_LOG,
+            Material.STONE,
+            Material.CYAN_CONCRETE,
+            Material.GRASS_BLOCK,
+            Material.REDSTONE
+        };
+        for (int i = 0; i < CATEGORIES.size(); i++) {
+            final int choice = i;
+            menu.put(
+                    10 + i,
+                    fr.cliker.clikerv2.features.Menus.item(icons[i], CATEGORIES.get(i)),
+                    (who, right) -> openCategory(who, 0, choice));
+        }
+        menu.show(player);
+    }
+
+    private void openCategory(Player player, int page, int category) {
+        List<Material> products =
+                materials.stream().filter(m -> category == 0 || category(m) == category).toList();
+        if (!ready || player.getWorld() != world || !WorldInventories.readyForBuilder(player)) {
+            player.sendMessage("Boutique en cours de chargement.");
+            return;
+        }
+        int pages = Math.max(1, (products.size() + 44) / 45);
         page = Math.max(0, Math.min(page, pages - 1));
-        var view = new View(player.getUniqueId(), page);
+        var view = new View(player.getUniqueId(), page, category, products);
         view.inventory =
                 Bukkit.createInventory(
                         view,
                         54,
                         Component.text(
-                                "Blocs — " + (page + 1) + "/" + pages, NamedTextColor.DARK_GREEN));
+                                CATEGORIES.get(category) + " — " + (page + 1) + "/" + pages,
+                                NamedTextColor.DARK_GREEN));
         for (int slot = 0; slot < 45; slot++) {
             int index = page * 45 + slot;
-            if (index >= materials.size()) break;
-            Material material = materials.get(index);
+            if (index >= products.size()) break;
+            Material material = products.get(index);
             var item = new ItemStack(material);
             var meta = item.getItemMeta();
             meta.lore(
@@ -205,6 +278,7 @@ public final class OutpostBlocks implements Listener {
             view.inventory.setItem(slot, item);
         }
         button(view.inventory, 45, "Page précédente", Material.ARROW);
+        button(view.inventory, 48, "Catégories", Material.BOOK);
         button(view.inventory, 49, "Fermer", Material.BARRIER);
         button(view.inventory, 53, "Page suivante", Material.ARROW);
         player.openInventory(view.inventory);
@@ -234,8 +308,12 @@ public final class OutpostBlocks implements Listener {
                     () -> {
                         if (player.isOnline()
                                 && player.getOpenInventory().getTopInventory() == view.inventory)
-                            open(player, view.page + (slot == 45 ? -1 : 1));
+                            openCategory(player, view.page + (slot == 45 ? -1 : 1), view.category);
                     });
+            return;
+        }
+        if (slot == 48) {
+            sync(() -> open(player, 0));
             return;
         }
         if (slot == 49) {
@@ -245,9 +323,9 @@ public final class OutpostBlocks implements Listener {
         int index = view.page * 45 + slot;
         if (slot < 0
                 || slot >= 45
-                || index >= materials.size()
+                || index >= view.products.size()
                 || !buying.add(player.getUniqueId())) return;
-        Material material = materials.get(index);
+        Material material = view.products.get(index);
         int count =
                 event.getClick() == ClickType.RIGHT ? new ItemStack(material).getMaxStackSize() : 1;
         long cost = Math.multiplyExact(price(material), count);
@@ -518,9 +596,13 @@ public final class OutpostBlocks implements Listener {
     private static final class View implements InventoryHolder {
         final UUID owner;
         final int page;
+        final int category;
+        final List<Material> products;
         Inventory inventory;
 
-        View(UUID owner, int page) {
+        View(UUID owner, int page, int category, List<Material> products) {
+            this.category = category;
+            this.products = products;
             this.owner = owner;
             this.page = page;
         }

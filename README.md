@@ -145,6 +145,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/upgradebloc set` / `/upgradebloc remove` | Lier ou délier le bloc visé au menu upgrade, avec hologramme. | `cliker.services.admin` |
 | `/sacbloc set` / `/sacbloc remove` | Lier ou délier le bloc visé au sac personnel de chaque joueur, avec hologramme. | `cliker.services.admin` |
 | `/warp set <zone> <entree\|boss>` | Sauvegarder sa position et son orientation comme destination. | `cliker.services.admin` |
+| `/batonspawn` | Ouvrir le choix des créatures : gauche reçoit un bâton de mob, droite un bâton de boss. | `cliker.services.admin` |
 | `/batonspawn <mobs\|boss> <nom>` | Recevoir un bâton ; clic droit sur un bloc pour créer un spawn persistant au-dessus. | `cliker.services.admin` |
 | `/raid parchemin <zone> [joueur]` | Attribuer un parchemin de raid. | `cliker.services.admin` |
 | `/station spawn <enchant\|reforge\|rune>` / `/station remove` | Placer ou supprimer une station. | `cliker.mob.admin` |
@@ -262,3 +263,5 @@ Configuration SFTP organisée, migration des anciens fichiers avec copies de sec
 Les créatures placées sont persistantes lors du déchargement des chunks. Une vérification toutes les deux secondes rétablit les créatures manquantes dans les chunks chargés, sans avancer la prochaine vague des boss tués.
 
 Les marchands affichent les vrais objets proposés (épées, armures, compresseurs et ressources). Les boutons de compression montrent la ressource obtenue. Les icônes ItemsAdder de navigation restent actives.
+
+Le marchand de blocs propose des catégories avec pagination. `/tallisement` affiche les découvertes ; le bouton « Non débloqués » ouvre les catégories créatures, boss et cinq familles générales, en préservant le mystère des créatures.

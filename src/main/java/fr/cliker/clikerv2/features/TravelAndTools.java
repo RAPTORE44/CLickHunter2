@@ -169,6 +169,10 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
             p.sendMessage("Permission administrateur requise.");
             return true;
         }
+        if (c.getName().equals("batonspawn") && a.length == 0) {
+            spawnMenu(p);
+            return true;
+        }
         try {
             switch (c.getName()) {
                 case "warp" -> {
@@ -430,6 +434,26 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                             : a.length == 2 ? new ArrayList<>(MobTier.byId().keySet()) : List.of();
         String last = a.length == 0 ? "" : a[a.length - 1].toLowerCase(Locale.ROOT);
         return values.stream().filter(x -> x.startsWith(last)).toList();
+    }
+
+    private void spawnMenu(Player player) {
+        var view = menus.create(player, 54, "Placement des créatures");
+        for (var tier : MobTier.values()) {
+            Material icon = Material.matchMaterial(tier.entityType().name() + "_SPAWN_EGG");
+            view.put(
+                    tier.ordinal(),
+                    Menus.item(
+                            icon == null ? Material.EGG : icon,
+                            tier.label(),
+                            "Gauche : créature | Droite : boss",
+                            "Reçois un bâton puis clique sur le bloc de placement."),
+                    (who, right) -> {
+                        if (!who.hasPermission("cliker.services.admin")) return;
+                        who.closeInventory();
+                        who.performCommand("batonspawn " + (right ? "boss " : "mobs ") + tier.id());
+                    });
+        }
+        view.show(player);
     }
 
     private void refreshHolos() {
