@@ -99,7 +99,7 @@ class SpawnSafetyTest {
         try (var input = getClass().getResourceAsStream("/raid.yml")) {
             Files.copy(
                     input,
-                    plugin.getDataFolder().toPath().resolve("raid.yml"),
+                    fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "raid.yml").toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
         }
         var ledger = new RewardLedger(plugin, db);

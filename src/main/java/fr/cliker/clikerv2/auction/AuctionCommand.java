@@ -9,11 +9,20 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public final class AuctionCommand implements CommandExecutor {
+public final class AuctionCommand implements CommandExecutor, org.bukkit.command.TabCompleter {
     private final AuctionMenu menu;
 
     public AuctionCommand(AuctionMenu menu) {
         this.menu = menu;
+    }
+
+    @Override
+    public java.util.List<String> onTabComplete(
+            CommandSender sender, Command command, String label, String[] args) {
+        if (args.length != 1) return java.util.List.of();
+        return java.util.List.of("vendre", "sell", "mesannonces").stream()
+                .filter(s -> s.startsWith(args[0].toLowerCase(java.util.Locale.ROOT)))
+                .toList();
     }
 
     @Override
@@ -65,7 +74,7 @@ public final class AuctionCommand implements CommandExecutor {
             }
             if (fr.cliker.clikerv2.comfort.PlayerComfort.protectedForSale(player, hand)) {
                 player.sendMessage(
-                        "Équipement protégé : /lock pour déverrouiller, puis /antidrop autoriser"
+                        "Équipement protégé : /lock pour déverrouiller, puis /antidrop"
                                 + " pour autoriser sa vente.");
                 return true;
             }

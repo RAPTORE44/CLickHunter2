@@ -33,12 +33,14 @@ public final class ReforgeMenu implements Listener {
     private static final int DEPOSIT_SLOT = 4;
     private static final int BUTTON_SLOT = 13;
 
+    private final GearGuide guide;
     private final JavaPlugin plugin;
     private final EconomyService economy;
 
     public ReforgeMenu(JavaPlugin plugin, EconomyService economy) {
         this.plugin = plugin;
         this.economy = economy;
+        guide = new GearGuide(plugin, "Reforges", this::open, List.of());
     }
 
     public void open(Player player) {
@@ -71,6 +73,7 @@ public final class ReforgeMenu implements Listener {
             if (i == DEPOSIT_SLOT || i == BUTTON_SLOT) continue;
             inventory.setItem(i, filler);
         }
+        inventory.setItem(8, GearGuide.book());
         refreshButton(inventory);
     }
 
@@ -187,6 +190,17 @@ public final class ReforgeMenu implements Listener {
         if (event.getClickedInventory() != event.getView().getTopInventory()) return;
 
         int slot = event.getSlot();
+        if (slot == 8) {
+            event.setCancelled(true);
+            if (event.getClick() == org.bukkit.event.inventory.ClickType.LEFT)
+                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                        plugin,
+                        () -> {
+                            if (player.getOpenInventory().getTopInventory() == holder.inventory
+                                    && !GearTransactions.busy(holder.inventory)) guide.open(player);
+                        });
+            return;
+        }
         if (slot == DEPOSIT_SLOT) {
             fr.cliker.clikerv2.runtime.ServerTasks.run(
                     plugin, () -> refreshButton(holder.inventory));

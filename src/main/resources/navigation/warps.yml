@@ -1,0 +1,5 @@
+protection-map: true
+# /warp set <zone> entree|boss enregistre la position et l’orientation exactes.
+zones: {}
+# /sacbloc set en visant un bloc existant. Chaque joueur ouvre ses propres sacs.
+sacs: {}

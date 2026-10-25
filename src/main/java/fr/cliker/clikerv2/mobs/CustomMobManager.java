@@ -93,6 +93,8 @@ public final class CustomMobManager implements Listener {
     private final Map<String, Long> currentHealth = new HashMap<>();
 
     /** Zones marquées "boss" (Golem) : PV configurables et récompenses spéciales à la mort. */
+    private final Set<String> oneShotSpawns = new HashSet<>();
+
     private final Set<String> bossSpawnIds = new HashSet<>();
 
     public CustomMobManager(
@@ -106,8 +108,8 @@ public final class CustomMobManager implements Listener {
             BagManager bagManager) {
         this.plugin = plugin;
         this.damagePopups = new fr.cliker.clikerv2.combat.DamagePopups(plugin);
-        java.io.File bossFile = new java.io.File(plugin.getDataFolder(), "boss.yml");
-        if (!bossFile.exists()) plugin.saveResource("boss.yml", false);
+        java.io.File bossFile = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "boss.yml");
+        if (!bossFile.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "boss.yml");
         bossHpMultiplier =
                 org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(bossFile)
                         .getDouble("multiplicateur-pv", 100);
@@ -136,7 +138,15 @@ public final class CustomMobManager implements Listener {
             if (spawn == null || !(entity instanceof LivingEntity living) || !living.isValid())
                 continue;
             living.setVelocity(new Vector(0, 0, 0));
-            if (living.getLocation().distanceSquared(spawn) > 0.01) living.teleport(spawn);
+            float orientation = bossSpawnIds.contains(entry.getKey()) ? 270 : 0;
+            if (living.getYaw() != orientation || living.getPitch() != 0)
+                living.setRotation(orientation, 0);
+            if (living.getLocation().distanceSquared(spawn) > 0.01) {
+                var target = spawn.clone();
+                target.setYaw(orientation);
+                target.setPitch(0);
+                living.teleport(target);
+            }
         }
     }
 
@@ -283,6 +293,24 @@ public final class CustomMobManager implements Listener {
         store.save(id, mobId, location, boss);
     }
 
+    public void spawnOnce(MobTier tier, Location location) {
+        long count =
+                oneShotSpawns.stream()
+                        .filter(
+                                id ->
+                                        spawnLocation.get(id) != null
+                                                && spawnLocation.get(id).getWorld()
+                                                        == location.getWorld())
+                        .count();
+        if (count >= 30)
+            throw new IllegalStateException("Trop de créatures invoquées dans ce monde");
+        String id = "egg-" + UUID.randomUUID();
+        oneShotSpawns.add(id);
+        spawnMobId.put(id, tier.id());
+        spawnLocation.put(id, location.clone());
+        spawn(id);
+    }
+
     public boolean removeNearestSpawn(String mobId, Location near) {
         List<String> ids = spawnIdsByMob.get(mobId);
         if (ids == null || ids.isEmpty()) return false;
@@ -315,6 +343,7 @@ public final class CustomMobManager implements Listener {
                 .filter(
                         e ->
                                 tier.id().equals(spawnMobId.get(e.getKey()))
+                                        && !oneShotSpawns.contains(e.getKey())
                                         && bossSpawnIds.contains(e.getKey()) == boss)
                 .sorted(java.util.Map.Entry.comparingByKey())
                 .map(e -> e.getValue().clone())
@@ -371,6 +400,9 @@ public final class CustomMobManager implements Listener {
         boolean boss = bossSpawnIds.contains(spawnId);
         org.bukkit.entity.EntityType entityType =
                 boss ? org.bukkit.entity.EntityType.IRON_GOLEM : tier.entityType();
+        location = location.clone();
+        location.setYaw(boss ? 270 : 0);
+        location.setPitch(0);
         LivingEntity entity = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
         entity.setPersistent(false);
         entity.setRemoveWhenFarAway(false);
@@ -400,23 +432,12 @@ public final class CustomMobManager implements Listener {
 
     private void updateNameplate(
             LivingEntity entity, MobTier tier, long hp, long maxHp, boolean boss) {
-        Component label =
-                boss
-                        ? Component.text(
-                                "⚔ Golem " + tier.label() + " ⚔ ",
-                                NamedTextColor.DARK_RED,
-                                TextDecoration.BOLD)
-                        : Component.text(
-                                tier.label() + " ", NamedTextColor.GOLD, TextDecoration.BOLD);
-        entity.customName(
-                label.append(
-                        Component.text(
-                                "["
-                                        + Numbers.compact(Math.max(0, hp))
-                                        + "/"
-                                        + Numbers.compact(maxHp)
-                                        + "]",
-                                NamedTextColor.RED)));
+        String line =
+                fr.cliker.clikerv2.features.CreatureSettings.hologram(boss)
+                        .replace("{nom}", tier.label())
+                        .replace("{pv}", Numbers.compact(Math.max(0, hp)))
+                        .replace("{pv-max}", Numbers.compact(maxHp));
+        entity.customName(fr.cliker.clikerv2.daily.DailySettings.color(line));
     }
 
     /**
@@ -441,7 +462,7 @@ public final class CustomMobManager implements Listener {
             return;
         }
 
-        Long applied = calculateDamage(player, tier);
+        Long applied = calculateDamage(player, tier, bossSpawnIds.contains(spawnId));
         if (applied == null) {
             event.setDamage(0.0);
             return;
@@ -473,7 +494,19 @@ public final class CustomMobManager implements Listener {
     }
 
     public Long calculateDamage(Player player, MobTier tier) {
+        return calculateDamage(player, tier, false);
+    }
+
+    public Long calculateDamage(Player player, MobTier tier, boolean boss) {
         Long applied = stuffDamage(player);
+        var plain = player.getInventory().getItemInMainHand();
+        if (applied == null && plain.hasItemMeta())
+            applied =
+                    plain.getItemMeta()
+                            .getPersistentDataContainer()
+                            .get(
+                                    new NamespacedKey(plugin, "plain_shop_damage"),
+                                    PersistentDataType.LONG);
         if (applied == null) {
             ItemStack weapon = player.getInventory().getItemInMainHand();
             if (weapon.hasItemMeta()
@@ -490,7 +523,20 @@ public final class CustomMobManager implements Listener {
         applied = applyWeaponProcs(player, applied);
         double bagBonus = bagManager.mobDamageBonusPercent(player.getUniqueId(), tier);
         if (bagBonus > 0) applied = Math.round(applied * (1 + bagBonus / 100.0));
+        double blade =
+                fr.cliker.clikerv2.features.Talismans.power(
+                        "lame", bagManager.generalTier(player.getUniqueId(), "lame"));
+        if (boss && bagManager.hasBossTalisman(player.getUniqueId(), tier))
+            blade += fr.cliker.clikerv2.features.Talismans.bossPower(tier);
+        applied = Math.max(1, Math.round(applied * (1 + blade / 100)));
         applied = LevelDamageBonus.apply(applied, player.getLevel());
+        applied =
+                Math.max(
+                        1,
+                        Math.round(
+                                applied
+                                        * fr.cliker.clikerv2.features.Boosts.multiplier(
+                                                player, "degats")));
         compressorManager.onHit(player);
 
         return Math.max(1L, applied);
@@ -691,6 +737,14 @@ public final class CustomMobManager implements Listener {
                                                 return;
                                             }
                                             if (Boolean.TRUE.equals(ok)) {
+                                                org.bukkit.Bukkit.getPluginManager()
+                                                        .callEvent(
+                                                                new fr.cliker.clikerv2.features
+                                                                        .HuntKillEvent(
+                                                                        owner,
+                                                                        killer.getName(),
+                                                                        tier,
+                                                                        boss));
                                                 var telemetry =
                                                         org.bukkit.Bukkit.getServicesManager()
                                                                 .load(
@@ -721,7 +775,11 @@ public final class CustomMobManager implements Listener {
                                         });
                             });
             rollLootboxDrops(killer);
-            rollTalismanDrop(killer, tier);
+        }
+        if (oneShotSpawns.remove(spawnId)) {
+            spawnLocation.remove(spawnId);
+            spawnMobId.remove(spawnId);
+            return;
         }
         if (boss) {
             if (spawnLocation.containsKey(spawnId)) bossSpawnIds.add(spawnId);
@@ -756,7 +814,14 @@ public final class CustomMobManager implements Listener {
         double lootFinderBonus = armorEnchantBonus(killer, EnchantType.LOOT_FINDER);
         for (LootboxTier tier : LootboxTier.values()) {
             if (ThreadLocalRandom.current().nextDouble(100.0)
-                    < tier.dropChancePercent() + lootFinderBonus) {
+                    < (tier.dropChancePercent() + lootFinderBonus)
+                            * fr.cliker.clikerv2.features.Boosts.multiplier(killer, "chance")
+                            * (1
+                                    + fr.cliker.clikerv2.features.Talismans.power(
+                                                    "fortune",
+                                                    bagManager.generalTier(
+                                                            killer.getUniqueId(), "fortune"))
+                                            / 100)) {
                 ItemStack box = LootboxItem.create(tier);
                 fr.cliker.clikerv2.rewards.ItemDelivery.give(killer, box);
                 if (tier.ordinal() > LootboxTier.PEU_COMMUN.ordinal()
@@ -778,22 +843,28 @@ public final class CustomMobManager implements Listener {
         UUID uuid = killer.getUniqueId();
         boolean treasureTalisman = bagManager.hasTreasureTalisman(uuid);
         long ecusReward =
-                (10L * tierIndex
+                ((long)
+                                                fr.cliker.clikerv2.features.CreatureSettings.value(
+                                                        tier, "ecus", 10L * tierIndex)
                                         + (long) upgrades.getBonus(uuid, UpgradeType.RICHESSE)
                                         + prestige.ecusBonus(uuid)
                                         + weaponRuneBonus(killer, RuneType.ECUS))
                                 * PermissionBonus.multiplier(killer, "ecus")
                         + (treasureTalisman ? 100L : 0L);
         long gemmesReward =
-                (tierIndex
+                ((long)
+                                                fr.cliker.clikerv2.features.CreatureSettings.value(
+                                                        tier, "gemmes-dixiemes", tierIndex)
                                         + (long) (upgrades.getBonus(uuid, UpgradeType.FORTUNE) * 10)
                                         + prestige.gemmesBonusTenths(uuid)
                                         + weaponRuneBonus(killer, RuneType.GEMMES))
                                 * PermissionBonus.multiplier(killer, "gemmes")
                         + (treasureTalisman ? 10L : 0L);
-        int xpReward =
-                (int)
-                                ((tierIndex
+        long xpReward =
+                (long)
+                                (((long)
+                                                        fr.cliker.clikerv2.features.CreatureSettings
+                                                                .value(tier, "xp", tierIndex)
                                                 + (int) upgrades.getBonus(uuid, UpgradeType.SAGESSE)
                                                 + (int) prestige.xpBonus(uuid)
                                                 + (int) weaponRuneBonus(killer, RuneType.XP)
@@ -806,10 +877,32 @@ public final class CustomMobManager implements Listener {
         long cendresReward = weaponRuneBonus(killer, RuneType.CENDRES);
 
         return fr.cliker.clikerv2.hunting.Gains.of(
-                Math.max(0, ecusReward),
+                Math.max(
+                        0,
+                        Math.round(
+                                ecusReward
+                                        * fr.cliker.clikerv2.features.Boosts.multiplier(
+                                                killer, "coins")
+                                        * (1
+                                                + fr.cliker.clikerv2.features.Talismans.power(
+                                                                "richesse",
+                                                                bagManager.generalTier(
+                                                                        uuid, "richesse"))
+                                                        / 100))),
                 Math.max(0, gemmesReward),
                 Math.max(0, cendresReward),
-                Math.max(0, xpReward));
+                Math.max(
+                        0,
+                        Math.round(
+                                xpReward
+                                        * fr.cliker.clikerv2.features.Boosts.multiplier(
+                                                killer, "xp")
+                                        * (1
+                                                + fr.cliker.clikerv2.features.Talismans.power(
+                                                                "sagesse",
+                                                                bagManager.generalTier(
+                                                                        uuid, "sagesse"))
+                                                        / 100))));
     }
 
     /**

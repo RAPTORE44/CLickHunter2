@@ -1,0 +1,86 @@
+# Prix unitaires en Écus. La boutique est accessible uniquement via son PNJ.
+shop:
+  lait: 100
+  epees:
+    WOODEN: 1000
+    STONE: 5000
+    IRON: 25000
+    GOLDEN: 125000
+    DIAMOND: 625000
+    NETHERITE: 3125000
+  degats-epees:
+    WOODEN: 25
+    STONE: 50
+    IRON: 100
+    GOLDEN: 150
+    DIAMOND: 250
+    NETHERITE: 500
+  armures:
+    LEATHER: 500
+    CHAINMAIL: 2500
+    IRON: 12500
+    GOLDEN: 62500
+    DIAMOND: 312500
+  potions:
+    chance:
+      x2:
+        1: 4000000
+        5: 20000000
+        20: 80000000
+      x3:
+        1: 9000000
+        5: 45000000
+        20: 180000000
+    coins:
+      x2:
+        1: 4000000
+        5: 20000000
+        20: 80000000
+    xp:
+      x2:
+        1: 4000000
+        5: 20000000
+        20: 80000000
+    vitesse:
+      x2:
+        1: 4000000
+        5: 20000000
+        20: 80000000
+      x3:
+        1: 9000000
+        5: 45000000
+        20: 180000000
+      x4:
+        1: 16000000
+        5: 80000000
+        20: 320000000
+    degats:
+      x2:
+        1: 4000000
+        5: 20000000
+        20: 80000000
+      x3:
+        1: 9000000
+        5: 45000000
+        20: 180000000
+blackmarket:
+  rotation-secondes: 10800
+  offres:
+    1:
+      zone: vache
+      prix: 100000
+    2:
+      zone: mouton
+      prix: 200000
+    3:
+      zone: ane
+      prix: 300000
+    4:
+      zone: piglin_brute
+      prix: 400000
+    5:
+      zone: blaze
+      prix: 500000
+    6:
+      zone: vindicator
+      prix: 600000

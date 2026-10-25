@@ -29,7 +29,11 @@ public final class BagManager implements Listener {
     private final BagStore store;
     private final Map<UUID, List<ItemStack[]>> bags = new HashMap<>();
 
-    private record Bonuses(Map<MobTier, Double> mobs, boolean treasure) {}
+    private record Bonuses(
+            Map<MobTier, Double> mobs,
+            boolean treasure,
+            Map<String, Integer> general,
+            java.util.Set<MobTier> bosses) {}
 
     private final Map<UUID, Bonuses> bonuses = new HashMap<>();
     private final Map<UUID, Object> loadingSessions = new HashMap<>();
@@ -96,6 +100,8 @@ public final class BagManager implements Listener {
     private void refreshBonuses(UUID owner) {
         Map<MobTier, Double> damage = new java.util.EnumMap<>(MobTier.class);
         boolean treasure = false;
+        Map<String, Integer> general = new HashMap<>();
+        java.util.Set<MobTier> bosses = new java.util.HashSet<>();
         for (ItemStack[] bag : requireBags(owner))
             for (ItemStack item : bag) {
                 if (item == null || item.getType().isAir()) continue;
@@ -103,13 +109,56 @@ public final class BagManager implements Listener {
                 if (tier != null)
                     damage.merge(tier, TalismanItem.mobBonusPercent(tier), Double::sum);
                 treasure |= TalismanItem.isTreasure(item);
+                if (item.hasItemMeta()) {
+                    String id =
+                            item.getItemMeta()
+                                    .getPersistentDataContainer()
+                                    .get(
+                                            new org.bukkit.NamespacedKey(
+                                                    plugin, "collection_talisman"),
+                                            org.bukkit.persistence.PersistentDataType.STRING);
+                    if (id != null) {
+                        String[] parts = id.split(":");
+                        if (parts.length == 3
+                                && parts[0].equals("general")
+                                && java.util.Set.of(
+                                                "lame",
+                                                "richesse",
+                                                "sagesse",
+                                                "fortune",
+                                                "vitalite")
+                                        .contains(parts[1])
+                                && parts[2].matches("[1-5]"))
+                            general.merge(parts[1], Integer.parseInt(parts[2]), Math::max);
+                        if (parts.length == 2
+                                && parts[0].equals("boss")
+                                && MobTier.parse(parts[1]) != null)
+                            bosses.add(MobTier.parse(parts[1]));
+                    }
+                }
             }
-        bonuses.put(owner, new Bonuses(Map.copyOf(damage), treasure));
+        bonuses.put(
+                owner,
+                new Bonuses(
+                        Map.copyOf(damage),
+                        treasure,
+                        Map.copyOf(general),
+                        java.util.Set.copyOf(bosses)));
     }
 
     public double mobDamageBonusPercent(UUID owner, MobTier tier) {
         var bonus = bonuses.get(owner);
         return bonus == null ? 0 : bonus.mobs().getOrDefault(tier, 0.0);
+    }
+
+    public int generalTier(UUID owner, String kind) {
+        var data = bonuses.get(owner);
+        return data == null ? 0 : data.general.getOrDefault(kind, 0);
+    }
+
+    public boolean hasBossTalisman(UUID owner, MobTier mob) {
+        var data = bonuses.get(owner);
+        return data != null && data.bosses.contains(mob);
     }
 
     public boolean hasTreasureTalisman(UUID owner) {

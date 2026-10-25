@@ -75,7 +75,7 @@ class DamagePopupsTest {
         world = server.addSimpleWorld("damage");
         player = server.addPlayer();
         victim = world.spawn(new Location(world, 1, 65, 1), Cow.class);
-        var file = plugin.getDataFolder().toPath().resolve("damage-popups.yml");
+        var file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "damage-popups.yml").toPath();
         Files.createDirectories(file.getParent());
         try (var input = getClass().getResourceAsStream("/damage-popups.yml")) {
             Files.copy(input, file, StandardCopyOption.REPLACE_EXISTING);

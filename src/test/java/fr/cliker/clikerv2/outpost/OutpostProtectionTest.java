@@ -32,7 +32,7 @@ class OutpostProtectionTest {
         try (var in = getClass().getResourceAsStream("/avantpostes.yml")) {
             Files.copy(
                     in,
-                    plugin.getDataFolder().toPath().resolve("avantpostes.yml"),
+                    fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "avantpostes.yml").toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
         }
         db = new DatabaseManager(plugin, "acl-" + UUID.randomUUID() + ".db");

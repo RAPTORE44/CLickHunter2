@@ -50,8 +50,9 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
         database = db;
         this.store = new OutpostStore(db);
         this.claims = claims;
-        File file = new File(plugin.getDataFolder(), "avantpostes.yml");
-        if (!file.exists()) plugin.saveResource("avantpostes.yml", false);
+        File file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "avantpostes.yml");
+        if (!file.exists())
+            fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "avantpostes.yml");
         config = YamlConfiguration.loadConfiguration(file);
         radii =
                 config.getIntegerList("extensions.rayons").stream()

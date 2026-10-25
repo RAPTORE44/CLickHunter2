@@ -136,7 +136,7 @@ public final class PlayerComfort implements Listener, CommandExecutor {
                     locked(event.getItemDrop().getItemStack())
                             ? "Cet équipement est verrouillé. /lock avec l’objet en main pour le"
                                     + " déverrouiller."
-                            : "Jet d’objets protégé. /antidrop autoriser pour jeter jusqu’à ta"
+                            : "Jet d’objets protégé. /antidrop pour jeter jusqu’à ta"
                                     + " déconnexion.");
         }
     }
@@ -229,23 +229,25 @@ public final class PlayerComfort implements Listener, CommandExecutor {
             open(player);
             return true;
         }
-        var allowed = command.getName().equals("antidrop") ? dropsAllowed : pickupAllowed;
-        if (args.length != 1
-                || !(args[0].equalsIgnoreCase("autoriser")
-                        || args[0].equalsIgnoreCase("bloquer"))) {
+        boolean antidrop = command.getName().equals("antidrop");
+        var allowed = antidrop ? dropsAllowed : pickupAllowed;
+        if (antidrop
+                ? args.length != 0
+                : args.length != 1
+                        || !(args[0].equalsIgnoreCase("autoriser")
+                                || args[0].equalsIgnoreCase("bloquer"))) {
             player.sendMessage(
                     Component.text(
-                            "Usage : /"
-                                    + command.getName()
-                                    + " <autoriser|bloquer>. État : "
-                                    + (allowed.contains(player.getUniqueId())
-                                            ? "autorisé"
-                                            : "bloqué")
-                                    + ".",
+                            antidrop
+                                    ? "Usage : /antidrop pour inverser la protection."
+                                    : "Usage : /ramassage <autoriser|bloquer>.",
                             NamedTextColor.YELLOW));
             return true;
         }
-        boolean allow = args[0].equalsIgnoreCase("autoriser");
+        boolean allow =
+                antidrop
+                        ? !allowed.contains(player.getUniqueId())
+                        : args[0].equalsIgnoreCase("autoriser");
         if (allow) allowed.add(player.getUniqueId());
         else allowed.remove(player.getUniqueId());
         player.sendMessage(

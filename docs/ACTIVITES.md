@@ -69,23 +69,13 @@ ils ne sont pas reportés au lendemain. Les contrats d’une créature inconnue 
 Le PNJ des contrats dispose de sa propre identité ZNPCsPlus, de sa position sauvegardée et de ses textes.
 Son retrait ne supprime pas les PNJ du calendrier ou de Discord.
 
-## Raid
+## Raids privés et boss public
 
-`raid.yml` configure les PV, dégâts, plafond d’ennemis, seuil d’apparition du boss et récompenses.
-L’arène contient des pillards hostiles. À chaque seuil d’éliminations collectif, les pillards disparaissent
-et le **Gardien colossal** apparaît. Il avance vers les joueurs et inflige une attaque de proximité toutes les deux secondes.
-Le boss possède 10 milliards de PV par défaut : équipement avancé et coopération conseillés.
-Utiliser l’épée du clicker ; les calculs de dégâts et l’animation sont partagés avec le combat existant.
+`/raid` ouvre désormais un groupe privé : invitation, acceptation, parchemin lié à une zone, puis lancement par le chef. Les joueurs disposent de mondes d’arène distincts pour chaque groupe ; les anciennes sessions partagées ne constituent plus l’entrée de `/raid`.
 
-Les dégâts dépassant les PV restants du boss sont exclus de la contribution. La cagnotte entière de chaque
-monnaie et d’XP est partagée selon les dégâts effectifs, avec répartition des arrondis sans créer de monnaie.
-Les joueurs qui se déconnectent avant le coup final conservent leur contribution ; l’argent est crédité
-hors ligne et l’XP est délivrée à leur retour. Le dernier coup ne donne aucun avantage particulier.
+`/boss` rejoint l’arène publique d’un boss déclenché à chaque milliard de kills confirmés. Compteur et cycle actif persistent. Les boss propres aux zones restent accessibles par clic droit dans `/warp`, avec leurs positions configurables.
 
-Le PvP, la construction et les dégâts des explosions sur le terrain sont désactivés. L’inventaire et les
-niveaux sont conservés à la mort dans cette arène. La progression du combat en cours est temporaire :
-un redémarrage annule le combat non terminé. Les récompenses déjà validées restent sauvegardées.
-Ce n’est pas une garantie d’équilibrage : ajuster les PV et la cagnotte selon l’équipement réel du serveur.
+Le PvP est désactivé et les gains de boss sont partagés selon les dégâts effectifs. Les fichiers historiques ont été réorganisés ; consulter [les commandes, configurations et règles complètes](SERVICES-RAIDS-TALISMANS.md).
 
 ## Avant-postes
 

@@ -42,8 +42,9 @@ public final class BossEventManager implements Listener {
     public BossEventManager(JavaPlugin plugin, CustomMobManager mobManager) {
         this.plugin = plugin;
         this.mobManager = mobManager;
-        settingsFile = new java.io.File(plugin.getDataFolder(), "boss.yml");
-        if (!settingsFile.exists()) plugin.saveResource("boss.yml", false);
+        settingsFile = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "boss.yml");
+        if (!settingsFile.exists())
+            fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "boss.yml");
         settings = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(settingsFile);
         interval = settings.getLong("intervalle-secondes", INTERVAL_SECONDS);
         warning = settings.getLong("avertissement-secondes", WARNING_SECONDS);

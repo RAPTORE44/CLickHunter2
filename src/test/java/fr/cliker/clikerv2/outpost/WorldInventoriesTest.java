@@ -20,6 +20,8 @@ class WorldInventoriesTest {
     @BeforeEach
     void setup() {
         server = MockBukkit.mock();
+        org.bukkit.configuration.serialization.ConfigurationSerialization.registerClass(
+                org.mockbukkit.mockbukkit.inventory.ItemStackMock.class);
         plugin = MockBukkit.createMockPlugin();
         clicker = server.addSimpleWorld("clicker");
         builder = server.addSimpleWorld("plots");

@@ -34,7 +34,7 @@ class DiscordModuleTest {
         plugin = MockBukkit.createMockPlugin();
         player = server.addPlayer();
         player.addAttachment(plugin, DiscordModule.USE, true);
-        var path = plugin.getDataFolder().toPath().resolve("discord.yml");
+        var path = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "discord.yml").toPath();
         Files.createDirectories(path.getParent());
         try (var input = getClass().getResourceAsStream("/discord.yml")) {
             Files.copy(input, path, StandardCopyOption.REPLACE_EXISTING);
@@ -75,7 +75,7 @@ class DiscordModuleTest {
         assertTrue(player.nextMessage().contains("ZNPCsPlus"));
         assertFalse(
                 YamlConfiguration.loadConfiguration(
-                                new java.io.File(plugin.getDataFolder(), "discord.yml"))
+                                fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "discord.yml"))
                         .getBoolean("pnj.actif"));
     }
 
@@ -92,7 +92,7 @@ class DiscordModuleTest {
         var config = new YamlConfiguration();
         config.set("pnj.actif", true);
         config.set("pnj.id", 12);
-        var file = new java.io.File(plugin.getDataFolder(), "test-npc.yml");
+        var file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "test-npc.yml");
         FakeNpc discord = new FakeNpc("clikerv2-discord-npc"),
                 daily = new FakeNpc("clikerv2-daily-npc");
         FakeRegistry registry = new FakeRegistry(List.of(discord, daily));

@@ -187,6 +187,10 @@ public final class AuctionManager implements Listener {
      * méthode.
      */
     public void createListing(Player seller, ItemStack item, long price) {
+        createListing(seller, item, price, false);
+    }
+
+    public void createListing(Player seller, ItemStack item, long price, boolean advertise) {
         String id = UUID.randomUUID().toString();
         AuctionListing listing =
                 new AuctionListing(
@@ -196,7 +200,7 @@ public final class AuctionManager implements Listener {
                         serialize(item),
                         price,
                         System.currentTimeMillis());
-        store.save(listing)
+        store.publish(listing, advertise)
                 .whenComplete(
                         (ignored, error) ->
                                 fr.cliker.clikerv2.runtime.ServerTasks.run(
@@ -225,6 +229,39 @@ public final class AuctionManager implements Listener {
                                                                     NamedTextColor.RED));
                                             } else {
                                                 listings.put(id, listing);
+                                                if (advertise) {
+                                                    var message =
+                                                            Component.text(
+                                                                            "[AH] "
+                                                                                    + seller
+                                                                                            .getName()
+                                                                                    + " vend "
+                                                                                    + item
+                                                                                            .getAmount()
+                                                                                    + " × ",
+                                                                            NamedTextColor.GOLD)
+                                                                    .append(
+                                                                            item.getItemMeta()
+                                                                                            .hasDisplayName()
+                                                                                    ? item.getItemMeta()
+                                                                                            .displayName()
+                                                                                    : Component
+                                                                                            .translatable(
+                                                                                                    item.getType()
+                                                                                                            .translationKey()))
+                                                                    .append(
+                                                                            Component.text(
+                                                                                    " pour " + price
+                                                                                            + " Écus"
+                                                                                            + " — /ah"))
+                                                                    .clickEvent(
+                                                                            net.kyori.adventure.text
+                                                                                    .event
+                                                                                    .ClickEvent
+                                                                                    .runCommand(
+                                                                                            "/ah"));
+                                                    Bukkit.broadcast(message);
+                                                }
                                                 if (seller.isOnline())
                                                     seller.sendMessage(
                                                             Component.text(
@@ -314,9 +351,10 @@ public final class AuctionManager implements Listener {
                                                 if (seller != null)
                                                     seller.sendMessage(
                                                             Component.text(
-                                                                    "Annonce vendue ! Écus"
-                                                                            + " crédités après"
-                                                                            + " taxe de 1 %.",
+                                                                    "Annonce vendue ! Écus crédités"
+                                                                            + " après frais de"
+                                                                            + " publication non"
+                                                                            + " remboursables.",
                                                                     NamedTextColor.GREEN));
                                             }
                                             if (onDone != null) onDone.run();

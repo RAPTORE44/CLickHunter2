@@ -28,7 +28,10 @@ public enum MobTier {
     WARDEN("warden", EntityType.WARDEN, "Warden", 100_000_000);
 
     private static final Map<String, MobTier> BY_ID = new LinkedHashMap<>();
-    static { for (MobTier tier : values()) BY_ID.put(tier.id, tier); }
+
+    static {
+        for (MobTier tier : values()) BY_ID.put(tier.id, tier);
+    }
 
     private final String id;
     private final EntityType entityType;
@@ -42,19 +45,46 @@ public enum MobTier {
         this.maxHealth = maxHealth;
     }
 
-    public String id() { return id; }
-    public EntityType entityType() { return entityType; }
-    public String label() { return label; }
-    public double maxHealth() { return maxHealth; }
-    public String essenceName() { return label + " Essence"; }
-    public long sellPricePerUnit() { return (ordinal() + 1) * 50L; }
+    public String id() {
+        return id;
+    }
 
-    /** Bonus de dégâts fixe de l'amulette de ce mob : 2.5, double à chaque tier (Vache 2.5, Cochon 5, Poulet 10, Mouton 20, Lapin 40, ...). */
-    public double charmDamageBonus() { return 2.5 * Math.pow(2, ordinal()); }
+    public EntityType entityType() {
+        return entityType;
+    }
+
+    public String label() {
+        return fr.cliker.clikerv2.features.CreatureSettings.text(this, "nom", label);
+    }
+
+    public double maxHealth() {
+        return fr.cliker.clikerv2.features.CreatureSettings.value(this, "pv", maxHealth);
+    }
+
+    public String essenceName() {
+        return label() + " Essence";
+    }
+
+    public long sellPricePerUnit() {
+        return Math.round(
+                fr.cliker.clikerv2.features.CreatureSettings.value(
+                        this, "prix-vente", (ordinal() + 1) * 50L));
+    }
+
+    /**
+     * Bonus de dégâts fixe de l'amulette de ce mob : 2.5, double à chaque tier (Vache 2.5, Cochon
+     * 5, Poulet 10, Mouton 20, Lapin 40, ...).
+     */
+    public double charmDamageBonus() {
+        return fr.cliker.clikerv2.features.CreatureSettings.value(
+                this, "degats-amulette", 2.5 * Math.pow(2, ordinal()));
+    }
 
     public static MobTier parse(String input) {
         return BY_ID.get(input.toLowerCase(Locale.ROOT).replace(' ', '_'));
     }
 
-    public static Map<String, MobTier> byId() { return BY_ID; }
+    public static Map<String, MobTier> byId() {
+        return BY_ID;
+    }
 }

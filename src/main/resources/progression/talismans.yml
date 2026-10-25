@@ -1,0 +1,24 @@
+schema-version: 2
+mobs:
+  chance-pourcent: 0.0002
+boss:
+  chance-pourcent: 0.02
+  bonus-pourcent: 10
+tiers:
+  1: 1
+  2: 5
+  3: 10
+  4: 15
+  5: 19
+generaux:
+  chance-pourcent: 0.002
+  lame:
+    bonus-par-tier: 5
+  richesse:
+    bonus-par-tier: 5
+  sagesse:
+    bonus-par-tier: 5
+  fortune:
+    bonus-par-tier: 5
+  vitalite:
+    bonus-par-tier: 2

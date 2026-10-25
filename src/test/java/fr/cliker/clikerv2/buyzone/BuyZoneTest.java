@@ -94,10 +94,11 @@ class BuyZoneTest {
         try (var input = getClass().getResourceAsStream("/buyzone.yml")) {
             Files.copy(
                     input,
-                    plugin.getDataFolder().toPath().resolve("buyzone.yml"),
+                    fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "buyzone.yml").toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
         }
-        var file = plugin.getDataFolder().toPath().resolve("buyzone.yml").toFile();
+        var file =
+                fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "buyzone.yml").toPath().toFile();
         var config = YamlConfiguration.loadConfiguration(file);
         config.set("zones.cochon.prix", 100);
         config.set("zones.test_non_configure.prix", -1);
@@ -141,7 +142,9 @@ class BuyZoneTest {
         module.onCommand(admin, COMMAND, "buyzone", new String[] {"spawn", "cochon"});
         assertTrue(
                 YamlConfiguration.loadConfiguration(
-                                plugin.getDataFolder().toPath().resolve("buyzone.yml").toFile())
+                                fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "buyzone.yml")
+                                        .toPath()
+                                        .toFile())
                         .contains("portails.cochon"),
                 () -> admin.nextMessage());
     }
@@ -319,13 +322,17 @@ class BuyZoneTest {
         module.onCommand(admin, COMMAND, "buyzone", new String[] {"spawn", "test_non_configure"});
         var saved =
                 YamlConfiguration.loadConfiguration(
-                        plugin.getDataFolder().toPath().resolve("buyzone.yml").toFile());
+                        fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "buyzone.yml")
+                                .toPath()
+                                .toFile());
         assertEquals(-1L, saved.getLong("zones.test_non_configure.prix"));
         assertFalse(saved.contains("portails.test_non_configure"));
         module.onCommand(player, COMMAND, "buyzone", new String[] {"spawn", "cochon"});
         assertFalse(
                 YamlConfiguration.loadConfiguration(
-                                plugin.getDataFolder().toPath().resolve("buyzone.yml").toFile())
+                                fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "buyzone.yml")
+                                        .toPath()
+                                        .toFile())
                         .contains("portails.cochon"));
     }
 
@@ -360,7 +367,9 @@ class BuyZoneTest {
         module.onCommand(admin, COMMAND, "buyzone", new String[] {"remove", "cochon"});
         assertFalse(
                 YamlConfiguration.loadConfiguration(
-                                plugin.getDataFolder().toPath().resolve("buyzone.yml").toFile())
+                                fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "buyzone.yml")
+                                        .toPath()
+                                        .toFile())
                         .contains("portails.cochon"));
         assertEquals(
                 Set.of("cochon"), new BuyZoneStore(database).load(player.getUniqueId()).join());
@@ -368,7 +377,7 @@ class BuyZoneTest {
 
     @Test
     void legacyMissingPricesMigrateWithoutChangingCustomPricesOrPositions() throws Exception {
-        var path = plugin.getDataFolder().toPath().resolve("buyzone.yml");
+        var path = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "buyzone.yml").toPath();
         var old = YamlConfiguration.loadConfiguration(path.toFile());
         old.set("version-prix", null);
         old.set("zones.vache.prix", -1);
@@ -407,14 +416,16 @@ class BuyZoneTest {
         assertEquals(
                 65,
                 YamlConfiguration.loadConfiguration(
-                                plugin.getDataFolder().toPath().resolve("buyzone.yml").toFile())
+                                fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "buyzone.yml")
+                                        .toPath()
+                                        .toFile())
                         .getDouble("portails.cochon.y"));
     }
 
     @Test
     void unloadedWorldDoesNotDisableOtherPortalsAndRestoresOnWorldLoad() throws Exception {
         module.shutdown();
-        var path = plugin.getDataFolder().toPath().resolve("buyzone.yml");
+        var path = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "buyzone.yml").toPath();
         var yaml = YamlConfiguration.loadConfiguration(path.toFile());
         yaml.set("portails.vache", center);
         yaml.set("portails.cochon.world", "world-loaded-later");

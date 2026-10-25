@@ -1,0 +1,12 @@
+# DecentHolograms reste nécessaire. Toujours 10 places ; orientation est conservée.
+entete: '&d&l{titre}'
+boss-entete: '&d&l{titre}'
+separateur: '&7'
+ligne: '&e#{rang} &f{joueur} &7- &b{valeur}'
+ligne-vide: '&e#{rang}                &7- &b0'
+titres:
+  LEVEL: '★ Top Niveaux ★'
+  KILLS: '☠ Top Kills ★'
+  ECUS: '✦ Top Écus ★'
+  GEMMES: '◆ Top Gemmes Sombres ★'
+  CENDRES: '❀ Top Cendres ★'

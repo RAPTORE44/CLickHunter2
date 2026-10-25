@@ -23,8 +23,8 @@ public final class DailySettings {
 
     public DailySettings(JavaPlugin plugin) {
         this.plugin = plugin;
-        file = new File(plugin.getDataFolder(), "daily.yml");
-        if (!file.exists()) plugin.saveResource("daily.yml", false);
+        file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "daily.yml");
+        if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "daily.yml");
         config = fr.cliker.clikerv2.config.YamlFiles.load(file);
         migrateCalendar();
         zone = ZoneId.of(config.getString("fuseau-horaire", "Europe/Paris"));
@@ -34,8 +34,8 @@ public final class DailySettings {
         if (config.getInt("schema-version", 1) >= 2) return;
         try {
             java.nio.file.Path backup =
-                    plugin.getDataFolder()
-                            .toPath()
+                    file.toPath()
+                            .getParent()
                             .resolve("backups/daily-" + System.currentTimeMillis() + ".yml");
             java.nio.file.Files.createDirectories(backup.getParent());
             java.nio.file.Files.copy(file.toPath(), backup);

@@ -58,8 +58,9 @@ public final class DamagePopups implements Listener {
     DamagePopups(JavaPlugin plugin, DisplayFactory displayFactory) {
         this.displayFactory = displayFactory;
         this.plugin = plugin;
-        File file = new File(plugin.getDataFolder(), "damage-popups.yml");
-        if (!file.exists()) plugin.saveResource("damage-popups.yml", false);
+        File file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "damage-popups.yml");
+        if (!file.exists())
+            fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "damage-popups.yml");
         var config = YamlConfiguration.loadConfiguration(file);
         enabled = config.getBoolean("active", true);
         duration = config.getInt("duree-ticks", 20);

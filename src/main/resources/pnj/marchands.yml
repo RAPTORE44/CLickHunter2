@@ -1,0 +1,97 @@
+# Apparence des marchands de progression. /pnj skin <mob> <pseudo|villager>.
+marchands:
+  vache:
+    type: villager
+    skin: ''
+    titre: '&aMarchand vache'
+    sous-titre: '&7Clic droit pour ouvrir'
+  cochon:
+    type: villager
+    skin: ''
+    titre: '&aMarchand cochon'
+    sous-titre: '&7Clic droit pour ouvrir'
+  poulet:
+    type: villager
+    skin: ''
+    titre: '&aMarchand poulet'
+    sous-titre: '&7Clic droit pour ouvrir'
+  mouton:
+    type: villager
+    skin: ''
+    titre: '&aMarchand mouton'
+    sous-titre: '&7Clic droit pour ouvrir'
+  lapin:
+    type: villager
+    skin: ''
+    titre: '&aMarchand lapin'
+    sous-titre: '&7Clic droit pour ouvrir'
+  ourse:
+    type: villager
+    skin: ''
+    titre: '&aMarchand ourse'
+    sous-titre: '&7Clic droit pour ouvrir'
+  ane:
+    type: villager
+    skin: ''
+    titre: '&aMarchand ane'
+    sous-titre: '&7Clic droit pour ouvrir'
+  pigman:
+    type: villager
+    skin: ''
+    titre: '&aMarchand pigman'
+    sous-titre: '&7Clic droit pour ouvrir'
+  piglin:
+    type: villager
+    skin: ''
+    titre: '&aMarchand piglin'
+    sous-titre: '&7Clic droit pour ouvrir'
+  piglin_brute:
+    type: villager
+    skin: ''
+    titre: '&aMarchand piglin_brute'
+    sous-titre: '&7Clic droit pour ouvrir'
+  hoglin:
+    type: villager
+    skin: ''
+    titre: '&aMarchand hoglin'
+    sous-titre: '&7Clic droit pour ouvrir'
+  magma_slime:
+    type: villager
+    skin: ''
+    titre: '&aMarchand magma_slime'
+    sous-titre: '&7Clic droit pour ouvrir'
+  blaze:
+    type: villager
+    skin: ''
+    titre: '&aMarchand blaze'
+    sous-titre: '&7Clic droit pour ouvrir'
+  wither_skeleton:
+    type: villager
+    skin: ''
+    titre: '&aMarchand wither_skeleton'
+    sous-titre: '&7Clic droit pour ouvrir'
+  ghast:
+    type: villager
+    skin: ''
+    titre: '&aMarchand ghast'
+    sous-titre: '&7Clic droit pour ouvrir'
+  vindicator:
+    type: villager
+    skin: ''
+    titre: '&aMarchand vindicator'
+    sous-titre: '&7Clic droit pour ouvrir'
+  ravager:
+    type: villager
+    skin: ''
+    titre: '&aMarchand ravager'
+    sous-titre: '&7Clic droit pour ouvrir'
+  wither:
+    type: villager
+    skin: ''
+    titre: '&aMarchand wither'
+    sous-titre: '&7Clic droit pour ouvrir'
+  warden:
+    type: villager
+    skin: ''
+    titre: '&aMarchand warden'
+    sous-titre: '&7Clic droit pour ouvrir'

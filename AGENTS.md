@@ -17,3 +17,7 @@ Les textures et items `icons:*` fournis sont déjà installés dans ItemsAdder s
 ## PNJ
 
 Utiliser ZNPCsPlus 2.0.0 pour les PNJ Daily, Discord, Contrats et marchands. Citizens n’est plus le fournisseur ; sa présence optionnelle sert uniquement à nettoyer les anciens PNJ balisés par ClikerV2 lors de la migration, sans toucher aux autres. Conserver les commandes, positions et orientations sauvegardées.
+
+## Nouveau périmètre autorisé explicitement
+
+Le propriétaire demande désormais les raids privés avec invitations et parchemins, un boss public après un milliard de kills, les boutiques PNJ et la collection de talismans généraux. Ces systèmes font partie du périmètre autorisé ; l’ancienne attente sur les instances ne bloque pas ces demandes. Les 19 zones actuelles sont conservées ; le propriétaire a choisi de débloquer le tier 5 général dans la dernière zone actuelle (zone 19), plutôt que de le réserver à la future zone 40.

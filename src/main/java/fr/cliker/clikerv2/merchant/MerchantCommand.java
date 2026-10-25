@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Locale;
 
 public final class MerchantCommand implements CommandExecutor, TabCompleter {
-    private static final List<String> SUB = List.of("spawn", "remove", "list");
+    private static final List<String> SUB = List.of("spawn", "remove", "list", "skin");
 
     private final MerchantManager manager;
 
@@ -37,6 +37,17 @@ public final class MerchantCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (args.length == 3
+                && args[0].equalsIgnoreCase("skin")
+                && MobTier.parse(args[1]) != null) {
+            try {
+                manager.skin(MobTier.parse(args[1]).id(), args[2]);
+                player.sendMessage("Apparence des marchands sauvegardée.");
+            } catch (RuntimeException error) {
+                player.sendMessage("Apparence non sauvegardée : " + error.getMessage());
+            }
+            return true;
+        }
         if (args.length == 1 && args[0].equalsIgnoreCase("list")) {
             List<String> mobIds = manager.listMobIds();
             if (mobIds.isEmpty()) {
@@ -77,7 +88,9 @@ public final class MerchantCommand implements CommandExecutor, TabCompleter {
         }
 
         sender.sendMessage(
-                Component.text("/" + label + " <spawn <mob>|remove|list>", NamedTextColor.YELLOW));
+                Component.text(
+                        "/" + label + " <spawn <mob>|remove|list|skin <mob> <pseudo|villager>>",
+                        NamedTextColor.YELLOW));
         return true;
     }
 
@@ -87,7 +100,8 @@ public final class MerchantCommand implements CommandExecutor, TabCompleter {
         if (!sender.hasPermission("cliker.mob.admin")) return List.of();
         List<String> options = new ArrayList<>();
         if (args.length == 1) options.addAll(SUB);
-        else if (args.length == 2 && args[0].equalsIgnoreCase("spawn"))
+        else if (args.length == 2
+                && (args[0].equalsIgnoreCase("spawn") || args[0].equalsIgnoreCase("skin")))
             options.addAll(MobTier.byId().keySet());
         String current = args[args.length - 1].toLowerCase(Locale.ROOT);
         options.removeIf(option -> !option.toLowerCase(Locale.ROOT).startsWith(current));

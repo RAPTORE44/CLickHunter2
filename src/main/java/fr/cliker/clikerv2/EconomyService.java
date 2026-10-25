@@ -372,10 +372,12 @@ public final class EconomyService {
                         c.setAutoCommit(false);
                         String seller, sellerName, item;
                         long price, listedAt;
+                        boolean feePaid;
                         try (var s =
                                 c.prepareStatement(
-                                        "SELECT seller_uuid,seller_name,item,price,listed_at FROM"
-                                                + " auctions WHERE id=? AND expired=0")) {
+                                        "SELECT"
+                                            + " seller_uuid,seller_name,item,price,listed_at,fee_paid"
+                                            + " FROM auctions WHERE id=? AND expired=0")) {
                             s.setString(1, id);
                             try (var rs = s.executeQuery()) {
                                 if (!rs.next()) {
@@ -387,6 +389,7 @@ public final class EconomyService {
                                 item = rs.getString(3);
                                 price = rs.getLong(4);
                                 listedAt = rs.getLong(5);
+                                feePaid = rs.getInt(6) == 1;
                             }
                         }
                         if (price < 1
@@ -412,7 +415,7 @@ public final class EconomyService {
                             }
                         }
                         long tax = fr.cliker.clikerv2.auction.AuctionListing.tax(price),
-                                proceeds = price - tax;
+                                proceeds = feePaid ? price : price - tax;
                         try (var s =
                                 c.prepareStatement(
                                         "UPDATE player_balances SET ecus=ecus+? WHERE uuid=? AND"

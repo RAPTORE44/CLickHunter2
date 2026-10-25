@@ -94,6 +94,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private AutoClickManager autoClickManager;
     private GearAttributeManager gearAttributeManager;
     private BossEventManager bossEventManager;
+    private fr.cliker.clikerv2.features.ExpansionModule expansion;
     private DatabaseManager database;
     private EconomyService economy;
     private CustomMobManager mobManager;
@@ -116,6 +117,18 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        try {
+            fr.cliker.clikerv2.features.CreatureSettings.initialize(this);
+        } catch (RuntimeException error) {
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "mobs/creatures.yml invalide : démarrage interrompu sans effacer les"
+                                + " données.",
+                            error);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         fr.cliker.clikerv2.display.RankPrefix.initialize();
         DeathLogFilter.install();
         try {
@@ -249,18 +262,6 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             unavailable("contrats");
         }
         try {
-            raidModule = new fr.cliker.clikerv2.raid.RaidModule(this, rewardLedger, mobManager);
-            raidModule.start();
-        } catch (Exception error) {
-            getLogger()
-                    .log(
-                            java.util.logging.Level.SEVERE,
-                            "Raid indisponible : vérifier raid.yml",
-                            error);
-            if (raidModule != null) raidModule.shutdown();
-            unavailable("raid");
-        }
-        try {
             outpostModule = new fr.cliker.clikerv2.outpost.OutpostModule(this, database, claims);
             outpostModule.start();
         } catch (Exception error) {
@@ -392,7 +393,9 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         auctionManager.start();
         AuctionMenu auctionMenu = new AuctionMenu(this, auctionManager);
         getServer().getPluginManager().registerEvents(auctionMenu, this);
-        setExecutor("ah", new AuctionCommand(auctionMenu));
+        var ahCommand = new AuctionCommand(auctionMenu);
+        setExecutor("ah", ahCommand);
+        getCommand("ah").setTabCompleter(ahCommand);
 
         SpawnStore spawnStore = new SpawnStore(database);
         SpawnManager spawnManager = new SpawnManager(this, spawnStore);
@@ -523,11 +526,27 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         }
         sessionConvenience = new fr.cliker.clikerv2.comfort.SessionConvenience(this);
         sessionConvenience.start();
+        expansion =
+                new fr.cliker.clikerv2.features.ExpansionModule(
+                        this, database, economy, buyZoneModule, mobManager, bagManager);
+        try {
+            expansion.start();
+        } catch (RuntimeException error) {
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Configuration des nouveaux services invalide : démarrage interrompu.",
+                            error);
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         getLogger().info("Economie active avec SQLite.");
     }
 
     @Override
     public void onDisable() {
+        if (expansion != null) expansion.shutdown();
+        fr.cliker.clikerv2.features.CreatureSettings.reset();
         if (sessionConvenience != null) sessionConvenience.shutdown();
         if (merchantManager != null) merchantManager.shutdown();
         if (menuIcons != null) menuIcons.shutdown();

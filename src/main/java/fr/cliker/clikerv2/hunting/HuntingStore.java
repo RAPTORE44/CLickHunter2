@@ -48,6 +48,13 @@ public final class HuntingStore {
                                     c.rollback();
                                     return false;
                                 }
+                                if (!boss)
+                                    try (var counter =
+                                            c.prepareStatement(
+                                                    "UPDATE server_counters SET value=value+1 WHERE"
+                                                            + " id='mob_kills'")) {
+                                        counter.executeUpdate();
+                                    }
                                 try (var s =
                                         c.prepareStatement(
                                                 "INSERT INTO"

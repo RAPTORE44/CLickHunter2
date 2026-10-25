@@ -33,6 +33,7 @@ public final class HologramManager {
         BOSS_TIMER
     }
 
+    private final org.bukkit.configuration.file.YamlConfiguration appearance;
     private final JavaPlugin plugin;
     private final HologramStore store;
     private final PlayerLevelStore levelStore;
@@ -51,6 +52,19 @@ public final class HologramManager {
             MobKillStore killStore,
             EconomyService economy) {
         this.plugin = plugin;
+        org.bukkit.configuration.file.YamlConfiguration loaded;
+        try {
+            loaded =
+                    new fr.cliker.clikerv2.features.Settings(plugin, "affichage/classements.yml")
+                            .yaml;
+        } catch (RuntimeException error) {
+            plugin.getLogger()
+                    .warning(
+                            "affichage/classements.yml invalide : styles par défaut utilisés. "
+                                    + error.getMessage());
+            loaded = new org.bukkit.configuration.file.YamlConfiguration();
+        }
+        appearance = loaded;
         this.store = store;
         this.levelStore = levelStore;
         this.killStore = killStore;
@@ -265,8 +279,8 @@ public final class HologramManager {
     public void updateBossTimer(String title, List<String> details) {
         if (!available) return;
         List<String> lines = new ArrayList<>();
-        lines.add("&d&l" + title);
-        lines.add("&7");
+        lines.add(appearance.getString("boss-entete", "&d&l{titre}").replace("{titre}", title));
+        lines.add(appearance.getString("separateur", "&7"));
         lines.addAll(details);
         lastBossTimerLines = lines;
         for (Map.Entry<String, Type> entry : holograms.entrySet()) {
@@ -288,7 +302,35 @@ public final class HologramManager {
         fr.cliker.clikerv2.runtime.ServerTasks.run(
                 plugin,
                 () -> {
-                    List<String> lines = leaderboardLines(title, entries);
+                    List<String> lines =
+                            leaderboardLines(
+                                    appearance.getString("titres." + type.name(), title), entries);
+                    lines.set(
+                            0,
+                            appearance
+                                    .getString("entete", "&d&l{titre}")
+                                    .replace(
+                                            "{titre}",
+                                            appearance.getString("titres." + type.name(), title)));
+                    lines.set(1, appearance.getString("separateur", "&7"));
+                    for (int rank = 0; rank < 10; rank++) {
+                        String row =
+                                rank < entries.size()
+                                        ? appearance
+                                                .getString(
+                                                        "ligne",
+                                                        "&e#{rang} &f{joueur} &7- &b{valeur}")
+                                                .replace(
+                                                        "{joueur}",
+                                                        String.valueOf(entries.get(rank)[0]))
+                                                .replace(
+                                                        "{valeur}",
+                                                        Numbers.compact(
+                                                                (Long) entries.get(rank)[1]))
+                                        : appearance.getString(
+                                                "ligne-vide", "&e#{rang}                &7- &b0");
+                        lines.set(rank + 2, row.replace("{rang}", Integer.toString(rank + 1)));
+                    }
                     for (var entry : holograms.entrySet()) {
                         if (entry.getValue() != type || lines.equals(rendered.get(entry.getKey())))
                             continue;

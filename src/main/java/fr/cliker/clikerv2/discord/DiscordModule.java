@@ -30,8 +30,8 @@ public final class DiscordModule implements CommandExecutor, TabCompleter {
 
     public DiscordModule(JavaPlugin plugin) {
         this.plugin = plugin;
-        file = new File(plugin.getDataFolder(), "discord.yml");
-        if (!file.exists()) plugin.saveResource("discord.yml", false);
+        file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "discord.yml");
+        if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "discord.yml");
         config = fr.cliker.clikerv2.config.YamlFiles.load(file);
         link = config.getString("lien", "https://discord.gg/WSwBwpnQTa");
         URI uri = URI.create(link);

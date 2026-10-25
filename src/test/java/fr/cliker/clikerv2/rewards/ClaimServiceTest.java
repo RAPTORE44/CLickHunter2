@@ -32,7 +32,7 @@ class ClaimServiceTest {
         player = server.addPlayer();
         ConfigurationSerialization.registerClass(ItemStackMock.class);
         player.addAttachment(plugin, "cliker.claim", true);
-        Path file = plugin.getDataFolder().toPath().resolve("claim.yml");
+        Path file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "claim.yml").toPath();
         Files.createDirectories(file.getParent());
         try (var input = getClass().getResourceAsStream("/claim.yml")) {
             Files.copy(input, file, StandardCopyOption.REPLACE_EXISTING);

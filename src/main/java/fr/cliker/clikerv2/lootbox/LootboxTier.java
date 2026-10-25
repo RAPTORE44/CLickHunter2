@@ -123,8 +123,8 @@ public enum LootboxTier {
     }
 
     public static void load(org.bukkit.plugin.java.JavaPlugin plugin) {
-        java.io.File file = new java.io.File(plugin.getDataFolder(), "lootboxes.yml");
-        if (!file.exists()) plugin.saveResource("lootboxes.yml", false);
+        java.io.File file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "lootboxes.yml");
+        if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "lootboxes.yml");
         settings = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
     }
 

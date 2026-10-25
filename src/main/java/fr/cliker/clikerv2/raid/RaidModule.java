@@ -34,10 +34,12 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     private final Set<UUID> normals = new HashSet<>();
     private final Map<UUID, Location> returns = new HashMap<>();
     private final NamespacedKey tag;
-    private final long normalHP, configuredBossHP;
+    private long normalHP, configuredBossHP;
     private final int threshold, cap;
-    private final double normalDamage, bossDamage, bossRange;
-    private final Gains normalReward, bossReward;
+    private double normalDamage, bossDamage, bossRange;
+    private Gains normalReward, bossReward;
+    private boolean managed, publicBoss, completed;
+    private Runnable finished;
     private World world;
     private UUID boss;
     private long bossMax;
@@ -51,8 +53,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         this.ledger = ledger;
         this.combat = combat;
         tag = new NamespacedKey(plugin, "raid_entity");
-        File file = new File(plugin.getDataFolder(), "raid.yml");
-        if (!file.exists()) plugin.saveResource("raid.yml", false);
+        File file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "raid.yml");
+        if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "raid.yml");
         config = YamlConfiguration.loadConfiguration(file);
         normalHP = config.getLong("mobs.pv", 500);
         configuredBossHP = config.getLong("boss.pv", 10000000000L);
@@ -81,13 +83,77 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         bossReward = rewards("boss.recompenses");
     }
 
+    public static RaidModule managed(
+            JavaPlugin plugin,
+            RewardLedger ledger,
+            CustomMobManager combat,
+            String name,
+            int difficulty,
+            boolean publicBoss,
+            Runnable finished) {
+        var raid = new RaidModule(plugin, ledger, combat);
+        raid.managed = true;
+        raid.publicBoss = publicBoss;
+        raid.finished = finished;
+        raid.config.set("monde", name);
+        long scale = Math.multiplyExact((long) difficulty, difficulty);
+        raid.normalHP = Math.multiplyExact(raid.normalHP, scale);
+        raid.configuredBossHP = Math.multiplyExact(raid.configuredBossHP, scale);
+        raid.normalDamage = Math.min(2048, raid.normalDamage * difficulty);
+        raid.bossDamage = Math.min(2048, raid.bossDamage * difficulty);
+        raid.normalReward = scaled(raid.normalReward, difficulty);
+        raid.bossReward = scaled(raid.bossReward, difficulty);
+        return raid;
+    }
+
+    private static Gains scaled(Gains g, int n) {
+        return Gains.of(
+                Math.multiplyExact(g.amount(fr.cliker.clikerv2.economy.CurrencyType.ECUS), n),
+                Math.multiplyExact(
+                        g.amount(fr.cliker.clikerv2.economy.CurrencyType.GEMMES_SOMBRES), n),
+                Math.multiplyExact(g.amount(fr.cliker.clikerv2.economy.CurrencyType.CENDRES), n),
+                Math.multiplyExact(g.xp(), n));
+    }
+
+    public World world() {
+        return world;
+    }
+
+    public void enter(Player p) {
+        onCommand(p, plugin.getCommand("raid"), "raid", new String[0]);
+    }
+
+    public void exit(Player p) {
+        if (p.getWorld() == world) leave(p);
+    }
+
+    public void beginPublicBoss() {
+        if (publicBoss && boss == null) {
+            completed = false;
+            spawnBoss();
+        }
+    }
+
+    public void evacuate() {
+        for (Player p : new ArrayList<>(world.getPlayers())) leave(p);
+    }
+
     public void start() {
         world = ActivityWorlds.create(config.getString("monde", "clickhunter_raid"), true);
         world.setGameRule(GameRule.KEEP_INVENTORY, true);
-        bar = Bukkit.createBossBar("Raid", BarColor.RED, BarStyle.SEGMENTED_10);
+        if (publicBoss)
+            for (int x = -2; x < 2; x++)
+                for (int z = -2; z < 2; z++) world.addPluginChunkTicket(x, z, plugin);
+        bar =
+                Bukkit.createBossBar(
+                        publicBoss ? "Boss serveur : en attente" : "Raid",
+                        BarColor.RED,
+                        BarStyle.SEGMENTED_10);
         cleanup();
-        Objects.requireNonNull(plugin.getCommand("raid")).setExecutor(this);
-        plugin.getCommand("raid").setTabCompleter(this);
+        if (!managed) {
+            Objects.requireNonNull(plugin.getCommand("raid")).setExecutor(this);
+            plugin.getCommand("raid").setTabCompleter(this);
+        }
         Bukkit.getPluginManager().registerEvents(this, plugin);
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20, 40);
     }
@@ -111,7 +177,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player p)) return true;
-        if (!p.hasPermission("cliker.raid")) {
+        if (!publicBoss && !p.hasPermission("cliker.raid")) {
             message(p, "interdit");
             return true;
         }
@@ -146,7 +212,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     }
 
     private void tick() {
-        if (stopped) return;
+        if (stopped || completed) return;
         List<Player> players =
                 world.getPlayers().stream()
                         .filter(
@@ -211,6 +277,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
             return;
         }
 
+        if (publicBoss) return;
         bar.setTitle("Raid • " + kills + "/" + threshold + " éliminations avant le boss");
         bar.setProgress(Math.min(1, (double) kills / threshold));
         if (kills >= threshold) {
@@ -221,7 +288,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         while (normals.size() < cap) {
             double x = java.util.concurrent.ThreadLocalRandom.current().nextDouble(-22, 22),
                     z = java.util.concurrent.ThreadLocalRandom.current().nextDouble(-20, 12);
-            var mob = world.spawn(new Location(world, x, 65, z), Zombie.class);
+            var mob = world.spawn(new Location(world, x, 65, z, 0, 0), Zombie.class);
             mob.setSilent(true);
             mob.setAdult();
             mob.setShouldBurnInDay(false);
@@ -248,7 +315,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
             health.remove(id);
         }
         normals.clear();
-        var giant = world.spawn(new Location(world, 0.5, 65, 0.5), Giant.class);
+        var giant = world.spawn(new Location(world, 0.5, 65, 0.5, 270, 0), Giant.class);
         giant.setAI(false);
         giant.setPersistent(false);
         giant.setRemoveWhenFarAway(false);
@@ -300,6 +367,12 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         if (id.equals(boss)) {
             UUID source = boss;
             boss = null;
+            if (managed) {
+                completed = true;
+                bar.setTitle(
+                        publicBoss ? "Boss vaincu — en attente du prochain seuil" : "Raid terminé");
+                bar.setProgress(0);
+            }
             kills = 0;
             payBoss(source, new LinkedHashMap<>(damage), new HashMap<>(names));
             damage.clear();
@@ -307,7 +380,11 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         } else {
             normals.remove(id);
             kills++;
-            ledger.grant("raid-mob:" + id, p.getUniqueId(), p.getName(), normalReward)
+            ledger.grant(
+                            "raid-mob:" + id,
+                            p.getUniqueId(),
+                            p.getName(),
+                            fr.cliker.clikerv2.features.Boosts.rewards(p, normalReward))
                     .whenComplete(
                             (paid, error) ->
                                     onMain(
@@ -321,6 +398,17 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
 
     private void payBoss(UUID source, Map<UUID, Long> contribution, Map<UUID, String> players) {
         var shares = ProportionalRewards.allocate(bossReward, contribution);
+        Map<UUID, Gains> credited = new LinkedHashMap<>();
+        shares.forEach(
+                (id, gain) ->
+                        credited.put(
+                                id,
+                                fr.cliker.clikerv2.features.Boosts.rewards(
+                                        Bukkit.getPlayer(id), gain)));
+        payShares(source, credited, players);
+    }
+
+    private void payShares(UUID source, Map<UUID, Gains> shares, Map<UUID, String> players) {
         ledger.database()
                 .submit(
                         c -> {
@@ -349,6 +437,16 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                                         () -> {
                                             if (error != null) {
                                                 failure(error);
+                                                Bukkit.getScheduler()
+                                                        .runTaskLater(
+                                                                plugin,
+                                                                () -> {
+                                                                    if (!stopped)
+                                                                        payShares(
+                                                                                source, shares,
+                                                                                players);
+                                                                },
+                                                                100);
                                                 return;
                                             }
                                             shares.forEach(
@@ -362,6 +460,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                                                                         DailySettings.color(line));
                                                         }
                                                     });
+                                            if (managed && finished != null) finished.run();
                                         }));
     }
 
@@ -458,6 +557,9 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     }
 
     public void shutdown() {
+        if (publicBoss && world != null)
+            for (int x = -2; x < 2; x++)
+                for (int z = -2; z < 2; z++) world.removePluginChunkTicket(x, z, plugin);
         stopped = true;
         if (task != null) task.cancel();
         if (bar != null) bar.removeAll();

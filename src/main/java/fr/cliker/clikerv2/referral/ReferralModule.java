@@ -44,8 +44,8 @@ public final class ReferralModule implements Listener, CommandExecutor, TabCompl
         this.plugin = plugin;
         this.claims = claims;
         this.clock = clock;
-        File file = new File(plugin.getDataFolder(), "parrainage.yml");
-        if (!file.exists()) plugin.saveResource("parrainage.yml", false);
+        File file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "parrainage.yml");
+        if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "parrainage.yml");
         config = YamlConfiguration.loadConfiguration(file);
         boolean corrected = false;
         for (String key : List.of("barre.titre", "messages.invitation")) {

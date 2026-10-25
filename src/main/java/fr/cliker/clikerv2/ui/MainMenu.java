@@ -24,8 +24,8 @@ public final class MainMenu implements CommandExecutor, Listener {
 
     public MainMenu(JavaPlugin plugin) {
         this.plugin = plugin;
-        File file = new File(plugin.getDataFolder(), "gui/menu.yml");
-        if (!file.exists()) plugin.saveResource("gui/menu.yml", false);
+        File file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "gui/menu.yml");
+        if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "gui/menu.yml");
         config = YamlConfiguration.loadConfiguration(file);
         addActivityButtons(file);
         size = config.getInt("taille", 36);

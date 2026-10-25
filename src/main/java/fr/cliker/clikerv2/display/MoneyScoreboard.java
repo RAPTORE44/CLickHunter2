@@ -45,10 +45,10 @@ public final class MoneyScoreboard implements Listener {
      * sont conservées.
      */
     public static void installStyle(JavaPlugin plugin) {
-        File file = new File(plugin.getDataFolder(), "scoreboard.yml");
-        if (!file.exists()) plugin.saveResource("scoreboard.yml", false);
+        File file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "scoreboard.yml");
+        if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "scoreboard.yml");
         if (plugin.getConfig().getInt("displays.scoreboard.style-version", 0) >= 1) return;
-        File config = new File(plugin.getDataFolder(), "config.yml");
+        File config = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "config.yml");
         try {
             if (config.exists()) {
                 var backup =
@@ -96,7 +96,7 @@ public final class MoneyScoreboard implements Listener {
         this.prestige = prestige;
         var config =
                 YamlConfiguration.loadConfiguration(
-                        new File(plugin.getDataFolder(), "scoreboard.yml"));
+                        fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "scoreboard.yml"));
         lines = List.copyOf(config.getStringList("lignes"));
         if (lines.isEmpty() || lines.size() > 15)
             throw new IllegalArgumentException("Le scoreboard doit contenir entre 1 et 15 lignes");

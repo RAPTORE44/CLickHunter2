@@ -149,7 +149,21 @@ public final class DatabaseManager {
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS prestige_resets(owner TEXT PRIMARY KEY,level"
                             + " INTEGER NOT NULL,earned_xp INTEGER NOT NULL)");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS server_counters(id TEXT PRIMARY KEY,value INTEGER"
+                            + " NOT NULL DEFAULT 0)");
+            statement.executeUpdate(
+                    "INSERT OR IGNORE INTO server_counters(id,value) SELECT"
+                        + " 'mob_kills',COALESCE(SUM(kills),0) FROM bestiary_stats WHERE boss=0");
             migrateAuctionsExpiredColumn(statement);
+            boolean feeColumn = false;
+            try (var columns = statement.executeQuery("PRAGMA table_info(auctions)")) {
+                while (columns.next())
+                    if ("fee_paid".equals(columns.getString("name"))) feeColumn = true;
+            }
+            if (!feeColumn)
+                statement.executeUpdate(
+                        "ALTER TABLE auctions ADD COLUMN fee_paid INTEGER NOT NULL DEFAULT 0");
             migrateUpgradesCadenceColumn(statement);
         }
     }

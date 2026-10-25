@@ -38,6 +38,56 @@ public final class AuctionStore {
                 });
     }
 
+    public CompletableFuture<Void> publish(AuctionListing listing, boolean advertise) {
+        return database.submit(
+                c -> {
+                    try {
+                        c.setAutoCommit(false);
+                        long fee =
+                                Math.addExact(
+                                        AuctionListing.tax(listing.price()),
+                                        advertise ? advertisingFee(listing.price()) : 0);
+                        try (var s =
+                                c.prepareStatement(
+                                        "UPDATE player_balances SET ecus=ecus-? WHERE uuid=? AND"
+                                                + " ecus>=?")) {
+                            s.setLong(1, fee);
+                            s.setString(2, listing.sellerUuid().toString());
+                            s.setLong(3, fee);
+                            if (s.executeUpdate() != 1)
+                                throw new SQLException(
+                                        "Écus insuffisants pour les frais de publication");
+                        }
+                        try (var s =
+                                c.prepareStatement(
+                                        "INSERT INTO"
+                                            + " auctions(id,seller_uuid,seller_name,item,price,listed_at,fee_paid)"
+                                            + " VALUES(?,?,?,?,?,?,1)")) {
+                            s.setString(1, listing.id());
+                            s.setString(2, listing.sellerUuid().toString());
+                            s.setString(3, listing.sellerName());
+                            s.setString(4, listing.itemYaml());
+                            s.setLong(5, listing.price());
+                            s.setLong(6, listing.listedAt());
+                            s.executeUpdate();
+                        }
+                        c.commit();
+                        return null;
+                    } catch (SQLException e) {
+                        try {
+                            c.rollback();
+                        } catch (SQLException ignored) {
+                        }
+                        throw new DatabaseManager.DatabaseException(e);
+                    }
+                });
+    }
+
+    public static long advertisingFee(long price) {
+        if (price < 0) throw new IllegalArgumentException();
+        return price / 20 + (price % 20 == 0 ? 0 : 1);
+    }
+
     public CompletableFuture<Void> removeById(String id) {
         return database.submit(
                 connection -> {

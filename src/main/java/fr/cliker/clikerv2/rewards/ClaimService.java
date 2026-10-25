@@ -61,8 +61,8 @@ public final class ClaimService implements Listener, CommandExecutor {
         this.database = database;
         store = new MailStore(database);
         receipt = new NamespacedKey(plugin, "claim_receipt");
-        File file = new File(plugin.getDataFolder(), "claim.yml");
-        if (!file.exists()) plugin.saveResource("claim.yml", false);
+        File file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "claim.yml");
+        if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "claim.yml");
         config = YamlConfiguration.loadConfiguration(file);
     }
 

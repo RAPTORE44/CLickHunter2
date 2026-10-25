@@ -8,7 +8,8 @@ extensions:
   prix-ecus: [0, 25000, 100000, 500000, 2000000, 10000000]
 # Tous les blocs ayant une forme d’objet sont vendus. Les états techniques sans objet sont exclus.
 boutique-blocs:
-  skin: Nati144378
+  type: villager
+  skin: ''
   prix-defaut: 10
   # Prix par bloc en Écus ; clic gauche = 1, clic droit = une pile vanilla.
   prix: {}

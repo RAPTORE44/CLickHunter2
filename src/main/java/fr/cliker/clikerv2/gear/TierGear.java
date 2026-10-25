@@ -6,6 +6,7 @@ import fr.cliker.clikerv2.Numbers;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -31,7 +32,8 @@ public final class TierGear {
     public static boolean isGear(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
         var pdc = item.getItemMeta().getPersistentDataContainer();
-        return pdc.has(SWORD_KEY, PersistentDataType.STRING) || pdc.has(ARMOR_KEY, PersistentDataType.STRING);
+        return pdc.has(SWORD_KEY, PersistentDataType.STRING)
+                || pdc.has(ARMOR_KEY, PersistentDataType.STRING);
     }
 
     public enum ArmorSlot {
@@ -43,9 +45,18 @@ public final class TierGear {
         private final Material material;
         private final String label;
 
-        ArmorSlot(Material material, String label) { this.material = material; this.label = label; }
-        public Material material() { return material; }
-        public String label() { return label; }
+        ArmorSlot(Material material, String label) {
+            this.material = material;
+            this.label = label;
+        }
+
+        public Material material() {
+            return material;
+        }
+
+        public String label() {
+            return label;
+        }
     }
 
     enum Rarity {
@@ -66,21 +77,39 @@ public final class TierGear {
             this.leatherColor = leatherColor;
         }
 
-        public String label() { return label; }
-        public NamedTextColor color() { return color; }
+        public String label() {
+            return label;
+        }
+
+        public NamedTextColor color() {
+            return color;
+        }
     }
 
-    /** Épée = 1 pièce, chaque pièce d'armure assortie = 1 pièce de plus. Chaque pièce inflige un montant fixe = 8% des PV du TIER DE L'ITEM (pas de la cible). Set complet (5 pièces) = 40% des PV du tier de l'item, appliqué tel quel sur n'importe quel mob. */
+    /**
+     * Épée = 1 pièce, chaque pièce d'armure assortie = 1 pièce de plus. Chaque pièce inflige un
+     * montant fixe = 8% des PV du TIER DE L'ITEM (pas de la cible). Set complet (5 pièces) = 40%
+     * des PV du tier de l'item, appliqué tel quel sur n'importe quel mob.
+     */
     private static final int PIECE_PERCENT = 8;
 
-    /** Dégâts fixes d'une pièce : identique au chiffre affiché en lore, quelle que soit la cible visée. */
-    public static long pieceDamage(MobTier tier) { return Math.round(tier.maxHealth() * PIECE_PERCENT / 100.0); }
+    /**
+     * Dégâts fixes d'une pièce : identique au chiffre affiché en lore, quelle que soit la cible
+     * visée.
+     */
+    public static long pieceDamage(MobTier tier) {
+        return Math.round(
+                fr.cliker.clikerv2.features.CreatureSettings.value(
+                        tier, "degats-piece", tier.maxHealth() * PIECE_PERCENT / 100.0));
+    }
 
     public static ItemStack createSword(MobTier tier) {
         Rarity rarity = rarityOf(tier);
         ItemStack item = new ItemStack(swordMaterial(tier));
         var meta = item.getItemMeta();
-        meta.displayName(Component.text("Épée " + tier.label(), rarity.color(), TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(
+                Component.text("Épée " + tier.label(), rarity.color(), TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         meta.lore(swordLore(tier, 0));
         meta.setUnbreakable(true);
         meta.getPersistentDataContainer().set(SWORD_KEY, PersistentDataType.STRING, tier.id());
@@ -93,7 +122,12 @@ public final class TierGear {
         ItemStack item = new ItemStack(slot.material());
         LeatherArmorMeta meta = (LeatherArmorMeta) item.getItemMeta();
         meta.setColor(rarity.leatherColor);
-        meta.displayName(Component.text(tier.label() + " " + slot.label(), rarity.color(), TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false));
+        meta.displayName(
+                Component.text(
+                                tier.label() + " " + slot.label(),
+                                rarity.color(),
+                                TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
         meta.lore(armorLore(tier, slot, 0));
         meta.setUnbreakable(true);
         meta.getPersistentDataContainer().set(ARMOR_KEY, PersistentDataType.STRING, tier.id());
@@ -101,34 +135,57 @@ public final class TierGear {
         return item;
     }
 
-    /** Lore de base de l'épée (hors sections enchants/reforge/runes, ajoutées par GearLore). bonusDamage = dégâts fixes en plus (reforge/enchant/rune). */
+    /**
+     * Lore de base de l'épée (hors sections enchants/reforge/runes, ajoutées par GearLore).
+     * bonusDamage = dégâts fixes en plus (reforge/enchant/rune).
+     */
     static List<Component> swordLore(MobTier tier, long bonusDamage) {
         Rarity rarity = rarityOf(tier);
         return List.of(
-                Component.text("■ ", NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false)
+                Component.text("■ ", NamedTextColor.DARK_GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
                         .append(Component.text("Dégâts: ", NamedTextColor.GRAY))
-                        .append(Component.text(Numbers.compact(pieceDamage(tier) + bonusDamage), NamedTextColor.RED)),
+                        .append(
+                                Component.text(
+                                        Numbers.compact(pieceDamage(tier) + bonusDamage),
+                                        NamedTextColor.RED)),
                 Component.text(""),
-                Component.text("Utilisable sur tout mob custom", NamedTextColor.YELLOW).decoration(TextDecoration.ITALIC, false),
+                Component.text("Utilisable sur tout mob custom", NamedTextColor.YELLOW)
+                        .decoration(TextDecoration.ITALIC, false),
                 Component.text(""),
-                Component.text(rarity.label() + " ÉPÉE", rarity.color(), TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false)
-        );
+                Component.text(rarity.label() + " ÉPÉE", rarity.color(), TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
     }
 
-    /** Lore de base d'une pièce d'armure (hors sections enchants/reforge/runes, ajoutées par GearLore). */
+    /**
+     * Lore de base d'une pièce d'armure (hors sections enchants/reforge/runes, ajoutées par
+     * GearLore).
+     */
     static List<Component> armorLore(MobTier tier, ArmorSlot slot, long bonusDamage) {
         Rarity rarity = rarityOf(tier);
         long damage = pieceDamage(tier) + bonusDamage;
         return List.of(
-                Component.text("■ ", NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false)
+                Component.text("■ ", NamedTextColor.DARK_GRAY)
+                        .decoration(TextDecoration.ITALIC, false)
                         .append(Component.text("Dégâts: ", NamedTextColor.GRAY))
                         .append(Component.text("+" + Numbers.compact(damage), NamedTextColor.RED)),
                 Component.text(""),
-                Component.text("Bonus Set Complet: Dégâts", NamedTextColor.GOLD).decoration(TextDecoration.ITALIC, false),
-                Component.text("Épée + set complet = " + Numbers.compact(damage * 5) + " dégâts fixes", NamedTextColor.GREEN).decoration(TextDecoration.ITALIC, false),
+                Component.text("Bonus Set Complet: Dégâts", NamedTextColor.GOLD)
+                        .decoration(TextDecoration.ITALIC, false),
+                Component.text(
+                                "Épée + set complet = "
+                                        + Numbers.compact(damage * 5)
+                                        + " dégâts fixes",
+                                NamedTextColor.GREEN)
+                        .decoration(TextDecoration.ITALIC, false),
                 Component.text(""),
-                Component.text(rarity.label() + " " + slot.label().toUpperCase(java.util.Locale.ROOT), rarity.color(), TextDecoration.BOLD).decoration(TextDecoration.ITALIC, false)
-        );
+                Component.text(
+                                rarity.label()
+                                        + " "
+                                        + slot.label().toUpperCase(java.util.Locale.ROOT),
+                                rarity.color(),
+                                TextDecoration.BOLD)
+                        .decoration(TextDecoration.ITALIC, false));
     }
 
     static ArmorSlot slotOf(Material material) {

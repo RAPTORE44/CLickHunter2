@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-25",
+  "paper": "1.21.4 build 232",
+  "java": "21.0.9",
+  "npc": "ZNPCsPlus 2.0.0",
+  "tests": {
+    "tests": 218,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "jar_sha256": "80db8d7a747d1d9638aa27e87a67b67671668227d7dcf94c718a0a05797e78d3",
+  "native_checks": {
+    "feature-menus": [
+      "Tab /ah propose vendre et sell",
+      "livre enchant ouvre guide puis retourne à la table",
+      "livre reforge ouvre guide puis retourne à la table",
+      "livre runes ouvre guide puis retourne à la table",
+      "PNJ AH villageois ouvre les annonces",
+      "PNJ shop vend épée simple non améliorable via livraison persistante",
+      "PNJ blackmarket : six offres dans double coffre, stock et zones contrôlés",
+      "menu warp et point entrée configuré",
+      "bloc de raccourci ouvre les propres sacs du joueur",
+      "collection de talismans paginée avec entrées verrouillées"
+    ],
+    "features-combat": [
+      "bâton administrateur pose un point de créature au-dessus du bloc",
+      "franchissement réel de 1 000 000 000 kills : annonce à tous",
+      "/boss accessible aux deux joueurs, monde distinct du raid privé",
+      "victoire publique, paiement et fin du cycle",
+      "invitation acceptée ; parchemin consommé une seule fois ; lancement préparé en 100 ms",
+      "PvP désactivé entre deux joueurs en survie dans le raid privé",
+      "boss privé vaincu, paiement, retour des joueurs et libération de l’arène"
+    ],
+    "features-economy": [
+      "/ah sell fonctionne ; option 5 % publie annonce chat avec vendeur et objet",
+      "retrait de sa propre annonce : frais 1 % et annonce 5 % non remboursés (20 000 → 19 400)",
+      "/sell réel : gauche vend 1, droite vend les 9 restants, autre pile de 20 conservée",
+      "vente de 10 essences crédite exactement 500 Écus",
+      "shop livre potion empilable par 64 ; activation consomme une seule potion",
+      "seau de lait supprime réellement le bonus persistant"
+    ],
+    "features-protection": [
+      "joueur non op : zone verrouillée anonyme et clic sans téléportation",
+      "zone débloquée téléporte au point configuré",
+      "joueur non op en survie : tentative de casse de la carte refusée",
+      "commandes de gestion PNJ refusées sans permission"
+    ],
+    "features-restart": [
+      "JAR final : mode, étoile de menu, accès et point warp conservés après redémarrage",
+      "JAR final : un seul PNJ blackmarket restauré, orienté ouest, menu et stock accessibles"
+    ],
+    "sell-shift-guard": [
+      "JAR compilé final : Maj-clic sur 10 diamants refusé dans /sell, pile conservée et menu vide"
+    ],
+    "final-toggle": [
+      "/antidrop sans argument : protégé par défaut, jet permis après bascule, jet refusé après seconde bascule",
+      "Informations de /tallisement : tier 5 accessible en zone 19",
+      "Deuxième page : infobulles de tier 5 cohérentes avec la zone 19"
+    ]
+  },
+  "native_final_jar": [
+    "Démarrage avec ZNPCsPlus et reprise des réglages existants",
+    "Bascule réelle du jet par /antidrop sans argument",
+    "Migration du tier 5 de zone 40 à 19 et affichage dans deux pages de collection"
+  ],
+  "sqlite_quick_check": "ok",
+  "limits": [
+    "ItemsAdder et DecentHolograms absents du serveur de test natif : icônes vanilla utilisées ; rendu personnalisé à vérifier sur le serveur utilisateur.",
+    "Le seuil public a été testé avec un compteur synthétique à 999999999, puis une élimination réelle ; aucun milliard de kills ni test de charge de cette ampleur effectué.",
+    "Les scénarios détaillés de services/raids/économie ont précédé les derniers ajustements antidrop/tier 5/filtre des spawns temporaires ; le JAR final a été testé sur ces derniers ajustements et les 218 tests automatisés."
+  ]
+}

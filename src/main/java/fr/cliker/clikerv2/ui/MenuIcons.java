@@ -45,8 +45,8 @@ public final class MenuIcons implements Listener {
         this.plugin = plugin;
         this.resolver = resolver == null ? this::itemsAdder : resolver;
         originalMaterial = new NamespacedKey(plugin, "menu_original_material");
-        var file = new java.io.File(plugin.getDataFolder(), "gui/icons.yml");
-        if (!file.exists()) plugin.saveResource("gui/icons.yml", false);
+        var file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "gui/icons.yml");
+        if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "gui/icons.yml");
         config = fr.cliker.clikerv2.config.YamlFiles.load(file);
         try (var in = Objects.requireNonNull(plugin.getResource("gui/icons-catalog.txt"))) {
             catalog =

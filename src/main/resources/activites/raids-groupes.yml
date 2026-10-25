@@ -1,0 +1,9 @@
+groupes:
+  maximum-simultanes: 4
+parchemins:
+  chance-pourcent: 0.1
+boss-serveur:
+  seuil: 1000000000
+  difficulte: 19
+# Combat et récompenses de base : activites/raid.yml.
+# Le facteur de difficulté d’un raid privé est son numéro de zone.

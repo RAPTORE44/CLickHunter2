@@ -23,7 +23,7 @@ class DailyIconsRefreshTest {
             try (var in = plugin.getResource("daily.yml")) {
                 java.nio.file.Files.copy(
                         in,
-                        plugin.getDataFolder().toPath().resolve("daily.yml"),
+                        fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "daily.yml").toPath(),
                         java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             }
             module = new DailyModule(plugin);

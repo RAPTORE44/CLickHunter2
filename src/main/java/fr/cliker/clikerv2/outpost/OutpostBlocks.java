@@ -106,7 +106,8 @@ public final class OutpostBlocks implements Listener {
             at = new Location(world, plot.x() + 3.5, 65, plot.z() + 0.5, 90, 0);
         var settings = new YamlConfiguration();
         settings.set("pnj.actif", true);
-        settings.set("pnj.skin", config.getString("boutique-blocs.skin", "Nati144378"));
+        settings.set("pnj.type", config.getString("boutique-blocs.type", "villager"));
+        settings.set("pnj.skin", config.getString("boutique-blocs.skin", ""));
         settings.set("pnj.titre", "&aMarchand de construction");
         settings.set("pnj.sous-titre", "&7Clic droit pour acheter des blocs");
         fr.cliker.clikerv2.config.YamlFiles.location(settings, "pnj.position", at);
@@ -143,7 +144,7 @@ public final class OutpostBlocks implements Listener {
         Object old = config.get(path);
         fr.cliker.clikerv2.config.YamlFiles.location(config, path, player.getLocation());
         try {
-            config.save(new java.io.File(plugin.getDataFolder(), "avantpostes.yml"));
+            config.save(fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "avantpostes.yml"));
         } catch (java.io.IOException error) {
             config.set(path, old);
             plugin.getLogger()

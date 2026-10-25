@@ -14,7 +14,9 @@ Plugin unique pour Paper 1.21.4 : économie SQLite et commandes de gestion des m
 
 - Paper 1.21.4
 - Java 21 ou plus récent
-- Aucun autre plugin requis
+- ZNPCsPlus **2.0.0** pour les PNJ et leurs boutiques
+- ItemsAdder optionnel pour les icônes `icons:*` déjà installées
+- DecentHolograms optionnel pour les classements holographiques
 
 ## Commandes par catégorie
 
@@ -48,8 +50,13 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | `/prestige` | Consulter les conditions et effectuer un prestige si les conditions sont remplies. |
 | `/bestiaire` | Consulter les créatures découvertes et les maîtrises. |
 | `/contrats` | Accepter ou réclamer les contrats de chasse. |
-| `/raid` | Rejoindre l'arène coopérative. |
-| `/raid quitter` | Quitter le raid. |
+| `/raid` | Ouvrir son groupe de raid (1 à 8 joueurs). |
+| `/raid inviter <pseudo>` | Inviter un joueur en ligne pour 60 secondes. |
+| `/raid accepter <pseudo>` | Accepter l’invitation d’un chef. |
+| `/raid lancer` | Le chef consomme le parchemin tenu et lance un raid privé de sa difficulté. |
+| `/raid rejoindre` | Rejoindre son raid déjà lancé. |
+| `/raid quitter` | Quitter le groupe et son arène ; `sortir` est accepté. |
+| `/tallisement` | Consulter la collection de talismans ; alias `/talismans`, `/talissement`. |
 
 ### Économie et équipement
 
@@ -58,9 +65,9 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | `/ecus balance [joueur]` | Consulter un solde d'Écus. |
 | `/gemmes balance [joueur]` | Consulter un solde de Gemmes Sombres ; alias `/gemmessombres`. |
 | `/cendres balance [joueur]` | Consulter un solde de Cendres. |
-| `/sell` | Ouvrir la vente des essences. |
+| `/sell` | Sur la pile cliquée : gauche vend 1 essence, droite vend cette pile uniquement. |
 | `/ah` | Ouvrir l'hôtel des ventes. |
-| `/ah vendre <prix>` | Mettre en vente l'objet tenu en main ; `sell` reste accepté. |
+| `/ah vendre <prix>` / `/ah sell <prix>` | Confirmer la vente de l’objet tenu ; frais non remboursables de 1 % à la publication, annonce chat optionnelle pour 5 % supplémentaires. |
 | `/ah mesannonces` | Consulter ses annonces ; `mylistings` reste accepté. |
 | `/enchant` | Ouvrir la table d'enchantement, payée en Écus. |
 | `/reforge` | Ouvrir la reforge, payée en Gemmes Sombres. |
@@ -76,10 +83,12 @@ L'autocompresseur s'achète chez le marchand puis s'active par clic droit : l'ob
 | --- | --- |
 | `/guide` | Conseiller le prochain palier d’amélioration le moins cher, selon les niveaux et le solde réel. |
 | `/zone <numéro>` | Rejoindre une zone déjà débloquée et configurée ; alias `/z`. |
-| `/boss` | Rejoindre l’entrée du boss de sa zone accessible la plus avancée. |
+| `/warp` | Zones débloquées : gauche vers l’entrée, droite devant leur boss ; raccourcis spawn, raids et boss public. |
+| `/boss` | Rejoindre l’arène publique du boss serveur, accessible à tous. |
+| `/boss quitter` | Revenir de l’arène publique. |
 | `/progression` | Afficher pendant dix secondes la progression dans les zones configurées. |
 | `/settings` | Régler les textes de dégâts, les effets doux, le son de compression et les messages de farm ; alias `/parametres`. |
-| `/antidrop <autoriser\|bloquer>` | Autoriser ou bloquer le jet d’objets et la vente AH des équipements protégés, jusqu’à la déconnexion. |
+| `/antidrop` | Basculer directement entre autoriser et bloquer le jet d’objets et la vente AH des équipements protégés, jusqu’à la déconnexion. |
 | `/ramassage <autoriser\|bloquer>` | Autoriser ou bloquer le ramassage au sol jusqu’à la déconnexion. Les récompenses directes du plugin restent livrées. |
 | `/lock` | Verrouiller ou déverrouiller une épée, une armure ClickHunter ou un compresseur tenu, contre le jet et la vente AH. |
 
@@ -128,7 +137,15 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/mobspawn remove <mob>` | Supprimer le point d'apparition le plus proche pour ce mob. | `cliker.mob.admin` |
 | `/mobspawn removeall <mob>` | Supprimer tous les points d'apparition de ce mob. | `cliker.mob.admin` |
 | `/mobspawn list` | Lister les points d'apparition. | `cliker.mob.admin` |
-| `/pnj spawn <mob>` / `/pnj remove` / `/pnj list` | Gérer les marchands. | `cliker.mob.admin` |
+| `/pnj spawn <mob>` / `/pnj remove` / `/pnj list` | Gérer les marchands de progression. | `cliker.mob.admin` |
+| `/pnj skin <mob> <pseudo\|villager>` | Modifier l’apparence des marchands d’une créature. | `cliker.mob.admin` |
+| `/pnjservice spawn <ah\|shop\|blackmarket>` | Placer un PNJ de service, orienté ouest. | `cliker.services.admin` |
+| `/pnjservice remove <ah\|shop\|blackmarket>` | Retirer un PNJ de service. | `cliker.services.admin` |
+| `/pnjservice skin <ah\|shop\|blackmarket> <pseudo\|villager>` | Choisir un skin de joueur ou revenir au villageois. | `cliker.services.admin` |
+| `/sacbloc set` / `/sacbloc remove` | Lier ou délier le bloc visé au sac personnel de chaque joueur. | `cliker.services.admin` |
+| `/warp set <zone> <entree\|boss>` | Sauvegarder sa position et son orientation comme destination. | `cliker.services.admin` |
+| `/batonspawn <mobs\|boss> <nom>` | Recevoir un bâton ; clic droit sur un bloc pour créer un spawn persistant au-dessus. | `cliker.services.admin` |
+| `/raid parchemin <zone> [joueur]` | Attribuer un parchemin de raid. | `cliker.services.admin` |
 | `/station spawn <enchant\|reforge\|rune>` / `/station remove` | Placer ou supprimer une station. | `cliker.mob.admin` |
 | `/holotop spawn <level\|kills\|ecus\|gemmes\|cendres\|bosstimer>` / `/holotop remove` | Gérer les hologrammes de classement et le minuteur des boss. | `cliker.mob.admin` |
 
@@ -228,3 +245,15 @@ Chaque terrain possède un marchand **ZNPCsPlus 2.0.0**, déplaçable par son pr
 Les portails BuyZone renvoient désormais **15 blocs au nord**, avec le regard vers le sud. En créatif, les portes, trappes et autres interactions sont autorisées. Les mobs clicker et raid sont silencieux ; un coup réussi déclenche un son de bloc musical, avec l’animation de dégâts qui monte d’un bloc.
 
 Détails et vérifications : [inventaires et boutique de construction](docs/AVANTPOSTES-INVENTAIRES.md).
+
+## Boutiques, ateliers et nouvelles activités
+
+Les PNJ AH, shop et blackmarket utilisent ZNPCsPlus 2.0.0. Les marchands apparaissent en villageois par défaut ; les skins de joueur restent configurables. Les boutons utilisent les icônes ItemsAdder déjà installées, avec remplacement vanilla. Les boutiques shop et blackmarket sont accessibles uniquement par leurs PNJ : aucune commande joueur ne les ouvre.
+
+Dans chaque atelier, le livre en haut à droite explique les effets, catégories, niveaux et probabilités réellement utilisés. Retour ramène à l’atelier et l’objet précédemment déposé est restitué normalement.
+
+Le boss public apparaît à chaque nouveau milliard de créatures effectivement éliminées ; compteur, cycle et état actif persistent après redémarrage. Les boss propres aux zones conservent leur fonctionnement et leurs destinations dans `/warp`. Les raids privés nécessitent un parchemin lié à une zone débloquée par chaque participant. Les deux activités utilisent des mondes distincts et partagent les récompenses de boss selon les dégâts effectifs, sans PvP.
+
+Les talismans de créature et de boss s’ajoutent à cinq familles générales : lame, richesse, sagesse, fortune et vitalité, chacune sur cinq tiers. Les bonus sont actifs dans les sacs, avec le meilleur tier par famille générale. Le tier 5 se débloque dans la **dernière zone actuelle (zone 19)**, conformément au choix du propriétaire.
+
+Configuration SFTP organisée, migration des anciens fichiers avec copies de secours et détails de chaque module : [guide des nouveaux systèmes](docs/SERVICES-RAIDS-TALISMANS.md).

@@ -37,19 +37,21 @@ public final class EnchantMenu implements Listener {
     private final long cost;
     private final List<Double> weights;
 
+    private final GearGuide guide;
     private final JavaPlugin plugin;
     private final EconomyService economy;
 
     public EnchantMenu(JavaPlugin plugin, EconomyService economy) {
         this.plugin = plugin;
         this.economy = economy;
-        java.io.File file = new java.io.File(plugin.getDataFolder(), "enchants.yml");
-        if (!file.exists()) plugin.saveResource("enchants.yml", false);
+        java.io.File file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "enchants.yml");
+        if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "enchants.yml");
         var settings = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
         cost = settings.getLong("cout", 100_000L);
         if (cost < 0) throw new IllegalArgumentException("Coût d'enchantement négatif");
         weights = settings.getDoubleList("probabilites");
         EnchantRoll.validate(weights);
+        guide = new GearGuide(plugin, "Enchantements", this::open, weights);
     }
 
     public void open(Player player) {
@@ -80,6 +82,7 @@ public final class EnchantMenu implements Listener {
             if (i == DEPOSIT_SLOT || i == BUTTON_SLOT) continue;
             inventory.setItem(i, filler);
         }
+        inventory.setItem(8, GearGuide.book());
         refreshButton(inventory);
     }
 
@@ -211,6 +214,17 @@ public final class EnchantMenu implements Listener {
         if (event.getClickedInventory() != event.getView().getTopInventory()) return;
 
         int slot = event.getSlot();
+        if (slot == 8) {
+            event.setCancelled(true);
+            if (event.getClick() == org.bukkit.event.inventory.ClickType.LEFT)
+                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                        plugin,
+                        () -> {
+                            if (player.getOpenInventory().getTopInventory() == holder.inventory
+                                    && !GearTransactions.busy(holder.inventory)) guide.open(player);
+                        });
+            return;
+        }
         if (slot == DEPOSIT_SLOT) {
             fr.cliker.clikerv2.runtime.ServerTasks.run(
                     plugin, () -> refreshButton(holder.inventory));

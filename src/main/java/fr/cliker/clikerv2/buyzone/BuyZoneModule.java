@@ -49,8 +49,8 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
         this.plugin = plugin;
         this.economy = economy;
         store = new BuyZoneStore(database);
-        file = new File(plugin.getDataFolder(), "buyzone.yml");
-        if (!file.exists()) plugin.saveResource("buyzone.yml", false);
+        file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "buyzone.yml");
+        if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "buyzone.yml");
         config = readConfig(file);
         migratePrices();
         ConfigurationSection catalog = config.getConfigurationSection("zones");
@@ -109,8 +109,8 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
         if (config.getInt("version-prix", 1) >= 2) return;
         try {
             var backup =
-                    plugin.getDataFolder()
-                            .toPath()
+                    file.toPath()
+                            .getParent()
                             .resolve("backups/buyzone-" + System.currentTimeMillis() + ".yml");
             java.nio.file.Files.createDirectories(backup.getParent());
             java.nio.file.Files.copy(file.toPath(), backup);

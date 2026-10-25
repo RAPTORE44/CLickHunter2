@@ -63,6 +63,12 @@ public final class RewardLedger implements Listener {
             s.setLong(5, starting[2]);
             s.executeUpdate();
         }
+        if (source.startsWith("raid-mob:"))
+            try (var counter =
+                    c.prepareStatement(
+                            "UPDATE server_counters SET value=value+1 WHERE id='mob_kills'")) {
+                counter.executeUpdate();
+            }
         for (var currency : CurrencyType.values()) {
             long amount = gains.amount(currency);
             if (amount == 0) continue;

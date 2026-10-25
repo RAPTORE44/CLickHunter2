@@ -150,10 +150,17 @@ public class ZnpcsNpc implements Listener {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void create(Location at) throws Exception {
+        at = at.clone();
+        at.setYaw(90);
+        at.setPitch(0);
         Object entry = call(registry, "getById", id);
         boolean created = entry == null;
         if (entry == null) {
-            Object type = call(call(api, "getNpcTypeRegistry"), "getByName", "player");
+            Object type =
+                    call(
+                            call(api, "getNpcTypeRegistry"),
+                            "getByName",
+                            config.getString("pnj.type", "player"));
             Object location =
                     Class.forName("lol.pyr.znpcsplus.util.NpcLocation")
                             .getConstructor(Location.class)
@@ -178,12 +185,14 @@ public class ZnpcsNpc implements Listener {
                                     Class.forName("lol.pyr.znpcsplus.util.LookType"),
                             "FIXED");
             property(npc, "look", fixed);
-            Object skin =
-                    call(
-                            call(api, "getSkinDescriptorFactory"),
-                            "createStaticDescriptor",
-                            config.getString("pnj.skin", "Nati144378"));
-            property(npc, "skin", skin);
+            if (config.getString("pnj.type", "player").equals("player")) {
+                Object skin =
+                        call(
+                                call(api, "getSkinDescriptorFactory"),
+                                "createStaticDescriptor",
+                                config.getString("pnj.skin", "Nati144378"));
+                property(npc, "skin", skin);
+            }
             Object hologram = call(npc, "getHologram");
             call(hologram, "clearLines");
             call(hologram, "addLine", config.getString("pnj.titre", "&aRécompenses journalières"));

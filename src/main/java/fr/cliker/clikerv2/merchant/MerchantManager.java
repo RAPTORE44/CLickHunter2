@@ -24,6 +24,7 @@ import java.util.UUID;
  * correspondant.
  */
 public final class MerchantManager implements Listener {
+    private final fr.cliker.clikerv2.features.Settings appearance;
     private final JavaPlugin plugin;
     private final MerchantStore store;
     private final MerchantMenu menu;
@@ -35,6 +36,7 @@ public final class MerchantManager implements Listener {
 
     public MerchantManager(JavaPlugin plugin, MerchantStore store, MerchantMenu menu) {
         this.plugin = plugin;
+        appearance = new fr.cliker.clikerv2.features.Settings(plugin, "pnj/marchands.yml");
         this.store = store;
         this.menu = menu;
         this.mobIdKey = new NamespacedKey(plugin, "cliker_merchant_mob");
@@ -75,9 +77,28 @@ public final class MerchantManager implements Listener {
                                             }
                                             for (MerchantStore.MerchantPoint point : points) {
                                                 npcMobId.put(point.id(), point.mobId());
-                                                npcLocation.put(point.id(), point.location());
+                                                var override =
+                                                        fr.cliker.clikerv2.config.YamlFiles
+                                                                .location(
+                                                                        appearance.yaml,
+                                                                        "positions." + point.id());
+                                                npcLocation.put(
+                                                        point.id(),
+                                                        override == null
+                                                                ? point.location()
+                                                                : override);
+                                                if (!appearance.yaml.contains(
+                                                        "positions." + point.id()))
+                                                    fr.cliker.clikerv2.config.YamlFiles.location(
+                                                            appearance.yaml,
+                                                            "positions." + point.id(),
+                                                            point.location());
+                                                appearance.yaml.set(
+                                                        "positions." + point.id() + ".creature",
+                                                        point.mobId());
                                                 spawn(point.id());
                                             }
+                                            appearance.save();
                                         }));
     }
 
@@ -85,6 +106,9 @@ public final class MerchantManager implements Listener {
         String id = UUID.randomUUID().toString();
         npcMobId.put(id, mobId);
         npcLocation.put(id, location.clone());
+        fr.cliker.clikerv2.config.YamlFiles.location(appearance.yaml, "positions." + id, location);
+        appearance.yaml.set("positions." + id + ".creature", mobId);
+        appearance.save();
         spawn(id);
         store.save(id, mobId, location);
     }
@@ -124,6 +148,22 @@ public final class MerchantManager implements Listener {
 
     private final Map<String, fr.cliker.clikerv2.npc.ZnpcsNpc> packetNpcs = new HashMap<>();
 
+    public void skin(String mobId, String skin) {
+        if (!skin.equalsIgnoreCase("villager") && !skin.matches("[A-Za-z0-9_]{1,16}"))
+            throw new IllegalArgumentException("Pseudo invalide");
+        appearance.yaml.set(
+                "marchands." + mobId + ".skin", skin.equalsIgnoreCase("villager") ? "" : skin);
+        appearance.yaml.set(
+                "marchands." + mobId + ".type",
+                skin.equalsIgnoreCase("villager") ? "villager" : "player");
+        appearance.save();
+        for (var id : new java.util.ArrayList<>(npcMobId.keySet()))
+            if (mobId.equals(npcMobId.get(id))) {
+                despawn(id);
+                spawn(id);
+            }
+    }
+
     public boolean available() {
         return plugin.getServer().getPluginManager().isPluginEnabled("ZNPCsPlus");
     }
@@ -136,9 +176,17 @@ public final class MerchantManager implements Listener {
         var config = new org.bukkit.configuration.file.YamlConfiguration();
         config.set("pnj.actif", true);
         fr.cliker.clikerv2.config.YamlFiles.location(config, "pnj.position", location);
-        config.set("pnj.skin", "Nati144378");
-        config.set("pnj.titre", "&aMarchand " + tier.label());
-        config.set("pnj.sous-titre", "&7Clic droit pour ouvrir");
+        config.set(
+                "pnj.type", appearance.yaml.getString("marchands." + mobId + ".type", "villager"));
+        config.set("pnj.skin", appearance.yaml.getString("marchands." + mobId + ".skin", ""));
+        config.set(
+                "pnj.titre",
+                appearance.yaml.getString(
+                        "marchands." + mobId + ".titre", "&aMarchand " + tier.label()));
+        config.set(
+                "pnj.sous-titre",
+                appearance.yaml.getString(
+                        "marchands." + mobId + ".sous-titre", "&7Clic droit pour ouvrir"));
         var npc =
                 new fr.cliker.clikerv2.npc.ZnpcsNpc(
                         plugin,

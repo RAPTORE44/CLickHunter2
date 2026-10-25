@@ -5,6 +5,20 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  warp:
+    description: Menu des destinations débloquées
+  sacbloc:
+    description: Raccourci de sac sur un bloc (administration)
+    permission: cliker.services.admin
+  batonspawn:
+    description: Bâton de placement des créatures (administration)
+    permission: cliker.services.admin
+  pnjservice:
+    description: Gestion des PNJ AH, shop et blackmarket
+    permission: cliker.services.admin
+  tallisement:
+    description: Collection des talismans et bonus débloqués
+    aliases: [talismans, talissement]
   gm:
     description: Changer le mode de jeu ou basculer entre survie et créatif
     usage: /gm [0|1|2|3] [joueur]
@@ -23,8 +37,8 @@ commands:
     aliases: [z]
     permission: cliker.navigation.use
   boss:
-    description: Rejoindre l’entrée du boss de sa zone la plus avancée
-    usage: /boss
+    description: Arène publique du boss serveur après un milliard de kills
+    usage: /boss [quitter]
     permission: cliker.navigation.use
   progression:
     description: Afficher la progression des zones pendant dix secondes
@@ -32,7 +46,7 @@ commands:
     permission: cliker.navigation.use
   antidrop:
     description: Protéger ou autoriser le jet d’objets jusqu’à la déconnexion
-    usage: /antidrop <autoriser|bloquer>
+    usage: /antidrop
     permission: cliker.comfort.use
   ramassage:
     description: Autoriser ou bloquer le ramassage au sol jusqu’à la déconnexion
@@ -49,8 +63,8 @@ commands:
     description: Contrats quotidiens de chasse et PNJ
     usage: /contrats [pnj spawn|remove]
   raid:
-    description: Rejoindre l'arène coopérative
-    usage: /raid [quitter]
+    description: Groupes de raids privés avec invitations et parchemin
+    usage: /raid [inviter <joueur>|accepter <chef>|lancer|rejoindre|quitter]
     permission: cliker.raid
   avantposte:
     description: Terrain personnel, inventaire séparé, boutique de blocs, extensions et visites
@@ -154,7 +168,7 @@ commands:
     permission: cliker.mob.admin
   pnj:
     description: Gestion des PNJ marchands (achat d’armures, d’épées et de compresseurs contre des Écus et des essences)
-    usage: /pnj <spawn <mob>|remove|list>
+    usage: /pnj <spawn <mob>|remove|list|skin <mob> <pseudo|villager>>
     permission: cliker.mob.admin
   charm:
     description: Donne une amulette passive de dégâts pour une créature donnée
@@ -165,8 +179,8 @@ commands:
     usage: /holotop <spawn <level|kills|ecus|gemmes|cendres|bosstimer>|remove>
     permission: cliker.mob.admin
   ah:
-    description: Hôtel des ventes (taxe de 1 % par vente)
-    usage: /ah [vendre <prix>|mesannonces]
+    description: Hôtel des ventes, frais non remboursables et annonces chat optionnelles
+    usage: /ah [vendre <prix>|sell <prix>|mesannonces]
     permission: cliker.ah.use
   tuto:
     description: Ouvre le livre-guide du serveur
@@ -193,6 +207,8 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.services.admin:
+    default: op
   cliker.gamemode.admin:
     default: op
   cliker.navigation.use:

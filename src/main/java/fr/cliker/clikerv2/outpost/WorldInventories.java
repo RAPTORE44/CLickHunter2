@@ -28,6 +28,8 @@ public final class WorldInventories implements Listener {
                     "avantpostes",
                     "is",
                     "spawn",
+                    "warp",
+                    "tallisement",
                     "menu",
                     "gm",
                     "gamemode",

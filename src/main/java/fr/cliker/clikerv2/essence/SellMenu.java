@@ -54,7 +54,7 @@ public final class SellMenu implements Listener {
         showPrices(player);
         player.sendMessage(
                 Component.text(
-                        "Clique une essence dans ton inventaire pour la vendre !",
+                        "Gauche : vendre 1 essence | Droite : vendre la pile cliquée.",
                         NamedTextColor.GRAY));
     }
 
@@ -109,7 +109,7 @@ public final class SellMenu implements Listener {
         lore.add(Component.text(""));
         lore.add(
                 Component.text(
-                                "Clique pour vendre cette pile !",
+                                "Gauche : vendre 1 | Droite : vendre cette pile",
                                 NamedTextColor.GREEN,
                                 TextDecoration.BOLD)
                         .decoration(TextDecoration.ITALIC, false));
@@ -118,15 +118,17 @@ public final class SellMenu implements Listener {
         return item;
     }
 
-    private void sell(Player player, int slot, ItemStack clicked, MobTier tier) {
+    private void sell(Player player, int slot, ItemStack clicked, MobTier tier, int amount) {
         EssenceRarity rarity = EssenceItem.rarityOf(clicked);
-        int amount = clicked.getAmount();
+        ItemStack sold = EssenceItem.create(tier, rarity, amount);
         long gain =
                 tier.sellPricePerUnit()
                         * rarity.valueMultiplier()
                         * PermissionBonus.multiplier(player, "vente")
                         * amount;
-        player.getInventory().setItem(slot, null);
+        var remaining = clicked.clone();
+        remaining.setAmount(clicked.getAmount() - amount);
+        player.getInventory().setItem(slot, remaining.getAmount() == 0 ? null : remaining);
         economy.change(player.getUniqueId(), player.getName(), CurrencyType.ECUS, gain)
                 .whenComplete(
                         (balance, error) ->
@@ -144,7 +146,7 @@ public final class SellMenu implements Listener {
                                                     delivery.give(
                                                             player.getUniqueId(),
                                                             player.getName(),
-                                                            clicked.clone());
+                                                            sold);
                                                 plugin.getLogger()
                                                         .log(
                                                                 java.util.logging.Level.SEVERE,
@@ -195,6 +197,8 @@ public final class SellMenu implements Listener {
     public void onClick(InventoryClickEvent event) {
         if (!(event.getView().getTopInventory().getHolder() instanceof Holder)) return;
         if (!(event.getWhoClicked() instanceof Player player)) return;
+        // Ce menu ne stocke aucun objet : interdire aussi les transferts d’objets non vendables.
+        event.setCancelled(true);
 
         if (event.getClickedInventory() != player.getInventory()) {
             event.setCancelled(true);
@@ -204,7 +208,11 @@ public final class SellMenu implements Listener {
         MobTier tier = EssenceItem.tierOf(clicked);
         if (tier == null) return;
         event.setCancelled(true);
-        sell(player, event.getSlot(), clicked, tier);
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
+        if (event.getClick() == org.bukkit.event.inventory.ClickType.LEFT)
+            sell(player, event.getSlot(), clicked, tier, 1);
+        else if (event.getClick() == org.bukkit.event.inventory.ClickType.RIGHT)
+            sell(player, event.getSlot(), clicked, tier, clicked.getAmount());
     }
 
     @EventHandler

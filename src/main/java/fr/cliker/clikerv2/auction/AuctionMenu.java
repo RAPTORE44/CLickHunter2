@@ -92,13 +92,18 @@ public final class AuctionMenu implements Listener {
                 "Confirmer la vente",
                 List.of(
                         "Prix : " + String.format(Locale.FRANCE, "%,d", price) + " Écus",
-                        "Taxe de 1 % : "
+                        "Frais immédiats non remboursables (1 %) : "
                                 + String.format(Locale.FRANCE, "%,d", AuctionListing.tax(price))
                                 + " Écus",
-                        "Tu recevras : "
-                                + String.format(
-                                        Locale.FRANCE, "%,d", price - AuctionListing.tax(price))
-                                + " Écus"));
+                        "Tu recevras : " + String.format(Locale.FRANCE, "%,d", price) + " Écus"));
+        holder.inventory.setItem(
+                22,
+                button(
+                        Material.PAPER,
+                        "Annonce chat : NON — supplément 5 % ("
+                                + AuctionStore.advertisingFee(price)
+                                + " Écus)",
+                        NamedTextColor.GOLD));
     }
 
     private void openBuyConfirm(Player player, AuctionListing listing) {
@@ -245,6 +250,22 @@ public final class AuctionMenu implements Listener {
                             openListings(player, true, page.page);
                         } else openBuyConfirm(player, listing);
                     } else if (holder instanceof Confirmation confirm) {
+                        if (slot == 22 && confirm.listing == null) {
+                            confirm.advertise = !confirm.advertise;
+                            confirm.inventory.setItem(
+                                    22,
+                                    button(
+                                            Material.PAPER,
+                                            "Annonce chat : "
+                                                    + (confirm.advertise ? "OUI" : "NON")
+                                                    + " — supplément 5 % ("
+                                                    + AuctionStore.advertisingFee(confirm.price)
+                                                    + " Écus)",
+                                            NamedTextColor.GOLD));
+                            fr.cliker.clikerv2.ui.MenuIcons.decorate(confirm.inventory);
+                            holder.pending = false;
+                            return;
+                        }
                         if (slot == CANCEL) {
                             openBrowse(player);
                             return;
@@ -285,7 +306,8 @@ public final class AuctionMenu implements Listener {
                         int remaining = hand.getAmount() - confirm.item.getAmount();
                         hand.setAmount(remaining);
                         player.getInventory().setItemInMainHand(remaining == 0 ? null : hand);
-                        manager.createListing(player, confirm.item, confirm.price);
+                        manager.createListing(
+                                player, confirm.item, confirm.price, confirm.advertise);
                         player.sendMessage(
                                 Component.text(
                                         "Publication de l’annonce en cours…",
@@ -331,6 +353,7 @@ public final class AuctionMenu implements Listener {
         final String listing;
         final ItemStack item;
         final long price;
+        boolean advertise;
 
         Confirmation(UUID owner, String listing, ItemStack item, long price) {
             super(owner);

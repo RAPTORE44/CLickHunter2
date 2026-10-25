@@ -1,0 +1,176 @@
+# Les valeurs absentes conservent la formule existante.
+hologrammes:
+  mob: '&6&l{nom} &c[{pv}/{pv-max}]'
+  boss: '&4&l⚔ Golem {nom} ⚔ &c[{pv}/{pv-max}]'
+creatures:
+  vache:
+    nom: 'Vache'
+    pv: 100
+    prix-vente: 50
+    degats-piece: 8
+    degats-amulette: 2.5
+    ecus: 10
+    gemmes-dixiemes: 1
+    xp: 1
+  cochon:
+    nom: 'Cochon'
+    pv: 250
+    prix-vente: 100
+    degats-piece: 20
+    degats-amulette: 5
+    ecus: 20
+    gemmes-dixiemes: 2
+    xp: 2
+  poulet:
+    nom: 'Poulet'
+    pv: 500
+    prix-vente: 150
+    degats-piece: 40
+    degats-amulette: 10
+    ecus: 30
+    gemmes-dixiemes: 3
+    xp: 3
+  mouton:
+    nom: 'Mouton'
+    pv: 1000
+    prix-vente: 200
+    degats-piece: 80
+    degats-amulette: 20
+    ecus: 40
+    gemmes-dixiemes: 4
+    xp: 4
+  lapin:
+    nom: 'Lapin'
+    pv: 2500
+    prix-vente: 250
+    degats-piece: 200
+    degats-amulette: 40
+    ecus: 50
+    gemmes-dixiemes: 5
+    xp: 5
+  ourse:
+    nom: 'Ourse'
+    pv: 5000
+    prix-vente: 300
+    degats-piece: 400
+    degats-amulette: 80
+    ecus: 60
+    gemmes-dixiemes: 6
+    xp: 6
+  ane:
+    nom: 'Âne'
+    pv: 10000
+    prix-vente: 350
+    degats-piece: 800
+    degats-amulette: 160
+    ecus: 70
+    gemmes-dixiemes: 7
+    xp: 7
+  pigman:
+    nom: 'Pigman'
+    pv: 25000
+    prix-vente: 400
+    degats-piece: 2000
+    degats-amulette: 320
+    ecus: 80
+    gemmes-dixiemes: 8
+    xp: 8
+  piglin:
+    nom: 'Piglin'
+    pv: 50000
+    prix-vente: 450
+    degats-piece: 4000
+    degats-amulette: 640
+    ecus: 90
+    gemmes-dixiemes: 9
+    xp: 9
+  piglin_brute:
+    nom: 'Piglin Brute'
+    pv: 100000
+    prix-vente: 500
+    degats-piece: 8000
+    degats-amulette: 1280
+    ecus: 100
+    gemmes-dixiemes: 10
+    xp: 10
+  hoglin:
+    nom: 'Hoglin'
+    pv: 250000
+    prix-vente: 550
+    degats-piece: 20000
+    degats-amulette: 2560
+    ecus: 110
+    gemmes-dixiemes: 11
+    xp: 11
+  magma_slime:
+    nom: 'Magma Slime'
+    pv: 500000
+    prix-vente: 600
+    degats-piece: 40000
+    degats-amulette: 5120
+    ecus: 120
+    gemmes-dixiemes: 12
+    xp: 12
+  blaze:
+    nom: 'Blaze'
+    pv: 1000000
+    prix-vente: 650
+    degats-piece: 80000
+    degats-amulette: 10240
+    ecus: 130
+    gemmes-dixiemes: 13
+    xp: 13
+  wither_skeleton:
+    nom: 'Wither Squelette'
+    pv: 2500000
+    prix-vente: 700
+    degats-piece: 200000
+    degats-amulette: 20480
+    ecus: 140
+    gemmes-dixiemes: 14
+    xp: 14
+  ghast:
+    nom: 'Ghast'
+    pv: 5000000
+    prix-vente: 750
+    degats-piece: 400000
+    degats-amulette: 40960
+    ecus: 150
+    gemmes-dixiemes: 15
+    xp: 15
+  vindicator:
+    nom: 'Vindicateur'
+    pv: 10000000
+    prix-vente: 800
+    degats-piece: 800000
+    degats-amulette: 81920
+    ecus: 160
+    gemmes-dixiemes: 16
+    xp: 16
+  ravager:
+    nom: 'Ravageur'
+    pv: 25000000
+    prix-vente: 850
+    degats-piece: 2e+06
+    degats-amulette: 163840
+    ecus: 170
+    gemmes-dixiemes: 17
+    xp: 17
+  wither:
+    nom: 'Wither'
+    pv: 50000000
+    prix-vente: 900
+    degats-piece: 4e+06
+    degats-amulette: 327680
+    ecus: 180
+    gemmes-dixiemes: 18
+    xp: 18
+  warden:
+    nom: 'Warden'
+    pv: 100000000
+    prix-vente: 950
+    degats-piece: 8e+06
+    degats-amulette: 655360
+    ecus: 190
+    gemmes-dixiemes: 19
+    xp: 19

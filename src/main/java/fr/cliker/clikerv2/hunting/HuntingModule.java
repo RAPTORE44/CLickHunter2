@@ -44,8 +44,8 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
         this.ledger = ledger;
         this.mobs = mobs;
         contracts = new ContractStore(ledger);
-        file = new File(plugin.getDataFolder(), "chasse.yml");
-        if (!file.exists()) plugin.saveResource("chasse.yml", false);
+        file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "chasse.yml");
+        if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "chasse.yml");
         config = fr.cliker.clikerv2.config.YamlFiles.load(file);
         zone = ZoneId.of(config.getString("fuseau", "Europe/Paris"));
         boolean added = false;

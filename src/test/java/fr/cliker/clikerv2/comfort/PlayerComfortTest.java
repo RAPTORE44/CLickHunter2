@@ -135,7 +135,7 @@ class PlayerComfortTest {
         command("lock");
         var held = player.getInventory().getItemInMainHand();
         assertTrue(PlayerComfort.locked(held));
-        command("antidrop", "autoriser");
+        command("antidrop");
         item.setItemStack(held);
         var drop = new PlayerDropItemEvent(player, item);
         comfort.drop(drop);
@@ -178,7 +178,7 @@ class PlayerComfortTest {
         var before = new PlayerDropItemEvent(player, item);
         comfort.drop(before);
         assertTrue(before.isCancelled());
-        command("antidrop", "autoriser");
+        command("antidrop");
         var allowed = new PlayerDropItemEvent(player, item);
         comfort.drop(allowed);
         assertFalse(allowed.isCancelled());
@@ -189,8 +189,24 @@ class PlayerComfortTest {
     }
 
     @Test
+    void antidropTogglesBackAndForthWithoutArgumentsAndCannotUnlockEquipment() {
+        command("antidrop");
+        var first = new PlayerDropItemEvent(player, item);
+        comfort.drop(first);
+        assertFalse(first.isCancelled());
+        command("antidrop");
+        var second = new PlayerDropItemEvent(player, item);
+        comfort.drop(second);
+        assertTrue(second.isCancelled());
+        command("antidrop");
+        var third = new PlayerDropItemEvent(player, item);
+        comfort.drop(third);
+        assertFalse(third.isCancelled());
+    }
+
+    @Test
     void pickupRequiresSeparateAuthorizationAndResetsOnQuit() {
-        command("antidrop", "autoriser");
+        command("antidrop");
         var before = new EntityPickupItemEvent(player, item, 0);
         comfort.pickup(before);
         assertTrue(before.isCancelled());
