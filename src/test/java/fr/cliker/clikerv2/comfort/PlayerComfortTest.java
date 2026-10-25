@@ -51,6 +51,35 @@ class PlayerComfortTest {
     }
 
     @Test
+    void hidePlayersSettingAppliesToCurrentAndNewPlayersAndCanBeReversed() {
+        var other = server.addPlayer();
+        command("settings");
+        var event =
+                new org.bukkit.event.inventory.InventoryClickEvent(
+                        player.getOpenInventory(),
+                        org.bukkit.event.inventory.InventoryType.SlotType.CONTAINER,
+                        6,
+                        org.bukkit.event.inventory.ClickType.LEFT,
+                        org.bukkit.event.inventory.InventoryAction.PICKUP_ALL);
+        comfort.click(event);
+        server.getScheduler().performOneTick();
+        assertFalse(player.canSee(other));
+        assertTrue(other.canSee(player));
+        var newcomer = server.addPlayer();
+        comfort.join(new PlayerJoinEvent(newcomer, net.kyori.adventure.text.Component.empty()));
+        assertFalse(player.canSee(newcomer));
+        comfort.click(
+                new org.bukkit.event.inventory.InventoryClickEvent(
+                        player.getOpenInventory(),
+                        org.bukkit.event.inventory.InventoryType.SlotType.CONTAINER,
+                        6,
+                        org.bukkit.event.inventory.ClickType.LEFT,
+                        org.bukkit.event.inventory.InventoryAction.PICKUP_ALL));
+        assertTrue(player.canSee(other));
+        assertTrue(player.canSee(newcomer));
+    }
+
+    @Test
     void creativeCanUseDecorativeTrapdoors() {
         player.setGameMode(org.bukkit.GameMode.CREATIVE);
         var block = player.getWorld().getBlockAt(0, 65, 0);

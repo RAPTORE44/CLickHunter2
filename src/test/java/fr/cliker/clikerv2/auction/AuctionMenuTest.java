@@ -57,6 +57,55 @@ class AuctionMenuTest {
         }
     }
 
+    @Test
+    void sortingUsesPricesDatesNamesAndActualRarityWithoutRenamedItemSpoofing() {
+        var a = new ItemStack(Material.STONE);
+        var meta = a.getItemMeta();
+        meta.displayName(net.kyori.adventure.text.Component.text("Mythique A"));
+        a.setItemMeta(meta);
+        var b = new ItemStack(Material.DIAMOND);
+        var x =
+                new AuctionListing(
+                        "x",
+                        seller.getUniqueId(),
+                        seller.getName(),
+                        AuctionManager.serialize(a),
+                        100,
+                        1);
+        var y =
+                new AuctionListing(
+                        "y",
+                        seller.getUniqueId(),
+                        seller.getName(),
+                        AuctionManager.serialize(b),
+                        10,
+                        2);
+        assertTrue(AuctionMenu.comparator(0).compare(x, y) > 0);
+        assertTrue(AuctionMenu.comparator(1).compare(x, y) < 0);
+        assertTrue(AuctionMenu.comparator(2).compare(x, y) > 0);
+        assertTrue(AuctionMenu.comparator(3).compare(x, y) < 0);
+        assertTrue(AuctionMenu.comparator(4).compare(x, y) > 0);
+        assertTrue(AuctionMenu.comparator(5).compare(x, y) < 0);
+        assertEquals(0, AuctionMenu.rarity(x), "A renamed item cannot fake a custom rarity");
+        meta = b.getItemMeta();
+        meta.getPersistentDataContainer()
+                .set(
+                        new NamespacedKey(plugin, "cliker_essence_rarity"),
+                        org.bukkit.persistence.PersistentDataType.STRING,
+                        "RARE");
+        b.setItemMeta(meta);
+        y =
+                new AuctionListing(
+                        "y",
+                        seller.getUniqueId(),
+                        seller.getName(),
+                        AuctionManager.serialize(b),
+                        10,
+                        2);
+        assertTrue(AuctionMenu.comparator(6).compare(x, y) > 0);
+        assertTrue(AuctionMenu.comparator(7).compare(x, y) < 0);
+    }
+
     private void listing(String id, Material item, long offset) {
         store.save(
                         new AuctionListing(
@@ -133,11 +182,11 @@ class AuctionMenuTest {
                 Material.ARROW, buyer.getOpenInventory().getTopInventory().getItem(53).getType());
         click(buyer, 53);
         assertEquals(
+                Material.PAPER, buyer.getOpenInventory().getTopInventory().getItem(0).getType());
+        click(buyer, 46);
+        assertEquals(
                 Material.NETHER_STAR,
                 buyer.getOpenInventory().getTopInventory().getItem(0).getType());
-        click(buyer, 45);
-        assertEquals(
-                Material.PAPER, buyer.getOpenInventory().getTopInventory().getItem(0).getType());
     }
 
     @Test

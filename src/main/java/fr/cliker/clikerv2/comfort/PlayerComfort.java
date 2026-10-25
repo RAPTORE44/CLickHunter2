@@ -58,7 +58,10 @@ public final class PlayerComfort implements Listener, CommandExecutor {
             var command = plugin.getCommand(name);
             if (command != null) command.setExecutor(this);
         }
-        for (var player : Bukkit.getOnlinePlayers()) initialize(player);
+        for (var player : Bukkit.getOnlinePlayers()) {
+            initialize(player);
+            for (var target : Bukkit.getOnlinePlayers()) visibility(player, target);
+        }
     }
 
     public static boolean locked(ItemStack item) {
@@ -90,6 +93,12 @@ public final class PlayerComfort implements Listener, CommandExecutor {
                 && equipment(item);
     }
 
+    private void visibility(Player viewer, Player target) {
+        if (viewer.equals(target)) return;
+        if (enabled(viewer, "hide_players", false)) viewer.hidePlayer(plugin, target);
+        else viewer.showPlayer(plugin, target);
+    }
+
     private void initialize(Player player) {
         if (plugin.getConfig().getBoolean("comfort.no-player-collisions", true)) {
             previousCollision.putIfAbsent(player.getUniqueId(), player.isCollidable());
@@ -101,6 +110,10 @@ public final class PlayerComfort implements Listener, CommandExecutor {
     @EventHandler
     public void join(PlayerJoinEvent event) {
         initialize(event.getPlayer());
+        for (var viewer : Bukkit.getOnlinePlayers()) {
+            visibility(viewer, event.getPlayer());
+            visibility(event.getPlayer(), viewer);
+        }
     }
 
     @EventHandler
@@ -265,17 +278,19 @@ public final class PlayerComfort implements Listener, CommandExecutor {
         "compression_sound",
         "soft_visuals",
         "common_drop_messages",
-        "farm_actionbar"
+        "farm_actionbar",
+        "hide_players"
     };
     private static final String[] LABELS = {
         "Textes de dégâts",
         "Son de compression",
         "Effets doux et dispersion réduite",
         "Messages des drops communs",
-        "Récapitulatif des gains en combat"
+        "Récapitulatif des gains en combat",
+        "Masquer les autres joueurs"
     };
-    private static final boolean[] DEFAULTS = {true, true, false, true, true};
-    private static final int[] OPTION_SLOTS = {11, 13, 15, 17, 4};
+    private static final boolean[] DEFAULTS = {true, true, false, true, true, false};
+    private static final int[] OPTION_SLOTS = {11, 13, 15, 17, 4, 6};
 
     private void open(Player player) {
         SettingsView view = new SettingsView(player.getUniqueId());
@@ -318,10 +333,12 @@ public final class PlayerComfort implements Listener, CommandExecutor {
                     case 15 -> 2;
                     case 17 -> 3;
                     case 4 -> 4;
+                    case 6 -> 5;
                     default -> -1;
                 };
         if (index < 0 || !pendingMenus.add(player.getUniqueId())) return;
         toggle(player, OPTIONS[index], DEFAULTS[index]);
+        if (index == 5) for (var target : Bukkit.getOnlinePlayers()) visibility(player, target);
         fr.cliker.clikerv2.runtime.ServerTasks.run(
                 plugin,
                 () -> {
@@ -340,6 +357,7 @@ public final class PlayerComfort implements Listener, CommandExecutor {
 
     public void shutdown() {
         for (var player : Bukkit.getOnlinePlayers()) {
+            for (var target : Bukkit.getOnlinePlayers()) player.showPlayer(plugin, target);
             Boolean collision = previousCollision.get(player.getUniqueId());
             if (collision != null) player.setCollidable(collision);
         }

@@ -21,3 +21,7 @@ Utiliser ZNPCsPlus 2.0.0 pour les PNJ Daily, Discord, Contrats et marchands. Cit
 ## Nouveau périmètre autorisé explicitement
 
 Le propriétaire demande désormais les raids privés avec invitations et parchemins, un boss public après un milliard de kills, les boutiques PNJ et la collection de talismans généraux. Ces systèmes font partie du périmètre autorisé ; l’ancienne attente sur les instances ne bloque pas ces demandes. Les 19 zones actuelles sont conservées ; le propriétaire a choisi de débloquer le tier 5 général dans la dernière zone actuelle (zone 19), plutôt que de le réserver à la future zone 40.
+
+## Préférences récentes de présentation
+
+Les PNJ regardent désormais le joueur le plus proche par défaut (ZNPCsPlus `CLOSEST_PLAYER`), ce qui remplace l’orientation fixe demandée auparavant. Le shop et le marché noir conservent tous leurs visuels vanilla, y compris les boutons ; les autres menus gardent les icônes ItemsAdder. Le marché noir utilise les cases 12, 14, 16 et 30, 32, 34, comptées à partir de 1.

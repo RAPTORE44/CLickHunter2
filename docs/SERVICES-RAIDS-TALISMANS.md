@@ -118,3 +118,11 @@ Le marchand de construction de l’avant-poste ouvre les catégories Tous les bl
 `/batonspawn` sans argument ouvre la sélection des créatures. Gauche donne le bâton de la créature, droite celui de son boss ; un clic sur un bloc définit ensuite le point d’apparition. La permission administrateur reste obligatoire.
 
 `/tallisement` présente uniquement les talismans débloqués. Le bouton Non débloqués ouvre les catégories Créatures, Boss et les cinq familles générales. Chaque catégorie masque les talismans déjà découverts et permet de revenir aux débloqués. Les noms des créatures non découvertes restent cachés.
+
+## Tri AH, catégories shop et visibilité
+
+La case 46 de l’AH accueille la page précédente ; la case 45 (indices à partir de zéro) ouvre huit tris : prix, ancienneté, nom et rareté dans les deux sens. Le tri s’applique à toutes les annonces avant pagination et reste actif au changement de page ou à l’actualisation. La rareté utilise les données des équipements/essences ClickHunter, sinon la rareté Minecraft ; renommer un objet ne change pas son rang.
+
+Le shop propose Épées, Armures, Potions, Lait et Tous. Tous les visuels de ses menus et du marché noir restent vanilla. Les offres du marché noir occupent les cases 12, 14, 16, 30, 32 et 34 (numérotation à partir de 1).
+
+Les PNJ utilisent par défaut `pnj.regard: CLOSEST_PLAYER` de ZNPCsPlus ; `FIXED` reste configurable. `/settings` propose Masquer les autres joueurs. Ce choix personnel persiste dans les données du joueur, s’applique aux nouveaux arrivants et ne masque ni les PNJ ni les mobs. Il agit sur l’affichage, sans désactiver les collisions de combat ou protéger des dégâts.

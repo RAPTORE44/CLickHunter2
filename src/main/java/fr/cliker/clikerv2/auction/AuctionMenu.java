@@ -19,10 +19,12 @@ public final class AuctionMenu implements Listener {
     private static final int PAGE_SIZE = 45, CONFIRM = 11, ITEM = 13, CANCEL = 15;
     private final JavaPlugin plugin;
     private final AuctionManager manager;
+    private final fr.cliker.clikerv2.features.Menus sortMenus;
 
     public AuctionMenu(JavaPlugin plugin, AuctionManager manager) {
         this.plugin = plugin;
         this.manager = manager;
+        sortMenus = new fr.cliker.clikerv2.features.Menus(plugin);
     }
 
     public void openBrowse(Player player) {
@@ -33,9 +35,79 @@ public final class AuctionMenu implements Listener {
         openListings(player, true, 0);
     }
 
+    private static final String[] SORTS = {
+        "Plus récentes",
+        "Plus anciennes",
+        "Moins cher",
+        "Plus cher",
+        "A à Z",
+        "Z à A",
+        "Rareté décroissante",
+        "Rareté croissante"
+    };
+
+    static String itemName(AuctionListing listing) {
+        var item = AuctionManager.deserialize(listing.itemYaml());
+        if (item == null) return "";
+        return item.getItemMeta().hasDisplayName()
+                ? net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                        .serialize(item.getItemMeta().displayName())
+                : item.getType().name();
+    }
+
+    static int rarity(AuctionListing listing) {
+        var item = AuctionManager.deserialize(listing.itemYaml());
+        if (item == null) return 0;
+        var data = item.getItemMeta().getPersistentDataContainer();
+        for (var key : data.getKeys()) {
+            if (Set.of("cliker_tier_sword", "cliker_tier_armor").contains(key.getKey())) {
+                String value = data.get(key, org.bukkit.persistence.PersistentDataType.STRING);
+                var tier = fr.cliker.clikerv2.MobTier.parse(value);
+                if (tier != null) return Math.min(5, tier.ordinal() / 3);
+            }
+            if (key.getKey().equals("cliker_essence_rarity")) {
+                String value = data.get(key, org.bukkit.persistence.PersistentDataType.STRING);
+                if (value != null)
+                    try {
+                        return fr.cliker.clikerv2.essence.EssenceRarity.valueOf(value).ordinal();
+                    } catch (IllegalArgumentException ignored) {
+                    }
+            }
+        }
+        return item.getItemMeta().hasRarity() ? item.getItemMeta().getRarity().ordinal() : 0;
+    }
+
+    static Comparator<AuctionListing> comparator(int sort) {
+        Map<String, String> names = new HashMap<>();
+        Map<String, Integer> rarities = new HashMap<>();
+        java.util.function.Function<AuctionListing, String> name =
+                l -> names.computeIfAbsent(l.id(), key -> itemName(l));
+        java.util.function.ToIntFunction<AuctionListing> rank =
+                l -> rarities.computeIfAbsent(l.id(), key -> rarity(l));
+        Comparator<AuctionListing> comparator =
+                switch (sort) {
+                    case 1 -> Comparator.comparingLong(AuctionListing::listedAt);
+                    case 2 -> Comparator.comparingLong(AuctionListing::price);
+                    case 3 -> Comparator.comparingLong(AuctionListing::price).reversed();
+                    case 4 -> Comparator.comparing(name, String.CASE_INSENSITIVE_ORDER);
+                    case 5 -> Comparator.comparing(name, String.CASE_INSENSITIVE_ORDER).reversed();
+                    case 6 -> Comparator.comparingInt(rank).reversed();
+                    case 7 -> Comparator.comparingInt(rank);
+                    default -> Comparator.comparingLong(AuctionListing::listedAt).reversed();
+                };
+        return comparator.thenComparing(AuctionListing::id);
+    }
+
     private void openListings(Player player, boolean own, int requested) {
+        openListings(player, own, requested, 0);
+    }
+
+    private void openListings(Player player, boolean own, int requested, int sort) {
         if (!player.hasPermission("cliker.ah.use")) return;
-        var listings = own ? manager.listingsOf(player.getUniqueId()) : manager.activeListings();
+        var listings =
+                new ArrayList<>(
+                        own ? manager.listingsOf(player.getUniqueId()) : manager.activeListings());
+        listings.sort(comparator(sort));
         int page = Math.max(0, Math.min(requested, Math.max(0, (listings.size() - 1) / PAGE_SIZE)));
         var visible =
                 List.copyOf(
@@ -55,6 +127,7 @@ public final class AuctionMenu implements Listener {
                         Component.text(
                                 (own ? "Mes annonces" : "Hôtel des ventes") + " • " + (page + 1),
                                 NamedTextColor.GREEN));
+        holder.sort = sort;
         holder.inventory = inventory;
         for (int i = 0; i < visible.size(); i++)
             inventory.setItem(i, listingItem(visible.get(i), own));
@@ -62,7 +135,7 @@ public final class AuctionMenu implements Listener {
             inventory.setItem(
                     i, button(Material.BLACK_STAINED_GLASS_PANE, " ", NamedTextColor.GRAY));
         if (page > 0)
-            inventory.setItem(45, button(Material.ARROW, "Page précédente", NamedTextColor.GREEN));
+            inventory.setItem(46, button(Material.ARROW, "Page précédente", NamedTextColor.GREEN));
         if ((page + 1) * PAGE_SIZE < listings.size())
             inventory.setItem(53, button(Material.ARROW, "Page suivante", NamedTextColor.GREEN));
         inventory.setItem(
@@ -77,10 +150,35 @@ public final class AuctionMenu implements Listener {
                         Material.PAPER,
                         "Page " + (page + 1) + " / " + Math.max(1, (listings.size() + 44) / 45),
                         NamedTextColor.WHITE));
+        inventory.setItem(
+                45,
+                button(
+                        Material.HOPPER,
+                        "Trier : " + SORTS[sort] + " — clique pour changer",
+                        NamedTextColor.AQUA));
         inventory.setItem(50, button(Material.SUNFLOWER, "Actualiser", NamedTextColor.GREEN));
         if (visible.isEmpty())
             inventory.setItem(22, button(Material.PAPER, "Aucune annonce", NamedTextColor.GRAY));
         player.openInventory(inventory);
+    }
+
+    private void openSort(Player player, boolean own, int current) {
+        var view = sortMenus.create(player, 27, "AH — Choisir le tri");
+        for (int i = 0; i < SORTS.length; i++) {
+            int sort = i;
+            view.put(
+                    9 + i,
+                    button(
+                            Material.PAPER,
+                            SORTS[i],
+                            i == current ? NamedTextColor.GREEN : NamedTextColor.WHITE),
+                    (who, right) -> openListings(who, own, 0, sort));
+        }
+        view.put(
+                22,
+                button(Material.ARROW, "Retour", NamedTextColor.GREEN),
+                (who, right) -> openListings(who, own, 0, current));
+        view.show(player);
     }
 
     public void openSellConfirm(Player player, ItemStack item, long price) {
@@ -213,20 +311,24 @@ public final class AuctionMenu implements Listener {
                     }
                     if (holder instanceof Listings page) {
                         holder.pending = false;
-                        if (slot == 45 && page.page > 0) {
-                            openListings(player, page.own, page.page - 1);
+                        if (slot == 45) {
+                            openSort(player, page.own, page.sort);
+                            return;
+                        }
+                        if (slot == 46 && page.page > 0) {
+                            openListings(player, page.own, page.page - 1, page.sort);
                             return;
                         }
                         if (slot == 53) {
-                            openListings(player, page.own, page.page + 1);
+                            openListings(player, page.own, page.page + 1, page.sort);
                             return;
                         }
                         if (slot == 49) {
-                            openListings(player, !page.own, 0);
+                            openListings(player, !page.own, 0, page.sort);
                             return;
                         }
                         if (slot == 50) {
-                            openListings(player, page.own, page.page);
+                            openListings(player, page.own, page.page, page.sort);
                             return;
                         }
                         if (slot < 0 || slot >= page.ids.size()) return;
@@ -237,7 +339,7 @@ public final class AuctionMenu implements Listener {
                                     Component.text(
                                             "Cette annonce n’est plus disponible.",
                                             NamedTextColor.YELLOW));
-                            openListings(player, page.own, page.page);
+                            openListings(player, page.own, page.page, page.sort);
                             return;
                         }
                         if (page.own) {
@@ -337,6 +439,7 @@ public final class AuctionMenu implements Listener {
     }
 
     private static final class Listings extends View {
+        int sort;
         final boolean own;
         final int page;
         final List<String> ids;

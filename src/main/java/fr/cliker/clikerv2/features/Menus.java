@@ -39,6 +39,7 @@ public final class Menus implements Listener {
         final Inventory inventory;
         public boolean pending;
         public boolean merchandise;
+        public boolean vanilla;
 
         View(UUID owner, int size, String title) {
             this.owner = owner;

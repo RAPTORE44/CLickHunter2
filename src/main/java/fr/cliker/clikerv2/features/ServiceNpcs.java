@@ -225,6 +225,36 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
     }
 
     public void open(Player p, String id, int page) {
+        if (id.equals("shop")) {
+            categories(p);
+            return;
+        }
+        open(p, id, page, "Tous");
+    }
+
+    private void categories(Player p) {
+        if (stopped || fr.cliker.clikerv2.outpost.WorldInventories.isolated(p)) return;
+        var view = menus.create(p, 27, "Shop — Catégories");
+        view.vanilla = true;
+        String[] names = {"Épées", "Armures", "Potions", "Lait", "Tous"};
+        Material[] icons = {
+            Material.DIAMOND_SWORD,
+            Material.DIAMOND_CHESTPLATE,
+            Material.POTION,
+            Material.MILK_BUCKET,
+            Material.CHEST
+        };
+        for (int i = 0; i < names.length; i++) {
+            String category = names[i];
+            view.put(
+                    11 + i,
+                    Menus.item(icons[i], category),
+                    (who, r) -> open(who, "shop", 0, category));
+        }
+        view.show(p);
+    }
+
+    private void open(Player p, String id, int page, String category) {
         if (stopped
                 || fr.cliker.clikerv2.outpost.WorldInventories.isolated(p)
                 || !browsing.add(p.getUniqueId())) return;
@@ -259,12 +289,29 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
                                                         "Boutique temporairement indisponible.");
                                                 return;
                                             }
-                                            render(p, id, page, stocks);
+                                            render(p, id, page, stocks, category);
                                         }));
     }
 
-    private void render(Player p, String id, int requested, Map<String, Integer> stocks) {
-        var offers = offers(id);
+    private void render(
+            Player p, String id, int requested, Map<String, Integer> stocks, String category) {
+        var offers =
+                offers(id).stream()
+                        .filter(
+                                o ->
+                                        switch (category) {
+                                            case "Épées" ->
+                                                    o.item.getType().name().endsWith("_SWORD");
+                                            case "Armures" ->
+                                                    o.item.getType()
+                                                            .name()
+                                                            .matches(
+                                                                    ".*_(HELMET|CHESTPLATE|LEGGINGS|BOOTS)");
+                                            case "Potions" -> o.item.getType() == Material.POTION;
+                                            case "Lait" -> o.item.getType() == Material.MILK_BUCKET;
+                                            default -> true;
+                                        })
+                        .toList();
         int page = Math.max(0, Math.min(requested, (offers.size() - 1) / 45));
         var view =
                 menus.create(
@@ -274,9 +321,10 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
                                 ? "Marché noir — stock limité"
                                 : "Boutique — " + (page + 1));
         view.merchandise = true;
+        view.vanilla = true;
         for (int j = 0; j < 45 && page * 45 + j < offers.size(); j++) {
             Offer o = offers.get(page * 45 + j);
-            int slot = id.equals("blackmarket") ? new int[] {20, 21, 22, 29, 30, 31}[j] : j;
+            int slot = id.equals("blackmarket") ? new int[] {11, 13, 15, 29, 31, 33}[j] : j;
             boolean unlocked = o.zone == null || zones != null && zones.canTravel(p, o.zone.id());
             int left = o.cap == 0 ? -1 : Math.max(0, o.cap - stocks.getOrDefault(o.key, 0));
             var item =
@@ -371,7 +419,9 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
                                                                 if (player.getOpenInventory()
                                                                                 .getTopInventory()
                                                                         == view.getInventory())
-                                                                    open(player, id, page);
+                                                                    open(
+                                                                            player, id, page,
+                                                                            category);
                                                             }
                                                         }));
                     });
@@ -380,14 +430,16 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
             view.put(
                     45,
                     Menus.item(Material.ARROW, "Page précédente"),
-                    (player, r) -> open(player, id, page - 1));
+                    (player, r) -> open(player, id, page - 1, category));
             view.put(
                     53,
                     Menus.item(Material.ARROW, "Page suivante"),
-                    (player, r) -> open(player, id, page + 1));
+                    (player, r) -> open(player, id, page + 1, category));
         }
         view.put(
                 49, Menus.item(Material.BARRIER, "Fermer"), (player, r) -> player.closeInventory());
+        if (id.equals("shop"))
+            view.put(48, Menus.item(Material.BOOK, "Catégories"), (who, r) -> categories(who));
         view.show(p);
     }
 

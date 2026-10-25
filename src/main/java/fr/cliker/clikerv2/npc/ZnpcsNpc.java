@@ -183,7 +183,7 @@ public class ZnpcsNpc implements Listener {
                     Enum.valueOf(
                             (Class<? extends Enum>)
                                     Class.forName("lol.pyr.znpcsplus.util.LookType"),
-                            "FIXED");
+                            config.getString("pnj.regard", "CLOSEST_PLAYER"));
             property(npc, "look", fixed);
             if (config.getString("pnj.type", "player").equals("player")) {
                 Object skin =

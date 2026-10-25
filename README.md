@@ -265,3 +265,6 @@ Les créatures placées sont persistantes lors du déchargement des chunks. Une 
 Les marchands affichent les vrais objets proposés (épées, armures, compresseurs et ressources). Les boutons de compression montrent la ressource obtenue. Les icônes ItemsAdder de navigation restent actives.
 
 Le marchand de blocs propose des catégories avec pagination. `/tallisement` affiche les découvertes ; le bouton « Non débloqués » ouvre les catégories créatures, boss et cinq familles générales, en préservant le mystère des créatures.
+
+Dans `/ah`, le bouton en bas à gauche ouvre les tris par prix, date, nom et rareté, dans les deux sens ; la page précédente est désormais sur la deuxième case. Le PNJ shop propose Épées, Armures, Potions, Lait et Tous. Shop et marché noir conservent leurs visuels vanilla sur tous les boutons. Le marché noir place ses six offres aux cases 12, 14, 16, 30, 32 et 34 (comptage à partir de 1, avec une ligne vide entre les rangées).
+Les PNJ suivent par défaut le joueur le plus proche ; `pnj.regard: FIXED` conserve une orientation fixe si souhaité. `/settings` permet de masquer les autres joueurs, préférence conservée après reconnexion.
