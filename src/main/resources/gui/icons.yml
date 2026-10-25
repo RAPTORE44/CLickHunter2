@@ -1,8 +1,6 @@
-# Nécessite ClickHunter-icones.zip côté client (Minecraft 1.21.4).
-# Les matériaux, noms, lore et données des boutons restent inchangés.
+# Icônes déjà installées dans ItemsAdder, namespace icons.
+# Les boutons empruntent le matériau et le modèle ItemsAdder ; leurs données métier restent conservées.
 active: true
-# true : icônes vanilla tant que le serveur ne confirme pas le chargement du pack.
-exiger-pack-charge: true
 # Personnalisation par classe de menu et numéro de case (à partir de zéro).
 menus: {}
 # Première expression présente dans le nom du bouton prioritaire.
@@ -42,8 +40,8 @@ mots:
   vendre: boutique_etiquette
   achat: boutique_chariot
   annonces: boutique_vitrine
-  enchere: boutique_enchere
-  hotel: boutique_enchere
+  enchere: boutique_vitrine
+  hotel: boutique_vitrine
   sac: boutique_sac_shopping
   contrat: progression_quete
   bestiaire: combat_cible

@@ -9,3 +9,7 @@ Conserver cette consigne pour les prochaines interventions. Documenter aussi les
 ## Périmètre confirmé du classeur d’idées
 
 Le propriétaire a confirmé de conserver les demandes antérieures en cas de contradiction : dégâts qui montent d’un bloc puis disparaissent, piles de 64 et compression 64 → 1, autocompresseur consommé à l’activation. Appliquer les autres lignes jaunes uniquement aux modules existants. Laisser en attente les fondations absentes (pets, Ordres, instances de boss, réseau multi-serveurs). Les lignes non jaunes restent des propositions à valider explicitement. Suivre les livraisons réelles dans `docs/SELECTION-JAUNE.md` sans présenter les 141 idées comme terminées.
+
+## Icônes des menus
+
+Les textures et items `icons:*` fournis sont déjà installés dans ItemsAdder sur le serveur. Utiliser directement ces items via l’API ItemsAdder, sans demander un nouveau pack ni générer des modèles `clickhunter:*`. La référence est la liste des items réellement déclarés dans les YAML du ZIP, et non toutes les textures présentes.

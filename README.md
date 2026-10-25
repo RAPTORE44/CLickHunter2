@@ -208,4 +208,4 @@ Sélection du classeur : [suivi des 141 lignes jaunes, livraisons et travail res
 
 Audit de suivi : [corrections de reconnexion, sauvegarde, compresseur et achats](docs/AUDIT-SUIVI-2026-10-25.md). Les boutons des marchands et de transformation répondent aux clics gauche/droit ; les touches de déplacement d’objets ne déclenchent pas de dépense. Le compresseur s’active dans l’air ou sur un bloc, selon les protections du serveur.
 
-Icônes des boutons : [installation du pack fourni et personnalisation de tous les menus](docs/ICONES-MENUS.md). Aucune commande supplémentaire : les 46 commandes et leurs permissions restent inchangées.
+Icônes des boutons : [utilisation des items `icons:*` déjà installés dans ItemsAdder](docs/ICONES-MENUS.md). Aucun pack supplémentaire à installer. Aucune commande supplémentaire : les 46 commandes et leurs permissions restent inchangées.

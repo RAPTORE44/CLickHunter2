@@ -23,11 +23,28 @@ public final class MenuIcons implements Listener {
     private final Set<String> catalog;
     private final Map<String, String> words = new LinkedHashMap<>();
     private final Map<UUID, Inventory> views = new HashMap<>();
-    private final Set<UUID> loaded = new HashSet<>();
+
+    @FunctionalInterface
+    interface Resolver {
+        ItemStack resolve(String id);
+    }
+
+    private final Resolver resolver;
+    private final Map<String, ItemStack> templates = new HashMap<>();
+    private final Map<String, Long> retryAfter = new HashMap<>();
+    private final Set<String> warned = new HashSet<>();
+    private java.lang.reflect.Method getInstance, getItemStack;
+    private final NamespacedKey originalMaterial;
     private BukkitTask task;
 
     public MenuIcons(JavaPlugin plugin) {
+        this(plugin, null);
+    }
+
+    MenuIcons(JavaPlugin plugin, Resolver resolver) {
         this.plugin = plugin;
+        this.resolver = resolver == null ? this::itemsAdder : resolver;
+        originalMaterial = new NamespacedKey(plugin, "menu_original_material");
         var file = new java.io.File(plugin.getDataFolder(), "gui/icons.yml");
         if (!file.exists()) plugin.saveResource("gui/icons.yml", false);
         config = fr.cliker.clikerv2.config.YamlFiles.load(file);
@@ -38,6 +55,20 @@ public final class MenuIcons implements Listener {
         } catch (java.io.IOException error) {
             throw new IllegalStateException("Catalogue des icônes illisible", error);
         }
+        boolean migrated = config.contains("exiger-pack-charge");
+        config.set("exiger-pack-charge", null);
+        for (String word : java.util.List.of("enchere", "hotel")) {
+            if ("boutique_enchere".equals(config.getString("mots." + word))) {
+                config.set("mots." + word, "boutique_vitrine");
+                migrated = true;
+            }
+        }
+        if (migrated)
+            try {
+                config.save(file);
+            } catch (java.io.IOException error) {
+                throw new IllegalStateException("Migration des icônes impossible", error);
+            }
         var section = config.getConfigurationSection("mots");
         if (section != null)
             for (String word : section.getKeys(false)) {
@@ -51,6 +82,21 @@ public final class MenuIcons implements Listener {
     public void start() {
         if (config.getBoolean("active", true))
             plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        try {
+            var type =
+                    Class.forName("dev.lone.itemsadder.api.Events.ItemsAdderLoadDataEvent")
+                            .asSubclass(Event.class);
+            plugin.getServer()
+                    .getPluginManager()
+                    .registerEvent(
+                            type,
+                            this,
+                            EventPriority.MONITOR,
+                            (listener, event) -> invalidate(),
+                            plugin);
+        } catch (ClassNotFoundException ignored) {
+            // ItemsAdder optionnel : les boutons vanilla restent disponibles.
+        }
     }
 
     private static String normalize(String text) {
@@ -84,12 +130,20 @@ public final class MenuIcons implements Listener {
             if (item == null || !item.hasItemMeta()) continue;
             var meta = item.getItemMeta();
             if (!meta.hasDisplayName()) continue;
+            Material material = item.getType();
+            String original =
+                    meta.getPersistentDataContainer()
+                            .get(
+                                    originalMaterial,
+                                    org.bukkit.persistence.PersistentDataType.STRING);
+            if (original != null && Material.matchMaterial(original) != null)
+                material = Material.matchMaterial(original);
             String name =
                     normalize(
                                     PlainTextComponentSerializer.plainText()
                                             .serialize(meta.displayName()))
                             .strip();
-            if (name.isEmpty() || item.getType().name().endsWith("_GLASS_PANE")) continue;
+            if (name.isEmpty() || material.name().endsWith("_GLASS_PANE")) continue;
             String menu =
                     inventory.getHolder().getClass().getName().split("\\.")[4].split("\\$")[0];
             String id = config.getString("menus." + menu + "." + slot);
@@ -99,7 +153,7 @@ public final class MenuIcons implements Listener {
                         id = word.getValue();
                         break;
                     }
-            if (id == null) id = fallback(item.getType());
+            if (id == null) id = fallback(material);
             if (meta.hasLore()) {
                 String lore =
                         normalize(
@@ -110,17 +164,29 @@ public final class MenuIcons implements Listener {
                 else if (lore.contains("etat : deja recupere") || lore.contains("etat : recupere"))
                     id = "etats_coche";
             }
-            if ((item.getType() == Material.GRAY_DYE
-                            || (item.getType() == Material.BARRIER
-                                    && !id.equals("navigation_fermer"))
+            if ((material == Material.GRAY_DYE
+                            || (material == Material.BARRIER && !id.equals("navigation_fermer"))
                             || name.contains("non decouvert"))
                     && catalog.contains(id + "_grise")) id += "_grise";
             if (!catalog.contains(id)) continue;
-            NamespacedKey model = new NamespacedKey("clickhunter", id);
-            if (model.equals(meta.getItemModel())) continue;
-            meta.setItemModel(model);
-            item.setItemMeta(meta);
-            inventory.setItem(slot, item);
+            ItemStack icon = template(id);
+            if (icon == null) continue;
+            var decorated = item.withType(icon.getType());
+            var target = decorated.getItemMeta();
+            target.getPersistentDataContainer()
+                    .set(
+                            originalMaterial,
+                            org.bukkit.persistence.PersistentDataType.STRING,
+                            material.name());
+            var appearance = icon.getItemMeta();
+            target.setCustomModelData(
+                    appearance.hasCustomModelData() ? appearance.getCustomModelData() : null);
+            Object modelValue = appearance.serialize().get("item-model");
+            if (modelValue != null)
+                target.setItemModel(NamespacedKey.fromString(modelValue.toString()));
+            else if (target.serialize().containsKey("item-model")) target.setItemModel(null);
+            decorated.setItemMeta(target);
+            if (!decorated.equals(item)) inventory.setItem(slot, decorated);
         }
     }
 
@@ -152,8 +218,7 @@ public final class MenuIcons implements Listener {
         var inventory = event.getInventory();
         if (!java.util.stream.IntStream.range(0, inventory.getSize())
                 .anyMatch(slot -> eligible(inventory, slot))) return;
-        if (loaded.contains(player.getUniqueId()) || !config.getBoolean("exiger-pack-charge", true))
-            render(inventory);
+        render(inventory);
         views.put(player.getUniqueId(), inventory);
         if (task == null)
             task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::refresh, 5, 5);
@@ -167,9 +232,7 @@ public final class MenuIcons implements Listener {
                             if (player == null
                                     || player.getOpenInventory().getTopInventory()
                                             != entry.getValue()) return true;
-                            if (loaded.contains(player.getUniqueId())
-                                    || !config.getBoolean("exiger-pack-charge", true))
-                                render(entry.getValue());
+                            render(entry.getValue());
                             return false;
                         });
         if (views.isEmpty() && task != null) {
@@ -186,21 +249,67 @@ public final class MenuIcons implements Listener {
     @EventHandler
     public void quit(PlayerQuitEvent event) {
         views.remove(event.getPlayer().getUniqueId());
-        loaded.remove(event.getPlayer().getUniqueId());
+    }
+
+    private ItemStack template(String id) {
+        if (templates.containsKey(id)) return templates.get(id);
+        long now = System.nanoTime();
+        if (now < retryAfter.getOrDefault(id, Long.MIN_VALUE)) return null;
+        ItemStack result = resolver.resolve("icons:" + id);
+        if (result != null) {
+            templates.put(id, result.clone());
+            return templates.get(id);
+        }
+        retryAfter.put(id, now + 10_000_000_000L);
+        return null;
+    }
+
+    private ItemStack itemsAdder(String id) {
+        if (!plugin.getServer().getPluginManager().isPluginEnabled("ItemsAdder")) return null;
+        try {
+            if (getInstance == null) {
+                Class<?> api = Class.forName("dev.lone.itemsadder.api.CustomStack");
+                getInstance = api.getMethod("getInstance", String.class);
+                getItemStack = api.getMethod("getItemStack");
+            }
+            Object custom = getInstance.invoke(null, id);
+            if (custom != null) return ((ItemStack) getItemStack.invoke(custom)).clone();
+            if (warned.add(id))
+                plugin.getLogger()
+                        .warning(
+                                "Icône ItemsAdder absente : " + id + " ; icône vanilla conservée.");
+        } catch (ReflectiveOperationException | LinkageError error) {
+            if (warned.add("api"))
+                plugin.getLogger()
+                        .log(
+                                java.util.logging.Level.WARNING,
+                                "API ItemsAdder indisponible : icônes vanilla conservées.",
+                                error);
+        }
+        return null;
+    }
+
+    public void invalidate() {
+        templates.clear();
+        retryAfter.clear();
+        warned.clear();
     }
 
     @EventHandler
-    public void pack(org.bukkit.event.player.PlayerResourcePackStatusEvent event) {
-        if (event.getStatus()
-                == org.bukkit.event.player.PlayerResourcePackStatusEvent.Status.SUCCESSFULLY_LOADED)
-            loaded.add(event.getPlayer().getUniqueId());
+    public void enabled(org.bukkit.event.server.PluginEnableEvent event) {
+        if (event.getPlugin().getName().equals("ItemsAdder")) invalidate();
+    }
+
+    @EventHandler
+    public void disabled(org.bukkit.event.server.PluginDisableEvent event) {
+        if (event.getPlugin().getName().equals("ItemsAdder")) invalidate();
     }
 
     public void shutdown() {
         if (task != null) task.cancel();
         task = null;
         views.clear();
-        loaded.clear();
+        invalidate();
         HandlerList.unregisterAll(this);
     }
 }

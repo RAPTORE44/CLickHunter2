@@ -1,25 +1,22 @@
 {
-  "icons": 474,
-  "resource_pack_format": 46,
-  "target": "Paper/Minecraft 1.21.4, Java 21",
+  "backend": "ItemsAdder CustomStack.getInstance, namespace icons",
+  "registered_ids_from_supplied_yaml": 288,
+  "standalone_pack_required": false,
   "tests": {
     "tests": 181,
     "failures": 0,
     "errors": 0,
-    "skipped": 2
+    "skipped": 0
   },
-  "passed": 179,
-  "skipped_reason": "MockBukkit 4.36 ne fournit pas ItemMeta.getItemModel ; deux tests couverts partiellement par les essais natifs.",
-  "native_checks": [
-    "modèles natifs présents dans le menu principal",
-    "bouton retour : matériau conservé, modèle personnalisé",
-    "bouton dynamique redécoré après clic",
-    "objets du coffre personnel exclus",
-    "Sans pack chargé, le menu reste en objets vanilla."
+  "checks": [
+    "identifiants ItemsAdder résolus",
+    "matériau et CustomModelData fournis par ItemsAdder",
+    "noms, lore, quantités et PDC des boutons conservés",
+    "aucune décoration du stockage réel",
+    "repli vanilla si résolution indisponible",
+    "cache et invalidation"
   ],
-  "graphical_render_verified": false,
-  "pack_sha1": "9a2450a289f413fa4311bd8d52708f6237020d5d",
-  "pack_sha256": "823be4fd8036dd22831645e8061a197f3d66b6b1c38291ed7db74e70cbe0fbb4",
-  "jar_sha256": "1792140a26d5c7ee98ecb5fc4712de3671a3ba23162587c7078280d245b3969b",
-  "installation": "Héberger et distribuer le pack ; fusionner avec le pack existant si nécessaire. Aucun hébergement configuré automatiquement."
+  "real_itemsadder_integration_verified": false,
+  "limitation": "API ItemsAdder réelle et rendu à vérifier sur le serveur utilisateur où les contenus sont installés. Tests de résolution avec une doublure, sans ItemsAdder local.",
+  "jar_sha256": "f358f3fa97910d930135ab1a57ac3472f16660674f2edb9c456b5d846b79415e"
 }
