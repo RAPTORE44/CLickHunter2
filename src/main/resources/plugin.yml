@@ -32,11 +32,11 @@ commands:
     description: Lien du Discord ClickHunter et gestion du PNJ
     usage: /discord [pnj spawn|remove]
   menu:
-    description: Menu principal NorthBlue
+    description: Menu principal ClickHunter
     usage: /menu
     permission: cliker.menu
   buyzone:
-    description: Crée ou supprime un portail d'achat de zone
+    description: Créer ou supprimer un portail d'achat de zone
     usage: /buyzone spawn <zone> | /buyzone remove <zone>
   daily:
     description: Calendrier des récompenses journalières NorthBlue
@@ -59,7 +59,7 @@ commands:
     usage: /xp give <joueur> <montant>
     permission: cliker.xp.admin
   mobspawn:
-    description: Gestion des zones de spawn des mobs custom (bossspawn = Golem, PV x10, drops speciaux)
+    description: Gestion des points d’apparition des créatures et des boss personnalisés
     usage: /mobspawn <setspawn|bossspawn|remove|removeall|list> [mob]
     aliases: [mob]
     permission: cliker.mob.admin
@@ -68,11 +68,11 @@ commands:
     usage: /epee
     permission: cliker.mob.admin
   stuff:
-    description: Donne l'épée + l'armure d'un mob (set complet = OneShot)
+    description: Donne l’épée et l’armure d’une créature (ensemble complet = élimination en un coup)
     usage: /stuff <mob>
     permission: cliker.mob.admin
   coffre:
-    description: Donne un coffre du Nether (loot par rareté)
+    description: Donne un coffre du Nether (récompenses selon la rareté)
     usage: /coffre <joueur> <rareté> [quantité]
     permission: cliker.mob.admin
   autoclick:
@@ -92,7 +92,7 @@ commands:
     usage: /prestige
     permission: cliker.prestige.use
   mobkills:
-    description: Ajoute des kills de mobs à un joueur (tests)
+    description: Ajoute des éliminations de créatures à un joueur (tests)
     usage: /mobkills give <joueur> <montant>
     permission: cliker.mob.admin
   sell:
@@ -100,27 +100,27 @@ commands:
     usage: /sell
     permission: cliker.sell.use
   enchant:
-    description: Ouvre la Table d'Enchantement (Écus)
+    description: Ouvre la table d’enchantement (Écus)
     usage: /enchant
     permission: cliker.gear.use
   reforge:
-    description: Ouvre l'Enclume de Reforge (Gemmes Sombres)
+    description: Ouvre l'enclume de reforge (Gemmes Sombres)
     usage: /reforge
     permission: cliker.gear.use
   runes:
-    description: Ouvre la Table de Runes (Cendres)
+    description: Ouvre la table de runes (Cendres)
     usage: /runes
     permission: cliker.gear.use
   compresseur:
-    description: Donne un compresseur d'essences pour un mob donne
+    description: Donne un autocompresseur d’essences à activer pour une créature donnée
     usage: /compresseur <mob>
     permission: cliker.mob.admin
   pnj:
-    description: Gestion des PNJ marchands (achat armure/epee/compresseur contre Ecus + essences)
+    description: Gestion des PNJ marchands (achat d’armures, d’épées et de compresseurs contre des Écus et des essences)
     usage: /pnj <spawn <mob>|remove|list>
     permission: cliker.mob.admin
   charm:
-    description: Donne une amulette de degats passive pour un mob donne
+    description: Donne une amulette passive de dégâts pour une créature donnée
     usage: /charm <mob>
     permission: cliker.mob.admin
   holotop:
@@ -140,11 +140,11 @@ commands:
     usage: /spawn
     permission: cliker.spawn.use
   setspawn:
-    description: Definit le spawn du serveur ici
+    description: Définit le point d’accueil du serveur à la position actuelle
     usage: /setspawn
     permission: cliker.spawn.admin
   station:
-    description: Gestion des blocs station (table d'enchant/enclume de reforge/table de runes)
+    description: Gestion des stations (table d’enchantement, enclume de reforge et table de runes)
     usage: /station <spawn <enchant|reforge|rune>|remove>
     permission: cliker.mob.admin
   sac:
@@ -152,7 +152,7 @@ commands:
     usage: /sac
     permission: cliker.sac.use
   talisman:
-    description: Donne un Treasure Talisman a un joueur
+    description: Donne un talisman de trésor à un joueur
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:

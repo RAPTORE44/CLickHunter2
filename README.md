@@ -1,6 +1,6 @@
 # ClikerV2
 
-Le module **Buyzone** crée des portails invisibles d'achat d'accès avec l'économie
+Le module **BuyZone** crée des portails invisibles d'achat d'accès avec l'économie
 intégrée : [configuration des tarifs, commandes et installation](docs/BUYZONE.md).
 Les prix d'accès manquants sont proposés à partir des prix actuels des armures, sans modifier les tarifs existants.
 
@@ -8,12 +8,12 @@ Le module **NorthBlue de récompenses journalières** est intégré à ce même 
 `/daily`, calendrier de 28 jours et PNJ Citizens optionnel.
 Voir [l'installation, la configuration et les règles du calendrier](docs/RECOMPENSES-JOURNALIERES.md).
 
-Plugin unique pour Paper 1.21.4 : economie SQLite et commandes de gestion des monnaies.
+Plugin unique pour Paper 1.21.4 : économie SQLite et commandes de gestion des monnaies.
 
-## Prerequis
+## Prérequis
 
 - Paper 1.21.4
-- Java 21 ou plus recent
+- Java 21 ou plus récent
 - Aucun autre plugin requis
 
 ## Commandes par catégorie
@@ -36,7 +36,7 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | --- | --- |
 | `/daily` | Ouvrir le calendrier et réclamer la récompense disponible. |
 | `/claim` | Récupérer les récompenses en objets mises en attente. |
-| `/sac` | Ouvrir les sacs personnels accessibles selon son rang. |
+| `/sac` | Ouvrir les sacs personnels accessibles selon le rang du joueur. |
 
 ### Combat et progression
 
@@ -45,7 +45,7 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | `/autoclick` | Activer ou désactiver l'attaque automatique. |
 | `/upgrade` | Acheter des améliorations en Gemmes Sombres. |
 | `/stats` | Consulter ses statistiques. |
-| `/prestige` | Consulter et effectuer un prestige si les conditions sont remplies. |
+| `/prestige` | Consulter les conditions et effectuer un prestige si les conditions sont remplies. |
 | `/bestiaire` | Consulter les créatures découvertes et les maîtrises. |
 | `/contrats` | Accepter ou réclamer les contrats de chasse. |
 | `/raid` | Rejoindre l'arène coopérative. |
@@ -68,7 +68,7 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 
 L'autocompresseur s'achète chez le marchand puis s'active par clic droit : l'objet est consommé et 64 ressources d'un palier sont automatiquement converties en une du palier suivant, pour le mob associé.
 
-`balance` peut être abrégé en `bal`. Sans argument, `/ecus`, `/gemmes` et `/cendres` affichent son propre solde.
+`balance` peut être abrégé en `bal`. Sans argument, `/ecus`, `/gemmes` et `/cendres` affichent le solde du joueur qui les exécute.
 
 ### Avant-postes
 
@@ -91,7 +91,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. Citiz
 
 | Commande | Utilité | Permission |
 | --- | --- | --- |
-| `/setspawn` | Définir le point d'accueil à sa position. | `cliker.spawn.admin` |
+| `/setspawn` | Définir le point d'accueil à la position actuelle. | `cliker.spawn.admin` |
 | `/buyzone spawn <zone>` | Placer un portail d'achat pour une zone configurée. | `cliker.buyzone.admin` |
 | `/buyzone remove <zone>` | Supprimer ce portail. | `cliker.buyzone.admin` |
 | `/daily pnj spawn` / `/daily pnj remove` | Placer ou supprimer le PNJ des récompenses. | `cliker.daily.admin` |
@@ -126,13 +126,13 @@ Les commandes du plugin sont déclarées dans [plugin.yml](src/main/resources/pl
 
 La base est créée dans `plugins/ClikerV2/data/economy.db`. Les opérations SQLite passent par une file dédiée ; les interactions Bukkit reviennent sur le thread principal. Les commandes monétaires recherchent les joueurs en ligne ou déjà connus, sans recherche réseau bloquante.
 
-## Build
+## Compilation
 
 ```text
 mvn clean package
 ```
 
-Le jar final est dans `target/clikerv2-1.0.0.jar`.
+Le fichier JAR compilé est dans `target/clikerv2-1.0.0.jar`.
 
 ## Sacs personnels
 
