@@ -29,6 +29,9 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
     private final String builderWorld;
     private final NamespacedKey wand, boss, egg;
     private final Map<String, String> bagBlocks = new HashMap<>();
+    private final Map<String, String> upgradeBlocks = new HashMap<>();
+    private final Map<String, org.bukkit.entity.TextDisplay> shortcutHolos = new HashMap<>();
+    private org.bukkit.scheduler.BukkitTask holoTask;
     private final Map<UUID, Long> useTimes = new HashMap<>();
 
     public TravelAndTools(JavaPlugin p, Menus menus, BuyZoneModule zones, CustomMobManager mobs) {
@@ -51,7 +54,16 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                     bagBlocks.put(
                             fr.cliker.clikerv2.station.StationStore.idFor(at.getBlock()), key);
             }
-        for (String cmd : List.of("warp", "sacbloc", "batonspawn")) {
+        var upgrades = settings.yaml.getConfigurationSection("upgrades");
+        if (upgrades != null)
+            for (String key : upgrades.getKeys(false)) {
+                var at = YamlFiles.location(settings.yaml, "upgrades." + key);
+                if (at != null)
+                    upgradeBlocks.put(
+                            fr.cliker.clikerv2.station.StationStore.idFor(at.getBlock()), key);
+            }
+        holoTask = Bukkit.getScheduler().runTaskTimer(p, this::refreshHolos, 1, 40);
+        for (String cmd : List.of("warp", "sacbloc", "upgradebloc", "batonspawn")) {
             p.getCommand(cmd).setExecutor(this);
             p.getCommand(cmd).setTabCompleter(this);
         }
@@ -171,7 +183,10 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                         p.sendMessage("Point de voyage sauvegardé.");
                     } else p.sendMessage("/warp set <zone> <entree|boss>");
                 }
-                case "sacbloc" -> {
+                case "sacbloc", "upgradebloc" -> {
+                    boolean upgrade = c.getName().equals("upgradebloc");
+                    var blocks = upgrade ? upgradeBlocks : bagBlocks;
+                    String section = upgrade ? "upgrades." : "sacs.";
                     Block b = p.getTargetBlockExact(5);
                     if (b == null) {
                         p.sendMessage("Vise un bloc à moins de cinq blocs.");
@@ -179,20 +194,24 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                     }
                     String id = fr.cliker.clikerv2.station.StationStore.idFor(b);
                     if (a.length == 1 && a[0].equalsIgnoreCase("set")) {
-                        String key = bagBlocks.getOrDefault(id, UUID.randomUUID().toString());
-                        YamlFiles.location(settings.yaml, "sacs." + key, b.getLocation());
+                        String key = blocks.getOrDefault(id, UUID.randomUUID().toString());
+                        YamlFiles.location(settings.yaml, section + key, b.getLocation());
                         settings.save();
-                        bagBlocks.put(id, key);
-                        p.sendMessage("Bloc lié au /sac de chaque joueur.");
+                        blocks.put(id, key);
+                        p.sendMessage(
+                                upgrade
+                                        ? "Bloc lié au menu /upgrade."
+                                        : "Bloc lié au /sac de chaque joueur.");
                     } else if (a.length == 1 && a[0].equalsIgnoreCase("remove")) {
-                        String key = bagBlocks.get(id);
+                        String key = blocks.get(id);
                         if (key != null) {
-                            settings.yaml.set("sacs." + key, null);
+                            settings.yaml.set(section + key, null);
                             settings.save();
-                            bagBlocks.remove(id);
+                            blocks.remove(id);
                         }
                         p.sendMessage("Raccourci retiré.");
-                    } else p.sendMessage("/sacbloc set|remove (en visant le bloc)");
+                    } else p.sendMessage("/" + c.getName() + " set|remove (en visant le bloc)");
+                    refreshHolos();
                 }
                 case "batonspawn" -> {
                     if (a.length == 2
@@ -273,6 +292,12 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                 }
                 return;
             }
+        }
+        if (upgradeBlocks.containsKey(
+                fr.cliker.clikerv2.station.StationStore.idFor(e.getClickedBlock()))) {
+            e.setCancelled(true);
+            p.performCommand("upgrade");
+            return;
         }
         if (bagBlocks.containsKey(
                 fr.cliker.clikerv2.station.StationStore.idFor(e.getClickedBlock()))) {
@@ -396,8 +421,8 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
             values = new ArrayList<>(MobTier.byId().keySet());
         if (c.getName().equals("warp") && a.length == 3 && s.hasPermission("cliker.services.admin"))
             values = List.of("entree", "boss");
-        if (c.getName().equals("sacbloc") && s.hasPermission("cliker.services.admin"))
-            values = List.of("set", "remove");
+        if ((c.getName().equals("sacbloc") || c.getName().equals("upgradebloc"))
+                && s.hasPermission("cliker.services.admin")) values = List.of("set", "remove");
         if (c.getName().equals("batonspawn") && s.hasPermission("cliker.services.admin"))
             values =
                     a.length == 1
@@ -407,7 +432,67 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
         return values.stream().filter(x -> x.startsWith(last)).toList();
     }
 
+    private void refreshHolos() {
+        var wanted = new HashSet<String>();
+        for (String section : List.of("sacs", "upgrades")) {
+            var entries = settings.yaml.getConfigurationSection(section);
+            if (entries == null) continue;
+            for (String key : entries.getKeys(false)) {
+                var at = YamlFiles.location(settings.yaml, section + "." + key);
+                String id = section + ":" + key;
+                if (at == null
+                        || !at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4))
+                    continue;
+                wanted.add(id);
+                var old = shortcutHolos.get(id);
+                if (old != null && old.isValid()) continue;
+                var display =
+                        at.getWorld()
+                                .spawn(
+                                        at.clone().add(.5, 1.6, .5),
+                                        org.bukkit.entity.TextDisplay.class,
+                                        entity -> {
+                                            entity.setPersistent(false);
+                                            entity.setBillboard(
+                                                    org.bukkit.entity.Display.Billboard.CENTER);
+                                            entity.setSeeThrough(false);
+                                            entity.text(
+                                                    net.kyori.adventure.text.serializer.legacy
+                                                            .LegacyComponentSerializer
+                                                            .legacyAmpersand()
+                                                            .deserialize(
+                                                                    settings.yaml.getString(
+                                                                            "hologrammes."
+                                                                                    + section,
+                                                                            section.equals("sacs")
+                                                                                    ? "&a&lSacs\n"
+                                                                                          + "&fClic"
+                                                                                          + " droit"
+                                                                                          + " pour"
+                                                                                          + " ouvrir"
+                                                                                    : "&a&lAméliorations\n"
+                                                                                          + "&fClic"
+                                                                                          + " droit"
+                                                                                          + " pour"
+                                                                                          + " ouvrir")));
+                                        });
+                shortcutHolos.put(id, display);
+            }
+        }
+        shortcutHolos
+                .entrySet()
+                .removeIf(
+                        entry -> {
+                            if (wanted.contains(entry.getKey())) return false;
+                            entry.getValue().remove();
+                            return true;
+                        });
+    }
+
     public void shutdown() {
+        if (holoTask != null) holoTask.cancel();
+        shortcutHolos.values().forEach(org.bukkit.entity.Entity::remove);
+        shortcutHolos.clear();
         HandlerList.unregisterAll(this);
     }
 }

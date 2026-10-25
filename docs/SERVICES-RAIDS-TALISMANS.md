@@ -104,3 +104,9 @@ Les bonus passifs exigent de placer les talismans dans ses sacs. Le meilleur tie
 218 tests automatisés réussis, sans échec ni test ignoré. Les essais sur Paper 1.21.4 avec ZNPCsPlus 2.0.0 couvrent les guides, les PNJ, les achats et stocks, les taxes AH, la vente à l’unité ou par pile, les potions et le lait, les raids privés et publics, les protections, les redémarrages et les derniers réglages `/antidrop` et tier 5 en zone 19. Le contrôle SQLite `quick_check` est valide.
 
 Le seuil du boss public a été franchi depuis un compteur de test à 999 999 999 avec une élimination réelle. Le rendu ItemsAdder et DecentHolograms doit être vérifié sur le serveur qui possède ces plugins ; le serveur d’essai utilisait les icônes vanilla. Ces scénarios ne constituent pas un test de charge à grande échelle. Le [compte rendu](validation/services-raids-talismans.json) détaille les contrôles et leurs limites.
+
+## Blocs des sacs et des améliorations
+
+En visant un bloc à moins de cinq blocs : `/sacbloc set` ouvre les sacs personnels au clic droit ; `/upgradebloc set` ouvre `/upgrade`. Utiliser respectivement `/sacbloc remove` ou `/upgradebloc remove` pour retirer le raccourci et son hologramme. Permission : `cliker.services.admin`. Les permissions habituelles des menus restent appliquées.
+
+Les hologrammes utilisent les TextDisplay natifs de Paper, sans dépendance supplémentaire. Les positions persistent après redémarrage ; les hologrammes sont recréés dans les chunks chargés, sans forcer le chargement des autres chunks. Textes et couleurs sont configurables sous `hologrammes.sacs` et `hologrammes.upgrades` dans `navigation/warps.yml` (couleurs avec `&`, saut de ligne avec `\n` dans une chaîne YAML entre guillemets doubles).

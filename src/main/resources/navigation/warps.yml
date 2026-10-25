@@ -3,3 +3,8 @@ protection-map: true
 zones: {}
 # /sacbloc set en visant un bloc existant. Chaque joueur ouvre ses propres sacs.
 sacs: {}
+
+upgrades: {}
+hologrammes:
+  sacs: "&a&lSacs\n&fClic droit pour ouvrir"
+  upgrades: "&a&lAméliorations\n&fClic droit pour ouvrir"

@@ -7,6 +7,9 @@ softdepend: [LuckPerms, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
   warp:
     description: Menu des destinations débloquées
+  upgradebloc:
+    description: Raccourci upgrade sur un bloc (administration)
+    permission: cliker.services.admin
   sacbloc:
     description: Raccourci de sac sur un bloc (administration)
     permission: cliker.services.admin
