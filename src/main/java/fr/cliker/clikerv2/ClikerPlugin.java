@@ -106,6 +106,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.daily.DailyModule dailyModule;
     private fr.cliker.clikerv2.buyzone.BuyZoneModule buyZoneModule;
     private PrestigeManager prestigeManager;
+    private fr.cliker.clikerv2.ui.MenuIcons menuIcons;
     private fr.cliker.clikerv2.comfort.PlayerComfort playerComfort;
     private fr.cliker.clikerv2.comfort.FarmTelemetry farmTelemetry;
     private fr.cliker.clikerv2.comfort.ProgressNavigation progressNavigation;
@@ -506,11 +507,24 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         progressNavigation =
                 new fr.cliker.clikerv2.comfort.ProgressNavigation(this, buyZoneModule, mobManager);
         progressNavigation.start();
+        try {
+            menuIcons = new fr.cliker.clikerv2.ui.MenuIcons(this);
+            menuIcons.start();
+        } catch (RuntimeException error) {
+            menuIcons = null;
+            getLogger()
+                    .log(
+                            java.util.logging.Level.WARNING,
+                            "Icônes personnalisées désactivées ; les menus vanilla restent"
+                                + " disponibles.",
+                            error);
+        }
         getLogger().info("Economie active avec SQLite.");
     }
 
     @Override
     public void onDisable() {
+        if (menuIcons != null) menuIcons.shutdown();
         if (prestigeManager != null) prestigeManager.shutdown();
         if (playerComfort != null) playerComfort.shutdown();
         if (farmTelemetry != null) farmTelemetry.shutdown();

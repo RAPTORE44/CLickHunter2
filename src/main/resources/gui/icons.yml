@@ -1,0 +1,73 @@
+# Nécessite ClickHunter-icones.zip côté client (Minecraft 1.21.4).
+# Les matériaux, noms, lore et données des boutons restent inchangés.
+active: true
+# true : icônes vanilla tant que le serveur ne confirme pas le chargement du pack.
+exiger-pack-charge: true
+# Personnalisation par classe de menu et numéro de case (à partir de zéro).
+menus: {}
+# Première expression présente dans le nom du bouton prioritaire.
+mots:
+  retour: navigation_retour
+  accueil: navigation_accueil
+  fermer: navigation_fermer
+  annuler: navigation_fermer
+  precedent: navigation_page_precedente
+  suivant: navigation_page_suivante
+  confirmer: etats_coche
+  information: interface_info
+  parametre: interface_reglages
+  reglage: interface_reglages
+  verrouill: etats_cadenas_ferme_grise
+  inconnu: etats_interrogation_grise
+  decouvrir: etats_interrogation_grise
+  quotidien: temps_quotidien
+  calendrier: temps_calendrier
+  recompense: recompenses_cadeau
+  reclamer: recompenses_cadeau
+  recuper: recompenses_coffre_ouvert
+  deja: etats_coche
+  prestige: progression_couronne
+  amelior: progression_amelioration
+  richesse: economie_piece
+  fortune: economie_gemme
+  sagesse: progression_xp
+  vitalite: combat_coeur
+  resistance: combat_bouclier
+  cadence: production_vitesse
+  vitesse: production_vitesse
+  force: combat_epee
+  enchant: progression_etoile
+  reforge: production_engrenage
+  rune: economie_gemme
+  vendre: boutique_etiquette
+  achat: boutique_chariot
+  annonces: boutique_vitrine
+  enchere: boutique_enchere
+  hotel: boutique_enchere
+  sac: boutique_sac_shopping
+  contrat: progression_quete
+  bestiaire: combat_cible
+  raid: combat_crane
+  boss: combat_crane
+  avant-poste: production_entrepot
+  terrain: production_entrepot
+  agrandir: utilitaire_plus
+  visite: interface_groupe
+  confiance: social_ajout_ami
+  classement: progression_coupe
+  statistiques: interface_graphique
+  tuto: interface_info
+  guide: interface_info
+  compression: production_engrenage
+  compresseur: production_engrenage
+  decomposition: utilitaire_moins
+  jour: recompenses_cadeau
+  ecus: economie_piece
+  gemmes: economie_gemme
+  cendres: ressources_res_redstone
+  xp: progression_xp
+  son: interface_cloche
+  effets: interface_reglages
+  texte: interface_info
+  message: social_message
+  gains: economie_sac_butin
