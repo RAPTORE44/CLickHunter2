@@ -103,6 +103,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.referral.ReferralModule referrals;
     private fr.cliker.clikerv2.discord.DiscordModule discordModule;
     private MoneyScoreboard scoreboard;
+    private TabListManager tabListManager;
     private fr.cliker.clikerv2.ui.MainMenu mainMenu;
     private fr.cliker.clikerv2.daily.DailyModule dailyModule;
     private fr.cliker.clikerv2.buyzone.BuyZoneModule buyZoneModule;
@@ -124,7 +125,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
                     .log(
                             java.util.logging.Level.SEVERE,
                             "mobs/creatures.yml invalide : démarrage interrompu sans effacer les"
-                                + " données.",
+                                    + " données.",
                             error);
             getServer().getPluginManager().disablePlugin(this);
             return;
@@ -182,9 +183,13 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
                 .getPluginManager()
                 .registerEvents(new PrestigeChatFormatter(prestigeManager), this);
 
-        TabListManager tabListManager = new TabListManager(prestigeManager);
-        if (getConfig().getBoolean("displays.tab.enabled", false))
-            getServer().getPluginManager().registerEvents(tabListManager, this);
+        if (getConfig().getInt("displays.tab.style-version", 0) < 1) {
+            getConfig().set("displays.tab.enabled", true);
+            getConfig().set("displays.tab.style-version", 1);
+            saveConfig();
+        }
+        tabListManager = new TabListManager(this, prestigeManager);
+        if (getConfig().getBoolean("displays.tab.enabled", false)) tabListManager.start();
         if (getConfig().getBoolean("displays.tab.enabled", false))
             prestigeManager.setTabListManager(tabListManager);
         prestigeManager.loadOnlinePlayers();
@@ -545,6 +550,8 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
 
     @Override
     public void onDisable() {
+        if (tabListManager != null && getConfig().getBoolean("displays.tab.enabled", false))
+            tabListManager.shutdown();
         if (expansion != null) expansion.shutdown();
         fr.cliker.clikerv2.features.CreatureSettings.reset();
         if (sessionConvenience != null) sessionConvenience.shutdown();

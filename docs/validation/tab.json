@@ -1,0 +1,27 @@
+{
+  "tests": 224,
+  "failures": 0,
+  "skipped": 0,
+  "paper": "1.21.4 build 232",
+  "header": "\nClickHunter\nConnectés : 2/2\nplay.clickhunter.fr\n",
+  "footer": "\nBoutique » Lien à configurer\nDiscord » https://discord.gg/WSwBwpnQTa\nVote » Pense à voter pour le serveur !\nplay.clickhunter.fr\n",
+  "name": "Staff AuditFeatures [0 - 1.2k]",
+  "native_order": {
+    "staff": 2,
+    "joueur": 1
+  },
+  "jar_sha256": "1ccfaeb31cf947e2d39cb1ea26b184e5a2a7563761611e4519f3a52450b3dd4b",
+  "checks": [
+    "Compteur réel de deux joueurs",
+    "Entête ClickHunter et adresse du serveur",
+    "Discord et invitation à voter dans le pied",
+    "Niveau réel 1250 affiché 1.2k après commande XP",
+    "Priorité staff supérieure à celle du joueur dans les paquets natifs",
+    "Migration activation TAB sur configuration existante"
+  ],
+  "limits": [
+    "Pas de capture visuelle du client Minecraft ; vérifications des textes et paquets sur Paper.",
+    "Boutique et lien de vote laissés à renseigner faute d’adresse fournie.",
+    "Colonnes disposées par le client Minecraft, sans entrées fictives."
+  ]
+}

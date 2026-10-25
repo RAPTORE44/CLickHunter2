@@ -210,6 +210,9 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.tab.staff:
+    description: Classement en tête du TAB comme membre du staff
+    default: op
   cliker.services.admin:
     default: op
   cliker.gamemode.admin:

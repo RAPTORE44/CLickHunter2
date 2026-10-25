@@ -1,0 +1,38 @@
+# TAB natif Paper 1.21.4. Actualisation du niveau, prestige et des grades sans SQL.
+actualisation-ticks: 40
+liens:
+  boutique: '' # Renseigner ici l’adresse exacte de la boutique.
+  discord: 'https://discord.gg/WSwBwpnQTa'
+  vote: '' # Sans lien : invite simplement les joueurs à voter.
+entete:
+  - ''
+  - '&a&lClickHunter'
+  - '&7Connectés : &a{connectes}&7/&f{maximum}'
+  - '&fplay.clickhunter.fr'
+  - ''
+pied:
+  - ''
+  - '&6Boutique &8» &f{boutique}'
+  - '&9Discord &8» &f{discord}'
+  - '&eVote &8» &f{vote}'
+  - '&aplay.clickhunter.fr'
+  - ''
+# Tri de haut en bas, puis colonne suivante : disposition native du client.
+# Noms des groupes primaires LuckPerms ; sinon permissions group.<nom>.
+ordre-grades: [staff, admin, moderateur, modo, helper, minivip, vip, vipplus, mvp, mvpplus, legend, joueur]
+grades:
+  staff: '&cStaff'
+  admin: '&4Admin'
+  moderateur: '&cModérateur'
+  modo: '&cModo'
+  helper: '&bHelper'
+  minivip: '&aMini-VIP'
+  vip: '&aVIP'
+  vipplus: '&2VIP+'
+  mvp: '&bMVP'
+  mvpplus: '&3MVP+'
+  legend: '&6Legend'
+  joueur: '&7Joueur'
+# 1–10 : une couleur par niveau ; 11–100 : par dizaine ; 101–1000 : par centaine.
+# Au-delà de 1000 : dernière couleur, format 1k, 1.2k, 5.5k, 99k...
+couleurs-niveau: ['&7', '&f', '&a', '&2', '&b', '&3', '&9', '&d', '&5', '&6']

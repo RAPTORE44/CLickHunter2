@@ -10,7 +10,8 @@ displays:
     enabled: true
     style-version: 1
   tab:
-    enabled: false
+    enabled: true
+    style-version: 1
 
 # Bloque les apparitions vanilla, conserve les entités créées par les plugins.
 mobs:
