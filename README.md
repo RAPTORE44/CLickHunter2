@@ -16,16 +16,115 @@ Plugin unique pour Paper 1.21.4 : economie SQLite et commandes de gestion des mo
 - Java 21 ou plus recent
 - Aucun autre plugin requis
 
-## Commandes
+## Commandes par catégorie
 
-- `/money balance [joueur]` ou `/money bal [joueur]`
-- `/money give <joueur> <monnaie> <montant>`
-- `/money take <joueur> <monnaie> <montant>`
-- `/money set <joueur> <monnaie> <montant>`
+Cette liste doit être vérifiée et mise à jour à chaque modification du plugin, en même temps que les commandes et leurs comportements. `<argument>` désigne un argument obligatoire et `[argument]` un argument facultatif.
 
-Les monnaies acceptent `ecus`, `gemmes-sombres` et `cendres`. Les operations `give`, `take` et `set` demandent `cliker.money.admin`.
+### Accueil et communauté
 
-Les joueurs hors ligne sont geres par leur UUID via `Bukkit.getOfflinePlayer`. La base est creee dans `plugins/ClikerV2/data/economy.db`. Les operations SQLite sont executees par une file dediee unique, puis les messages reviennent sur le thread principal Paper.
+| Commande | Utilité |
+| --- | --- |
+| `/menu` | Ouvrir le menu principal. |
+| `/tuto` | Consulter le livre-guide. |
+| `/spawn` | Rejoindre le point d'accueil. |
+| `/discord` | Recevoir le lien du Discord. |
+| `/parrain <pseudo>` | Déclarer son parrain pendant le délai autorisé ; alias `/parrainage`. |
+
+### Récompenses et stockage
+
+| Commande | Utilité |
+| --- | --- |
+| `/daily` | Ouvrir le calendrier et réclamer la récompense disponible. |
+| `/claim` | Récupérer les récompenses en objets mises en attente. |
+| `/sac` | Ouvrir les sacs personnels accessibles selon son rang. |
+
+### Combat et progression
+
+| Commande | Utilité |
+| --- | --- |
+| `/autoclick` | Activer ou désactiver l'attaque automatique. |
+| `/upgrade` | Acheter des améliorations en Gemmes Sombres. |
+| `/stats` | Consulter ses statistiques. |
+| `/prestige` | Consulter et effectuer un prestige si les conditions sont remplies. |
+| `/bestiaire` | Consulter les créatures découvertes et les maîtrises. |
+| `/contrats` | Accepter ou réclamer les contrats de chasse. |
+| `/raid` | Rejoindre l'arène coopérative. |
+| `/raid quitter` | Quitter le raid. |
+
+### Économie et équipement
+
+| Commande | Utilité |
+| --- | --- |
+| `/ecus balance [joueur]` | Consulter un solde d'Écus. |
+| `/gemmes balance [joueur]` | Consulter un solde de Gemmes Sombres ; alias `/gemmessombres`. |
+| `/cendres balance [joueur]` | Consulter un solde de Cendres. |
+| `/sell` | Ouvrir la vente des essences. |
+| `/ah` | Ouvrir l'hôtel des ventes. |
+| `/ah vendre <prix>` | Mettre en vente l'objet tenu en main ; `sell` reste accepté. |
+| `/ah mesannonces` | Consulter ses annonces ; `mylistings` reste accepté. |
+| `/enchant` | Ouvrir la table d'enchantement, payée en Écus. |
+| `/reforge` | Ouvrir la reforge, payée en Gemmes Sombres. |
+| `/runes` | Ouvrir la table de runes, payée en Cendres. |
+
+L'autocompresseur s'achète chez le marchand puis s'active par clic droit : l'objet est consommé et 64 ressources d'un palier sont automatiquement converties en une du palier suivant, pour le mob associé.
+
+`balance` peut être abrégé en `bal`. Sans argument, `/ecus`, `/gemmes` et `/cendres` affichent son propre solde.
+
+### Avant-postes
+
+Toutes ces commandes acceptent aussi `/is` et `/avantpostes` à la place de `/avantposte`.
+
+| Commande | Utilité |
+| --- | --- |
+| `/avantposte` | Ouvrir le menu du terrain personnel. |
+| `/avantposte aller` | Créer ou rejoindre son terrain. |
+| `/avantposte agrandir` | Acheter l'extension suivante. |
+| `/avantposte visite <pseudo>` | Visiter un terrain existant. |
+| `/avantposte ajouter <pseudo>` | Autoriser un joueur connu à construire et à utiliser les coffres. |
+| `/avantposte retirer <pseudo>` | Retirer cette autorisation. |
+| `/avantposte top` | Consulter les propriétaires les plus riches. |
+| `/avantposte sortir` | Quitter l'avant-poste. |
+
+### Administration : monde, zones et PNJ
+
+Ces commandes nécessitent les permissions administrateur correspondantes. Citizens est nécessaire pour les PNJ humains ; DecentHolograms est nécessaire pour `/holotop`.
+
+| Commande | Utilité | Permission |
+| --- | --- | --- |
+| `/setspawn` | Définir le point d'accueil à sa position. | `cliker.spawn.admin` |
+| `/buyzone spawn <zone>` | Placer un portail d'achat pour une zone configurée. | `cliker.buyzone.admin` |
+| `/buyzone remove <zone>` | Supprimer ce portail. | `cliker.buyzone.admin` |
+| `/daily pnj spawn` / `/daily pnj remove` | Placer ou supprimer le PNJ des récompenses. | `cliker.daily.admin` |
+| `/discord pnj spawn` / `/discord pnj remove` | Placer ou supprimer le PNJ Discord. | `cliker.discord.admin` |
+| `/contrats pnj spawn` / `/contrats pnj remove` | Placer ou supprimer le PNJ des contrats. | `cliker.contrats.admin` |
+| `/mobspawn setspawn <mob>` | Définir un point d'apparition de mob ; alias `/mob`. | `cliker.mob.admin` |
+| `/mobspawn bossspawn <mob>` | Définir un point d'apparition de boss. | `cliker.mob.admin` |
+| `/mobspawn remove <mob>` | Supprimer le point d'apparition le plus proche pour ce mob. | `cliker.mob.admin` |
+| `/mobspawn removeall <mob>` | Supprimer tous les points d'apparition de ce mob. | `cliker.mob.admin` |
+| `/mobspawn list` | Lister les points d'apparition. | `cliker.mob.admin` |
+| `/pnj spawn <mob>` / `/pnj remove` / `/pnj list` | Gérer les marchands. | `cliker.mob.admin` |
+| `/station spawn <enchant\|reforge\|rune>` / `/station remove` | Placer ou supprimer une station. | `cliker.mob.admin` |
+| `/holotop spawn <level\|kills\|ecus\|gemmes\|cendres\|bosstimer>` / `/holotop remove` | Gérer les hologrammes de classement et le minuteur des boss. | `cliker.mob.admin` |
+
+### Administration : monnaies et distribution
+
+| Commande | Utilité | Permission |
+| --- | --- | --- |
+| `/ecus <give\|take\|set> <joueur> <montant>` | Ajouter, retirer ou définir des Écus. | `cliker.money.admin` |
+| `/gemmes <give\|take\|set> <joueur> <montant>` | Ajouter, retirer ou définir des Gemmes Sombres. | `cliker.money.admin` |
+| `/cendres <give\|take\|set> <joueur> <montant>` | Ajouter, retirer ou définir des Cendres. | `cliker.money.admin` |
+| `/xp give <joueur> <montant>` | Donner de l'expérience Minecraft. | `cliker.xp.admin` |
+| `/mobkills give <joueur> <montant>` | Ajouter des éliminations pour les tests. | `cliker.mob.admin` |
+| `/epee` | Recevoir l'épée du dresseur. | `cliker.mob.admin` |
+| `/stuff <mob>` | Recevoir l'épée et l'armure du mob. | `cliker.mob.admin` |
+| `/coffre <joueur> <rareté> [quantité]` | Donner des coffres de récompenses. | `cliker.mob.admin` |
+| `/compresseur <mob>` | Recevoir l'objet autocompresseur à activer. | `cliker.mob.admin` |
+| `/charm <mob>` | Recevoir une amulette de dégâts. | `cliker.mob.admin` |
+| `/talisman treasure <joueur>` | Donner un talisman de trésor. | `cliker.mob.admin` |
+
+Les commandes du plugin sont déclarées dans [plugin.yml](src/main/resources/plugin.yml). Les commandes des autres plugins ne sont pas incluses. Il n'existe pas de commande `/money` propre à ClikerV2 : utiliser `/ecus`, `/gemmes` ou `/cendres`.
+
+La base est créée dans `plugins/ClikerV2/data/economy.db`. Les opérations SQLite passent par une file dédiée ; les interactions Bukkit reviennent sur le thread principal. Les commandes monétaires recherchent les joueurs en ligne ou déjà connus, sans recherche réseau bloquante.
 
 ## Build
 
