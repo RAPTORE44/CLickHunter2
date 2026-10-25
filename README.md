@@ -260,3 +260,5 @@ Les talismans de créature et de boss s’ajoutent à cinq familles générales 
 Configuration SFTP organisée, migration des anciens fichiers avec copies de secours et détails de chaque module : [guide des nouveaux systèmes](docs/SERVICES-RAIDS-TALISMANS.md).
 
 Les créatures placées sont persistantes lors du déchargement des chunks. Une vérification toutes les deux secondes rétablit les créatures manquantes dans les chunks chargés, sans avancer la prochaine vague des boss tués.
+
+Les marchands affichent les vrais objets proposés (épées, armures, compresseurs et ressources). Les boutons de compression montrent la ressource obtenue. Les icônes ItemsAdder de navigation restent actives.

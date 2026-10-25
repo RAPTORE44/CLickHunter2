@@ -143,7 +143,7 @@ public final class MerchantMenu implements Listener {
     private ItemStack compressStepButton(
             Player player, MobTier tier, EssenceRarity rarity, EssenceRarity next) {
         int owned = EssenceItem.count(player, tier, rarity);
-        ItemStack item = EssenceItem.create(tier, rarity, 1);
+        ItemStack item = EssenceItem.create(tier, next, 1);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(
                 Component.text(

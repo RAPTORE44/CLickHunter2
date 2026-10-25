@@ -273,6 +273,7 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
                         id.equals("blackmarket")
                                 ? "Marché noir — stock limité"
                                 : "Boutique — " + (page + 1));
+        view.merchandise = true;
         for (int j = 0; j < 45 && page * 45 + j < offers.size(); j++) {
             Offer o = offers.get(page * 45 + j);
             int slot = id.equals("blackmarket") ? new int[] {20, 21, 22, 29, 30, 31}[j] : j;

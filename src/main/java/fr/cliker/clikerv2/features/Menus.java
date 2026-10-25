@@ -38,6 +38,7 @@ public final class Menus implements Listener {
         final Map<Integer, BiConsumer<Player, Boolean>> actions = new HashMap<>();
         final Inventory inventory;
         public boolean pending;
+        public boolean merchandise;
 
         View(UUID owner, int size, String title) {
             this.owner = owner;

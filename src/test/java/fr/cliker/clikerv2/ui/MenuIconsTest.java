@@ -33,6 +33,23 @@ class MenuIconsTest {
     }
 
     @Test
+    void shopProductModelsStayIntactWhileNavigationUsesIcons() {
+        var server = MockBukkit.mock();
+        var plugin = MockBukkit.createMockPlugin();
+        var icons = new MenuIcons(plugin, id -> new ItemStack(Material.PAPER));
+        var menus = new fr.cliker.clikerv2.features.Menus(plugin);
+        var view = menus.create(server.addPlayer(), 54, "Boutique");
+        view.merchandise = true;
+        view.put(0, button(Material.DIAMOND_SWORD, "Épée"), null);
+        view.put(1, button(Material.DIAMOND_CHESTPLATE, "Armure"), null);
+        view.put(49, button(Material.ARROW, "Retour"), null);
+        icons.render(view.getInventory());
+        assertEquals(Material.DIAMOND_SWORD, view.getInventory().getItem(0).getType());
+        assertEquals(Material.DIAMOND_CHESTPLATE, view.getInventory().getItem(1).getType());
+        assertEquals(Material.PAPER, view.getInventory().getItem(49).getType());
+    }
+
+    @Test
     void usesExistingItemsAdderIdAndKeepsButtonData() {
         MockBukkit.mock();
         var plugin = MockBukkit.createMockPlugin();

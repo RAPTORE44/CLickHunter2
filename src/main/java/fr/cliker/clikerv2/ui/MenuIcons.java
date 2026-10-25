@@ -116,6 +116,10 @@ public final class MenuIcons implements Listener {
         if (holder == null) return false;
         String type = holder.getClass().getName();
         if (!type.startsWith("fr.cliker.clikerv2.")) return false;
+        if (type.contains("MerchantMenu$") && slot != 49) return false;
+        if (holder instanceof fr.cliker.clikerv2.features.Menus.View view
+                && view.merchandise
+                && slot < 45) return false;
         if (type.contains("BagMenu$") && inventory.getSize() == 54) return false;
         if (type.contains("SellMenu$") && slot < 45) return false;
         if (type.contains("ClaimService$") && slot < 45) return false;
