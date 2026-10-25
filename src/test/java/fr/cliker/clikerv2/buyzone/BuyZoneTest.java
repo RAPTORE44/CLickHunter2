@@ -170,6 +170,20 @@ class BuyZoneTest {
     }
 
     @Test
+    void creativeCrossesWithoutOfferOrPurchase() throws Exception {
+        spawn();
+        player.setGameMode(GameMode.CREATIVE);
+        var event = new PlayerMoveEvent(player, player.getLocation(), center.clone().add(0, 0, 2));
+        server.getPluginManager().callEvent(event);
+        server.getScheduler().performTicks(2);
+        assertFalse(event.isCancelled());
+        assertTrue(player.getOpenInventory().getTopInventory() == null
+                || player.getOpenInventory().getTopInventory().getType() != InventoryType.DISPENSER);
+        player.setGameMode(GameMode.SURVIVAL);
+        enter();
+    }
+
+    @Test
     void geometryAndNorthReturnMatchFortyWideTenHighPortal() {
         var zone =
                 new BuyZone(
@@ -193,6 +207,7 @@ class BuyZoneTest {
         assertEquals(center.getX(), zone.northReturn().getX());
         assertEquals(center.getZ() - 5, zone.northReturn().getZ());
         assertFalse(zone.contains(zone.northReturn()));
+        assertEquals(0, zone.northReturn().getYaw());
     }
 
     @Test

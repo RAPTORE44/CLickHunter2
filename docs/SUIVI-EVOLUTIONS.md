@@ -35,3 +35,7 @@ les ratios de compression et les gains configurés existants sont préservés.
 ### Autocompresseur consommable
 
 L'objet acheté chez le marchand s'utilise par clic droit et disparaît à l'activation. L'activation est conservée dans les données persistantes du joueur, par type de mob. Un objet déjà activé n'est pas consommé une seconde fois. La compression est exécutée après les gains de ressources des mobs : 64 ressources d'un palier deviennent une ressource du palier suivant, avec cascade. Les objets déjà achetés restent utilisables. Les prix restent identiques.
+
+### BuyZone et apparitions vanilla
+
+Le retour reste au nord du portail mais le joueur regarde vers le sud (y compris lors d'un retour de secours). Le mode créatif contourne les portails sans achat ni menu ; repasser en survie rétablit les contrôles habituels. Les nouvelles apparitions de créatures vanilla sont bloquées dans tous les mondes par défaut. Les apparitions CUSTOM des plugins, dont les mobs ClickHunter et les PNJ, sont conservées. Réglage : `mobs.disable-vanilla-spawns` dans `config.yml` (défaut : `true`, même avec une ancienne configuration). Les créatures déjà présentes ne sont pas supprimées.

@@ -130,6 +130,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         }
         economy = new EconomyService(database, startingBalances);
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(new fr.cliker.clikerv2.mobs.VanillaSpawnListener(this), this);
         for (var player : getServer().getOnlinePlayers()) initializeAccount(player);
         claims = new fr.cliker.clikerv2.rewards.ClaimService(this, database);
         claims.start();

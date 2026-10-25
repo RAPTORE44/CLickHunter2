@@ -179,7 +179,8 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
     }
 
     public boolean hasAccess(Player player, BuyZone zone) {
-        return player.hasPermission(BYPASS)
+        return player.getGameMode() == org.bukkit.GameMode.CREATIVE
+                || player.hasPermission(BYPASS)
                 || player.hasPermission(zone.permission())
                 || unlocked.getOrDefault(player.getUniqueId(), Set.of()).contains(zone.id());
     }
@@ -497,7 +498,12 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
         if (target == null && safe(player, previous)) target = previous;
         if (target == null && safe(player, player.getWorld().getSpawnLocation()))
             target = player.getWorld().getSpawnLocation();
-        if (target != null) player.teleport(target);
+        if (target != null) {
+            target = target.clone();
+            target.setYaw(0);
+            target.setPitch(0);
+            player.teleport(target);
+        }
         else
             plugin.getLogger()
                     .warning(

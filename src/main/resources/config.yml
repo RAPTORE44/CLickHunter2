@@ -11,3 +11,7 @@ displays:
     style-version: 1
   tab:
     enabled: false
+
+# Bloque les apparitions vanilla, conserve les entités créées par les plugins.
+mobs:
+  disable-vanilla-spawns: true
