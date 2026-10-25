@@ -1,9 +1,10 @@
 # TAB natif Paper 1.21.4. Actualisation du niveau, prestige et des grades sans SQL.
 actualisation-ticks: 40
 liens:
-  boutique: '' # Renseigner ici l’adresse exacte de la boutique.
+  boutique: 'https://clickhunter.fr'
   discord: 'https://discord.gg/WSwBwpnQTa'
-  vote: '' # Sans lien : invite simplement les joueurs à voter.
+  vote: 'https://clickhunter.fr'
+  version: 1
 entete:
   - ''
   - '&a&lClickHunter'
@@ -14,7 +15,7 @@ pied:
   - ''
   - '&6Boutique &8» &f{boutique}'
   - '&9Discord &8» &f{discord}'
-  - '&eVote &8» &f{vote}'
+  - '&ePense à voter ! &8» &f{vote}'
   - '&aplay.clickhunter.fr'
   - ''
 # Tri de haut en bas, puis colonne suivante : disposition native du client.

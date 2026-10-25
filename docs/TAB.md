@@ -2,7 +2,7 @@
 
 Configuration : `plugins/ClikerV2/affichage/tab.yml`. Redémarrer après modification. Le TAB est activé lors de cette mise à jour ; il peut ensuite être désactivé avec `displays.tab.enabled: false` dans `config.yml`.
 
-L’entête affiche ClickHunter en vert, le compteur réel du serveur et `play.clickhunter.fr`. Le pied affiche le Discord connu et invite à voter. Renseigner les véritables adresses de boutique et vote dans `liens.boutique` et `liens.vote` ; aucun domaine de boutique supposé n’est utilisé.
+L’entête affiche ClickHunter en vert, le compteur réel du serveur et `play.clickhunter.fr`. Le pied affiche le Discord connu et invite à voter. Boutique et vote pointent provisoirement vers `https://clickhunter.fr`, conformément au choix du propriétaire. Ces liens restent modifiables dans `liens.boutique` et `liens.vote`. Les anciens champs vides sont remplis une fois, sans écraser les liens personnalisés.
 
 La liste affiche le préfixe du grade, puis `Pseudo [Prestige romain - Niveau]`. Le prestige zéro est affiché `0`. Les préfixes LuckPerms existants sont conservés, avec les noms/couleurs de secours dans `grades`. Le groupe primaire LuckPerms ou les permissions `group.<nom>` déterminent le grade ; adapter `ordre-grades` aux noms réellement utilisés. Un op ou un joueur ayant `cliker.tab.staff` précède tous les autres. Par défaut : staff, admin, modérateur, modo, helper, Mini-VIP, VIP, VIP+, MVP, MVP+, Legend, Joueur. Les joueurs d’un même groupe sont classés par pseudo.
 

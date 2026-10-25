@@ -30,6 +30,13 @@ public final class TabListManager implements Listener {
         this.plugin = plugin;
         this.prestige = prestige;
         settings = new Settings(plugin, "affichage/tab.yml");
+        if (settings.yaml.getInt("liens.version", 0) < 1) {
+            for (String key : List.of("liens.boutique", "liens.vote"))
+                if (settings.yaml.getString(key, "").isBlank())
+                    settings.yaml.set(key, "https://clickhunter.fr");
+            settings.yaml.set("liens.version", 1);
+            settings.save();
+        }
         groups = List.copyOf(settings.yaml.getStringList("ordre-grades"));
     }
 
