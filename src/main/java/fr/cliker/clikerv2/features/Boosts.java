@@ -14,11 +14,13 @@ import java.util.*;
 
 public final class Boosts implements Listener {
     private final JavaPlugin plugin;
+    private final Settings palette;
     private final NamespacedKey kind, factor, seconds, speed;
     private BukkitTask task;
 
     public Boosts(JavaPlugin plugin) {
         this.plugin = plugin;
+        palette = new Settings(plugin, "boutiques/potions.yml");
         Bukkit.getServicesManager()
                 .register(Boosts.class, this, plugin, org.bukkit.plugin.ServicePriority.Normal);
         kind = new NamespacedKey(plugin, "boost_kind");
@@ -54,6 +56,8 @@ public final class Boosts implements Listener {
     private static String label(String type) {
         return switch (type) {
             case "coins" -> "ÉCUS";
+            case "gemmes" -> "GEMMES";
+            case "cendres" -> "CENDRES";
             case "degats" -> "DÉGÂTS";
             default -> type.toUpperCase(Locale.ROOT);
         };
@@ -67,8 +71,12 @@ public final class Boosts implements Listener {
                         base.amount(fr.cliker.clikerv2.economy.CurrencyType.ECUS)
                                 * multiplier(player, "coins")
                                 * (1 + Talismans.globalBonus(player, "richesse") / 100)),
-                base.amount(fr.cliker.clikerv2.economy.CurrencyType.GEMMES_SOMBRES),
-                base.amount(fr.cliker.clikerv2.economy.CurrencyType.CENDRES),
+                Math.round(
+                        base.amount(fr.cliker.clikerv2.economy.CurrencyType.GEMMES_SOMBRES)
+                                * multiplier(player, "gemmes")),
+                Math.round(
+                        base.amount(fr.cliker.clikerv2.economy.CurrencyType.CENDRES)
+                                * multiplier(player, "cendres")),
                 Math.round(
                         base.xp()
                                 * multiplier(player, "xp")
@@ -84,12 +92,75 @@ public final class Boosts implements Listener {
                         "Même effet : durée cumulée ; seul le multiplicateur le plus fort est"
                                 + " actif.");
         var m = i.getItemMeta();
+        ((org.bukkit.inventory.meta.PotionMeta) m).setColor(color(type));
         m.setMaxStackSize(64);
         m.getPersistentDataContainer().set(kind, PersistentDataType.STRING, type);
         m.getPersistentDataContainer().set(factor, PersistentDataType.INTEGER, value);
         m.getPersistentDataContainer().set(seconds, PersistentDataType.INTEGER, duration);
         i.setItemMeta(m);
         return i;
+    }
+
+    private Color color(String type) {
+        int fallback =
+                switch (type) {
+                    case "xp" -> 0x3498DB;
+                    case "gemmes" -> 0x8E44AD;
+                    case "coins" -> 0xF1C40F;
+                    case "degats" -> 0xE74C3C;
+                    case "vitesse" -> 0x1ABC9C;
+                    case "chance" -> 0x2ECC71;
+                    case "cendres" -> 0xE67E22;
+                    default -> 0xFFFFFF;
+                };
+        String value =
+                palette.yaml
+                        .getString("couleurs." + type, Integer.toHexString(fallback))
+                        .replace("#", "");
+        try {
+            if (!value.matches("[0-9a-fA-F]{6}")) return Color.fromRGB(fallback);
+            return Color.fromRGB(Integer.parseInt(value, 16));
+        } catch (IllegalArgumentException invalid) {
+            return Color.fromRGB(fallback);
+        }
+    }
+
+    public static ItemStack restyle(ItemStack item) {
+        var service = Bukkit.getServicesManager().load(Boosts.class);
+        if (service == null
+                || item == null
+                || item.getType() != Material.POTION
+                || !item.hasItemMeta()) return item;
+        var meta = (org.bukkit.inventory.meta.PotionMeta) item.getItemMeta();
+        String type =
+                meta.getPersistentDataContainer().get(service.kind, PersistentDataType.STRING);
+        if (type != null) {
+            Color color = service.color(type);
+            if (!color.equals(meta.getColor())) {
+                meta.setColor(color);
+                item.setItemMeta(meta);
+            }
+        }
+        return item;
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void open(org.bukkit.event.inventory.InventoryOpenEvent event) {
+        for (int i = 0; i < event.getInventory().getSize(); i++) {
+            var item = event.getInventory().getItem(i);
+            if (item != null && item.getType() == Material.POTION)
+                event.getInventory().setItem(i, restyle(item));
+        }
+    }
+
+    @EventHandler
+    public void join(org.bukkit.event.player.PlayerJoinEvent event) {
+        var p = event.getPlayer();
+        for (int i = 0; i < p.getInventory().getSize(); i++) {
+            var item = p.getInventory().getItem(i);
+            if (item != null && item.getType() == Material.POTION)
+                p.getInventory().setItem(i, restyle(item));
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -112,7 +183,8 @@ public final class Boosts implements Listener {
                 duration =
                         m.getPersistentDataContainer()
                                 .getOrDefault(seconds, PersistentDataType.INTEGER, 0);
-        if (!Set.of("chance", "coins", "xp", "vitesse", "degats").contains(type)
+        if (!Set.of("chance", "coins", "xp", "vitesse", "degats", "gemmes", "cendres")
+                        .contains(type)
                 || value < 2
                 || value > 4
                 || duration < 1

@@ -33,6 +33,28 @@ class FeatureMenusTest {
     }
 
     @Test
+    void eachPotionEffectHasItsOwnVanillaColor() {
+        var boosts = new Boosts(plugin);
+        try {
+            Set<org.bukkit.Color> colors = new HashSet<>();
+            for (String kind :
+                    List.of("xp", "gemmes", "coins", "degats", "vitesse", "chance", "cendres")) {
+                var meta =
+                        (org.bukkit.inventory.meta.PotionMeta)
+                                boosts.potion(kind, 2, 60).getItemMeta();
+                assertTrue(colors.add(meta.getColor()), "Distinct color for " + kind);
+            }
+            assertEquals(
+                    org.bukkit.Color.fromRGB(0x3498DB),
+                    ((org.bukkit.inventory.meta.PotionMeta)
+                                    boosts.potion("xp", 2, 60).getItemMeta())
+                            .getColor());
+        } finally {
+            boosts.shutdown();
+        }
+    }
+
+    @Test
     void guidesReturnToTheirOwnTableAndExposeActualEnchantmentLevelWeights() {
         var ench = new AtomicInteger();
         var reforges = new AtomicInteger();

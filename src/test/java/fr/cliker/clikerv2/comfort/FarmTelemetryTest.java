@@ -30,6 +30,17 @@ class FarmTelemetryTest {
     }
 
     @Test
+    void summaryCountsBossesAndConfirmedGainsForCurrentSession() {
+        telemetry.confirmedKill(player, MobTier.VACHE, false, Gains.of(50, 10, 2, 7), 0);
+        telemetry.confirmedKill(player, MobTier.VACHE, true, Gains.of(70, 20, 3, 11), 0);
+        String summary = telemetry.summary(player).toString();
+        assertTrue(summary.contains("dont boss : 1"));
+        assertTrue(summary.contains("120"));
+        assertTrue(summary.contains("18"));
+        assertTrue(summary.contains("Écus/min"));
+    }
+
+    @Test
     void gainsAreGrossConfirmedAmountsAndClickCounterSurvivesSessionCleanup() {
         telemetry.hit(player, UUID.randomUUID());
         telemetry.confirmedKill(player, MobTier.VACHE, false, Gains.of(50, 25, 2, 7), 0);

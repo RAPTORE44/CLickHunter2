@@ -25,6 +25,7 @@ public final class TabListManager implements Listener {
     private final List<String> groups;
     private final Map<UUID, Component> originalNames = new HashMap<>();
     private BukkitTask task;
+    private final long animationStarted = System.currentTimeMillis();
 
     public TabListManager(JavaPlugin plugin, PrestigeManager prestige) {
         this.plugin = plugin;
@@ -35,6 +36,25 @@ public final class TabListManager implements Listener {
                 if (settings.yaml.getString(key, "").isBlank())
                     settings.yaml.set(key, "https://clickhunter.fr");
             settings.yaml.set("liens.version", 1);
+            settings.save();
+        }
+        if (settings.yaml.getInt("animation.version", 0) < 1) {
+            var footer = new ArrayList<String>();
+            boolean replaced = false;
+            for (String line : settings.yaml.getStringList("pied")) {
+                if (line.contains("{boutique}")
+                        || line.contains("{discord}")
+                        || line.contains("{vote}")) {
+                    if (!replaced) {
+                        footer.add("{annonce}");
+                        replaced = true;
+                    }
+                } else footer.add(line);
+            }
+            if (!replaced) footer.add("{annonce}");
+            settings.yaml.set("pied", footer);
+            settings.yaml.set("animation.version", 1);
+            settings.yaml.set("animation.secondes-par-lien", 10);
             settings.save();
         }
         groups = List.copyOf(settings.yaml.getStringList("ordre-grades"));
@@ -105,16 +125,46 @@ public final class TabListManager implements Listener {
         String vote = settings.yaml.getString("liens.vote", "");
         return DailySettings.color(
                 String.join("\n", settings.yaml.getStringList(key))
+                        .replace("{annonce}", rotatingLink())
                         .replace("{connectes}", Integer.toString(Bukkit.getOnlinePlayers().size()))
                         .replace("{maximum}", Integer.toString(Bukkit.getMaxPlayers()))
                         .replace(
                                 "{discord}",
                                 settings.yaml.getString(
                                         "liens.discord", "https://discord.gg/WSwBwpnQTa"))
+                        .replace(
+                                "{site}",
+                                settings.yaml.getString("liens.site", "https://clickhunter.fr"))
                         .replace("{boutique}", shop.isBlank() ? "Lien à configurer" : shop)
                         .replace(
                                 "{vote}",
                                 vote.isBlank() ? "Pense à voter pour le serveur !" : vote));
+    }
+
+    static int rotatingIndex(long elapsedMillis, int seconds, int count) {
+        return count < 1
+                ? 0
+                : (int) (Math.max(0, elapsedMillis) / (Math.max(1, seconds) * 1000L) % count);
+    }
+
+    private String rotatingLink() {
+        List<String> messages = settings.yaml.getStringList("animation.messages");
+        if (messages.isEmpty())
+            messages =
+                    List.of(
+                            "&aSite &8» &f{site}",
+                            "&6Boutique &8» &f{boutique}",
+                            "&9Discord &8» &f{discord}",
+                            "&ePense à voter ! &8» &f{vote}");
+        long elapsed = System.currentTimeMillis() - animationStarted;
+        String[] colors = {"&a", "&b", "&e", "&d"};
+        return colors[(int) (Math.max(0, elapsed) / 1000 % colors.length)]
+                + "❯ "
+                + messages.get(
+                        rotatingIndex(
+                                elapsed,
+                                settings.yaml.getInt("animation.secondes-par-lien", 10),
+                                messages.size()));
     }
 
     public static String compactLevel(int level) {

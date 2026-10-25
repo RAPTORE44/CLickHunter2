@@ -1,0 +1,4 @@
+# Fournisseur principal : Holographic Displays, API 3, version compatible Paper 1.21.4.
+# Le secours natif maintient les affichages si le fournisseur est absent/incompatible.
+# false : aucun hologramme de remplacement ; installer le fournisseur pour afficher.
+secours-natif: true

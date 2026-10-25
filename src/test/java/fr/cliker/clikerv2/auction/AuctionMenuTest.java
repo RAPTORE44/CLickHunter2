@@ -58,6 +58,25 @@ class AuctionMenuTest {
     }
 
     @Test
+    void searchIgnoresAccentsAndFiltersUseRealItemCategories() {
+        var sword = new ItemStack(Material.DIAMOND_SWORD);
+        var meta = sword.getItemMeta();
+        meta.displayName(net.kyori.adventure.text.Component.text("Épée Étoilée"));
+        sword.setItemMeta(meta);
+        var listing =
+                new AuctionListing(
+                        "search",
+                        seller.getUniqueId(),
+                        seller.getName(),
+                        AuctionManager.serialize(sword),
+                        100,
+                        1);
+        assertTrue(AuctionMenu.matches(listing, "epee etoilee", "epees"));
+        assertFalse(AuctionMenu.matches(listing, "etoilee", "armures"));
+        assertFalse(AuctionMenu.matches(listing, "casque", "tous"));
+    }
+
+    @Test
     void sortingUsesPricesDatesNamesAndActualRarityWithoutRenamedItemSpoofing() {
         var a = new ItemStack(Material.STONE);
         var meta = a.getItemMeta();

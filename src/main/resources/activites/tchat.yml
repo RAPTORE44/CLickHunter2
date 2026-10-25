@@ -1,0 +1,53 @@
+# Tous les textes, délais et réponses des devinettes/pays sont modifiables ici.
+# Récompense : une lootbox DIVINE existante par manche, premier gagnant seulement.
+jeux:
+  actifs: true
+  intervalle-secondes: 300
+  duree-secondes: 45
+aides:
+  actives: true
+  intervalle-secondes: 180
+  messages:
+    - '&a/daily &f: réclame chaque jour ta récompense pour conserver ta série !'
+    - '&a/warp &f: gauche vers l’entrée, droite devant le boss d’une zone débloquée.'
+    - '&a/sac &f: clic droit sur un sac pour ranger ou déposer tes ressources avec aperçu.'
+    - '&a/ah rechercher <nom> &f: trouve un objet puis enregistre ta recherche avec l’étoile.'
+    - '&a/session &f: consulte ta durée de jeu et tes gains de chasse confirmés.'
+    - '&a/avantposte visites &f: découvre les terrains publics et ajoute tes favoris.'
+    - '&a/sell &f: gauche vend une essence, droite vend la pile cliquée.'
+    - '&a/jeutchat &f: réponds dans le chat ; le premier gagnant reçoit une lootbox divine !'
+messages:
+  debut: '&d&l[Jeu] &f{question} &7({secondes} s) &ePremier gagnant : 1 lootbox divine !'
+  gagnant: '&d[Jeu] &a{joueur} &fa trouvé &e{reponse}&f et remporte &d1 lootbox divine&f !'
+  expire: '&d[Jeu] &7Temps écoulé ! Une réponse acceptée était : &f{reponse}&7.'
+questions:
+  devinette:
+    - question: 'Je suis vert, j’explose et je crains les chats. Qui suis-je ?'
+      reponses: [creeper, creepers]
+    - question: 'Je transporte un coffre et glisse sur des rails. Qui suis-je ?'
+      reponses: ['wagonnet à coffre', 'wagonnet avec coffre', 'minecart coffre', 'chest minecart']
+    - question: 'Je suis une pierre rouge qui alimente les mécanismes. Qui suis-je ?'
+      reponses: [redstone, 'poudre de redstone']
+    - question: 'On me fabrique avec neuf lingots de fer. Quel bloc suis-je ?'
+      reponses: ['bloc de fer', 'iron block']
+    - question: 'Je protège des chutes quand on me remplit d’eau et qu’on me pose au bon moment. Quel objet suis-je ?'
+      reponses: ['seau', 'seau d’eau', 'water bucket']
+    - question: 'Je suis un minerai bleu utilisé pour enchanter. Qui suis-je ?'
+      reponses: ['lapis lazuli', 'lapis-lazuli', lapis]
+  pays:
+    - question: 'Quelle langue est principalement parlée au Brésil ?'
+      reponses: [portugais, portuguese]
+    - question: 'Donne une langue officielle du Canada.'
+      reponses: [français, anglais, french, english]
+    - question: 'Donne une langue officielle de la Suisse.'
+      reponses: [allemand, français, italien, romanche, german, french, italian, romansh]
+    - question: 'Donne une langue officielle de la Belgique.'
+      reponses: [néerlandais, français, allemand, dutch, french, german]
+    - question: 'Quelle langue est principalement parlée au Japon ?'
+      reponses: [japonais, japanese]
+    - question: 'Quelle langue est principalement parlée en Allemagne ?'
+      reponses: [allemand, german]
+    - question: 'Quelle langue est principalement parlée en Argentine ?'
+      reponses: [espagnol, spanish]
+    - question: 'Donne une langue officielle du Luxembourg.'
+      reponses: [luxembourgeois, français, allemand, luxembourgish, french, german]

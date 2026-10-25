@@ -116,3 +116,24 @@ boutons:
     description: ['&7Construis, agrandis et invite tes amis.', '&eClique pour ouvrir.']
     commande: avantposte
     permission: cliker.avantposte
+
+  session:
+    slot: 30
+    materiau: CLOCK
+    nom: '&bRésumé de session'
+    description: ['&7Durée, éliminations et gains de chasse confirmés.']
+    commande: session
+    permission: cliker.session
+  warp:
+    slot: 29
+    materiau: COMPASS
+    nom: '&aVoyager et découvrir'
+    description: ['&7Aperçu des zones déjà débloquées.']
+    commande: warp
+    permission: cliker.navigation.use
+  talismans:
+    slot: 32
+    materiau: NAUTILUS_SHELL
+    nom: '&dTalismans et bonus actifs'
+    description: ['&7Collection, découvertes et effets de tes sacs.']
+    commande: tallisement

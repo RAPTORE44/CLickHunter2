@@ -13,9 +13,7 @@ entete:
   - ''
 pied:
   - ''
-  - '&6Boutique &8» &f{boutique}'
-  - '&9Discord &8» &f{discord}'
-  - '&ePense à voter ! &8» &f{vote}'
+  - '{annonce}'
   - '&aplay.clickhunter.fr'
   - ''
 # Tri de haut en bas, puis colonne suivante : disposition native du client.
@@ -37,3 +35,12 @@ grades:
 # 1–10 : une couleur par niveau ; 11–100 : par dizaine ; 101–1000 : par centaine.
 # Au-delà de 1000 : dernière couleur, format 1k, 1.2k, 5.5k, 99k...
 couleurs-niveau: ['&7', '&f', '&a', '&2', '&b', '&3', '&9', '&d', '&5', '&6']
+
+animation:
+  version: 1
+  secondes-par-lien: 10
+  messages:
+    - '&aSite &8» &f{site}'
+    - '&6Boutique &8» &f{boutique}'
+    - '&9Discord &8» &f{discord}'
+    - '&ePense à voter ! &8» &f{vote}'

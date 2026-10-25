@@ -27,6 +27,7 @@ import java.util.function.Consumer;
 
 public final class OutpostModule implements Listener, CommandExecutor, TabCompleter {
     private final JavaPlugin plugin;
+    private final fr.cliker.clikerv2.features.Menus visitMenus;
     private final OutpostStore store;
     private final ClaimService claims;
     private final YamlConfiguration config;
@@ -47,6 +48,7 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
 
     public OutpostModule(JavaPlugin plugin, DatabaseManager db, ClaimService claims) {
         this.plugin = plugin;
+        visitMenus = new fr.cliker.clikerv2.features.Menus(plugin);
         database = db;
         this.store = new OutpostStore(db);
         this.claims = claims;
@@ -191,6 +193,12 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
 
     private void visit(Player player, OutpostStore.Plot plot) {
         if (!player.isOnline()) return;
+        if (config.getBoolean("visites-privees." + plot.owner(), false)
+                && !plot.owner().equals(player.getUniqueId())
+                && !trusted.getOrDefault(plot.owner(), Set.of()).contains(player.getUniqueId())) {
+            player.sendMessage("Cet avant-poste est privé.");
+            return;
+        }
         if (player.getWorld() != world)
             returns.put(player.getUniqueId(), player.getLocation().clone());
         Location destination = safeHome(plot);
@@ -214,6 +222,91 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
         player.setWorldBorder(border);
     }
 
+    private void publicPlots(Player player, int requested, boolean favoritesOnly) {
+        var available =
+                plots.values().stream()
+                        .filter(p -> !config.getBoolean("visites-privees." + p.owner(), false))
+                        .filter(p -> !favoritesOnly || favorite(player, p.owner()))
+                        .sorted(
+                                java.util.Comparator.comparing(
+                                                (OutpostStore.Plot plot) -> !featured(plot))
+                                        .thenComparing(
+                                                OutpostStore.Plot::name,
+                                                String.CASE_INSENSITIVE_ORDER))
+                        .toList();
+        int page = Math.max(0, Math.min(requested, Math.max(0, (available.size() - 1) / 45)));
+        var menus = visitMenus;
+        var view =
+                menus.create(
+                        player,
+                        54,
+                        favoritesOnly ? "Avant-postes favoris" : "Visiter un avant-poste");
+        for (int i = 0; i < 45 && page * 45 + i < available.size(); i++) {
+            var plot = available.get(page * 45 + i);
+            view.put(
+                    i,
+                    fr.cliker.clikerv2.features.Menus.item(
+                            Material.GRASS_BLOCK,
+                            plot.name(),
+                            featured(plot)
+                                    ? "★ Avant-poste à l’honneur cette semaine"
+                                    : "Terrain public",
+                            "Surface : " + (radius(plot) * 2 + 1) + " × " + (radius(plot) * 2 + 1),
+                            favorite(player, plot.owner())
+                                    ? "★ Dans tes favoris"
+                                    : "Pas encore en favori",
+                            "Gauche : visiter | Droite : ajouter/retirer des favoris"),
+                    (who, right) -> {
+                        if (right) {
+                            setFavorite(who, plot.owner(), !favorite(who, plot.owner()));
+                            publicPlots(who, page, favoritesOnly);
+                        } else if (plots.containsKey(plot.owner()))
+                            visit(who, plots.get(plot.owner()));
+                    });
+        }
+        if (available.isEmpty())
+            view.put(
+                    22,
+                    fr.cliker.clikerv2.features.Menus.item(
+                            Material.PAPER, "Aucun terrain public dans cette liste"),
+                    null);
+        view.put(
+                45,
+                fr.cliker.clikerv2.features.Menus.item(Material.ARROW, "Page précédente"),
+                (who, r) -> publicPlots(who, page - 1, favoritesOnly));
+        view.put(
+                49,
+                fr.cliker.clikerv2.features.Menus.item(
+                        Material.NETHER_STAR,
+                        favoritesOnly ? "Tous les avant-postes" : "Mes favoris"),
+                (who, r) -> publicPlots(who, 0, !favoritesOnly));
+        view.put(
+                53,
+                fr.cliker.clikerv2.features.Menus.item(Material.ARROW, "Page suivante"),
+                (who, r) -> publicPlots(who, page + 1, favoritesOnly));
+        view.show(player);
+    }
+
+    private boolean featured(OutpostStore.Plot plot) {
+        return plot.owner().toString().equals(config.getString("visites.vedette", ""))
+                && config.getLong("visites.vedette-fin-ms", 0) > System.currentTimeMillis();
+    }
+
+    private boolean favorite(Player p, UUID owner) {
+        return p.getPersistentDataContainer()
+                .has(
+                        new org.bukkit.NamespacedKey(plugin, "plot_fav_" + owner),
+                        org.bukkit.persistence.PersistentDataType.BYTE);
+    }
+
+    private void setFavorite(Player p, UUID owner, boolean enabled) {
+        var key = new org.bukkit.NamespacedKey(plugin, "plot_fav_" + owner);
+        if (enabled)
+            p.getPersistentDataContainer()
+                    .set(key, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
+        else p.getPersistentDataContainer().remove(key);
+    }
+
     private void menu(Player player) {
         var plot = plots.get(player.getUniqueId());
         var view =
@@ -222,6 +315,10 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
                         "&2Mon avant-poste",
                         27,
                         slot -> {
+                            if (slot == 13) {
+                                publicPlots(player, 0, false);
+                                return;
+                            }
                             if (slot == 11) {
                                 player.closeInventory();
                                 player.performCommand("avantposte aller");
@@ -258,6 +355,13 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
                 lore.add("&eClique pour acheter l'extension.");
             } else lore.add("&aTaille maximale atteinte.");
         }
+        view.getInventory()
+                .setItem(
+                        13,
+                        HuntUI.item(
+                                Material.COMPASS,
+                                "&bVisiter les avant-postes",
+                                List.of("&7Terrains publics et favoris.")));
         view.getInventory()
                 .setItem(15, HuntUI.item(Material.GOLD_INGOT, "&6Agrandir mon terrain", lore));
         view.getInventory()
@@ -324,6 +428,80 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
                         if (player.isOnline())
                             lines.forEach(line -> player.sendMessage(DailySettings.color(line)));
                     });
+            return true;
+        }
+        if (sub.equals("vedette")) {
+            if (!player.hasPermission("cliker.services.admin")) {
+                player.sendMessage("Permission administrateur requise.");
+                return true;
+            }
+            if (args.length != 2) {
+                player.sendMessage("/avantposte vedette <pseudo|retirer>");
+                return true;
+            }
+            var selected =
+                    plots.values().stream()
+                            .filter(plot -> plot.name().equalsIgnoreCase(args[1]))
+                            .findFirst()
+                            .orElse(null);
+            if (!args[1].equalsIgnoreCase("retirer")
+                    && (selected == null
+                            || config.getBoolean("visites-privees." + selected.owner(), false))) {
+                player.sendMessage("Choisis un avant-poste public existant.");
+                return true;
+            }
+            String previous = config.getString("visites.vedette", "");
+            long previousEnd = config.getLong("visites.vedette-fin-ms", 0);
+            config.set("visites.vedette", selected == null ? "" : selected.owner().toString());
+            config.set(
+                    "visites.vedette-fin-ms",
+                    selected == null ? 0 : System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000);
+            try {
+                config.save(fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "avantpostes.yml"));
+            } catch (java.io.IOException error) {
+                config.set("visites.vedette", previous);
+                config.set("visites.vedette-fin-ms", previousEnd);
+                player.sendMessage("Sauvegarde impossible : mise en avant annulée.");
+                return true;
+            }
+            player.sendMessage(
+                    selected == null
+                            ? "Mise en avant retirée."
+                            : "Avant-poste à l’honneur pour sept jours : " + selected.name());
+            return true;
+        }
+        if (sub.equals("visites") || sub.equals("favoris")) {
+            publicPlots(player, 0, sub.equals("favoris"));
+            return true;
+        }
+        if (sub.equals("public") || sub.equals("prive")) {
+            if (!plots.containsKey(player.getUniqueId())) {
+                message(player, "absent");
+                return true;
+            }
+            Object previousPrivacy = config.get("visites-privees." + player.getUniqueId());
+            config.set("visites-privees." + player.getUniqueId(), sub.equals("prive"));
+            try {
+                config.save(fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "avantpostes.yml"));
+            } catch (java.io.IOException error) {
+                config.set("visites-privees." + player.getUniqueId(), previousPrivacy);
+                player.sendMessage("Sauvegarde impossible : confidentialité inchangée.");
+                return true;
+            }
+            player.sendMessage(
+                    sub.equals("prive")
+                            ? "Avant-poste privé : seuls toi et tes joueurs de confiance pouvez"
+                                    + " visiter."
+                            : "Avant-poste ouvert aux visites publiques.");
+            if (sub.equals("prive"))
+                for (var visitor : new ArrayList<>(world.getPlayers()))
+                    if (!visitor.getUniqueId().equals(player.getUniqueId())
+                            && !trusted.getOrDefault(player.getUniqueId(), Set.of())
+                                    .contains(visitor.getUniqueId())
+                            && viewing.get(visitor.getUniqueId()) != null
+                            && viewing.get(visitor.getUniqueId())
+                                    .owner()
+                                    .equals(player.getUniqueId())) leave(visitor);
             return true;
         }
         if (sub.equals("visite") && args.length == 2) {
@@ -429,6 +607,13 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
             if (plot == null) plot = at(player.getLocation());
             if (plot == null) plot = plots.get(player.getUniqueId());
             if (plot == null) {
+                leave(player);
+                continue;
+            }
+            if (config.getBoolean("visites-privees." + plot.owner(), false)
+                    && !plot.owner().equals(player.getUniqueId())
+                    && !trusted.getOrDefault(plot.owner(), Set.of())
+                            .contains(player.getUniqueId())) {
                 leave(player);
                 continue;
             }
@@ -634,6 +819,11 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
                             "aller",
                             "agrandir",
                             "visite",
+                            "vedette",
+                            "visites",
+                            "favoris",
+                            "public",
+                            "prive",
                             "ajouter",
                             "retirer",
                             "top",

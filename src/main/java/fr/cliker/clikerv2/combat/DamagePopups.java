@@ -28,6 +28,7 @@ public final class DamagePopups implements Listener {
     }
 
     private final DisplayFactory displayFactory;
+    private boolean shared;
     private final JavaPlugin plugin;
     private final boolean enabled;
     private final int duration, maximum, perPlayer;
@@ -53,6 +54,7 @@ public final class DamagePopups implements Listener {
                     owner.showEntity(plugin, display);
                     return display;
                 });
+        shared = true;
     }
 
     DamagePopups(JavaPlugin plugin, DisplayFactory displayFactory) {
@@ -113,23 +115,37 @@ public final class DamagePopups implements Listener {
                                 soft ? 0 : randomOffset(),
                                 victim.getHeight() + verticalOffset,
                                 soft ? 0 : randomOffset());
-        TextDisplay stand =
-                displayFactory.spawn(
-                        player,
-                        origin,
-                        entity -> {
-                            entity.setGravity(false);
-                            entity.setInvulnerable(true);
-                            entity.setPersistent(false);
-                            entity.setBillboard(Display.Billboard.CENTER);
-                            entity.setShadowed(true);
-                            entity.setDefaultBackground(false);
-                            entity.setTeleportDuration(1);
-                            entity.text(
-                                    DailySettings.color(
-                                            text.replace("{degats}", Numbers.compact(damage))));
-                        });
-        popups.put(stand.getUniqueId(), new Popup(owner, stand, origin));
+        var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
+        if (shared && provider != null && !provider.available()) return;
+        if (shared && provider != null && provider.available()) {
+            UUID id = UUID.randomUUID();
+            var handle =
+                    provider.create(
+                            "damage:" + id,
+                            origin,
+                            java.util.List.of(text.replace("{degats}", Numbers.compact(damage))),
+                            player,
+                            false);
+            popups.put(id, new Popup(owner, null, handle, origin));
+        } else {
+            TextDisplay stand =
+                    displayFactory.spawn(
+                            player,
+                            origin,
+                            entity -> {
+                                entity.setGravity(false);
+                                entity.setInvulnerable(true);
+                                entity.setPersistent(false);
+                                entity.setBillboard(Display.Billboard.CENTER);
+                                entity.setShadowed(true);
+                                entity.setDefaultBackground(false);
+                                entity.setTeleportDuration(1);
+                                entity.text(
+                                        DailySettings.color(
+                                                text.replace("{degats}", Numbers.compact(damage))));
+                            });
+            popups.put(stand.getUniqueId(), new Popup(owner, stand, null, origin));
+        }
         if (task == null)
             task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 1L, 1L);
     }
@@ -142,19 +158,19 @@ public final class DamagePopups implements Listener {
         var iterator = popups.values().iterator();
         while (iterator.hasNext()) {
             Popup popup = iterator.next();
-            if (!popup.stand.isValid() || ++popup.age > duration) {
-                popup.stand.remove();
+            if (!popup.valid() || ++popup.age > duration) {
+                popup.remove();
                 iterator.remove();
                 continue;
             }
-            popup.stand.teleport(popup.origin.clone().add(0, rise * popup.age / duration, 0));
+            popup.move(popup.origin.clone().add(0, rise * popup.age / duration, 0));
         }
         stopIfIdle();
     }
 
     private void remove(UUID id) {
         Popup popup = popups.remove(id);
-        if (popup != null) popup.stand.remove();
+        if (popup != null) popup.remove();
     }
 
     private void stopIfIdle() {
@@ -188,10 +204,30 @@ public final class DamagePopups implements Listener {
     private static final class Popup {
         private final UUID owner;
         private final TextDisplay stand;
+        private final fr.cliker.clikerv2.hologram.SharedHolograms.Handle hologram;
         private final Location origin;
         private int age;
 
-        private Popup(UUID owner, TextDisplay stand, Location origin) {
+        private boolean valid() {
+            return hologram != null ? hologram.isValid() : stand.isValid();
+        }
+
+        private void remove() {
+            if (hologram != null) hologram.remove();
+            else stand.remove();
+        }
+
+        private void move(Location at) {
+            if (hologram != null) hologram.setLocation(at);
+            else stand.teleport(at);
+        }
+
+        private Popup(
+                UUID owner,
+                TextDisplay stand,
+                fr.cliker.clikerv2.hologram.SharedHolograms.Handle hologram,
+                Location origin) {
+            this.hologram = hologram;
             this.owner = owner;
             this.stand = stand;
             this.origin = origin.clone();

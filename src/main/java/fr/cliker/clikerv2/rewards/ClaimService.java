@@ -84,7 +84,8 @@ public final class ClaimService implements Listener, CommandExecutor {
         try {
             YamlConfiguration c = new YamlConfiguration();
             c.loadFromString(payload);
-            return Objects.requireNonNull(c.getItemStack("item"));
+            return fr.cliker.clikerv2.features.Boosts.restyle(
+                    Objects.requireNonNull(c.getItemStack("item")));
         } catch (Exception e) {
             throw new IllegalArgumentException("Objet sauvegardé invalide", e);
         }
@@ -143,6 +144,16 @@ public final class ClaimService implements Listener, CommandExecutor {
         } else enqueue(owner, remaining);
     }
 
+    private static int capacity(ItemStack[] storage, ItemStack reward) {
+        long available = 0;
+        for (var item : storage) {
+            if (item == null || item.getType().isAir()) available += reward.getMaxStackSize();
+            else if (item.isSimilar(reward))
+                available += Math.max(0, Math.min(64, item.getMaxStackSize()) - item.getAmount());
+        }
+        return (int) Math.min(reward.getAmount(), available);
+    }
+
     private void enqueue(UUID owner, ItemStack item) {
         int remaining = item.getAmount();
         while (remaining > 0) {
@@ -165,8 +176,10 @@ public final class ClaimService implements Listener, CommandExecutor {
                                                                             + owner,
                                                                     error);
                                                     if (player != null) message(player, "erreur");
-                                                } else if (player != null)
-                                                    message(player, "attente");
+                                                } else if (player != null) {
+                                                    if (!busy.contains(owner))
+                                                        notifyAndDeliver(owner);
+                                                }
                                             }));
         }
     }
@@ -183,8 +196,80 @@ public final class ClaimService implements Listener, CommandExecutor {
                                             if (!player.isOnline()
                                                     || error != null
                                                     || page.entries().isEmpty()) return;
+                                            if (busy.contains(owner)) return;
+                                            for (var entry : page.entries()) {
+                                                try {
+                                                    if (hasReceipt(player, entry.id())
+                                                            || plan(
+                                                                            player.getInventory()
+                                                                                    .getStorageContents(),
+                                                                            deserialize(
+                                                                                    entry
+                                                                                            .payload()),
+                                                                            entry.id())
+                                                                    != null) {
+                                                        deliver(player, entry.id(), true);
+                                                        return;
+                                                    }
+                                                } catch (RuntimeException invalid) {
+                                                    plugin.getLogger()
+                                                            .log(
+                                                                    Level.WARNING,
+                                                                    "Objet /claim illisible"
+                                                                            + " conservé : "
+                                                                            + entry.id(),
+                                                                    invalid);
+                                                }
+                                            }
+                                            for (var entry : page.entries())
+                                                try {
+                                                    ItemStack item = deserialize(entry.payload());
+                                                    int fits =
+                                                            capacity(
+                                                                    player.getInventory()
+                                                                            .getStorageContents(),
+                                                                    item);
+                                                    if (fits > 0 && fits < item.getAmount()) {
+                                                        ItemStack part = item.clone(),
+                                                                overflow = item.clone();
+                                                        part.setAmount(fits);
+                                                        overflow.setAmount(item.getAmount() - fits);
+                                                        store.split(
+                                                                        owner,
+                                                                        entry.id(),
+                                                                        entry.payload(),
+                                                                        serialize(part),
+                                                                        serialize(overflow))
+                                                                .whenComplete(
+                                                                        (split, failure) ->
+                                                                                sync(
+                                                                                        () -> {
+                                                                                            if (failure
+                                                                                                    != null) {
+                                                                                                plugin.getLogger()
+                                                                                                        .log(
+                                                                                                                Level
+                                                                                                                        .SEVERE,
+                                                                                                                "Fractionnement"
+                                                                                                                    + " de livraison"
+                                                                                                                    + " impossible",
+                                                                                                                failure);
+                                                                                                message(
+                                                                                                        player,
+                                                                                                        "erreur");
+                                                                                            } else if (Boolean
+                                                                                                    .TRUE
+                                                                                                    .equals(
+                                                                                                            split))
+                                                                                                notifyAndDeliver(
+                                                                                                        owner);
+                                                                                        }));
+                                                        return;
+                                                    }
+                                                } catch (RuntimeException invalid) {
+                                                    /* Entrée déjà signalée ci-dessus et conservée. */
+                                                }
                                             message(player, "attente");
-                                            deliver(player, page.entries().getFirst().id(), true);
                                         }));
     }
 
@@ -302,11 +387,6 @@ public final class ClaimService implements Listener, CommandExecutor {
         if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
         UUID owner = player.getUniqueId();
         Inventory currentView = player.getOpenInventory().getTopInventory();
-        if (automatic
-                && currentView != null
-                && !(currentView.getHolder() instanceof Holder)
-                && currentView.getType() != InventoryType.CRAFTING
-                && currentView.getType() != InventoryType.PLAYER) return;
         if (!busy.add(owner)) {
             if (!automatic) message(player, "traitement");
             return;

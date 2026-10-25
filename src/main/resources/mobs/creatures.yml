@@ -104,6 +104,7 @@ creatures:
     xp: 11
   magma_slime:
     nom: 'Magma Slime'
+    taille: 2 # 1 petit, 2 moyen, 4 grand
     pv: 500000
     prix-vente: 600
     degats-piece: 40000
@@ -131,6 +132,7 @@ creatures:
     xp: 14
   ghast:
     nom: 'Ghast'
+    echelle: 0.5 # 2 blocs environ, au lieu des 4 blocs vanilla
     pv: 5000000
     prix-vente: 750
     degats-piece: 400000

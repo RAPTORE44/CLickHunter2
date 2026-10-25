@@ -104,6 +104,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.discord.DiscordModule discordModule;
     private MoneyScoreboard scoreboard;
     private TabListManager tabListManager;
+    private fr.cliker.clikerv2.hologram.SharedHolograms sharedHolograms;
     private fr.cliker.clikerv2.ui.MainMenu mainMenu;
     private fr.cliker.clikerv2.daily.DailyModule dailyModule;
     private fr.cliker.clikerv2.buyzone.BuyZoneModule buyZoneModule;
@@ -117,6 +118,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
 
     @Override
     public void onEnable() {
+        sharedHolograms = new fr.cliker.clikerv2.hologram.SharedHolograms(this);
         saveDefaultConfig();
         try {
             fr.cliker.clikerv2.features.CreatureSettings.initialize(this);
@@ -232,7 +234,9 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         getServer().getPluginManager().registerEvents(bagManager, this);
         bagMenu = new BagMenu(this, bagManager);
         getServer().getPluginManager().registerEvents(bagMenu, this);
-        setExecutor("sac", new BagCommand(bagMenu));
+        BagCommand bagCommand = new BagCommand(bagMenu);
+        setExecutor("sac", bagCommand);
+        getCommand("sac").setTabCompleter(bagCommand);
         bagManager.loadOnlinePlayers();
         TalismanCommand talismanCommand = new TalismanCommand(this);
         setExecutor("talisman", talismanCommand);
@@ -289,6 +293,36 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             getCommand("mobspawn").setTabCompleter(mobSpawnCommand);
         }
         bossEventManager = new BossEventManager(this, mobManager);
+        setExecutor(
+                "respawnmobs",
+                (sender, cmd, label, args) -> {
+                    if (!sender.hasPermission("cliker.mob.admin")) {
+                        sender.sendMessage("Permission administrateur requise.");
+                        return true;
+                    }
+                    sender.sendMessage(
+                            "Réapparition de "
+                                    + mobManager.respawnAllMobs()
+                                    + " mobs placés en cours.");
+                    return true;
+                });
+        setExecutor(
+                "spawnboss",
+                (sender, cmd, label, args) -> {
+                    if (!sender.hasPermission("cliker.mob.admin")) {
+                        sender.sendMessage("Permission administrateur requise.");
+                        return true;
+                    }
+                    if (mobManager.bossSpawnIds().isEmpty()) {
+                        sender.sendMessage("Aucun point de boss configuré.");
+                        return true;
+                    }
+                    bossEventManager.spawnNow();
+                    sender.sendMessage(
+                            "Vague de boss de zone lancée ; prochaine vague recalée sur"
+                                    + " l’intervalle configuré.");
+                    return true;
+                });
         getServer().getPluginManager().registerEvents(bossEventManager, this);
         bossEventManager.start();
 
@@ -388,7 +422,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             getCommand("holotop").setTabCompleter(hologramCommand);
         }
         if (!hologramManager.isAvailable())
-            getLogger().warning("DecentHolograms introuvable : /holotop desactive.");
+            getLogger().warning("Fournisseur d’hologrammes indisponible : /holotop désactivé.");
         bossEventManager.setHologramManager(hologramManager);
 
         AuctionStore auctionStore = new AuctionStore(database);
@@ -584,6 +618,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         if (gearAttributeManager != null) gearAttributeManager.shutdown();
         if (mobManager != null) mobManager.shutdown();
         if (claims != null) claims.shutdown();
+        if (sharedHolograms != null) sharedHolograms.shutdown();
         if (database != null) database.close();
     }
 

@@ -30,7 +30,8 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
     private final NamespacedKey wand, boss, egg;
     private final Map<String, String> bagBlocks = new HashMap<>();
     private final Map<String, String> upgradeBlocks = new HashMap<>();
-    private final Map<String, org.bukkit.entity.TextDisplay> shortcutHolos = new HashMap<>();
+    private final Map<String, fr.cliker.clikerv2.hologram.SharedHolograms.Handle> shortcutHolos =
+            new HashMap<>();
     private org.bukkit.scheduler.BukkitTask holoTask;
     private final Map<UUID, Long> useTimes = new HashMap<>();
 
@@ -85,6 +86,35 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
 
     public void open(Player p) {
         if (!p.hasPermission("cliker.navigation.use")) return;
+        var service = Bukkit.getServicesManager().load(Talismans.class);
+        if (service == null) {
+            renderWarp(p, Set.of());
+            return;
+        }
+        var previous = p.getOpenInventory().getTopInventory();
+        p.sendActionBar(net.kyori.adventure.text.Component.text("Chargement des destinations…"));
+        service.discoveries(p)
+                .whenComplete(
+                        (known, error) ->
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (!fr.cliker.clikerv2.runtime.PlayerSessions
+                                                            .isCurrent(p)
+                                                    || p.getOpenInventory().getTopInventory()
+                                                            != previous) return;
+                                            if (error != null) {
+                                                p.sendMessage(
+                                                        "Destinations indisponibles. Réessaie dans"
+                                                                + " un instant.");
+                                                return;
+                                            }
+                                            renderWarp(p, known);
+                                        }));
+    }
+
+    private void renderWarp(Player p, Set<String> known) {
+        if (!p.hasPermission("cliker.navigation.use")) return;
         var view = menus.create(p, 54, "Voyager — ClickHunter");
         for (var t : MobTier.values()) {
             boolean unlocked = access(p, t);
@@ -100,7 +130,51 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                             unlocked
                                     ? "Gauche : début de zone | Droite : devant le boss"
                                     : "Débloque cette zone pour voyager.",
-                            "Un point non configuré reste inaccessible."),
+                            "Un point non configuré reste inaccessible.",
+                            unlocked
+                                    ? "PV de base : "
+                                            + fr.cliker.clikerv2.Numbers.compact(
+                                                    Math.round(t.maxHealth()))
+                                    : "",
+                            unlocked
+                                    ? "Écus de base : "
+                                            + fr.cliker.clikerv2.Numbers.compact(
+                                                    (long)
+                                                            CreatureSettings.value(
+                                                                    t,
+                                                                    "ecus",
+                                                                    10L * (t.ordinal() + 1)))
+                                    : "",
+                            unlocked
+                                    ? "Gemmes de base : "
+                                            + fr.cliker.clikerv2.economy.CurrencyType.GEMMES_SOMBRES
+                                                    .format(
+                                                            (long)
+                                                                    CreatureSettings.value(
+                                                                            t,
+                                                                            "gemmes-dixiemes",
+                                                                            t.ordinal() + 1))
+                                    : "",
+                            unlocked
+                                    ? "XP de base : "
+                                            + fr.cliker.clikerv2.Numbers.compact(
+                                                    (long)
+                                                            CreatureSettings.value(
+                                                                    t, "xp", t.ordinal() + 1))
+                                    : "",
+                            unlocked
+                                    ? "Ressources : essences communes, peu communes et rares."
+                                    : "",
+                            unlocked
+                                    ? "Talismans manquants (créature/boss) : "
+                                            + ((known.contains("mob:" + t.id()) ? 0 : 1)
+                                                    + (known.contains("boss:" + t.id()) ? 0 : 1))
+                                            + " / 2"
+                                    : "",
+                            unlocked
+                                    ? "Consulte /bestiaire et /tallisement pour les découvertes"
+                                            + " manquantes."
+                                    : ""),
                     (player, right) -> {
                         if (!access(player, t)) {
                             player.sendMessage("Zone verrouillée.");
@@ -297,6 +371,16 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                 return;
             }
         }
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(p)
+                && (upgradeBlocks.containsKey(
+                                fr.cliker.clikerv2.station.StationStore.idFor(e.getClickedBlock()))
+                        || bagBlocks.containsKey(
+                                fr.cliker.clikerv2.station.StationStore.idFor(
+                                        e.getClickedBlock())))) {
+            e.setCancelled(true);
+            p.sendMessage("Reviens au /spawn pour utiliser ce raccourci clicker.");
+            return;
+        }
         if (upgradeBlocks.containsKey(
                 fr.cliker.clikerv2.station.StationStore.idFor(e.getClickedBlock()))) {
             e.setCancelled(true);
@@ -470,36 +554,24 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                 wanted.add(id);
                 var old = shortcutHolos.get(id);
                 if (old != null && old.isValid()) continue;
+                var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
+                if (provider == null || !provider.available()) continue;
                 var display =
-                        at.getWorld()
-                                .spawn(
-                                        at.clone().add(.5, 1.6, .5),
-                                        org.bukkit.entity.TextDisplay.class,
-                                        entity -> {
-                                            entity.setPersistent(false);
-                                            entity.setBillboard(
-                                                    org.bukkit.entity.Display.Billboard.CENTER);
-                                            entity.setSeeThrough(false);
-                                            entity.text(
-                                                    net.kyori.adventure.text.serializer.legacy
-                                                            .LegacyComponentSerializer
-                                                            .legacyAmpersand()
-                                                            .deserialize(
-                                                                    settings.yaml.getString(
-                                                                            "hologrammes."
-                                                                                    + section,
-                                                                            section.equals("sacs")
-                                                                                    ? "&a&lSacs\n"
-                                                                                          + "&fClic"
-                                                                                          + " droit"
-                                                                                          + " pour"
-                                                                                          + " ouvrir"
-                                                                                    : "&a&lAméliorations\n"
-                                                                                          + "&fClic"
-                                                                                          + " droit"
-                                                                                          + " pour"
-                                                                                          + " ouvrir")));
-                                        });
+                        provider.create(
+                                "shortcut:" + id,
+                                at.clone().add(.5, 1.6, .5),
+                                java.util.Arrays.asList(
+                                        settings.yaml
+                                                .getString(
+                                                        "hologrammes." + section,
+                                                        section.equals("sacs")
+                                                                ? "&a&lSacs\n"
+                                                                        + "&fClic droit pour ouvrir"
+                                                                : "&a&lAméliorations\n"
+                                                                      + "&fClic droit pour ouvrir")
+                                                .split("\n")),
+                                null,
+                                false);
                 shortcutHolos.put(id, display);
             }
         }
@@ -515,7 +587,7 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
 
     public void shutdown() {
         if (holoTask != null) holoTask.cancel();
-        shortcutHolos.values().forEach(org.bukkit.entity.Entity::remove);
+        shortcutHolos.values().forEach(fr.cliker.clikerv2.hologram.SharedHolograms.Handle::remove);
         shortcutHolos.clear();
         HandlerList.unregisterAll(this);
     }

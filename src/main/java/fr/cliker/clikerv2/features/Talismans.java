@@ -143,6 +143,75 @@ public final class Talismans implements Listener, CommandExecutor {
         return i;
     }
 
+    private String activeStatus(Player p, String id) {
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(p))
+            return "Bonus suspendus dans l’avant-poste.";
+        if (!bags.isLoaded(p.getUniqueId())) return "Chargement des sacs en cours.";
+        String[] parts = id.split(":");
+        if (parts[0].equals("general")) {
+            int active = bags.generalTier(p.getUniqueId(), parts[1]);
+            if (active == Integer.parseInt(parts[2]))
+                return "ACTIF : meilleur tier de cette famille dans tes sacs.";
+            if (active > Integer.parseInt(parts[2]))
+                return "INACTIF : un tier supérieur est actif dans tes sacs.";
+            return "INACTIF : place ce talisman dans un /sac.";
+        }
+        boolean active =
+                parts[0].equals("boss")
+                        ? bags.hasBossTalisman(p.getUniqueId(), MobTier.parse(parts[1]))
+                        : bags.mobDamageBonusPercent(p.getUniqueId(), MobTier.parse(parts[1])) > 0;
+        return active
+                ? "ACTIF : bonus fourni par tes sacs."
+                : "INACTIF : place ce talisman dans un /sac.";
+    }
+
+    private void activeBonuses(Player p) {
+        var view = menus.create(p, 54, "Talismans — Bonus actifs");
+        int slot = 0;
+        for (String kind : List.of("lame", "richesse", "sagesse", "fortune", "vitalite")) {
+            int tier = bags.generalTier(p.getUniqueId(), kind);
+            view.put(
+                    slot++,
+                    Menus.item(
+                            Material.NAUTILUS_SHELL,
+                            kind + " — Tier " + tier,
+                            "Bonus : +"
+                                    + power(kind, tier)
+                                    + (kind.equals("vitalite") ? " PV" : " %"),
+                            "Source : meilleur tier dans les sacs ; exemplaires non cumulés.",
+                            fr.cliker.clikerv2.outpost.WorldInventories.isolated(p)
+                                    ? "SUSPENDU dans l’avant-poste."
+                                    : "Bonus applicable dans le monde clicker."),
+                    null);
+        }
+        for (var mob : MobTier.values()) {
+            double value = bags.mobDamageBonusPercent(p.getUniqueId(), mob);
+            boolean boss = bags.hasBossTalisman(p.getUniqueId(), mob);
+            if (value > 0 || boss)
+                view.put(
+                        slot++,
+                        Menus.item(
+                                Material.NAUTILUS_SHELL,
+                                mob.label(),
+                                "Créature : +" + value + " % de dégâts",
+                                "Boss associé : +" + (boss ? bossPower(mob) : 0) + " % de dégâts",
+                                "Source : talismans dans les sacs."),
+                        null);
+        }
+        if (bags.hasTreasureTalisman(p.getUniqueId()))
+            view.put(
+                    slot++,
+                    Menus.item(
+                            Material.GOLD_INGOT,
+                            "Talisman du trésor",
+                            "Actif dans les sacs : +100 Écus, +1 Gemme, +25 XP de base par"
+                                    + " élimination."),
+                    null);
+        view.put(
+                49, Menus.item(Material.ARROW, "Retour à la collection"), (who, r) -> open(who, 0));
+        view.show(p);
+    }
+
     private double chance(String path, double fallback) {
         double value = settings.yaml.getDouble(path, fallback);
         return Double.isFinite(value) && value >= 0 && value <= 100 ? value : fallback;
@@ -248,6 +317,38 @@ public final class Talismans implements Listener, CommandExecutor {
                         "(boss:[a-z_]+|general:(lame|richesse|sagesse|fortune|vitalite):[1-5])"))
             return id;
         return null;
+    }
+
+    public CompletableFuture<Set<String>> discoveries(Player player) {
+        var owned = new HashSet<String>();
+        for (var item : player.getInventory().getContents()) {
+            String value = id(item);
+            if (value != null) owned.add(value);
+        }
+        if (bags.isLoaded(player.getUniqueId()))
+            for (int bag = 0; bag < BagManager.MAX_CAPACITY; bag++)
+                for (var item : bags.contents(player.getUniqueId(), bag)) {
+                    String value = id(item);
+                    if (value != null) owned.add(value);
+                }
+        UUID owner = player.getUniqueId();
+        return ready.thenCompose(
+                ignored ->
+                        db.submit(
+                                connection -> {
+                                    try (var statement =
+                                            connection.prepareStatement(
+                                                    "SELECT id FROM talisman_collection WHERE"
+                                                            + " owner=?")) {
+                                        statement.setString(1, owner.toString());
+                                        try (var result = statement.executeQuery()) {
+                                            while (result.next()) owned.add(result.getString(1));
+                                        }
+                                        return Set.copyOf(owned);
+                                    } catch (SQLException error) {
+                                        throw new DatabaseManager.DatabaseException(error);
+                                    }
+                                }));
     }
 
     private void open(Player p, int page) {
@@ -415,6 +516,21 @@ public final class Talismans implements Listener, CommandExecutor {
                                                                                       + " pour"
                                                                                       + " découvrir"
                                                                                       + " son bonus.");
+                                                if (known) {
+                                                    var meta = item.getItemMeta();
+                                                    var lore =
+                                                            new ArrayList<
+                                                                    net.kyori.adventure.text
+                                                                            .Component>(
+                                                                    meta.lore() == null
+                                                                            ? List.of()
+                                                                            : meta.lore());
+                                                    lore.add(
+                                                            net.kyori.adventure.text.Component.text(
+                                                                    activeStatus(p, id)));
+                                                    meta.lore(lore);
+                                                    item.setItemMeta(meta);
+                                                }
                                                 v.put(i, item, null);
                                             }
                                             v.put(
@@ -451,6 +567,12 @@ public final class Talismans implements Listener, CommandExecutor {
                                                                 Material.ARROW,
                                                                 "Mes talismans débloqués"),
                                                         (who, r) -> open(who, 0));
+                                            v.put(
+                                                    48,
+                                                    Menus.item(
+                                                            Material.NAUTILUS_SHELL,
+                                                            "Mes bonus actifs"),
+                                                    (who, r) -> activeBonuses(who));
                                             if (ids.isEmpty())
                                                 v.put(
                                                         22,

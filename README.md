@@ -16,7 +16,7 @@ Plugin unique pour Paper 1.21.4 : économie SQLite et commandes de gestion des m
 - Java 21 ou plus récent
 - ZNPCsPlus **2.0.0** pour les PNJ et leurs boutiques
 - ItemsAdder optionnel pour les icônes `icons:*` déjà installées
-- DecentHolograms optionnel pour les classements holographiques
+- Holographic Displays **API 3**, avec une version du fournisseur compatible Paper 1.21.4, pour les hologrammes demandés ; secours natif configurable si indisponible.
 
 ## Commandes par catégorie
 
@@ -38,6 +38,7 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | --- | --- |
 | `/daily` | Ouvrir le calendrier et réclamer la récompense disponible. |
 | `/claim` | Récupérer les récompenses en objets mises en attente. |
+| `/sac gestion` | Aperçu puis confirmation du tri ou du dépôt des ressources dans le premier sac ; clic droit sur un autre sac pour le gérer. |
 | `/sac` | Ouvrir les sacs personnels accessibles selon le rang du joueur. |
 
 ### Combat et progression
@@ -68,6 +69,8 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | `/sell` | Sur la pile cliquée : gauche vend 1 essence, droite vend cette pile uniquement. |
 | `/ah` | Ouvrir l'hôtel des ventes. |
 | `/ah vendre <prix>` / `/ah sell <prix>` | Confirmer la vente de l’objet tenu ; frais non remboursables de 1 % à la publication, annonce chat optionnelle pour 5 % supplémentaires. |
+| `/ah rechercher <nom>` | Rechercher sans accents, avec filtres de catégorie et tri conservé pendant la pagination. |
+| `/ah favoris` | Consulter ses dix recherches favorites au maximum ; l’étoile ajoute/retire la recherche courante. |
 | `/ah mesannonces` | Consulter ses annonces ; `mylistings` reste accepté. |
 | `/enchant` | Ouvrir la table d'enchantement, payée en Écus. |
 | `/reforge` | Ouvrir la reforge, payée en Gemmes Sombres. |
@@ -87,6 +90,8 @@ L'autocompresseur s'achète chez le marchand puis s'active par clic droit : l'ob
 | `/boss` | Rejoindre l’arène publique du boss serveur, accessible à tous. |
 | `/boss quitter` | Revenir de l’arène publique. |
 | `/progression` | Afficher pendant dix secondes la progression dans les zones configurées. |
+| `/jeutchat` | Voir le jeu de chat en cours et son délai ; répondre dans le chat pour gagner une lootbox divine. |
+| `/session` | Consulter la durée, les éliminations et les gains de chasse confirmés, avec rendement par minute. |
 | `/settings` | Régler les textes de dégâts, les effets doux, le son de compression et les messages de farm ; alias `/parametres`. |
 | `/antidrop` | Basculer directement entre autoriser et bloquer le jet d’objets et la vente AH des équipements protégés, jusqu’à la déconnexion. |
 | `/ramassage <autoriser\|bloquer>` | Autoriser ou bloquer le ramassage au sol jusqu’à la déconnexion. Les récompenses directes du plugin restent livrées. |
@@ -111,6 +116,9 @@ Toutes ces commandes acceptent aussi `/is` et `/avantpostes` à la place de `/av
 | `/avantposte` | Ouvrir le menu du terrain personnel. |
 | `/avantposte aller` | Créer ou rejoindre son terrain. |
 | `/avantposte agrandir` | Acheter l'extension suivante. |
+| `/avantposte visites` | Parcourir les avant-postes publics ; gauche visite, droite ajoute ou retire un favori. |
+| `/avantposte favoris` | Retrouver les terrains favoris encore publics. |
+| `/avantposte public` / `/avantposte prive` | Ouvrir les visites à tous ou les réserver au propriétaire et aux joueurs de confiance. |
 | `/avantposte visite <pseudo>` | Visiter un terrain existant. |
 | `/avantposte ajouter <pseudo>` | Autoriser un joueur connu à construire et à utiliser les coffres. |
 | `/avantposte retirer <pseudo>` | Retirer cette autorisation. |
@@ -121,10 +129,15 @@ Toutes ces commandes acceptent aussi `/is` et `/avantpostes` à la place de `/av
 
 ### Administration : monde, zones et PNJ
 
-Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCsPlus 2.0.0 est nécessaire pour les PNJ ; DecentHolograms est nécessaire pour `/holotop`.
+Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCsPlus 2.0.0 est nécessaire pour les PNJ. Les hologrammes utilisent Holographic Displays API 3 ou le secours natif configuré.
 
 | Commande | Utilité | Permission |
 | --- | --- | --- |
+| `/respawnmobs` | Faire réapparaître tous les mobs placés, sans les boss ni les invocations temporaires ; alias `/mobsrespawn`. | `cliker.mob.admin` |
+| `/spawnboss` | Lancer une vague de tous les boss de zone, avec annonce globale ; alias `/bossrespawn`. | `cliker.mob.admin` |
+| `/jeutchat lancer [calcul\|devinette\|pays]` / `/jeutchat stop` | Lancer ou interrompre une manche de jeu de chat. | `cliker.jeutchat.admin` |
+| `/diagnostic` | Vérifier SQLite, livraisons, mobs manquants, PNJ, hologrammes et destinations absentes ; lecture seule, résultats paginés. | `cliker.diagnostic.admin` |
+| `/avantposte vedette <pseudo>` / `/avantposte vedette retirer` | Mettre un terrain public à l’honneur pendant sept jours ou retirer sa mise en avant. | `cliker.services.admin` |
 | `/gm [0\|1\|2\|3] [joueur]` | Changer de mode ; sans argument, basculer entre survie et créatif. Modes : 0 survie, 1 créatif, 2 aventure, 3 spectateur. | `cliker.gamemode.admin` |
 | `/setspawn` | Définir le point d'accueil à la position actuelle. | `cliker.spawn.admin` |
 | `/buyzone spawn <zone>` | Placer un portail d'achat pour une zone configurée. | `cliker.buyzone.admin` |
@@ -200,8 +213,8 @@ précédents. Les anciennes permissions `.8` et `.9` donnent accès aux sept sac
 Les noms des permissions ne sont pas affichés dans le menu. Affecter ces
 permissions aux groupes correspondants dans le gestionnaire de permissions.
 
-Le contenu est sauvegardé dans SQLite à la fermeture du coffre, à la déconnexion
-et à l'arrêt du plugin. Les objets de l'ancien sac sont automatiquement repris
+Le contenu est sauvegardé avec l’inventaire dans un snapshot binaire du playerdata, puis copié dans SQLite à la fermeture du coffre, à la déconnexion
+et à l’arrêt du plugin. Sauvegarder et restaurer ces données ensemble. Les objets de l'ancien sac sont automatiquement repris
 dans le premier coffre ; les talismans stockés conservent leurs bonus.
 
 Vérifications automatisées : `mvn test`.
@@ -274,3 +287,15 @@ Les PNJ suivent par défaut le joueur le plus proche ; `pnj.regard: FIXED` conse
 Le TAB affiche ClickHunter en vert, le nombre de connectés, `play.clickhunter.fr`, le Discord et une invitation à voter. Boutique et vote utilisent provisoirement `https://clickhunter.fr`, modifiable dans `affichage/tab.yml`. Les anciens liens vides sont complétés une fois, sans remplacer les liens personnalisés. Les staff sont en premier, puis Mini-VIP, VIP, VIP+, MVP, MVP+, Legend, Joueur. Ordre et noms de groupes LuckPerms sont configurables (`group.<nom>` en remplacement). La permission `cliker.tab.staff` force le classement staff. Le pseudo précède `[Prestige romain - niveau]` ; prestige nul affiché 0. Couleurs par niveau de 1 à 10, par dizaine jusqu’à 100, par centaine jusqu’à 1000 ; niveaux élevés abrégés en `1.2k`, `5.5k`, `99k`. Les colonnes dépendent du nombre de joueurs et de la taille du client Minecraft, sans fausses entrées. `/settings` conserve le masquage des joueurs. Aucune commande supplémentaire ni dépendance supplémentaire.
 
 Les vagues de boss de zone annoncent à tout le serveur « Tous les boss de zone ont réapparu ! ». À chaque mort d’un boss de zone, le chat indique son nom et le joueur ayant porté le coup fatal. Sans joueur responsable, l’environnement est indiqué. Messages et activation sont configurables dans `activites/boss-zones.yml`, section `annonces` ; les anciennes configurations utilisent automatiquement ces textes par défaut.
+
+### Améliorations UX et fournisseur d’hologrammes
+
+Potions colorées par effet (`boutiques/potions.yml`), achats et drops remis directement dans l’inventaire avec le surplus dans `/claim`, gestion des sacs avec aperçu, favoris AH, visites publiques, détail des bonus actifs des talismans et aperçu des zones débloquées. Les nouveaux boutons Session, Warp et Talismans sont ajoutés au menu principal sans écraser les boutons personnalisés.
+
+Les hologrammes de ClikerV2 passent par l’API 3 d’Holographic Displays, avec secours natif configurable dans `affichage/hologrammes.yml`. Un JAR du fournisseur compatible Paper 1.21.4 reste nécessaire pour valider son rendu réel ; la version Minecraft seule n’identifie pas ce JAR. Les hologrammes créés par les autres plugins ne sont pas modifiés.
+
+Instructions, sauvegardes et limites : [améliorations UX et hologrammes](docs/AMELIORATIONS-UX.md).
+
+Le pied du TAB alterne Site, Boutique, Discord et Vote toutes les dix secondes, avec un indicateur coloré animé (`affichage/tab.yml`, section `animation`). Les aides et jeux de chat sont réglables dans `activites/tchat.yml` : calculs, devinettes Minecraft et langues parlées dans différents pays. Le premier gagnant reçoit une seule lootbox divine via la livraison sécurisée ; inventaire plein ou avant-poste, elle attend dans `/claim`.
+
+Les magma cubes utilisent la taille moyenne 2 et les ghasts une échelle 0,5 par défaut, configurables dans `mobs/creatures.yml`. `/spawnboss` concerne les boss de zone ; le boss public du serveur conserve son seuil de kills. Une vague manuelle recale la prochaine vague automatique selon l’intervalle configuré.

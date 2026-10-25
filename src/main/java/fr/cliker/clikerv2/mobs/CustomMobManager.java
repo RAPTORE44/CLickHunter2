@@ -153,7 +153,22 @@ public final class CustomMobManager implements Listener {
             if (!at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4)) continue;
             UUID tracked = aliveBySpawnId.get(id);
             Entity current = tracked == null ? null : plugin.getServer().getEntity(tracked);
-            if (current != null && current.isValid() && !current.isDead()) continue;
+            if (current instanceof LivingEntity living && current.isValid() && !current.isDead()) {
+                var tier = MobTier.parse(spawnMobId.get(id));
+                if (tier != null) {
+                    long max =
+                            bossSpawnIds.contains(id)
+                                    ? bossHealth(tier)
+                                    : Math.round(tier.maxHealth());
+                    updateNameplate(
+                            living,
+                            tier,
+                            currentHealth.getOrDefault(id, max),
+                            max,
+                            bossSpawnIds.contains(id));
+                }
+                continue;
+            }
             LivingEntity found = null;
             for (Entity entity : at.getChunk().getEntities()) {
                 if (entity instanceof LivingEntity living
@@ -271,6 +286,14 @@ public final class CustomMobManager implements Listener {
      * par-dessus -> doublons qui s'accumulent à chaque cycle de 15 min (observé : ~96 zones ->
      * plusieurs milliers de mobs après quelques heures).
      */
+    public int respawnAllMobs() {
+        resetAll();
+        return (int)
+                spawnLocation.keySet().stream()
+                        .filter(id -> !bossSpawnIds.contains(id) && !oneShotSpawns.contains(id))
+                        .count();
+    }
+
     private void resetAll() {
         for (Location location : spawnLocation.values())
             location.getWorld().getChunkAt(location).load();
@@ -279,7 +302,8 @@ public final class CustomMobManager implements Listener {
                 plugin,
                 () -> {
                     for (String spawnId : new ArrayList<>(aliveBySpawnId.keySet())) {
-                        if (!bossSpawnIds.contains(spawnId)) despawn(spawnId);
+                        if (!bossSpawnIds.contains(spawnId) && !oneShotSpawns.contains(spawnId))
+                            despawn(spawnId);
                     }
                     for (Map.Entry<String, BukkitTask> entry :
                             new HashMap<>(pendingRespawns).entrySet()) {
@@ -292,14 +316,17 @@ public final class CustomMobManager implements Listener {
                             String spawnId =
                                     entity.getPersistentDataContainer()
                                             .get(spawnIdKey, PersistentDataType.STRING);
-                            if (spawnId != null && bossSpawnIds.contains(spawnId)) continue;
+                            if (spawnId != null
+                                    && (bossSpawnIds.contains(spawnId)
+                                            || oneShotSpawns.contains(spawnId))) continue;
                             if (entity.getPersistentDataContainer()
                                     .has(mobIdKey, PersistentDataType.STRING)) entity.remove();
                         }
                     }
                     int resetCount = 0;
                     for (String spawnId : spawnLocation.keySet()) {
-                        if (bossSpawnIds.contains(spawnId)) continue;
+                        if (bossSpawnIds.contains(spawnId) || oneShotSpawns.contains(spawnId))
+                            continue;
                         spawn(spawnId);
                         resetCount++;
                     }
@@ -390,6 +417,28 @@ public final class CustomMobManager implements Listener {
                 .findFirst();
     }
 
+    public List<String> diagnostic() {
+        int waiting = 0, missing = 0, active = 0;
+        for (var entry : spawnLocation.entrySet()) {
+            if (oneShotSpawns.contains(entry.getKey())) continue;
+            var at = entry.getValue();
+            if (!at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4)) {
+                waiting++;
+                continue;
+            }
+            var uuid = aliveBySpawnId.get(entry.getKey());
+            var entity = uuid == null ? null : plugin.getServer().getEntity(uuid);
+            if (entity != null && entity.isValid() && !entity.isDead()) active++;
+            else if (!pendingRespawns.containsKey(entry.getKey())
+                    && !(bossSpawnIds.contains(entry.getKey()) && uuid == null)) missing++;
+        }
+        return List.of(
+                "Mobs actifs dans les chunks chargés : " + active,
+                "Points dans les chunks non chargés : " + waiting,
+                "Mobs manquants à rétablir : " + missing,
+                "Réapparitions en attente : " + pendingRespawns.size());
+    }
+
     public int countSpawns(String mobId) {
         return spawnIdsByMob.getOrDefault(mobId, List.of()).size();
     }
@@ -403,10 +452,25 @@ public final class CustomMobManager implements Listener {
      * BossEventManager toutes les 30 min.
      */
     public void triggerBossWave() {
-        for (String spawnId : new HashSet<>(bossSpawnIds)) {
-            despawn(spawnId);
-            spawn(spawnId);
+        for (String id : new HashSet<>(bossSpawnIds)) {
+            Location at = spawnLocation.get(id);
+            if (at != null) at.getChunk().load();
         }
+        fr.cliker.clikerv2.runtime.ServerTasks.run(
+                plugin,
+                () -> {
+                    for (String id : new HashSet<>(bossSpawnIds)) {
+                        Location at = spawnLocation.get(id);
+                        if (at == null) continue;
+                        despawn(id);
+                        for (Entity entity : at.getChunk().getEntities())
+                            if (id.equals(
+                                    entity.getPersistentDataContainer()
+                                            .get(spawnIdKey, PersistentDataType.STRING)))
+                                entity.remove();
+                        spawn(id);
+                    }
+                });
     }
 
     private void removeSpawnById(String mobId, String id) {
@@ -425,6 +489,8 @@ public final class CustomMobManager implements Listener {
     }
 
     private void despawn(String spawnId) {
+        var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
+        if (provider != null) provider.remove("mob:" + spawnId);
         UUID uuid = aliveBySpawnId.remove(spawnId);
         currentHealth.remove(spawnId);
         if (uuid == null) return;
@@ -444,6 +510,26 @@ public final class CustomMobManager implements Listener {
         location.setYaw(boss ? 270 : 0);
         location.setPitch(0);
         LivingEntity entity = (LivingEntity) location.getWorld().spawnEntity(location, entityType);
+        if (entity instanceof org.bukkit.entity.MagmaCube cube)
+            cube.setSize(
+                    Math.max(
+                            1,
+                            Math.min(
+                                    4,
+                                    (int)
+                                            fr.cliker.clikerv2.features.CreatureSettings.value(
+                                                    tier, "taille", 2))));
+        if (entity instanceof org.bukkit.entity.Ghast) {
+            var scale = entity.getAttribute(Attribute.SCALE);
+            if (scale != null)
+                scale.setBaseValue(
+                        Math.max(
+                                .1,
+                                Math.min(
+                                        2,
+                                        fr.cliker.clikerv2.features.CreatureSettings.value(
+                                                tier, "echelle", .5))));
+        }
         entity.setPersistent(!oneShotSpawns.contains(spawnId));
         entity.setRemoveWhenFarAway(false);
         entity.setGravity(false);
@@ -478,6 +564,20 @@ public final class CustomMobManager implements Listener {
                         .replace("{pv}", Numbers.compact(Math.max(0, hp)))
                         .replace("{pv-max}", Numbers.compact(maxHp));
         entity.customName(fr.cliker.clikerv2.daily.DailySettings.color(line));
+        var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
+        if (provider != null && provider.available()) {
+            entity.setCustomNameVisible(false);
+            String spawnId =
+                    entity.getPersistentDataContainer().get(spawnIdKey, PersistentDataType.STRING);
+            var hologram = provider.get("mob:" + spawnId);
+            var at = entity.getLocation().add(0, entity.getHeight() + .5, 0);
+            if (hologram == null || !hologram.isValid())
+                provider.create("mob:" + spawnId, at, List.of(line), null, false);
+            else {
+                hologram.setLocation(at);
+                hologram.setLines(List.of(line));
+            }
+        }
     }
 
     /**
@@ -736,6 +836,8 @@ public final class CustomMobManager implements Listener {
         aliveBySpawnId.remove(spawnId, victim.getUniqueId());
         currentHealth.remove(spawnId);
 
+        var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
+        if (provider != null) provider.remove("mob:" + spawnId);
         boolean boss = bossSpawnIds.remove(spawnId);
 
         var combatTelemetry =
@@ -940,8 +1042,18 @@ public final class CustomMobManager implements Listener {
                                                                 bagManager.generalTier(
                                                                         uuid, "richesse"))
                                                         / 100))),
-                Math.max(0, gemmesReward),
-                Math.max(0, cendresReward),
+                Math.max(
+                        0,
+                        Math.round(
+                                gemmesReward
+                                        * fr.cliker.clikerv2.features.Boosts.multiplier(
+                                                killer, "gemmes"))),
+                Math.max(
+                        0,
+                        Math.round(
+                                cendresReward
+                                        * fr.cliker.clikerv2.features.Boosts.multiplier(
+                                                killer, "cendres"))),
                 Math.max(
                         0,
                         Math.round(
@@ -975,18 +1087,30 @@ public final class CustomMobManager implements Listener {
 
         long ecusReward = ((long) random.nextInt(1000, 5001) * index) / gainDivisor;
         long gemmesReward = ((long) random.nextInt(10, 21) * index) / gainDivisor;
+        var bonus =
+                fr.cliker.clikerv2.features.Boosts.rewards(
+                        killer,
+                        fr.cliker.clikerv2.hunting.Gains.of(ecusReward, gemmesReward * 10, 0, 0));
         killer.showTitle(
                 net.kyori.adventure.title.Title.title(
                         Component.text(
                                 "⚔ Golem vaincu ! ⚔", NamedTextColor.DARK_RED, TextDecoration.BOLD),
                         Component.text(
                                 "+"
-                                        + Numbers.compact(ecusReward)
+                                        + fr.cliker.clikerv2.economy.CurrencyType.ECUS.format(
+                                                bonus.amount(
+                                                        fr.cliker.clikerv2.economy.CurrencyType
+                                                                .ECUS))
                                         + " Écus · +"
-                                        + Numbers.compact(gemmesReward)
+                                        + fr.cliker.clikerv2.economy.CurrencyType.GEMMES_SOMBRES
+                                                .format(
+                                                        bonus.amount(
+                                                                fr.cliker.clikerv2.economy
+                                                                        .CurrencyType
+                                                                        .GEMMES_SOMBRES))
                                         + " Gemmes",
                                 NamedTextColor.GOLD)));
-        return fr.cliker.clikerv2.hunting.Gains.of(ecusReward, gemmesReward * 10, 0, 0);
+        return bonus;
     }
 
     private void giveItem(Player player, ItemStack item) {

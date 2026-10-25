@@ -37,6 +37,16 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
         this.boosts = boosts;
         this.zones = zones;
         shop = new Settings(p, "boutiques/catalogues.yml");
+        boolean added = false;
+        for (String type : List.of("gemmes", "cendres"))
+            for (int minutes : new int[] {1, 5, 20}) {
+                String path = "shop.potions." + type + ".x2." + minutes;
+                if (!shop.yaml.contains(path)) {
+                    shop.yaml.set(path, 4_000_000L * minutes);
+                    added = true;
+                }
+            }
+        if (added) shop.save();
         for (String id : List.of("ah", "blackmarket", "shop")) {
             var settings = new Settings(p, "pnj/" + id + ".yml");
             configs.put(id, settings);
@@ -163,7 +173,8 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
             index++;
         }
         for (var offer : list) plain.mark(offer.item);
-        for (String type : List.of("chance", "coins", "xp", "vitesse", "degats"))
+        for (String type :
+                List.of("chance", "coins", "xp", "vitesse", "degats", "gemmes", "cendres"))
             for (int factor :
                     type.equals("vitesse")
                             ? new int[] {2, 3, 4}
@@ -402,12 +413,6 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
                                                                                               + " insuffisants"
                                                                                               + " ou stock"
                                                                                               + " épuisé.");
-                                                                if (Boolean.TRUE.equals(ok)
-                                                                        && player.getOpenInventory()
-                                                                                        .getTopInventory()
-                                                                                == view
-                                                                                        .getInventory())
-                                                                    player.closeInventory();
                                                                 if (Boolean.TRUE.equals(ok))
                                                                     Bukkit.getServicesManager()
                                                                             .load(

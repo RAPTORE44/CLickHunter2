@@ -18,6 +18,7 @@ public final class ExpansionModule {
     private Boosts boosts;
     private ServiceNpcs npcs;
     private TravelAndTools travel;
+    private ChatActivities chat;
 
     public ExpansionModule(
             JavaPlugin p,
@@ -36,6 +37,8 @@ public final class ExpansionModule {
 
     public void start() {
         var menus = new Menus(plugin);
+        new AdminDiagnostic(plugin, db, mobs, menus);
+        chat = new ChatActivities(plugin);
         boosts = new Boosts(plugin);
         travel = new TravelAndTools(plugin, menus, zones, mobs);
         npcs = new ServiceNpcs(plugin, menus, db, boosts, zones);
@@ -44,6 +47,7 @@ public final class ExpansionModule {
     }
 
     public void shutdown() {
+        if (chat != null) chat.shutdown();
         if (raids != null) raids.shutdown();
         if (talismans != null) talismans.shutdown();
         if (npcs != null) npcs.shutdown();

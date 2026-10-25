@@ -1,0 +1,56 @@
+{
+  "tests": {
+    "tests": 240,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "native_checks": {
+    "ux-expanded": [
+      "/session : durée, gains de chasse et rendement affichés dans le menu",
+      "/diagnostic : SQLite, services et points de mobs consultables",
+      "/warp : gains et ressources visibles pour les zones débloquées",
+      "Talismans : bonus actifs, retour collection et catégories inconnues sans nom de mob",
+      "AH : recherche sans accents, favori sauvegardé et filtre Potions excluant les épées",
+      "Sacs : aperçu puis dépôt confirmé, inventaire vidé des seules ressources et objets présents dans le sac",
+      "Shop : catalogue de potions colorées incluant Gemmes et Cendres, achat livré sans /claim",
+      "Hologrammes : fournisseur commun chargé et rendu de secours natif visible en l’absence d’Holographic Displays"
+    ],
+    "ux-visits": [
+      "Diagnostic inaccessible au joueur non administrateur",
+      "Visites publiques : navigateur, favori et mise en avant de sept jours affichée en tête",
+      "Avant-poste privé : invité ramené, nouvelle visite refusée et terrain masqué du navigateur",
+      "Recherche favorite AH conservée après reconnexion et passage dans l’avant-poste",
+      "Contenu du sac conservé après redémarrage et inventaire d’avant-poste isolé"
+    ],
+    "ux-claim": [
+      "Achat AH avec inventaire plein : objet conservé dans /claim",
+      "Après libération d’une case : récupération unique de l’objet depuis /claim",
+      "Achat de 64 blocs avec place pour 4 : 4 livrés et seulement 60 dans /claim"
+    ],
+    "ux-chat-mobs": [
+      "TAB : texte du lien tournant changé après dix secondes",
+      "Calcul : premier gagnant récompensé avec une seule lootbox divine, réponses répétées sans double récompense",
+      "Magma cube : taille moyenne 2 confirmée (NBT Size 1)",
+      "Ghast : attribut scale 0.5 confirmé",
+      "/respawnmobs : anciennes entités remplacées et points sauvegardés conservés",
+      "/spawnboss : annonce globale et vagues répétées sans doublon"
+    ],
+    "ux-final-boot": [
+      "JAR final : démarrage, TAB animé, session, diagnostic SQLite et commande de jeu accessibles"
+    ]
+  },
+  "native_check_count": 23,
+  "paper": "1.21.4 build 232",
+  "java": "21.0.9",
+  "npc": "ZNPCsPlus 2.0.0",
+  "sqlite_quick_check": "ok",
+  "jar_sha256": "9776a845789656eb18c4100a12b40dc2263e13319019542122a86023223a3b20",
+  "holographic_displays_real_provider_tested": false,
+  "limits": [
+    "Essais natifs sur serveur local et joueurs synthétiques ; aucun déploiement sur le serveur utilisateur.",
+    "Holographic Displays réel absent : contrat de l’API 3 testé avec simulateur et secours natif vérifié sur Paper. Un JAR du fournisseur compatible 1.21.4 reste nécessaire pour valider son rendu.",
+    "Les scénarios détaillés précèdent la dernière protection contre une double suppression d’hologramme déjà retiré par son fournisseur. Cette protection est testée unitairement ; le JAR final a aussi été démarré et ses menus principaux contrôlés.",
+    "Aucun test de charge à grande échelle ni simulation d’une panne matérielle de disque ; rollback de transfert et reprise depuis snapshot joueur testés avec frontières de sauvegarde simulées."
+  ]
+}

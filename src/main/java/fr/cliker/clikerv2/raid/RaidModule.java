@@ -25,7 +25,10 @@ import java.sql.SQLException;
 import java.util.*;
 
 public final class RaidModule implements Listener, CommandExecutor, TabCompleter {
+    private org.bukkit.scheduler.BukkitTask hologramTask;
     private final JavaPlugin plugin;
+    private final Map<UUID, fr.cliker.clikerv2.hologram.SharedHolograms.Handle> raidHolos =
+            new HashMap<>();
     private final RewardLedger ledger;
     private final CustomMobManager combat;
     private final YamlConfiguration config;
@@ -156,6 +159,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         }
         Bukkit.getPluginManager().registerEvents(this, plugin);
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20, 40);
+        hologramTask = Bukkit.getScheduler().runTaskTimer(plugin, this::syncHolograms, 4, 4);
     }
 
     private Location spawn() {
@@ -209,6 +213,41 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                             .getSpawnLocation();
         p.teleport(target);
         bar.removePlayer(p);
+    }
+
+    private void syncHolograms() {
+        var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
+        if (provider == null || !provider.available()) return;
+        raidHolos
+                .entrySet()
+                .removeIf(
+                        entry -> {
+                            if (health.containsKey(entry.getKey())
+                                    && Bukkit.getEntity(entry.getKey()) != null) return false;
+                            entry.getValue().remove();
+                            return true;
+                        });
+        for (var entry : health.entrySet()) {
+            var entity = Bukkit.getEntity(entry.getKey());
+            if (!(entity instanceof LivingEntity living) || !entity.isValid() || entity.isDead())
+                continue;
+            var at = entity.getLocation().add(0, entity.getHeight() + .5, 0);
+            String label =
+                    (entry.getKey().equals(boss) ? "&4&lGardien colossal" : "&cPillard du raid")
+                            + " &7— &c"
+                            + fr.cliker.clikerv2.Numbers.compact(entry.getValue())
+                            + " PV";
+            var holo = raidHolos.get(entry.getKey());
+            if (holo == null || !holo.isValid())
+                raidHolos.put(
+                        entry.getKey(),
+                        provider.create("raid:" + entry.getKey(), at, List.of(label), null, false));
+            else {
+                holo.setLocation(at);
+                holo.setLines(List.of(label));
+            }
+            living.setCustomNameVisible(false);
+        }
     }
 
     private void tick() {
@@ -363,6 +402,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         }
         if (after > 0) return;
         health.remove(id);
+        var removedHolo = raidHolos.remove(id);
+        if (removedHolo != null) removedHolo.remove();
         e.getEntity().remove();
         if (id.equals(boss)) {
             UUID source = boss;
@@ -557,6 +598,9 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     }
 
     public void shutdown() {
+        if (hologramTask != null) hologramTask.cancel();
+        raidHolos.values().forEach(fr.cliker.clikerv2.hologram.SharedHolograms.Handle::remove);
+        raidHolos.clear();
         if (publicBoss && world != null)
             for (int x = -2; x < 2; x++)
                 for (int z = -2; z < 2; z++) world.removePluginChunkTicket(x, z, plugin);

@@ -11,3 +11,5 @@ La disposition en colonnes suit le client vanilla, de haut en bas puis vers la d
 Les niveaux 1 à 10 ont chacun une couleur, puis les couleurs progressent par dizaines jusqu’à 100 et par centaines jusqu’à 1000. Au-delà, la dernière couleur est utilisée. Les grands niveaux s’affichent en milliers, tronqués à une décimale : `1250 → 1.2k`, `1500 → 1.5k`, `5500 → 5.5k`, `99000 → 99k`. Palette modifiable dans `couleurs-niveau`.
 
 Rafraîchissement toutes les deux secondes par défaut (`actualisation-ticks`), avec niveaux et prestiges en mémoire, sans requête SQL ni modification des équipes du scoreboard. Aucun plugin TAB supplémentaire n’est nécessaire. Un autre plugin qui pilote également le TAB peut entrer en conflit ; choisir un seul gestionnaire.
+
+Le pied est désormais animé : `{annonce}` affiche à tour de rôle Site, Boutique, Discord et Vote pendant dix secondes chacun, avec un indicateur coloré. Les textes et le délai sont dans `animation` de `affichage/tab.yml`.

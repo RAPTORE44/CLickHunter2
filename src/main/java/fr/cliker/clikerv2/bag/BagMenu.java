@@ -31,13 +31,19 @@ public final class BagMenu implements Listener {
 
     private final JavaPlugin plugin;
     private final BagManager bagManager;
+    private final BagOrganizer organizer;
 
     public BagMenu(JavaPlugin plugin, BagManager bagManager) {
         this.plugin = plugin;
         this.bagManager = bagManager;
+        organizer = new BagOrganizer(plugin, bagManager);
     }
 
     public void open(Player player) {
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) {
+            player.sendMessage("Les sacs clicker sont accessibles au /spawn.");
+            return;
+        }
         // Fermer d'abord un coffre déjà ouvert pour enregistrer son contenu.
         player.closeInventory();
         if (!bagManager.isLoaded(player.getUniqueId())) {
@@ -70,7 +76,9 @@ public final class BagMenu implements Listener {
                                             : "Débloque ce rang pour accéder au sac.",
                                     NamedTextColor.GRAY),
                             text(
-                                    unlocked ? "Clique pour ouvrir" : "Accès verrouillé",
+                                    unlocked
+                                            ? "Gauche : ouvrir | Droite : gérer"
+                                            : "Accès verrouillé",
                                     unlocked ? NamedTextColor.GREEN : NamedTextColor.RED));
             inventory.setItem(
                     FIRST_BAG_SLOT + bag,
@@ -84,9 +92,14 @@ public final class BagMenu implements Listener {
         player.openInventory(inventory);
     }
 
+    public void manage(Player player) {
+        organizer.open(player, 0);
+    }
+
     private void openStorage(Player player, int bag) {
-        if (!bagManager.isLoaded(player.getUniqueId()) || bag >= bagManager.capacity(player))
-            return;
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)
+                || !bagManager.isLoaded(player.getUniqueId())
+                || bag >= bagManager.capacity(player)) return;
         Holder holder = new Holder(player.getUniqueId(), bag);
         Inventory inventory =
                 Bukkit.createInventory(
@@ -129,8 +142,10 @@ public final class BagMenu implements Listener {
                 plugin,
                 () -> {
                     if (player.isOnline()
-                            && player.getOpenInventory().getTopInventory() == holder.inventory)
-                        openStorage(player, bag);
+                            && player.getOpenInventory().getTopInventory() == holder.inventory) {
+                        if (event.isRightClick()) organizer.open(player, bag);
+                        else openStorage(player, bag);
+                    }
                 });
     }
 

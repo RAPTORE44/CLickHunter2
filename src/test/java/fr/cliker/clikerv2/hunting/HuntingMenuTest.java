@@ -54,7 +54,7 @@ class HuntingMenuTest {
                         new MobKillStore(db),
                         new PrestigeManager(plugin, new PrestigeStore(db), new MobKillStore(db)),
                         new CompressorManager(),
-                        new BagManager(plugin, new BagStore(db)));
+                        new BagManager(plugin, new BagStore(db), p -> {}));
         mobs.setHunting(store, ledger);
         module = new HuntingModule(plugin, store, ledger, mobs);
         new HuntUI(plugin);

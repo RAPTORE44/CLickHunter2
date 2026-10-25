@@ -16,6 +16,15 @@ class TabListManagerTest {
     }
 
     @Test
+    void rotatingLinksSwitchEveryTenSecondsAndLoop() {
+        assertEquals(0, TabListManager.rotatingIndex(0, 10, 4));
+        assertEquals(0, TabListManager.rotatingIndex(9999, 10, 4));
+        assertEquals(1, TabListManager.rotatingIndex(10000, 10, 4));
+        assertEquals(3, TabListManager.rotatingIndex(39999, 10, 4));
+        assertEquals(0, TabListManager.rotatingIndex(40000, 10, 4));
+    }
+
+    @Test
     void compactLevelsKeepBoundariesAndRequestedPrecision() {
         assertEquals("0", TabListManager.compactLevel(0));
         assertEquals("999", TabListManager.compactLevel(999));

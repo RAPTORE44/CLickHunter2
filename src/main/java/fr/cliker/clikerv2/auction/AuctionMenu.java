@@ -103,10 +103,113 @@ public final class AuctionMenu implements Listener {
     }
 
     private void openListings(Player player, boolean own, int requested, int sort) {
-        if (!player.hasPermission("cliker.ah.use")) return;
+        openListings(player, own, requested, sort, "", "tous");
+    }
+
+    static String normalizeSearch(String value) {
+        return java.text.Normalizer.normalize(
+                        value.toLowerCase(Locale.ROOT), java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .trim();
+    }
+
+    static String category(AuctionListing listing) {
+        var item = AuctionManager.deserialize(listing.itemYaml());
+        if (item == null) return "autres";
+        String material = item.getType().name();
+        if (material.endsWith("_SWORD")) return "epees";
+        if (material.matches(".*_(HELMET|CHESTPLATE|LEGGINGS|BOOTS)")) return "armures";
+        if (material.contains("POTION")) return "potions";
+        if (item.getItemMeta().getPersistentDataContainer().getKeys().stream()
+                .anyMatch(k -> k.getKey().equals("cliker_essence_tier"))) return "essences";
+        if (material.equals("NAUTILUS_SHELL")) return "talismans";
+        return "autres";
+    }
+
+    static boolean matches(AuctionListing listing, String query, String filter) {
+        return (filter.equals("tous") || filter.equals(category(listing)))
+                && normalizeSearch(itemName(listing) + " " + category(listing))
+                        .contains(normalizeSearch(query));
+    }
+
+    public void search(Player player, String query) {
+        if (query.length() > 48) {
+            player.sendMessage("Recherche limitée à 48 caractères.");
+            return;
+        }
+        openListings(player, false, 0, 0, query.trim(), "tous");
+    }
+
+    private List<String> favorites(Player player) {
+        String raw =
+                player.getPersistentDataContainer()
+                        .getOrDefault(
+                                new NamespacedKey(plugin, "ah_searches"),
+                                org.bukkit.persistence.PersistentDataType.STRING,
+                                "");
+        return new ArrayList<>(
+                raw.lines().filter(q -> !q.isBlank() && q.length() <= 48).limit(10).toList());
+    }
+
+    public void openFavorites(Player player) {
+        if (!player.hasPermission("cliker.ah.use")
+                || fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
+        var view = sortMenus.create(player, 27, "AH — Recherches favorites");
+        List<String> favorites = favorites(player);
+        for (int i = 0; i < favorites.size(); i++) {
+            String query = favorites.get(i);
+            view.put(
+                    9 + i,
+                    button(Material.PAPER, query, NamedTextColor.GOLD),
+                    (who, r) -> search(who, query));
+        }
+        if (favorites.isEmpty())
+            view.put(
+                    13,
+                    button(
+                            Material.PAPER,
+                            "Aucun favori — recherche puis clique sur l’étoile",
+                            NamedTextColor.GRAY),
+                    null);
+        view.put(
+                22,
+                button(Material.ARROW, "Retour", NamedTextColor.GREEN),
+                (who, r) -> openBrowse(who));
+        view.show(player);
+    }
+
+    private void filterMenu(Player player, Listings page) {
+        var view = sortMenus.create(player, 27, "AH — Catégories");
+        String[] categories = {
+            "tous", "epees", "armures", "potions", "essences", "talismans", "autres"
+        };
+        String[] labels = {
+            "Tous", "Épées", "Armures", "Potions", "Essences", "Talismans", "Autres"
+        };
+        for (int i = 0; i < categories.length; i++) {
+            String filter = categories[i];
+            view.put(
+                    10 + i,
+                    button(Material.BOOK, labels[i], NamedTextColor.AQUA),
+                    (who, r) -> openListings(who, page.own, 0, page.sort, page.query, filter));
+        }
+        view.put(
+                22,
+                button(Material.ARROW, "Retour", NamedTextColor.GREEN),
+                (who, r) ->
+                        openListings(
+                                who, page.own, page.page, page.sort, page.query, page.category));
+        view.show(player);
+    }
+
+    private void openListings(
+            Player player, boolean own, int requested, int sort, String query, String filter) {
+        if (!player.hasPermission("cliker.ah.use")
+                || fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
         var listings =
                 new ArrayList<>(
                         own ? manager.listingsOf(player.getUniqueId()) : manager.activeListings());
+        listings.removeIf(l -> !matches(l, query, filter));
         listings.sort(comparator(sort));
         int page = Math.max(0, Math.min(requested, Math.max(0, (listings.size() - 1) / PAGE_SIZE)));
         var visible =
@@ -128,6 +231,8 @@ public final class AuctionMenu implements Listener {
                                 (own ? "Mes annonces" : "Hôtel des ventes") + " • " + (page + 1),
                                 NamedTextColor.GREEN));
         holder.sort = sort;
+        holder.query = query;
+        holder.category = filter;
         holder.inventory = inventory;
         for (int i = 0; i < visible.size(); i++)
             inventory.setItem(i, listingItem(visible.get(i), own));
@@ -156,13 +261,30 @@ public final class AuctionMenu implements Listener {
                         Material.HOPPER,
                         "Trier : " + SORTS[sort] + " — clique pour changer",
                         NamedTextColor.AQUA));
+        inventory.setItem(47, button(Material.BOOK, "Catégorie : " + filter, NamedTextColor.AQUA));
+        inventory.setItem(
+                51,
+                button(
+                        Material.COMPASS,
+                        query.isBlank() ? "Rechercher un objet" : "Recherche : " + query,
+                        NamedTextColor.GREEN));
+        inventory.setItem(
+                52,
+                button(
+                        Material.NETHER_STAR,
+                        query.isBlank()
+                                ? "Recherches favorites"
+                                : (favorites(player).contains(query)
+                                        ? "Retirer cette recherche des favoris"
+                                        : "Ajouter cette recherche aux favoris"),
+                        NamedTextColor.GOLD));
         inventory.setItem(50, button(Material.SUNFLOWER, "Actualiser", NamedTextColor.GREEN));
         if (visible.isEmpty())
             inventory.setItem(22, button(Material.PAPER, "Aucune annonce", NamedTextColor.GRAY));
         player.openInventory(inventory);
     }
 
-    private void openSort(Player player, boolean own, int current) {
+    private void openSort(Player player, boolean own, int current, String query, String filter) {
         var view = sortMenus.create(player, 27, "AH — Choisir le tri");
         for (int i = 0; i < SORTS.length; i++) {
             int sort = i;
@@ -172,17 +294,20 @@ public final class AuctionMenu implements Listener {
                             Material.PAPER,
                             SORTS[i],
                             i == current ? NamedTextColor.GREEN : NamedTextColor.WHITE),
-                    (who, right) -> openListings(who, own, 0, sort));
+                    (who, right) -> openListings(who, own, 0, sort, query, filter));
         }
         view.put(
                 22,
                 button(Material.ARROW, "Retour", NamedTextColor.GREEN),
-                (who, right) -> openListings(who, own, 0, current));
+                (who, right) -> openListings(who, own, 0, current, query, filter));
         view.show(player);
     }
 
     public void openSellConfirm(Player player, ItemStack item, long price) {
-        if (price <= 0 || item == null || item.getType().isAir()) return;
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)
+                || price <= 0
+                || item == null
+                || item.getType().isAir()) return;
         var holder = new Confirmation(player.getUniqueId(), null, item.clone(), price);
         confirmation(
                 player,
@@ -305,30 +430,95 @@ public final class AuctionMenu implements Listener {
                     if (!player.isOnline()
                             || player.getOpenInventory().getTopInventory() != holder.inventory)
                         return;
-                    if (!player.hasPermission("cliker.ah.use")) {
+                    if (!player.hasPermission("cliker.ah.use")
+                            || fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) {
                         holder.pending = false;
                         return;
                     }
                     if (holder instanceof Listings page) {
                         holder.pending = false;
                         if (slot == 45) {
-                            openSort(player, page.own, page.sort);
+                            openSort(player, page.own, page.sort, page.query, page.category);
                             return;
                         }
                         if (slot == 46 && page.page > 0) {
-                            openListings(player, page.own, page.page - 1, page.sort);
+                            openListings(
+                                    player,
+                                    page.own,
+                                    page.page - 1,
+                                    page.sort,
+                                    page.query,
+                                    page.category);
                             return;
                         }
                         if (slot == 53) {
-                            openListings(player, page.own, page.page + 1, page.sort);
+                            openListings(
+                                    player,
+                                    page.own,
+                                    page.page + 1,
+                                    page.sort,
+                                    page.query,
+                                    page.category);
                             return;
                         }
                         if (slot == 49) {
-                            openListings(player, !page.own, 0, page.sort);
+                            openListings(
+                                    player, !page.own, 0, page.sort, page.query, page.category);
                             return;
                         }
                         if (slot == 50) {
-                            openListings(player, page.own, page.page, page.sort);
+                            openListings(
+                                    player,
+                                    page.own,
+                                    page.page,
+                                    page.sort,
+                                    page.query,
+                                    page.category);
+                            return;
+                        }
+                        if (slot == 47) {
+                            filterMenu(player, page);
+                            return;
+                        }
+                        if (slot == 51) {
+                            player.closeInventory();
+                            player.sendMessage(
+                                    Component.text(
+                                                    "Clique ici puis saisis le nom : /ah rechercher"
+                                                            + " ",
+                                                    NamedTextColor.YELLOW)
+                                            .clickEvent(
+                                                    net.kyori.adventure.text.event.ClickEvent
+                                                            .suggestCommand("/ah rechercher ")));
+                            return;
+                        }
+                        if (slot == 52) {
+                            if (page.query.isBlank()) {
+                                openFavorites(player);
+                                return;
+                            }
+                            var saved = favorites(player);
+                            if (!saved.remove(page.query)) {
+                                if (saved.size() >= 10) {
+                                    player.sendMessage(
+                                            "10 recherches favorites au maximum. Retire-en une"
+                                                    + " avant d’en ajouter.");
+                                    return;
+                                }
+                                saved.add(page.query);
+                            }
+                            player.getPersistentDataContainer()
+                                    .set(
+                                            new NamespacedKey(plugin, "ah_searches"),
+                                            org.bukkit.persistence.PersistentDataType.STRING,
+                                            String.join("\n", saved));
+                            openListings(
+                                    player,
+                                    page.own,
+                                    page.page,
+                                    page.sort,
+                                    page.query,
+                                    page.category);
                             return;
                         }
                         if (slot < 0 || slot >= page.ids.size()) return;
@@ -339,7 +529,13 @@ public final class AuctionMenu implements Listener {
                                     Component.text(
                                             "Cette annonce n’est plus disponible.",
                                             NamedTextColor.YELLOW));
-                            openListings(player, page.own, page.page, page.sort);
+                            openListings(
+                                    player,
+                                    page.own,
+                                    page.page,
+                                    page.sort,
+                                    page.query,
+                                    page.category);
                             return;
                         }
                         if (page.own) {
@@ -440,6 +636,7 @@ public final class AuctionMenu implements Listener {
 
     private static final class Listings extends View {
         int sort;
+        String query = "", category = "tous";
         final boolean own;
         final int page;
         final List<String> ids;

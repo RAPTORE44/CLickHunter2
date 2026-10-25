@@ -18,6 +18,7 @@ public class ZnpcsNpc implements Listener {
     private final Consumer<Player> action;
     private final String id;
     private final String legacyOwner;
+    private static final java.util.Map<String, ZnpcsNpc> INSTANCES = new java.util.HashMap<>();
     private Object api, registry;
     private boolean ready, stopped;
 
@@ -39,11 +40,33 @@ public class ZnpcsNpc implements Listener {
                                 .replaceAll("[^a-z0-9_-]", "-");
     }
 
+    public static java.util.List<String> diagnostics() {
+        var lines = new java.util.ArrayList<String>();
+        for (var npc : INSTANCES.values()) {
+            String status;
+            if (!npc.config.getBoolean("pnj.actif", false)) status = "non placé";
+            else if (!npc.available()) status = "fournisseur indisponible";
+            else
+                try {
+                    status =
+                            call(npc.registry, "getById", npc.id) == null
+                                    ? "ABSENT malgré sa configuration"
+                                    : "présent";
+                } catch (Exception error) {
+                    status = "état impossible à vérifier";
+                }
+            lines.add("PNJ " + npc.id + " : " + status);
+        }
+        lines.sort(String.CASE_INSENSITIVE_ORDER);
+        return lines;
+    }
+
     public boolean available() {
         return ready && !stopped;
     }
 
     public void start() {
+        INSTANCES.put(id, this);
         if (!plugin.getServer().getPluginManager().isPluginEnabled("ZNPCsPlus")) {
             plugin.getLogger()
                     .info(
@@ -195,11 +218,16 @@ public class ZnpcsNpc implements Listener {
             }
             Object hologram = call(npc, "getHologram");
             call(hologram, "clearLines");
-            call(hologram, "addLine", config.getString("pnj.titre", "&aRécompenses journalières"));
-            call(
-                    hologram,
-                    "addLine",
-                    config.getString("pnj.sous-titre", "&7Clic droit pour ouvrir"));
+            var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
+            if (provider != null)
+                provider.create(
+                        "npc:" + id,
+                        at.clone().add(0, 2.5, 0),
+                        java.util.List.of(
+                                config.getString("pnj.titre", "&aRécompenses journalières"),
+                                config.getString("pnj.sous-titre", "&7Clic droit pour ouvrir")),
+                        null,
+                        false);
             call(npc, "setEnabled", true);
             call(entry, "setProcessed", true);
         } catch (Exception error) {
@@ -227,6 +255,8 @@ public class ZnpcsNpc implements Listener {
     }
 
     private void delete() throws Exception {
+        var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
+        if (provider != null) provider.remove("npc:" + id);
         if (registry != null && call(registry, "getById", id) != null) call(registry, "delete", id);
     }
 
@@ -259,6 +289,7 @@ public class ZnpcsNpc implements Listener {
     }
 
     public void shutdown() {
+        INSTANCES.remove(id, this);
         stopped = true;
         HandlerList.unregisterAll(this);
         try {

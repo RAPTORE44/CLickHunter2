@@ -25,7 +25,7 @@ Les configurations historiques sont déplacées automatiquement dans leurs dossi
 | `recompenses/daily.yml`, `recompenses/claim.yml`, `recompenses/lootboxes.yml` | Calendrier, récupération différée et coffres de récompenses. |
 | `progression/chasse.yml`, `progression/parrainage.yml`, `progression/talismans.yml` | Bestiaire/contrats, parrainage et collection de talismans. |
 | `equipement/enchants.yml` | Coût et probabilités des cinq niveaux d’enchantement. |
-| `affichage/scoreboard.yml`, `affichage/damage-popups.yml`, `affichage/classements.yml` | Tableau latéral, animation des dégâts et titres/formats des hologrammes top 10 (DecentHolograms). |
+| `affichage/scoreboard.yml`, `affichage/damage-popups.yml`, `affichage/classements.yml` | Tableau latéral, animation des dégâts et titres/formats des hologrammes top 10 (fournisseur commun Holographic Displays API 3 ou secours natif). |
 | `gui/menu.yml`, `gui/icons.yml` | Menu principal et correspondances des icônes ItemsAdder. |
 
 `data/` contient les sauvegardes SQLite, pas des fichiers de réglage. Les inventaires de construction utilisent aussi le playerdata des mondes. Conserver ces données et les mondes ensemble dans les sauvegardes. Les anciens documents qui citent `daily.yml`, `raid.yml` ou d’autres noms à la racine désignent désormais leurs chemins ci-dessus.
@@ -109,7 +109,7 @@ Le seuil du boss public a été franchi depuis un compteur de test à 999 999 99
 
 En visant un bloc à moins de cinq blocs : `/sacbloc set` ouvre les sacs personnels au clic droit ; `/upgradebloc set` ouvre `/upgrade`. Utiliser respectivement `/sacbloc remove` ou `/upgradebloc remove` pour retirer le raccourci et son hologramme. Permission : `cliker.services.admin`. Les permissions habituelles des menus restent appliquées.
 
-Les hologrammes utilisent les TextDisplay natifs de Paper, sans dépendance supplémentaire. Les positions persistent après redémarrage ; les hologrammes sont recréés dans les chunks chargés, sans forcer le chargement des autres chunks. Textes et couleurs sont configurables sous `hologrammes.sacs` et `hologrammes.upgrades` dans `navigation/warps.yml` (couleurs avec `&`, saut de ligne avec `\n` dans une chaîne YAML entre guillemets doubles).
+Les hologrammes utilisent désormais le fournisseur commun Holographic Displays API 3, avec secours natif configurable ; voir [le guide actuel](AMELIORATIONS-UX.md). Les positions persistent après redémarrage ; les hologrammes sont recréés dans les chunks chargés, sans forcer le chargement des autres chunks. Textes et couleurs sont configurables sous `hologrammes.sacs` et `hologrammes.upgrades` dans `navigation/warps.yml` (couleurs avec `&`, saut de ligne avec `\n` dans une chaîne YAML entre guillemets doubles).
 
 ## Navigation par catégories
 
@@ -126,3 +126,5 @@ La case 46 de l’AH accueille la page précédente ; la case 45 (indices à par
 Le shop propose Épées, Armures, Potions, Lait et Tous. Tous les visuels de ses menus et du marché noir restent vanilla. Les offres du marché noir occupent les cases 12, 14, 16, 30, 32 et 34 (numérotation à partir de 1).
 
 Les PNJ utilisent par défaut `pnj.regard: CLOSEST_PLAYER` de ZNPCsPlus ; `FIXED` reste configurable. `/settings` propose Masquer les autres joueurs. Ce choix personnel persiste dans les données du joueur, s’applique aux nouveaux arrivants et ne masque ni les PNJ ni les mobs. Il agit sur l’affichage, sans désactiver les collisions de combat ou protéger des dégâts.
+
+Les fonctionnalités plus récentes (gestion des sacs, favoris AH, visites, session, diagnostic, potions et migration des hologrammes) sont décrites dans [le guide UX actuel](AMELIORATIONS-UX.md). Les vérifications datées ci-dessus correspondent à leur livraison historique.

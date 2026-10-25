@@ -45,7 +45,7 @@ class BagTest {
                         + new java.io.File(plugin.getDataFolder(), filename).getAbsolutePath();
         database.initialize();
         store = new BagStore(database);
-        manager = new BagManager(plugin, store);
+        manager = new BagManager(plugin, store, p -> {});
         menu = new BagMenu(plugin, manager);
         server.getPluginManager().registerEvents(menu, plugin);
         player = server.addPlayer();
@@ -82,6 +82,51 @@ class BagTest {
         server.getPluginManager().callEvent(event);
         server.getScheduler().performOneTick();
         return event;
+    }
+
+    @Test
+    void failedPlayerSaveRollsBackBothSidesOfBulkTransfer() throws Exception {
+        manager =
+                new BagManager(
+                        plugin,
+                        store,
+                        p -> {
+                            throw new IllegalStateException("disk failure");
+                        });
+        load();
+        player.getInventory().setItem(0, new ItemStack(Material.DIAMOND, 5));
+        var after = new ItemStack[54];
+        after[0] = new ItemStack(Material.DIAMOND, 5);
+        assertThrows(
+                IllegalStateException.class,
+                () -> manager.transfer(player, 0, after, new ItemStack[36]));
+        assertEquals(5, player.getInventory().getItem(0).getAmount());
+        assertNull(manager.contents(player.getUniqueId(), 0)[0]);
+        assertNull(
+                player.getPersistentDataContainer()
+                        .get(
+                                new org.bukkit.NamespacedKey(plugin, "bags_snapshot_v1"),
+                                org.bukkit.persistence.PersistentDataType.BYTE_ARRAY));
+    }
+
+    @Test
+    void playerSnapshotRecoversBulkTransferEvenIfSqlCopyIsOlder() throws Exception {
+        load();
+        player.getInventory().setItem(0, new ItemStack(Material.DIAMOND, 5));
+        var after = new ItemStack[54];
+        after[0] = new ItemStack(Material.DIAMOND, 5);
+        manager.transfer(player, 0, after, new ItemStack[36]);
+        database.submit(c -> null).join();
+        store.save(player.getUniqueId(), "").join();
+        manager.loadOnlinePlayers();
+        long deadline = System.nanoTime() + 3_000_000_000L;
+        while (!manager.isLoaded(player.getUniqueId()) && System.nanoTime() < deadline) {
+            Thread.sleep(10);
+            server.getScheduler().performOneTick();
+        }
+        assertTrue(manager.isLoaded(player.getUniqueId()));
+        assertEquals(5, manager.contents(player.getUniqueId(), 0)[0].getAmount());
+        assertTrue(player.getInventory().isEmpty());
     }
 
     @Test

@@ -76,6 +76,35 @@ class MainMenuTest {
     }
 
     @Test
+    void mainMenuCannotBypassOutpostInventoryIsolationToOpenAuction() {
+        player.addAttachment(plugin, "cliker.ah.use", true);
+        server.getCommandMap()
+                .register(
+                        "test",
+                        new Command("ah") {
+                            @Override
+                            public boolean execute(
+                                    CommandSender sender, String label, String[] args) {
+                                commands.incrementAndGet();
+                                return true;
+                            }
+                        });
+        server.getServicesManager()
+                .register(
+                        fr.cliker.clikerv2.outpost.WorldInventories.class,
+                        new fr.cliker.clikerv2.outpost.WorldInventories(
+                                plugin, player.getWorld().getName()),
+                        plugin,
+                        org.bukkit.plugin.ServicePriority.Normal);
+        click(15);
+        server.getScheduler().performOneTick();
+        assertEquals(
+                0,
+                commands.get(),
+                "The menu must not execute the auction command in an isolated inventory");
+    }
+
+    @Test
     void readableNavigationAndNoRepeatedCommandOnDoubleClick() {
         assertEquals(36, player.getOpenInventory().getTopInventory().getSize());
         assertEquals(

@@ -21,7 +21,9 @@ public final class CreatureSettings {
                         "degats-amulette",
                         "ecus",
                         "gemmes-dixiemes",
-                        "xp"
+                        "xp",
+                        "taille",
+                        "echelle"
                     })
                 if (next.contains("creatures." + mob.id() + "." + field)) {
                     double value = next.getDouble("creatures." + mob.id() + "." + field);

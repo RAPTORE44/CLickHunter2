@@ -29,3 +29,9 @@ messages:
   ajoute: '&aCe joueur peut maintenant construire et ouvrir tes coffres. Invite uniquement des personnes de confiance.'
   retire: '&aCe joueur ne peut plus modifier ton avant-poste.'
   aide: '&e/avantposte [aller|agrandir|visite <pseudo>|ajouter <pseudo>|retirer <pseudo>|top|blocs|pnj deplacer|sortir]'
+
+# Confidentialité et mise en avant des visites publiques.
+visites-privees: {}
+visites:
+  vedette: ''
+  vedette-fin-ms: 0

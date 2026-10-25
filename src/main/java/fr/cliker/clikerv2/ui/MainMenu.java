@@ -69,7 +69,15 @@ public final class MainMenu implements CommandExecutor, Listener {
                 config.set("titre", "&2ClickHunter &8• &2Menu principal");
                 changed = true;
             }
-            for (String id : java.util.List.of("bestiaire", "contrats", "raid", "avantposte")) {
+            for (String id :
+                    java.util.List.of(
+                            "bestiaire",
+                            "contrats",
+                            "raid",
+                            "avantposte",
+                            "session",
+                            "warp",
+                            "talismans")) {
                 String path = "boutons." + id;
                 if (config.contains(path)) continue;
                 int slot = defaults.getInt(path + ".slot"), size = config.getInt("taille", 36);
@@ -177,7 +185,16 @@ public final class MainMenu implements CommandExecutor, Listener {
                     if (!player.hasPermission("cliker.menu")
                             || (!action.permission.isBlank()
                                     && !player.hasPermission(action.permission))) return;
-                    if (!action.command.isBlank()) player.performCommand(action.command);
+                    if (!action.command.isBlank()) {
+                        if (!fr.cliker.clikerv2.outpost.WorldInventories.commandAllowed(
+                                player, action.command)) {
+                            player.sendMessage(
+                                    "Reviens au /spawn pour utiliser cette fonction avec ton"
+                                            + " inventaire clicker.");
+                            return;
+                        }
+                        player.performCommand(action.command);
+                    }
                 });
     }
 

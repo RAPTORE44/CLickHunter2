@@ -1,15 +1,11 @@
 package fr.cliker.clikerv2.hologram;
 
-import eu.decentsoftware.holograms.api.DHAPI;
-import eu.decentsoftware.holograms.api.holograms.Hologram;
-
 import fr.cliker.clikerv2.EconomyService;
 import fr.cliker.clikerv2.Numbers;
 import fr.cliker.clikerv2.economy.CurrencyType;
 import fr.cliker.clikerv2.level.PlayerLevelStore;
 import fr.cliker.clikerv2.mobs.MobKillStore;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,8 +16,8 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Classements (top 10) affichés via des hologrammes DecentHolograms : niveau, kills totaux, et
- * soldes actuels des 3 monnaies.
+ * Classements (top 10) affichés via des hologrammes du fournisseur partagé : niveau, kills totaux,
+ * et soldes actuels des 3 monnaies.
  */
 public final class HologramManager {
     public enum Type {
@@ -69,7 +65,7 @@ public final class HologramManager {
         this.levelStore = levelStore;
         this.killStore = killStore;
         this.economy = economy;
-        this.available = Bukkit.getPluginManager().getPlugin("DecentHolograms") != null;
+        this.available = SharedHolograms.service() != null && SharedHolograms.service().available();
     }
 
     public boolean isAvailable() {
@@ -97,15 +93,15 @@ public final class HologramManager {
                                                 if (type == null) continue;
                                                 holograms.put(point.id(), type);
                                                 String name = hologramName(point.id());
-                                                Hologram existing = DHAPI.getHologram(name);
-                                                if (existing != null) {
-                                                    // DecentHolograms garde ses hologrammes en
-                                                    // mémoire/disque indépendamment de notre reload
-                                                    // : on réutilise au lieu de dupliquer.
-                                                    existing.setLocation(point.location());
-                                                } else {
-                                                    DHAPI.createHologram(name, point.location());
-                                                }
+                                                SharedHolograms.service()
+                                                        .removeLegacyLeaderboard(name);
+                                                SharedHolograms.service()
+                                                        .create(
+                                                                name,
+                                                                point.location(),
+                                                                List.of(),
+                                                                null,
+                                                                true);
                                             }
                                             refreshAll();
                                         }));
@@ -120,7 +116,7 @@ public final class HologramManager {
         if (!available) return;
         String id = UUID.randomUUID().toString();
         holograms.put(id, type);
-        DHAPI.createHologram(hologramName(id), location);
+        SharedHolograms.service().create(hologramName(id), location, List.of(), null, true);
         store.save(id, type.name(), location);
         refresh(id, type);
     }
@@ -130,7 +126,7 @@ public final class HologramManager {
         String nearest = null;
         double bestDistance = Double.MAX_VALUE;
         for (String id : holograms.keySet()) {
-            Hologram hologram = DHAPI.getHologram(hologramName(id));
+            var hologram = SharedHolograms.service().get(hologramName(id));
             if (hologram == null || !hologram.getLocation().getWorld().equals(near.getWorld()))
                 continue;
             double distance = hologram.getLocation().distanceSquared(near);
@@ -140,7 +136,7 @@ public final class HologramManager {
             }
         }
         if (nearest == null) return false;
-        DHAPI.removeHologram(hologramName(nearest));
+        SharedHolograms.service().remove(hologramName(nearest));
         holograms.remove(nearest);
         rendered.remove(nearest);
         store.removeById(nearest);
@@ -289,10 +285,10 @@ public final class HologramManager {
     }
 
     private void applyBossTimerLines(String id, List<String> lines) {
-        Hologram hologram = DHAPI.getHologram(hologramName(id));
+        var hologram = SharedHolograms.service().get(hologramName(id));
         if (hologram == null) return;
         if (!lines.equals(rendered.get(id))) {
-            DHAPI.setHologramLines(hologram, lines);
+            hologram.setLines(lines);
             rendered.put(id, List.copyOf(lines));
         }
     }
@@ -334,9 +330,9 @@ public final class HologramManager {
                     for (var entry : holograms.entrySet()) {
                         if (entry.getValue() != type || lines.equals(rendered.get(entry.getKey())))
                             continue;
-                        Hologram hologram = DHAPI.getHologram(hologramName(entry.getKey()));
+                        var hologram = SharedHolograms.service().get(hologramName(entry.getKey()));
                         if (hologram == null) continue;
-                        DHAPI.setHologramLines(hologram, lines);
+                        hologram.setLines(lines);
                         rendered.put(entry.getKey(), List.copyOf(lines));
                     }
                 });

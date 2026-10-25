@@ -1,0 +1,10 @@
+# Couleurs des potions de bonus au format RGB hexadécimal.
+# Les potions anciennes sont recolorées à la connexion, à l’ouverture des coffres et à leur livraison.
+couleurs:
+  xp: '3498DB'
+  gemmes: '8E44AD'
+  coins: 'F1C40F'
+  degats: 'E74C3C'
+  vitesse: '1ABC9C'
+  chance: '2ECC71'
+  cendres: 'E67E22'

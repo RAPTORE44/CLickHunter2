@@ -92,6 +92,13 @@ public final class BossEventManager implements Listener {
         updateHologram();
     }
 
+    public void spawnNow() {
+        spawnWave();
+        nextSpawnMillis = System.currentTimeMillis() + interval * 1000;
+        saveTimer();
+        remainingSeconds = interval;
+    }
+
     private void spawnWave() {
         mobManager.triggerBossWave();
         hideBossBar();

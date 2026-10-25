@@ -20,7 +20,7 @@ public final class AuctionCommand implements CommandExecutor, org.bukkit.command
     public java.util.List<String> onTabComplete(
             CommandSender sender, Command command, String label, String[] args) {
         if (args.length != 1) return java.util.List.of();
-        return java.util.List.of("vendre", "sell", "mesannonces").stream()
+        return java.util.List.of("vendre", "sell", "mesannonces", "rechercher", "favoris").stream()
                 .filter(s -> s.startsWith(args[0].toLowerCase(java.util.Locale.ROOT)))
                 .toList();
     }
@@ -33,8 +33,25 @@ public final class AuctionCommand implements CommandExecutor, org.bukkit.command
             return true;
         }
 
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) {
+            player.sendMessage("L’AH est accessible au /spawn avec ton inventaire clicker.");
+            return true;
+        }
         if (args.length == 0) {
             menu.openBrowse(player);
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("rechercher")) {
+            if (args.length < 2) player.sendMessage("Usage : /ah rechercher <nom>");
+            else
+                menu.search(
+                        player,
+                        String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length)));
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("favoris")) {
+            menu.openFavorites(player);
             return true;
         }
 
@@ -83,7 +100,10 @@ public final class AuctionCommand implements CommandExecutor, org.bukkit.command
         }
 
         player.sendMessage(
-                Component.text("/ah, /ah vendre <prix>, /ah mesannonces", NamedTextColor.YELLOW));
+                Component.text(
+                        "/ah, /ah vendre <prix>, /ah mesannonces, /ah rechercher <nom>, /ah"
+                                + " favoris",
+                        NamedTextColor.YELLOW));
         return true;
     }
 }

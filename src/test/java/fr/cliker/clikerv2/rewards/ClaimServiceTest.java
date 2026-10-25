@@ -93,6 +93,84 @@ class ClaimServiceTest {
     }
 
     @Test
+    void concurrentOverflowSplitsConserveQuantityAndOnlyOneCanCommit() throws Exception {
+        var entry =
+                enqueue(
+                        player.getUniqueId(),
+                        "split-concurrent",
+                        new ItemStack(Material.DIAMOND, 10));
+        var secondDb = new DatabaseManager(plugin, databaseFile);
+        try {
+            var secondStore = new MailStore(secondDb);
+            String part = ClaimService.serialize(new ItemStack(Material.DIAMOND, 4));
+            String surplus = ClaimService.serialize(new ItemStack(Material.DIAMOND, 6));
+            var first =
+                    claims.store()
+                            .split(
+                                    player.getUniqueId(),
+                                    entry.id(),
+                                    entry.payload(),
+                                    part,
+                                    surplus);
+            var second =
+                    secondStore.split(
+                            player.getUniqueId(), entry.id(), entry.payload(), part, surplus);
+            java.util.concurrent.CompletableFuture.allOf(first, second).join();
+            assertNotEquals(first.join(), second.join());
+            var page = claims.store().page(player.getUniqueId(), 0).join();
+            assertEquals(2, page.total());
+            assertEquals(
+                    10,
+                    page.entries().stream()
+                            .mapToInt(e -> ClaimService.deserialize(e.payload()).getAmount())
+                            .sum());
+        } finally {
+            secondDb.close();
+        }
+    }
+
+    @Test
+    void automaticPurchaseDeliverySplitsOnlyTheOverflowWhenSomeSpaceRemains() throws Exception {
+        fillInventory();
+        player.getInventory().setItem(0, new ItemStack(Material.DIAMOND, 60));
+        enqueue(player.getUniqueId(), "purchase-partial", new ItemStack(Material.DIAMOND, 10));
+        claims.notifyAndDeliver(player.getUniqueId());
+        await(
+                () ->
+                        player.getInventory().getItem(0).getAmount() == 64
+                                && !claims.isDelivering(player.getUniqueId()));
+        var mail = claims.store().page(player.getUniqueId(), 0).join();
+        assertEquals(1, mail.total());
+        assertEquals(6, ClaimService.deserialize(mail.entries().getFirst().payload()).getAmount());
+    }
+
+    @Test
+    void automaticDeliveryWorksWithAnotherMenuOpenAndNoMailboxDetour() throws Exception {
+        var shop = Bukkit.createInventory(null, 27);
+        player.openInventory(shop);
+        var entry = enqueue(player.getUniqueId(), "shop-open", new ItemStack(Material.DIAMOND, 4));
+        claims.notifyAndDeliver(player.getUniqueId());
+        await(
+                () ->
+                        player.getInventory().contains(Material.DIAMOND, 4)
+                                && !claims.isDelivering(player.getUniqueId()));
+        assertSame(shop, player.getOpenInventory().getTopInventory());
+        assertEquals(0, claims.store().page(player.getUniqueId(), 0).join().total());
+    }
+
+    @Test
+    void directDropsUseFreeSpaceAndOnlyOverflowRemainsInClaim() throws Exception {
+        fillInventory();
+        player.getInventory().setItem(0, new ItemStack(Material.DIAMOND, 60));
+        claims.give(player.getUniqueId(), player.getName(), new ItemStack(Material.DIAMOND, 10));
+        await(() -> claims.store().page(player.getUniqueId(), 0).join().total() == 1);
+        drain();
+        assertEquals(64, player.getInventory().getItem(0).getAmount());
+        var mail = claims.store().page(player.getUniqueId(), 0).join();
+        assertEquals(6, ClaimService.deserialize(mail.entries().getFirst().payload()).getAmount());
+    }
+
+    @Test
     void fullInventoryQueuesInsteadOfDroppingAndClaimDoesNotConsumeIt() throws Exception {
         fillInventory();
         claims.give(player.getUniqueId(), player.getName(), new ItemStack(Material.DIAMOND, 2));

@@ -2,6 +2,7 @@ package fr.cliker.clikerv2.hologram;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,7 +14,8 @@ import java.util.List;
 import java.util.Locale;
 
 public final class HologramCommand implements CommandExecutor, TabCompleter {
-    private static final List<String> TYPES = List.of("level", "kills", "ecus", "gemmes", "cendres", "bosstimer");
+    private static final List<String> TYPES =
+            List.of("level", "kills", "ecus", "gemmes", "cendres", "bosstimer");
 
     private final HologramManager manager;
 
@@ -23,27 +25,53 @@ public final class HologramCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission("cliker.mob.admin")) { sender.sendMessage(Component.text("Permission administrateur requise.", NamedTextColor.RED)); return true; }
-        if (!manager.isAvailable()) { sender.sendMessage(Component.text("DecentHolograms n'est pas installé sur ce serveur.", NamedTextColor.RED)); return true; }
-        if (!(sender instanceof Player player)) { sender.sendMessage(Component.text("Commande réservée aux joueurs.", NamedTextColor.RED)); return true; }
+        if (!sender.hasPermission("cliker.mob.admin")) {
+            sender.sendMessage(
+                    Component.text("Permission administrateur requise.", NamedTextColor.RED));
+            return true;
+        }
+        if (!manager.isAvailable()) {
+            sender.sendMessage(
+                    Component.text(
+                            "Fournisseur d’hologrammes indisponible. Vérifie Holographic Displays.",
+                            NamedTextColor.RED));
+            return true;
+        }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(
+                    Component.text("Commande réservée aux joueurs.", NamedTextColor.RED));
+            return true;
+        }
 
         if (args.length == 1 && args[0].equalsIgnoreCase("remove")) {
             boolean removed = manager.removeNearest(player.getLocation());
-            sender.sendMessage(removed
-                    ? Component.text("Hologramme le plus proche supprimé.", NamedTextColor.GREEN)
-                    : Component.text("Aucun hologramme à proximité.", NamedTextColor.RED));
+            sender.sendMessage(
+                    removed
+                            ? Component.text(
+                                    "Hologramme le plus proche supprimé.", NamedTextColor.GREEN)
+                            : Component.text("Aucun hologramme à proximité.", NamedTextColor.RED));
             return true;
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("spawn")) {
             HologramManager.Type type = parseType(args[1]);
-            if (type == null) { sender.sendMessage(Component.text("Type inconnu. Utilisez : " + String.join(", ", TYPES), NamedTextColor.RED)); return true; }
+            if (type == null) {
+                sender.sendMessage(
+                        Component.text(
+                                "Type inconnu. Utilisez : " + String.join(", ", TYPES),
+                                NamedTextColor.RED));
+                return true;
+            }
             manager.addHologram(type, player.getLocation());
-            sender.sendMessage(Component.text("✦ Hologramme " + args[1] + " posé ici.", NamedTextColor.GREEN));
+            sender.sendMessage(
+                    Component.text("✦ Hologramme " + args[1] + " posé ici.", NamedTextColor.GREEN));
             return true;
         }
 
-        sender.sendMessage(Component.text("/" + label + " <spawn <" + String.join("|", TYPES) + ">|remove>", NamedTextColor.YELLOW));
+        sender.sendMessage(
+                Component.text(
+                        "/" + label + " <spawn <" + String.join("|", TYPES) + ">|remove>",
+                        NamedTextColor.YELLOW));
         return true;
     }
 
@@ -60,7 +88,8 @@ public final class HologramCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(
+            CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("cliker.mob.admin")) return List.of();
         List<String> options = new ArrayList<>();
         if (args.length == 1) options.addAll(List.of("spawn", "remove"));

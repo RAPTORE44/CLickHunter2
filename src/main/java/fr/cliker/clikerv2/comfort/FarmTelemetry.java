@@ -22,7 +22,13 @@ public final class FarmTelemetry implements Listener {
     private record Earning(long at, MobTier tier, Gains gains) {}
 
     private static final class Session {
-        long clicks, kills, ecus, gems, cendres, xp;
+        long clicks, kills, bosses, ecus, gems, cendres, xp;
+        final long started;
+
+        Session(long now) {
+            started = now;
+        }
+
         final ArrayDeque<Earning> earnings = new ArrayDeque<>();
     }
 
@@ -49,6 +55,32 @@ public final class FarmTelemetry implements Listener {
                         plugin,
                         org.bukkit.plugin.ServicePriority.Normal);
         Bukkit.getPluginManager().registerEvents(this, plugin);
+        for (var p : Bukkit.getOnlinePlayers())
+            sessions.putIfAbsent(p.getUniqueId(), new Session(nanos.getAsLong()));
+        var menus = new fr.cliker.clikerv2.features.Menus(plugin);
+        var command = plugin.getCommand("session");
+        if (command != null)
+            command.setExecutor(
+                    (sender, cmd, label, args) -> {
+                        if (sender instanceof Player p) {
+                            var view = menus.create(p, 27, "Résumé de ma session");
+                            var item = new org.bukkit.inventory.ItemStack(Material.BOOK);
+                            var meta = item.getItemMeta();
+                            meta.displayName(
+                                    Component.text(
+                                            "Chasse — gains confirmés", NamedTextColor.GREEN));
+                            meta.lore(summary(p));
+                            item.setItemMeta(meta);
+                            view.put(13, item, null);
+                            view.put(
+                                    22,
+                                    fr.cliker.clikerv2.features.Menus.item(
+                                            Material.SUNFLOWER, "Actualiser"),
+                                    (who, r) -> who.performCommand("session"));
+                            view.show(p);
+                        }
+                        return true;
+                    });
     }
 
     private NamespacedKey key(String name) {
@@ -60,7 +92,9 @@ public final class FarmTelemetry implements Listener {
     }
 
     public void hit(Player player, UUID victim) {
-        Session session = sessions.computeIfAbsent(player.getUniqueId(), ignored -> new Session());
+        Session session =
+                sessions.computeIfAbsent(
+                        player.getUniqueId(), ignored -> new Session(nanos.getAsLong()));
         session.clicks = add(session.clicks, 1);
         var data = player.getPersistentDataContainer();
         data.set(
@@ -79,8 +113,11 @@ public final class FarmTelemetry implements Listener {
 
     public void confirmedKill(
             Player player, MobTier tier, boolean boss, Gains gains, long duration) {
-        Session s = sessions.computeIfAbsent(player.getUniqueId(), ignored -> new Session());
+        Session s =
+                sessions.computeIfAbsent(
+                        player.getUniqueId(), ignored -> new Session(nanos.getAsLong()));
         s.kills = add(s.kills, 1);
+        if (boss) s.bosses = add(s.bosses, 1);
         s.ecus = add(s.ecus, gains.amount(CurrencyType.ECUS));
         s.gems = add(s.gems, gains.amount(CurrencyType.GEMMES_SOMBRES));
         s.cendres = add(s.cendres, gains.amount(CurrencyType.CENDRES));
@@ -178,6 +215,7 @@ public final class FarmTelemetry implements Listener {
 
     @EventHandler
     public void join(PlayerJoinEvent event) {
+        sessions.putIfAbsent(event.getPlayer().getUniqueId(), new Session(nanos.getAsLong()));
         var player = event.getPlayer();
         String previous =
                 player.getPersistentDataContainer()
@@ -185,6 +223,35 @@ public final class FarmTelemetry implements Listener {
         if (previous != null)
             player.sendMessage(
                     Component.text("Ta session précédente : " + previous, NamedTextColor.GRAY));
+    }
+
+    public List<Component> summary(Player p) {
+        var s =
+                sessions.computeIfAbsent(
+                        p.getUniqueId(), ignored -> new Session(nanos.getAsLong()));
+        long seconds = Math.max(1, (nanos.getAsLong() - s.started) / 1_000_000_000);
+        List<Component> lines = new ArrayList<>();
+        for (String text :
+                List.of(
+                        "Durée : "
+                                + seconds / 3600
+                                + " h "
+                                + seconds / 60 % 60
+                                + " min "
+                                + seconds % 60
+                                + " s",
+                        "Coups : " + s.clicks,
+                        "Créatures tuées : " + s.kills + " · dont boss : " + s.bosses,
+                        "Écus : " + Numbers.compact(s.ecus),
+                        "Gemmes : " + CurrencyType.GEMMES_SOMBRES.format(s.gems),
+                        "Cendres : " + Numbers.compact(s.cendres),
+                        "XP : " + Numbers.compact(s.xp),
+                        "Écus/min : " + Numbers.compact(Math.round(s.ecus * 60.0 / seconds)),
+                        "XP/min : " + Numbers.compact(Math.round(s.xp * 60.0 / seconds)),
+                        "Gains de chasse validés depuis la connexion.",
+                        "Les ventes et transferts ne sont pas comptés."))
+            lines.add(Component.text(text, NamedTextColor.GRAY));
+        return lines;
     }
 
     private void save(Player player) {
@@ -205,7 +272,11 @@ public final class FarmTelemetry implements Listener {
                                 + Numbers.compact(s.cendres)
                                 + " Cendres · "
                                 + Numbers.compact(s.xp)
-                                + " XP");
+                                + " XP · "
+                                + s.bosses
+                                + " boss · "
+                                + Math.max(0, (nanos.getAsLong() - s.started) / 1_000_000_000)
+                                + " s");
     }
 
     @EventHandler

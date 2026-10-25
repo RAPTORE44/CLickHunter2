@@ -25,3 +25,13 @@ Le propriétaire demande désormais les raids privés avec invitations et parche
 ## Préférences récentes de présentation
 
 Les PNJ regardent désormais le joueur le plus proche par défaut (ZNPCsPlus `CLOSEST_PLAYER`), ce qui remplace l’orientation fixe demandée auparavant. Le shop et le marché noir conservent tous leurs visuels vanilla, y compris les boutons ; les autres menus gardent les icônes ItemsAdder. Le marché noir utilise les cases 12, 14, 16 et 30, 32, 34, comptées à partir de 1.
+
+## Livraison et hologrammes — demande actuelle
+
+Les achats et drops doivent être livrés directement dans l’inventaire si possible ; `/claim` conserve le surplus, les récompenses hors ligne et celles en attente pendant l’isolation de l’avant-poste. Garder le journal SQL idempotent de livraison. Le fournisseur demandé pour tous les hologrammes gérés par ClikerV2 est Holographic Displays API 3 ; ZNPCsPlus conserve les corps et interactions des PNJ. Ne pas réintroduire DecentHolograms comme fournisseur actif ; sa détection ne sert qu’au nettoyage des anciennes créations connues. La version exacte compatible Paper 1.21.4 du fournisseur n’a pas été fournie (le propriétaire a seulement confirmé « 1.21.4 »). Documenter le secours natif et ne pas affirmer que le rendu réel Holographic Displays a été testé sans ce JAR.
+
+Les sacs possèdent désormais un snapshot binaire dans le playerdata, prioritaire au chargement, ainsi qu’une copie SQL. Conserver l’écriture conjointe inventaire+sacs avant la copie SQL pour les transferts en bloc, et sauvegarder/restaurer les deux sources ensemble.
+
+## Animation et jeux de chat
+
+Le pied du TAB doit faire alterner Site, Boutique, Discord et Vote toutes les dix secondes. Les jeux de chat (calcul, devinette, langues parlées par pays) attribuent une seule lootbox divine au premier gagnant, par le journal de livraison existant. Aides et questions restent configurables en français dans `activites/tchat.yml`. Les magma cubes ont une taille moyenne 2, les ghasts une échelle 0,5. Conserver les commandes administrateur `/respawnmobs` et `/spawnboss`, les exclusions des invocations temporaires et la prévention des doublons lors des vagues.

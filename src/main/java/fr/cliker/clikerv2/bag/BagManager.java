@@ -35,12 +35,23 @@ public final class BagManager implements Listener {
             Map<String, Integer> general,
             java.util.Set<MobTier> bosses) {}
 
+    private final java.util.function.Consumer<org.bukkit.entity.Player> savePlayer;
+    private final org.bukkit.NamespacedKey snapshotKey;
     private final Map<UUID, Bonuses> bonuses = new HashMap<>();
     private final Map<UUID, Object> loadingSessions = new HashMap<>();
 
     public BagManager(JavaPlugin plugin, BagStore store) {
+        this(plugin, store, org.bukkit.entity.Player::saveData);
+    }
+
+    public BagManager(
+            JavaPlugin plugin,
+            BagStore store,
+            java.util.function.Consumer<org.bukkit.entity.Player> savePlayer) {
         this.plugin = plugin;
         this.store = store;
+        this.savePlayer = savePlayer;
+        snapshotKey = new org.bukkit.NamespacedKey(plugin, "bags_snapshot_v1");
     }
 
     public int capacity(Permissible permissible) {
@@ -65,6 +76,24 @@ public final class BagManager implements Listener {
         if (Arrays.equals(playerBags.get(checkBag(bag)), contents)) return;
         playerBags.set(checkBag(bag), copy(contents));
         refreshBonuses(uuid);
+        var player = plugin.getServer().getPlayer(uuid);
+        if (player != null) {
+            player.getPersistentDataContainer()
+                    .set(
+                            snapshotKey,
+                            org.bukkit.persistence.PersistentDataType.BYTE_ARRAY,
+                            serialize(playerBags)
+                                    .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            try {
+                savePlayer.accept(player);
+            } catch (RuntimeException error) {
+                plugin.getLogger()
+                        .log(
+                                java.util.logging.Level.SEVERE,
+                                "Sauvegarde joueur des sacs à réessayer : " + uuid,
+                                error);
+            }
+        }
         store.save(uuid, serialize(playerBags))
                 .whenComplete(
                         (ignored, error) -> {
@@ -75,6 +104,57 @@ public final class BagManager implements Listener {
                                                         + uuid
                                                         + " : "
                                                         + error.getMessage());
+                        });
+    }
+
+    /** Commit inventaire+sacs dans le même playerdata, puis copie SQL. */
+    public void transfer(
+            org.bukkit.entity.Player player, int bag, ItemStack[] after, ItemStack[] inventory) {
+        if (after.length != STORAGE_SIZE || inventory.length != 36)
+            throw new IllegalArgumentException("Plan de transfert invalide");
+        UUID uuid = player.getUniqueId();
+        var current = requireBags(uuid);
+        var before = copy(current.get(checkBag(bag)));
+        var oldInventory = player.getInventory().getStorageContents();
+        byte[] oldSnapshot =
+                player.getPersistentDataContainer()
+                        .get(snapshotKey, org.bukkit.persistence.PersistentDataType.BYTE_ARRAY);
+        current.set(bag, copy(after));
+        String serialized = serialize(current);
+        player.getPersistentDataContainer()
+                .set(
+                        snapshotKey,
+                        org.bukkit.persistence.PersistentDataType.BYTE_ARRAY,
+                        serialized.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        for (int slot = 0; slot < inventory.length; slot++)
+            player.getInventory().setItem(slot, inventory[slot]);
+        try {
+            savePlayer.accept(player);
+        } catch (RuntimeException error) {
+            current.set(bag, before);
+            for (int slot = 0; slot < oldInventory.length; slot++)
+                player.getInventory().setItem(slot, oldInventory[slot]);
+            if (oldSnapshot == null) player.getPersistentDataContainer().remove(snapshotKey);
+            else
+                player.getPersistentDataContainer()
+                        .set(
+                                snapshotKey,
+                                org.bukkit.persistence.PersistentDataType.BYTE_ARRAY,
+                                oldSnapshot);
+            throw error;
+        }
+        refreshBonuses(uuid);
+        store.save(uuid, serialized)
+                .exceptionally(
+                        error -> {
+                            plugin.getLogger()
+                                    .log(
+                                            java.util.logging.Level.SEVERE,
+                                            "Copie SQL des sacs à réessayer ; snapshot joueur"
+                                                    + " conservé : "
+                                                    + uuid,
+                                            error);
+                            return null;
                         });
     }
 
@@ -241,7 +321,26 @@ public final class BagManager implements Listener {
                                             return;
                                         }
                                         try {
-                                            bags.put(uuid, deserialize(yaml));
+                                            var player = plugin.getServer().getPlayer(uuid);
+                                            byte[] snapshot =
+                                                    player == null
+                                                            ? null
+                                                            : player.getPersistentDataContainer()
+                                                                    .get(
+                                                                            snapshotKey,
+                                                                            org.bukkit.persistence
+                                                                                    .PersistentDataType
+                                                                                    .BYTE_ARRAY);
+                                            bags.put(
+                                                    uuid,
+                                                    deserialize(
+                                                            snapshot == null
+                                                                    ? yaml
+                                                                    : new String(
+                                                                            snapshot,
+                                                                            java.nio.charset
+                                                                                    .StandardCharsets
+                                                                                    .UTF_8)));
                                             refreshBonuses(uuid);
                                         } catch (InvalidConfigurationException exception) {
                                             plugin.getLogger()

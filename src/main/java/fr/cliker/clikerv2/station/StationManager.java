@@ -1,8 +1,5 @@
 package fr.cliker.clikerv2.station;
 
-import eu.decentsoftware.holograms.api.DHAPI;
-import eu.decentsoftware.holograms.api.holograms.Hologram;
-
 import fr.cliker.clikerv2.gear.EnchantMenu;
 import fr.cliker.clikerv2.gear.ReforgeMenu;
 import fr.cliker.clikerv2.gear.RuneMenu;
@@ -11,7 +8,6 @@ import fr.cliker.clikerv2.gear.TierGear;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -53,7 +49,9 @@ public final class StationManager implements Listener {
         this.enchantMenu = enchantMenu;
         this.reforgeMenu = reforgeMenu;
         this.runeMenu = runeMenu;
-        this.hologramsAvailable = Bukkit.getPluginManager().getPlugin("DecentHolograms") != null;
+        this.hologramsAvailable =
+                fr.cliker.clikerv2.hologram.SharedHolograms.service() != null
+                        && fr.cliker.clikerv2.hologram.SharedHolograms.service().available();
     }
 
     public void load() {
@@ -114,7 +112,8 @@ public final class StationManager implements Listener {
                 .getBlockAt(parseX(finalId), parseY(finalId), parseZ(finalId))
                 .setType(org.bukkit.Material.AIR);
         store.removeById(finalId);
-        if (hologramsAvailable) DHAPI.removeHologram(hologramName(finalId));
+        if (hologramsAvailable)
+            fr.cliker.clikerv2.hologram.SharedHolograms.service().remove(hologramName(finalId));
         return true;
     }
 
@@ -122,12 +121,9 @@ public final class StationManager implements Listener {
         if (!hologramsAvailable) return;
         Location above = blockLocation.clone().add(0.5, 2.3, 0.5);
         String name = hologramName(id);
-        Hologram existing = DHAPI.getHologram(name);
-        if (existing != null) {
-            existing.setLocation(above);
-        } else {
-            DHAPI.createHologram(name, above, hologramLines(type));
-        }
+        var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
+        provider.removeLegacyLeaderboard(name);
+        provider.create(name, above, hologramLines(type), null, false);
     }
 
     private List<String> hologramLines(StationType type) {

@@ -3,8 +3,25 @@ version: ${project.version}
 main: fr.cliker.clikerv2.ClikerPlugin
 api-version: '1.21'
 author: Cliker
-softdepend: [LuckPerms, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
+softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  respawnmobs:
+    description: Faire réapparaître tous les mobs placés, sans toucher aux boss
+    permission: cliker.mob.admin
+    aliases: [mobsrespawn]
+  spawnboss:
+    description: Lancer immédiatement une vague de tous les boss de zone
+    permission: cliker.mob.admin
+    aliases: [bossrespawn]
+  jeutchat:
+    description: Jeux de chat et récompense divine au premier gagnant
+    permission: cliker.jeutchat
+  diagnostic:
+    description: Diagnostic administrateur des données, destinations et services
+    permission: cliker.diagnostic.admin
+  session:
+    description: Résumé de la session de chasse et gains confirmés
+    permission: cliker.session
   warp:
     description: Menu des destinations débloquées
   upgradebloc:
@@ -203,13 +220,21 @@ commands:
     permission: cliker.mob.admin
   sac:
     description: Ouvre tes sacs personnels de 54 cases, débloqués selon ton rang
-    usage: /sac
+    usage: /sac [gestion]
     permission: cliker.sac.use
   talisman:
     description: Donne un talisman de trésor à un joueur
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.jeutchat:
+    default: true
+  cliker.jeutchat.admin:
+    default: op
+  cliker.diagnostic.admin:
+    default: op
+  cliker.session:
+    default: true
   cliker.tab.staff:
     description: Classement en tête du TAB comme membre du staff
     default: op
