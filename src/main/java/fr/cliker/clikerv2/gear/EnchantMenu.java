@@ -217,7 +217,10 @@ public final class EnchantMenu implements Listener {
             return;
         }
         event.setCancelled(true);
-        if (slot == BUTTON_SLOT) enchant(player, holder.inventory);
+        if (slot == BUTTON_SLOT
+                && (event.getClick() == org.bukkit.event.inventory.ClickType.LEFT
+                        || event.getClick() == org.bukkit.event.inventory.ClickType.RIGHT))
+            enchant(player, holder.inventory);
     }
 
     @EventHandler

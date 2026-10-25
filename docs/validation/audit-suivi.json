@@ -1,0 +1,34 @@
+{
+  "baseline_commit": "29c6505",
+  "inventory": {
+    "java_production_files": 140,
+    "yaml_files": 16
+  },
+  "unit_tests": {
+    "tests": 177,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "paper": "1.21.4 build 232",
+  "java": "21.0.9",
+  "native_checks": [
+    "activation réelle consommée et sauvegardée",
+    "achat applique réellement le bonus ARMOR sous Paper",
+    "reconnexion conserve l’activation sans consommer un second objet",
+    "reconnexion conserve le bonus acheté",
+    "activation conservée après arrêt/redémarrage",
+    "second objet conservé après redémarrage",
+    "attribut ARMOR à 0.2 après redémarrage, sans double application"
+  ],
+  "native_armor_before": "Value of attribute Armor for entity Audit4 is 0",
+  "native_armor_after": "Value of attribute Armor for entity Audit4 is 0.2",
+  "sqlite_quick_check": "ok",
+  "jar_sha256": "928a75f330857260cff900fcbdc60eedfd26a0199f77fed407901477913a006b",
+  "limits": [
+    "Tests à charge de production et dépendances optionnelles non exécutés.",
+    "Pas de certification de reload global ; arrêt/redémarrage requis.",
+    "Les pannes d’écriture sont simulées ; aucune garantie de résistance à une panne matérielle totale.",
+    "Les 141 lignes jaunes ne sont pas toutes terminées ; section 17 du nouveau cahier vide."
+  ]
+}

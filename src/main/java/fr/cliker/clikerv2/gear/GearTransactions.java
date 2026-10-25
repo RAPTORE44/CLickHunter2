@@ -36,77 +36,116 @@ final class GearTransactions {
             Consumer<ItemStack> change,
             Runnable refresh) {
         ItemStack input = inventory.getItem(slot);
-        if (input == null || !BUSY.add(inventory)) return;
+        if (input == null || BUSY.contains(inventory)) return;
+        var delivery = Bukkit.getServicesManager().load(ClaimService.class);
+        if (delivery == null) {
+            player.sendMessage(
+                    Component.text(
+                            "Transformation temporairement indisponible. Ton objet est conservé.",
+                            NamedTextColor.RED));
+            return;
+        }
         ItemStack original = input.clone(), output = input.clone();
-        change.accept(output); // Calculer la transformation avant de réserver le paiement.
+        String before, after;
+        try {
+            change.accept(output);
+            before = ClaimService.serialize(original);
+            after = ClaimService.serialize(output);
+        } catch (RuntimeException error) {
+            plugin.getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Préparation de transformation impossible",
+                            error);
+            player.sendMessage(
+                    Component.text(
+                            "Transformation impossible. Ton objet est conservé.",
+                            NamedTextColor.RED));
+            return;
+        }
+        BUSY.add(inventory);
         inventory.setItem(slot, null);
         UUID owner = player.getUniqueId();
         String name = player.getName();
-        var delivery = Objects.requireNonNull(Bukkit.getServicesManager().load(ClaimService.class));
-        economy.transformItem(
-                        owner,
-                        name,
-                        "gear:" + UUID.randomUUID(),
-                        currency,
-                        price,
-                        ClaimService.serialize(original),
-                        ClaimService.serialize(output))
-                .whenComplete(
-                        (paid, error) -> {
-                            if (!plugin.isEnabled()) {
-                                return;
-                            }
-                            fr.cliker.clikerv2.runtime.ServerTasks.run(
-                                    plugin,
-                                    () -> {
-                                        BUSY.remove(inventory);
-                                        if (error != null) {
-                                            delivery.give(owner, name, original);
-                                            plugin.getLogger()
-                                                    .log(
-                                                            java.util.logging.Level.SEVERE,
-                                                            "Transformation impossible :"
-                                                                    + " objet rendu",
-                                                            error);
-                                        } else delivery.notifyAndDeliver(owner);
-                                        if (player.isOnline()) {
-                                            boolean success =
-                                                    error == null && Boolean.TRUE.equals(paid);
-                                            String status =
-                                                    success
-                                                            ? "Transformation effectuée !"
-                                                                    + " Survole ce message"
-                                                                    + " pour voir le"
-                                                                    + " résultat."
-                                                            : error == null
-                                                                    ? "Solde insuffisant."
-                                                                            + " Ton objet est"
-                                                                            + " rendu."
-                                                                    : "Transformation"
-                                                                            + " impossible."
-                                                                            + " Ton objet est"
-                                                                            + " rendu.";
-                                            player.sendMessage(
-                                                    Component.text(
-                                                                    status,
-                                                                    success
-                                                                            ? NamedTextColor.GREEN
-                                                                            : NamedTextColor.RED)
-                                                            .hoverEvent(
-                                                                    (success ? output : original)
-                                                                            .asHoverEvent()));
-                                            player.sendMessage(
-                                                    Component.text(
-                                                            "Objet livré dans ton"
-                                                                    + " inventaire ou"
-                                                                    + " disponible dans"
-                                                                    + " /claim.",
-                                                            NamedTextColor.GRAY));
-                                        }
-                                        if (player.isOnline()
-                                                && player.getOpenInventory().getTopInventory()
-                                                        == inventory) refresh.run();
-                                    });
-                        });
+        java.util.concurrent.CompletableFuture<Boolean> purchase;
+        try {
+            purchase =
+                    economy.transformItem(
+                            owner,
+                            name,
+                            "gear:" + UUID.randomUUID(),
+                            currency,
+                            price,
+                            before,
+                            after);
+        } catch (RuntimeException error) {
+            inventory.setItem(slot, original);
+            BUSY.remove(inventory);
+            plugin.getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Démarrage de transformation impossible",
+                            error);
+            player.sendMessage(
+                    Component.text(
+                            "Transformation indisponible. Ton objet est conservé.",
+                            NamedTextColor.RED));
+            return;
+        }
+        purchase.whenComplete(
+                (paid, error) -> {
+                    if (!plugin.isEnabled()) {
+                        return;
+                    }
+                    fr.cliker.clikerv2.runtime.ServerTasks.run(
+                            plugin,
+                            () -> {
+                                BUSY.remove(inventory);
+                                if (error != null) {
+                                    delivery.give(owner, name, original);
+                                    plugin.getLogger()
+                                            .log(
+                                                    java.util.logging.Level.SEVERE,
+                                                    "Transformation impossible :" + " objet rendu",
+                                                    error);
+                                } else delivery.notifyAndDeliver(owner);
+                                if (player.isOnline()) {
+                                    boolean success = error == null && Boolean.TRUE.equals(paid);
+                                    String status =
+                                            success
+                                                    ? "Transformation effectuée !"
+                                                            + " Survole ce message"
+                                                            + " pour voir le"
+                                                            + " résultat."
+                                                    : error == null
+                                                            ? "Solde insuffisant."
+                                                                    + " Ton objet est"
+                                                                    + " rendu."
+                                                            : "Transformation"
+                                                                    + " impossible."
+                                                                    + " Ton objet est"
+                                                                    + " rendu.";
+                                    player.sendMessage(
+                                            Component.text(
+                                                            status,
+                                                            success
+                                                                    ? NamedTextColor.GREEN
+                                                                    : NamedTextColor.RED)
+                                                    .hoverEvent(
+                                                            (success ? output : original)
+                                                                    .asHoverEvent()));
+                                    player.sendMessage(
+                                            Component.text(
+                                                    "Objet livré dans ton"
+                                                            + " inventaire ou"
+                                                            + " disponible dans"
+                                                            + " /claim.",
+                                                    NamedTextColor.GRAY));
+                                }
+                                if (player.isOnline()
+                                        && player.getOpenInventory().getTopInventory() == inventory)
+                                    refresh.run();
+                            });
+                });
     }
 }

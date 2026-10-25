@@ -22,6 +22,10 @@ public final class PrestigeManager implements Listener {
     private final PrestigeStore store;
     private final MobKillStore killStore;
     private final Map<UUID, Integer> cache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<UUID, Object> loadTokens = new java.util.HashMap<>();
+    private final Map<UUID, org.bukkit.scheduler.BukkitTask> resetRetries =
+            new java.util.HashMap<>();
+    private boolean stopped;
     private TabListManager tabList;
     private final java.util.Set<UUID> pending = new java.util.HashSet<>();
 
@@ -45,7 +49,10 @@ public final class PrestigeManager implements Listener {
     }
 
     private void loadPlayer(Player player) {
+        if (stopped) return;
         UUID uuid = player.getUniqueId();
+        Object token = new Object();
+        loadTokens.put(uuid, token);
         store.getLevel(uuid)
                 .whenComplete(
                         (level, error) ->
@@ -60,7 +67,10 @@ public final class PrestigeManager implements Listener {
                                                                         + error.getMessage());
                                                 return;
                                             }
-                                            if (!player.isOnline()) return;
+                                            if (stopped
+                                                    || loadTokens.get(uuid) != token
+                                                    || !fr.cliker.clikerv2.runtime.PlayerSessions
+                                                            .isCurrent(player)) return;
                                             cache.put(uuid, level);
                                             applyPendingReset(player);
                                             if (tabList != null && player.isOnline())
@@ -78,7 +88,11 @@ public final class PrestigeManager implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        cache.remove(event.getPlayer().getUniqueId());
+        UUID owner = event.getPlayer().getUniqueId();
+        cache.remove(owner);
+        loadTokens.remove(owner);
+        var retry = resetRetries.remove(owner);
+        if (retry != null) retry.cancel();
     }
 
     public int getLevel(UUID uuid) {
@@ -115,6 +129,8 @@ public final class PrestigeManager implements Listener {
             return;
         }
         UUID owner = player.getUniqueId();
+        if (stopped || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)) return;
+        Object session = loadTokens.get(owner);
         if (!cache.containsKey(owner) || !pending.add(owner)) {
             if (onComplete != null) onComplete.run();
             return;
@@ -152,6 +168,25 @@ public final class PrestigeManager implements Listener {
                                     plugin,
                                     () -> {
                                         pending.remove(owner);
+                                        if (stopped) return;
+                                        if (loadTokens.get(owner) != session
+                                                || !fr.cliker.clikerv2.runtime.PlayerSessions
+                                                        .isCurrent(player)) {
+                                            if (error != null)
+                                                plugin.getLogger()
+                                                        .log(
+                                                                java.util.logging.Level.SEVERE,
+                                                                "Prestige terminé après déconnexion"
+                                                                        + " avec erreur",
+                                                                error);
+                                            else if (Boolean.TRUE.equals(accepted)) {
+                                                var currentPlayer =
+                                                        org.bukkit.Bukkit.getPlayer(owner);
+                                                if (currentPlayer != null)
+                                                    loadPlayer(currentPlayer);
+                                            }
+                                            return;
+                                        }
                                         if (error != null) {
                                             plugin.getLogger()
                                                     .log(
@@ -196,7 +231,9 @@ public final class PrestigeManager implements Listener {
     }
 
     private void applyPendingReset(Player player) {
+        if (stopped) return;
         UUID owner = player.getUniqueId();
+        Object session = loadTokens.get(owner);
         store.pendingReset(owner)
                 .whenComplete(
                         (reset, error) -> {
@@ -204,8 +241,21 @@ public final class PrestigeManager implements Listener {
                             fr.cliker.clikerv2.runtime.ServerTasks.run(
                                     plugin,
                                     () -> {
-                                        if (error != null || reset == null || !player.isOnline())
+                                        if (stopped) return;
+                                        if (error != null) {
+                                            plugin.getLogger()
+                                                    .log(
+                                                            java.util.logging.Level.SEVERE,
+                                                            "Lecture de la réinitialisation XP"
+                                                                    + " impossible",
+                                                            error);
+                                            retryReset(owner);
                                             return;
+                                        }
+                                        if (reset == null
+                                                || loadTokens.get(owner) != session
+                                                || !fr.cliker.clikerv2.runtime.PlayerSessions
+                                                        .isCurrent(player)) return;
                                         var marker =
                                                 new org.bukkit.NamespacedKey(
                                                         plugin, "prestige_xp_reset");
@@ -249,7 +299,7 @@ public final class PrestigeManager implements Listener {
                                                                     + " sauvegardée : reprise à"
                                                                     + " la connexion",
                                                             failure);
-                                            retryReset(player);
+                                            retryReset(owner);
                                             return;
                                         }
                                         store.acknowledgeReset(owner, reset.level())
@@ -260,21 +310,38 @@ public final class PrestigeManager implements Listener {
                                                                 fr.cliker.clikerv2.runtime
                                                                         .ServerTasks.run(
                                                                         plugin,
-                                                                        () -> retryReset(player));
+                                                                        () -> retryReset(owner));
                                                         });
                                     });
                         });
     }
 
-    private void retryReset(Player player) {
-        if (!plugin.isEnabled() || !player.isOnline()) return;
-        plugin.getServer()
-                .getScheduler()
-                .runTaskLater(
-                        plugin,
-                        () -> {
-                            if (player.isOnline()) applyPendingReset(player);
-                        },
-                        100L);
+    private void retryReset(UUID owner) {
+        if (stopped
+                || !plugin.isEnabled()
+                || org.bukkit.Bukkit.getPlayer(owner) == null
+                || resetRetries.containsKey(owner)) return;
+        resetRetries.put(
+                owner,
+                plugin.getServer()
+                        .getScheduler()
+                        .runTaskLater(
+                                plugin,
+                                () -> {
+                                    resetRetries.remove(owner);
+                                    var current = org.bukkit.Bukkit.getPlayer(owner);
+                                    if (!stopped && current != null) applyPendingReset(current);
+                                },
+                                100L));
+    }
+
+    public void shutdown() {
+        stopped = true;
+        resetRetries.values().forEach(org.bukkit.scheduler.BukkitTask::cancel);
+        resetRetries.clear();
+        loadTokens.clear();
+        cache.clear();
+        pending.clear();
+        org.bukkit.event.HandlerList.unregisterAll(this);
     }
 }

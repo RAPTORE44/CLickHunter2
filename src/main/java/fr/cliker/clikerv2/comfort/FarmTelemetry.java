@@ -28,6 +28,7 @@ public final class FarmTelemetry implements Listener {
 
     private final JavaPlugin plugin;
     private final java.util.function.LongSupplier nanos;
+    private final Map<String, NamespacedKey> keys = new HashMap<>();
     private final Map<UUID, Session> sessions = new HashMap<>();
     private final Map<UUID, Long> fights = new HashMap<>();
 
@@ -51,7 +52,7 @@ public final class FarmTelemetry implements Listener {
     }
 
     private NamespacedKey key(String name) {
-        return new NamespacedKey(plugin, "farm_" + name);
+        return keys.computeIfAbsent(name, value -> new NamespacedKey(plugin, "farm_" + value));
     }
 
     private static long add(long a, long b) {

@@ -341,6 +341,16 @@ public final class MerchantMenu implements Listener {
 
     private void purchase(
             Player player, MobTier tier, ItemStack reward, long ecusCost, int essenceCost) {
+        var delivery =
+                org.bukkit.Bukkit.getServicesManager()
+                        .load(fr.cliker.clikerv2.rewards.ClaimService.class);
+        if (delivery == null) {
+            player.sendMessage(
+                    Component.text(
+                            "Boutique temporairement indisponible. Tes ressources sont conservées.",
+                            NamedTextColor.RED));
+            return;
+        }
         java.util.UUID owner = player.getUniqueId();
         if (!pending.add(owner)) return;
         EssenceRarity required = requiredRarity(tier);
@@ -350,10 +360,6 @@ public final class MerchantMenu implements Listener {
                     Component.text("Pas assez d’essences pour cet achat.", NamedTextColor.RED));
             return;
         }
-        var delivery =
-                org.bukkit.Bukkit.getServicesManager()
-                        .load(fr.cliker.clikerv2.rewards.ClaimService.class);
-        if (delivery == null) throw new IllegalStateException("Livraison indisponible");
         String source = "merchant:" + java.util.UUID.randomUUID();
         var purchase =
                 essenceCost > 0
@@ -407,7 +413,6 @@ public final class MerchantMenu implements Listener {
                                                             "Achat marchand" + " impossible",
                                                             error);
                                     } else {
-                                        delivery.notifyAndDeliver(owner);
                                         if (player.isOnline())
                                             player.sendMessage(
                                                     Component.text(
@@ -432,7 +437,9 @@ public final class MerchantMenu implements Listener {
         if (!(event.getInventory().getHolder() instanceof Holder holder)) return;
         if (!(event.getWhoClicked() instanceof Player player)) return;
         event.setCancelled(true);
-        if (event.getClickedInventory() != event.getView().getTopInventory()) return;
+        if (event.getClickedInventory() != event.getView().getTopInventory()
+                || (event.getClick() != org.bukkit.event.inventory.ClickType.LEFT
+                        && event.getClick() != org.bukkit.event.inventory.ClickType.RIGHT)) return;
 
         MobTier tier = holder.tier;
         long armorEcus = armorEcus(tier);

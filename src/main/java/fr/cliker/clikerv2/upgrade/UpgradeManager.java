@@ -28,6 +28,7 @@ public final class UpgradeManager implements Listener {
     private final UpgradeStore store;
     private final EconomyService economy;
     private final java.util.Set<UUID> pending = new java.util.HashSet<>();
+    private final Map<UUID, Object> loadTokens = new HashMap<>();
     private final Map<UUID, Map<UpgradeType, Integer>> cache = new HashMap<>();
 
     public UpgradeManager(JavaPlugin plugin, UpgradeStore store, EconomyService economy) {
@@ -42,6 +43,8 @@ public final class UpgradeManager implements Listener {
     }
 
     private void loadPlayer(Player player) {
+        Object token = new Object();
+        loadTokens.put(player.getUniqueId(), token);
         store.getLevels(player.getUniqueId())
                 .whenComplete(
                         (levels, error) ->
@@ -56,7 +59,9 @@ public final class UpgradeManager implements Listener {
                                                                         + error.getMessage());
                                                 return;
                                             }
-                                            if (!player.isOnline()) return;
+                                            if (loadTokens.get(player.getUniqueId()) != token
+                                                    || !fr.cliker.clikerv2.runtime.PlayerSessions
+                                                            .isCurrent(player)) return;
                                             cache.put(player.getUniqueId(), levels);
                                             if (player.isOnline()) applyAttributes(player, levels);
                                         }));
@@ -73,6 +78,7 @@ public final class UpgradeManager implements Listener {
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         cache.remove(event.getPlayer().getUniqueId());
+        loadTokens.remove(event.getPlayer().getUniqueId());
     }
 
     public boolean isLoaded(UUID owner) {
@@ -108,6 +114,12 @@ public final class UpgradeManager implements Listener {
 
     public void purchase(Player player, UpgradeType type, boolean maximum, Runnable onComplete) {
         UUID owner = player.getUniqueId();
+        if (!player.hasPermission("cliker.upgrade.use")
+                || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)) {
+            if (onComplete != null) onComplete.run();
+            return;
+        }
+        Object session = loadTokens.get(owner);
         if (!cache.containsKey(owner)) {
             player.sendMessage(
                     Component.text(
@@ -132,6 +144,22 @@ public final class UpgradeManager implements Listener {
                                     plugin,
                                     () -> {
                                         pending.remove(owner);
+                                        if (loadTokens.get(owner) != session
+                                                || !fr.cliker.clikerv2.runtime.PlayerSessions
+                                                        .isCurrent(player)) {
+                                            if (error != null)
+                                                plugin.getLogger()
+                                                        .log(
+                                                                java.util.logging.Level.SEVERE,
+                                                                "Achat terminé après déconnexion"
+                                                                        + " avec erreur",
+                                                                error);
+                                            else if (level >= 0) {
+                                                var current = org.bukkit.Bukkit.getPlayer(owner);
+                                                if (current != null) loadPlayer(current);
+                                            }
+                                            return;
+                                        }
                                         if (error != null) {
                                             plugin.getLogger()
                                                     .log(
@@ -208,6 +236,9 @@ public final class UpgradeManager implements Listener {
         if (instance == null) return;
         NamespacedKey modifierKey = new NamespacedKey(plugin, key);
         AttributeModifier existing = instance.getModifier(modifierKey);
+        if (existing != null
+                && Double.compare(existing.getAmount(), amount) == 0
+                && existing.getOperation() == AttributeModifier.Operation.ADD_NUMBER) return;
         if (existing != null) instance.removeModifier(modifierKey);
         if (amount > 0) {
             instance.addModifier(

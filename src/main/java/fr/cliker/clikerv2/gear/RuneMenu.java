@@ -204,7 +204,10 @@ public final class RuneMenu implements Listener {
             return;
         }
         event.setCancelled(true);
-        if (slot == BUTTON_SLOT) engrave(player, holder.inventory);
+        if (slot == BUTTON_SLOT
+                && (event.getClick() == org.bukkit.event.inventory.ClickType.LEFT
+                        || event.getClick() == org.bukkit.event.inventory.ClickType.RIGHT))
+            engrave(player, holder.inventory);
     }
 
     @EventHandler

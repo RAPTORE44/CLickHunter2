@@ -193,7 +193,10 @@ public final class ReforgeMenu implements Listener {
             return;
         }
         event.setCancelled(true);
-        if (slot == BUTTON_SLOT) reforge(player, holder.inventory);
+        if (slot == BUTTON_SLOT
+                && (event.getClick() == org.bukkit.event.inventory.ClickType.LEFT
+                        || event.getClick() == org.bukkit.event.inventory.ClickType.RIGHT))
+            reforge(player, holder.inventory);
     }
 
     @EventHandler

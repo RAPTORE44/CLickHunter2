@@ -39,3 +39,13 @@ L'objet acheté chez le marchand s'utilise par clic droit et disparaît à l'act
 ### BuyZone et apparitions vanilla
 
 Le retour reste au nord du portail mais le joueur regarde vers le sud (y compris lors d'un retour de secours). Le mode créatif contourne les portails sans achat ni menu ; repasser en survie rétablit les contrôles habituels. Les nouvelles apparitions de créatures vanilla sont bloquées dans tous les mondes par défaut. Les apparitions CUSTOM des plugins, dont les mobs ClickHunter et les PNJ, sont conservées. Réglage : `mobs.disable-vanilla-spawns` dans `config.yml` (défaut : `true`, même avec une ancienne configuration). Les créatures déjà présentes ne sont pas supprimées.
+
+### Audit complémentaire après les réglages de confort
+
+- Terminée : protection des callbacks de prestige/améliorations lors d’une reconnexion sous le même UUID.
+- Terminée : préservation des objets/essences si le service de livraison est absent, et des activations si la sauvegarde du compresseur échoue.
+- Terminée : correction de l’activation dans l’air, sans contourner une interdiction explicite d’utiliser l’objet.
+- Terminée : limitation des boutons économiques aux clics prévus et suppression de traitements redondants.
+- Section 17 du nouveau cahier : aucune nouvelle idée renseignée ; aucun nouveau système majeur lancé.
+
+Voir `AUDIT-SUIVI-2026-10-25.md` et `validation/audit-suivi.json` pour les preuves et limites. Les autres lignes jaunes et les dépendances en attente conservent leur état.

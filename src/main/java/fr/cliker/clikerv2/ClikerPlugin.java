@@ -105,6 +105,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.ui.MainMenu mainMenu;
     private fr.cliker.clikerv2.daily.DailyModule dailyModule;
     private fr.cliker.clikerv2.buyzone.BuyZoneModule buyZoneModule;
+    private PrestigeManager prestigeManager;
     private fr.cliker.clikerv2.comfort.PlayerComfort playerComfort;
     private fr.cliker.clikerv2.comfort.FarmTelemetry farmTelemetry;
     private fr.cliker.clikerv2.comfort.ProgressNavigation progressNavigation;
@@ -159,7 +160,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         }
 
         PrestigeStore prestigeStore = new PrestigeStore(database);
-        PrestigeManager prestigeManager = new PrestigeManager(this, prestigeStore, killStore);
+        prestigeManager = new PrestigeManager(this, prestigeStore, killStore);
         getServer().getPluginManager().registerEvents(prestigeManager, this);
         getServer()
                 .getPluginManager()
@@ -510,6 +511,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
 
     @Override
     public void onDisable() {
+        if (prestigeManager != null) prestigeManager.shutdown();
         if (playerComfort != null) playerComfort.shutdown();
         if (farmTelemetry != null) farmTelemetry.shutdown();
         if (progressNavigation != null) progressNavigation.shutdown();
