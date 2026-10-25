@@ -30,6 +30,13 @@ public final class CooldownCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player player) {
+            if (!fr.cliker.clikerv2.outpost.WorldInventories.commandAllowed(
+                    player, command.getName())) {
+                player.sendMessage(
+                        "Cette fonctionnalité est désactivée dans les avant-postes. Reviens au"
+                            + " /spawn.");
+                return true;
+            }
             long now = System.currentTimeMillis();
             if (now >= nextCleanup) {
                 lastUse.values().removeIf(time -> now - time >= COOLDOWN_MILLIS);

@@ -33,6 +33,12 @@ public final class PrestigeManager implements Listener {
         this.plugin = plugin;
         this.store = store;
         this.killStore = killStore;
+        org.bukkit.Bukkit.getServicesManager()
+                .register(
+                        PrestigeManager.class,
+                        this,
+                        plugin,
+                        org.bukkit.plugin.ServicePriority.Normal);
     }
 
     /**
@@ -120,6 +126,10 @@ public final class PrestigeManager implements Listener {
      * après résolution (succès ou échec).
      */
     public void attemptPrestige(Player player, Runnable onComplete) {
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) {
+            if (onComplete != null) onComplete.run();
+            return;
+        }
         if (!player.hasPermission("cliker.prestige.use")) {
             player.sendMessage(
                     Component.text(
@@ -230,8 +240,12 @@ public final class PrestigeManager implements Listener {
                         });
     }
 
+    public void resume(Player player) {
+        applyPendingReset(player);
+    }
+
     private void applyPendingReset(Player player) {
-        if (stopped) return;
+        if (stopped || fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
         UUID owner = player.getUniqueId();
         Object session = loadTokens.get(owner);
         store.pendingReset(owner)
@@ -241,7 +255,9 @@ public final class PrestigeManager implements Listener {
                             fr.cliker.clikerv2.runtime.ServerTasks.run(
                                     plugin,
                                     () -> {
-                                        if (stopped) return;
+                                        if (stopped
+                                                || fr.cliker.clikerv2.outpost.WorldInventories
+                                                        .isolated(player)) return;
                                         if (error != null) {
                                             plugin.getLogger()
                                                     .log(
@@ -337,6 +353,7 @@ public final class PrestigeManager implements Listener {
 
     public void shutdown() {
         stopped = true;
+        org.bukkit.Bukkit.getServicesManager().unregister(PrestigeManager.class, this);
         resetRetries.values().forEach(org.bukkit.scheduler.BukkitTask::cancel);
         resetRetries.clear();
         loadTokens.clear();

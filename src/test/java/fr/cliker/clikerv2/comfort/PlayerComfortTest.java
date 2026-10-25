@@ -51,6 +51,24 @@ class PlayerComfortTest {
     }
 
     @Test
+    void creativeCanUseDecorativeTrapdoors() {
+        player.setGameMode(org.bukkit.GameMode.CREATIVE);
+        var block = player.getWorld().getBlockAt(0, 65, 0);
+        block.setType(Material.OAK_TRAPDOOR);
+        var event =
+                new PlayerInteractEvent(
+                        player,
+                        org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK,
+                        new ItemStack(Material.STONE),
+                        block,
+                        org.bukkit.block.BlockFace.UP,
+                        org.bukkit.inventory.EquipmentSlot.HAND);
+        var before = event.useInteractedBlock();
+        comfort.decoration(event);
+        assertEquals(before, event.useInteractedBlock());
+    }
+
+    @Test
     void messagePreferencesAreIndependentAndDoNotChangePickupAuthorization() {
         command("settings");
         for (int slot : new int[] {17, 4}) {

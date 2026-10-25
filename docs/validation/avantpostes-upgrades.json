@@ -1,0 +1,33 @@
+{
+  "tests": {
+    "tests": 201,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "paper": "1.21.4 build 232",
+  "java": "21.0.9",
+  "npc_provider": "ZNPCsPlus 2.0.0",
+  "native_checks": [
+    "clic droit upgrade ouvre 5 quantités ; zéro gemme bloque tous les choix",
+    "achat X5 exact accepté ; X50 bloqué si solde insuffisant",
+    "inventaire complet et XP clicker retirés à entrée avant-poste",
+    "commande économie externe bloquée dans avant-poste",
+    "PNJ ZNPCsPlus ouvre boutique et achat livre exactement un bloc",
+    "marchand déplaçable par son propriétaire",
+    "retour spawn restaure épée, armure, seconde main et XP ; bloc absent",
+    "bloc retrouvé à la prochaine visite sans doublon",
+    "redémarrage : bloc acheté conservé, étoile slot 9, un seul marchand à la position sauvegardée",
+    "après redémarrage : équipement complet et XP restaurés, bloc acheté absent du clicker",
+    "bloc acheté retrouvé sans doublon après second aller-retour",
+    "JAR final : récompense console reçue en ligne dans avant-poste conservée en /claim puis livrée au retour spawn"
+  ],
+  "purchased_material": "ACACIA_BUTTON",
+  "sqlite_quick_check": "ok",
+  "jar_sha256": "3f0f6589188ddc8fa236eb7741c009d3dc3374917149368fd60a9e7e57ff3d86",
+  "limits": [
+    "ItemsAdder réel absent du serveur de test ; icônes vanilla utilisées pour le parcours natif.",
+    "Autres plugins modifiant directement les inventaires et pannes matérielles : sauvegardes serveur requises.",
+    "Test local fonctionnel, sans certification de charge à grande échelle."
+  ]
+}

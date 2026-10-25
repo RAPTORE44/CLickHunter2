@@ -35,12 +35,14 @@ public final class UpgradeMenu implements Listener {
     };
 
     private final UpgradeManager manager;
+    private final UpgradeQuantityMenu quantities;
     private final JavaPlugin plugin;
     private final fr.cliker.clikerv2.ui.ViewRequests requests;
     private final NamespacedKey typeKey;
 
     public UpgradeMenu(JavaPlugin plugin, UpgradeManager manager) {
         this.manager = manager;
+        quantities = new UpgradeQuantityMenu(plugin, manager, this::open);
         this.plugin = plugin;
         requests = new fr.cliker.clikerv2.ui.ViewRequests(plugin);
         this.typeKey = new NamespacedKey(plugin, "cliker_upgrade_type");
@@ -177,7 +179,7 @@ public final class UpgradeMenu implements Listener {
                             Component.text(""),
                             Component.text(
                                             gems >= cost * 10
-                                                    ? "Gauche : +1 | Droite : acheter le maximum"
+                                                    ? "Gauche : +1 | Droite : choisir une quantité"
                                                     : "Il manque "
                                                             + fr.cliker.clikerv2.economy
                                                                     .CurrencyType.GEMMES_SOMBRES
@@ -212,6 +214,10 @@ public final class UpgradeMenu implements Listener {
                 || holder.pending
                 || (event.getClick() != org.bukkit.event.inventory.ClickType.LEFT
                         && event.getClick() != org.bukkit.event.inventory.ClickType.RIGHT)) return;
+        if (event.getClick() == org.bukkit.event.inventory.ClickType.RIGHT) {
+            quantities.open(player, type);
+            return;
+        }
         holder.pending = true;
         manager.purchase(
                 player,

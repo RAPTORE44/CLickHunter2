@@ -61,7 +61,7 @@ Le choix retenu est un **portail invisible**, et non un volume de 40 × 40 blocs
 - **40 blocs de large**, soit 20 blocs à l'est et 20 à l'ouest du centre.
 - **10 blocs de haut**, depuis les pieds de l'administrateur jusqu'à 10 blocs au-dessus.
 - **1 bloc d'épaisseur**, centré sur le point de création.
-- Retour à **X du centre, Z du centre moins 5** : cinq blocs au **nord**.
+- Retour à **X du centre, Z du centre moins 15** : quinze blocs au **nord**.
 
 Le portail est aligné est-ouest, indépendamment de la direction du regard à sa
 création. Le nord Minecraft correspond à **-Z**. Prévoir un sol sûr au point de
@@ -86,7 +86,7 @@ ne peut pas être attribuée à une zone de terrain sans en définir les limites
    chat et aucun déblocage ni débit n'est effectué.
 5. Si l'achat réussit : le menu se ferme, la permission est appliquée et le joueur
    est placé au centre du portail. Il peut désormais traverser librement.
-6. Une fermeture sans achat renvoie le joueur cinq blocs au nord du centre.
+6. Une fermeture sans achat renvoie le joueur quinze blocs au nord du centre.
 
 Les clics multiples ne déclenchent pas plusieurs débits. Tous les déplacements
 et glisser-déposer dans le menu sont annulés. Le contrôle couvre les mouvements

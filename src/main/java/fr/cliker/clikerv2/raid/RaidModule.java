@@ -222,6 +222,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
             double x = java.util.concurrent.ThreadLocalRandom.current().nextDouble(-22, 22),
                     z = java.util.concurrent.ThreadLocalRandom.current().nextDouble(-20, 12);
             var mob = world.spawn(new Location(world, x, 65, z), Zombie.class);
+            mob.setSilent(true);
             mob.setAdult();
             mob.setShouldBurnInDay(false);
             mob.setRemoveWhenFarAway(false);
@@ -254,6 +255,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         giant.getPersistentDataContainer().set(tag, PersistentDataType.BYTE, (byte) 2);
         giant.customName(DailySettings.color("&4&lGardien colossal"));
         giant.setCustomNameVisible(true);
+        giant.setSilent(true);
         boss = giant.getUniqueId();
         bossMax = configuredBossHP;
         health.put(boss, bossMax);

@@ -377,6 +377,7 @@ public final class CustomMobManager implements Listener {
         entity.setGravity(false);
         entity.setCollidable(false);
         entity.setAI(false);
+        entity.setSilent(true);
         if (entity instanceof Mob mob) mob.setAware(false);
         entity.getPersistentDataContainer().set(mobIdKey, PersistentDataType.STRING, mobId);
         entity.getPersistentDataContainer().set(spawnIdKey, PersistentDataType.STRING, spawnId);
@@ -461,10 +462,13 @@ public final class CustomMobManager implements Listener {
             event.setDamage(0.0);
         }
         updateNameplate(victim, tier, hpAfter, maxHp, boss);
-        damagePopups.show(player, victim, applied);
+        showDamage(player, victim, applied);
     }
 
     public void showDamage(Player player, LivingEntity victim, long amount) {
+        if (amount > 0)
+            player.playSound(
+                    player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_HAT, 0.5f, 1.2f);
         damagePopups.show(player, victim, amount);
     }
 

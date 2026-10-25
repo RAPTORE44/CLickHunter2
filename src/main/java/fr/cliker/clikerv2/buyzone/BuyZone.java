@@ -76,7 +76,7 @@ public record BuyZone(
 
     public Location northReturn() {
         Location point = center.clone();
-        point.setZ(center.getZ() - (depth <= 1 ? 5 : depth / 2 + 5));
+        point.setZ(center.getZ() - (depth <= 1 ? 15 : depth / 2 + 15));
         point.setYaw(0);
         point.setPitch(0);
         return point;

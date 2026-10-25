@@ -96,4 +96,46 @@ class UpgradeMenuTest {
         assertTrue(click.isCancelled());
         assertEquals(500000, economy.getBalances(player.getUniqueId()).join().gemmesSombres());
     }
+
+    @Test
+    void rightClickOffersExactQuantitiesAndDisablesUnaffordableButtons() {
+        economy.set(player.getUniqueId(), player.getName(), CurrencyType.GEMMES_SOMBRES, 500000)
+                .join();
+        menu.open(player);
+        drain();
+        var click =
+                new InventoryClickEvent(
+                        player.getOpenInventory(),
+                        InventoryType.SlotType.CONTAINER,
+                        10,
+                        ClickType.RIGHT,
+                        InventoryAction.PICKUP_HALF);
+        server.getPluginManager().callEvent(click);
+        drain();
+        var inventory = player.getOpenInventory().getTopInventory();
+        assertEquals(27, inventory.getSize());
+        assertEquals(Material.LIME_DYE, inventory.getItem(10).getType());
+        assertEquals(Material.LIME_DYE, inventory.getItem(11).getType());
+        assertEquals(Material.BARRIER, inventory.getItem(13).getType());
+        var forbidden =
+                new InventoryClickEvent(
+                        player.getOpenInventory(),
+                        InventoryType.SlotType.CONTAINER,
+                        13,
+                        ClickType.LEFT,
+                        InventoryAction.PICKUP_ALL);
+        server.getPluginManager().callEvent(forbidden);
+        drain();
+        assertTrue(forbidden.isCancelled());
+        assertEquals(500000, economy.getBalances(player.getUniqueId()).join().gemmesSombres());
+    }
+
+    @Test
+    void quantityCostIsTheSumOfEveryLevelAndNeverExceedsCap() {
+        long expected = 0;
+        for (int level = 1; level <= 5; level++) expected += UpgradeType.costForLevel(level) * 10;
+        assertEquals(expected, UpgradeQuantityMenu.cost(0, 5));
+        assertEquals(-1, UpgradeQuantityMenu.cost(98, 5));
+        assertEquals(-1, UpgradeQuantityMenu.cost(100, 1));
+    }
 }

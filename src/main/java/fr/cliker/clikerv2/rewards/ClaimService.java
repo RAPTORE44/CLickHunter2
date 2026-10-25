@@ -133,7 +133,10 @@ public final class ClaimService implements Listener, CommandExecutor {
         if (item == null || item.getType().isAir() || item.getAmount() <= 0) return;
         Player online = Bukkit.getPlayer(owner);
         ItemStack remaining = item.clone();
-        if (online != null && online.isOnline() && !busy.contains(owner)) {
+        if (online != null
+                && online.isOnline()
+                && !fr.cliker.clikerv2.outpost.WorldInventories.isolated(online)
+                && !busy.contains(owner)) {
             var leftovers = online.getInventory().addItem(remaining);
             if (leftovers.isEmpty()) return;
             for (ItemStack leftover : leftovers.values()) enqueue(owner, leftover);
@@ -170,6 +173,7 @@ public final class ClaimService implements Listener, CommandExecutor {
 
     public void notifyAndDeliver(UUID owner) {
         Player player = Bukkit.getPlayer(owner);
+        if (player != null && fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
         if (player == null || !player.isOnline()) return;
         store.page(owner, 0)
                 .whenComplete(
@@ -185,6 +189,10 @@ public final class ClaimService implements Listener, CommandExecutor {
     }
 
     public void open(Player player, int page) {
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) {
+            player.sendMessage("Les récompenses clicker attendent ton retour au /spawn.");
+            return;
+        }
         if (!player.hasPermission("cliker.claim")) {
             player.sendMessage(DailySettings.color("&cTu n'as pas la permission."));
             return;
@@ -209,6 +217,8 @@ public final class ClaimService implements Listener, CommandExecutor {
                                                     || opening.get(player.getUniqueId()) != token)
                                                 return;
                                             opening.remove(player.getUniqueId());
+                                            if (fr.cliker.clikerv2.outpost.WorldInventories
+                                                    .isolated(player)) return;
                                             if (error != null) {
                                                 message(player, "erreur");
                                                 return;
@@ -289,6 +299,7 @@ public final class ClaimService implements Listener, CommandExecutor {
     }
 
     public void deliver(Player player, String id, boolean automatic) {
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
         UUID owner = player.getUniqueId();
         Inventory currentView = player.getOpenInventory().getTopInventory();
         if (automatic
@@ -316,7 +327,9 @@ public final class ClaimService implements Listener, CommandExecutor {
                                                                     : "erreur");
                                                 return;
                                             }
-                                            if (!player.isOnline()) {
+                                            if (!player.isOnline()
+                                                    || fr.cliker.clikerv2.outpost.WorldInventories
+                                                            .isolated(player)) {
                                                 store.finish(owner, id, lease, false);
                                                 busy.remove(owner);
                                                 return;
@@ -529,7 +542,7 @@ public final class ClaimService implements Listener, CommandExecutor {
                                                         .log(
                                                                 Level.SEVERE,
                                                                 "Reprise de réservation /claim à"
-                                                                    + " réessayer",
+                                                                        + " réessayer",
                                                                 error);
                                                 Bukkit.getScheduler()
                                                         .runTaskLater(
@@ -578,7 +591,13 @@ public final class ClaimService implements Listener, CommandExecutor {
         reconcile(event.getPlayer());
     }
 
+    public void resume(UUID owner) {
+        var player = Bukkit.getPlayer(owner);
+        if (player != null) reconcile(player);
+    }
+
     private void reconcile(Player player) {
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
         UUID owner = player.getUniqueId();
         Set<String> receipts = new HashSet<>();
         for (ItemStack item : player.getInventory().getStorageContents()) {
@@ -618,7 +637,7 @@ public final class ClaimService implements Listener, CommandExecutor {
                                                         .log(
                                                                 Level.SEVERE,
                                                                 "Reprise des reçus /claim à"
-                                                                    + " réessayer",
+                                                                        + " réessayer",
                                                                 failure);
                                                 retryReconcile(owner);
                                                 return;

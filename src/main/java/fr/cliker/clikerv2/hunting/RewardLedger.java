@@ -32,6 +32,9 @@ public final class RewardLedger implements Listener {
             starting[currency.ordinal()] =
                     Math.max(0, plugin.getConfig().getLong("starting-balances." + currency.key()));
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        Bukkit.getServicesManager()
+                .register(
+                        RewardLedger.class, this, plugin, org.bukkit.plugin.ServicePriority.Normal);
     }
 
     public DatabaseManager database() {
@@ -138,7 +141,7 @@ public final class RewardLedger implements Listener {
                             try (var statement =
                                     c.prepareStatement(
                                             "INSERT OR IGNORE INTO reward_ledger(source,owner,kind)"
-                                                + " VALUES(?,?,'refund')")) {
+                                                    + " VALUES(?,?,'refund')")) {
                                 statement.setString(1, source);
                                 statement.setString(2, owner.toString());
                                 statement.executeUpdate();
@@ -148,7 +151,7 @@ public final class RewardLedger implements Listener {
                                     .log(
                                             java.util.logging.Level.WARNING,
                                             "Crédit de coffre refusé ; original conservé dans"
-                                                + " /claim",
+                                                    + " /claim",
                                             refused);
                             return false;
                         }
@@ -163,6 +166,8 @@ public final class RewardLedger implements Listener {
     }
 
     public void flushXP(UUID owner) {
+        var online = org.bukkit.Bukkit.getPlayer(owner);
+        if (online != null && fr.cliker.clikerv2.outpost.WorldInventories.isolated(online)) return;
         if (stopped) return;
         if (!pendingXP.add(owner)) {
             dirtyXP.add(owner);
@@ -219,7 +224,7 @@ public final class RewardLedger implements Listener {
             return;
         }
         Player player = Bukkit.getPlayer(owner);
-        if (player == null) return;
+        if (player == null || fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
         if (state.resetPending()) {
             flushXP(owner);
             return;
@@ -248,6 +253,7 @@ public final class RewardLedger implements Listener {
 
     public void shutdown() {
         stopped = true;
+        Bukkit.getServicesManager().unregister(RewardLedger.class, this);
         pendingXP.clear();
         dirtyXP.clear();
         HandlerList.unregisterAll(this);

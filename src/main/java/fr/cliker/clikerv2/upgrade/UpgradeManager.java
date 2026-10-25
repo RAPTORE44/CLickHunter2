@@ -113,6 +113,10 @@ public final class UpgradeManager implements Listener {
     }
 
     public void purchase(Player player, UpgradeType type, boolean maximum, Runnable onComplete) {
+        purchase(player, type, maximum ? 0 : 1, onComplete);
+    }
+
+    public void purchase(Player player, UpgradeType type, int quantity, Runnable onComplete) {
         UUID owner = player.getUniqueId();
         if (!player.hasPermission("cliker.upgrade.use")
                 || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)) {
@@ -136,7 +140,7 @@ public final class UpgradeManager implements Listener {
             if (onComplete != null) onComplete.run();
             return;
         }
-        store.purchase(owner, type, maximum)
+        store.purchase(owner, type, quantity)
                 .whenComplete(
                         (level, error) -> {
                             if (!plugin.isEnabled()) return;
@@ -179,10 +183,10 @@ public final class UpgradeManager implements Listener {
                                                                 level == -1
                                                                         ? "Gemmes Sombres"
                                                                                 + " insuffisantes."
-                                                                        : "Cette"
-                                                                                + " amélioration"
-                                                                                + " est déjà"
-                                                                                + " au maximum.",
+                                                                        : "Cette amélioration :"
+                                                                              + " quantité"
+                                                                              + " indisponible ou"
+                                                                              + " au maximum.",
                                                                 NamedTextColor.RED));
                                         } else if (player.isOnline()) {
                                             cache.computeIfAbsent(

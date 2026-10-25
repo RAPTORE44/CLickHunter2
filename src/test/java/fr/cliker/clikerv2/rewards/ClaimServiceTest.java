@@ -326,4 +326,28 @@ class ClaimServiceTest {
         await(() -> !claims.isDelivering(player.getUniqueId()));
         assertEquals(2, player.getInventory().getItem(0).getAmount());
     }
+
+    @Test
+    void directRewardsWaitInClaimInsteadOfEnteringBuilderInventory() {
+        var profiles =
+                new fr.cliker.clikerv2.outpost.WorldInventories(
+                        plugin, player.getWorld().getName());
+        Bukkit.getServicesManager()
+                .register(
+                        fr.cliker.clikerv2.outpost.WorldInventories.class,
+                        profiles,
+                        plugin,
+                        org.bukkit.plugin.ServicePriority.Normal);
+        try {
+            claims.give(player.getUniqueId(), player.getName(), new ItemStack(Material.DIAMOND, 3));
+            drain();
+            assertFalse(player.getInventory().contains(Material.DIAMOND));
+            assertEquals(1, claims.store().page(player.getUniqueId(), 0).join().entries().size());
+            claims.notifyAndDeliver(player.getUniqueId());
+            drain();
+            assertFalse(player.getInventory().contains(Material.DIAMOND));
+        } finally {
+            profiles.shutdown();
+        }
+    }
 }

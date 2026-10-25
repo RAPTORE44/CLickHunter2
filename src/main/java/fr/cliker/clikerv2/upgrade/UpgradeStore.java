@@ -79,6 +79,14 @@ public final class UpgradeStore {
     }
 
     public CompletableFuture<Integer> purchase(UUID uuid, UpgradeType type, boolean maximum) {
+        return purchase(uuid, type, maximum ? 0 : 1);
+    }
+
+    /** quantity=0 : maximum abordable ; sinon achat exact, sans achat partiel. */
+    public CompletableFuture<Integer> purchase(UUID uuid, UpgradeType type, int quantity) {
+        if (quantity < 0 || quantity > UpgradeType.MAX_LEVEL)
+            throw new IllegalArgumentException("Quantité invalide");
+        boolean maximum = quantity == 0;
         return database.submit(
                 c -> {
                     try {
@@ -116,14 +124,25 @@ public final class UpgradeStore {
                                 if (rs.next()) balance = rs.getLong(1);
                             }
                         }
+                        if (!maximum && current + quantity > UpgradeType.MAX_LEVEL) {
+                            c.rollback();
+                            return -2;
+                        }
+                        int limit = maximum ? UpgradeType.MAX_LEVEL : current + quantity;
                         int next = current;
                         long price = 0;
                         do {
                             long step = Math.multiplyExact(UpgradeType.costForLevel(next + 1), 10);
-                            if (step > balance - price) break;
+                            if (step > balance - price) {
+                                if (!maximum) {
+                                    c.rollback();
+                                    return -1;
+                                }
+                                break;
+                            }
                             price = Math.addExact(price, step);
                             next++;
-                        } while (maximum && next < UpgradeType.MAX_LEVEL);
+                        } while (next < limit);
                         if (next == current) {
                             c.rollback();
                             return -1;

@@ -53,7 +53,7 @@ commands:
     usage: /raid [quitter]
     permission: cliker.raid
   avantposte:
-    description: Terrain personnel, extensions, visites et richesse
+    description: Terrain personnel, inventaire séparé, boutique de blocs, extensions et visites
     aliases: [is, avantpostes]
     permission: cliker.avantposte
   claim:

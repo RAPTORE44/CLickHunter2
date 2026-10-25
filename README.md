@@ -91,7 +91,7 @@ Les trappes, portillons et pots décoratifs sont protégés des clics involontai
 
 Dans `/stats`, la réduction bonus de dégâts est affichée séparément de l’armure vanilla, et les gains confirmés des 60 dernières secondes sont séparés par créature. Le compteur des coups validés est conservé, et la session précédente est résumée à la reconnexion. Les boss disposent d’un chronomètre et d’un record personnel, avec une célébration de première victoire.
 
-Dans `/upgrade`, clic gauche : acheter un niveau ; clic droit : acheter le maximum abordable au tarif habituel. Le menu des marchands compare les dégâts **de base** des épées, hors bonus.
+Dans `/upgrade`, clic gauche : acheter un niveau ; clic droit : choisir **X1, X5, X10, X50 ou le maximum abordable**. Le coût cumule le tarif de chaque niveau ; les quantités impossibles sont bloquées et aucun achat partiel n’est effectué pour X1/X5/X10/X50. Le menu des marchands compare les dégâts **de base** des épées, hors bonus.
 
 ### Avant-postes
 
@@ -106,6 +106,8 @@ Toutes ces commandes acceptent aussi `/is` et `/avantpostes` à la place de `/av
 | `/avantposte ajouter <pseudo>` | Autoriser un joueur connu à construire et à utiliser les coffres. |
 | `/avantposte retirer <pseudo>` | Retirer cette autorisation. |
 | `/avantposte top` | Consulter les propriétaires les plus riches. |
+| `/avantposte blocs` | Ouvrir la boutique de blocs depuis le monde des avant-postes. |
+| `/avantposte pnj deplacer` | Déplacer son marchand à sa position et orientation, dans son propre terrain. |
 | `/avantposte sortir` | Quitter l'avant-poste. |
 
 ### Administration : monde, zones et PNJ
@@ -216,3 +218,13 @@ PNJ : [intégration ZNPCsPlus 2.0.0, installation et migration](docs/PNJ-ZNPCSPL
 Confort de session : mode de jeu conservé à la déconnexion, étoile de menu en neuvième case de la barre rapide (clic droit), gains colorés et icônes Daily réappliquées immédiatement à chaque actualisation. L’objet déjà présent en neuvième case est déplacé vers une case libre ; si l’inventaire est plein, libérer une case puis fermer l’inventaire pour installer l’étoile sans perte. L’étoile ne se déplace pas, ne se jette pas et ne se vend pas.
 
 Détails et validations : [session, barre rapide et calendrier](docs/SESSION-ET-INTERFACE.md).
+
+### Inventaires des avant-postes et interactions
+
+Les avant-postes ont un inventaire et une XP distincts (armure et seconde main comprises). Le retour au `/spawn`, `/avantposte sortir` ou tout autre monde restaure l’équipement clicker ; les blocs de construction restent dans l’avant-poste et sont retrouvés à la prochaine visite. Les profils sont conservés après reconnexion et redémarrage. Les ventes, échanges, sacs partagés, coffres de l’End et commandes externes non autorisées y sont bloqués, ainsi que la sortie des objets et véhicules par téléportation ou portail. Cette séparation s’applique aussi en créatif.
+
+Chaque terrain possède un marchand **ZNPCsPlus 2.0.0**, déplaçable par son propriétaire. Il vend tous les blocs Minecraft possédant une forme d’objet, en pages : clic gauche pour un bloc, clic droit pour une pile vanilla. Prix par défaut : **10 Écus par bloc**, modifiable dans `avantpostes.yml`, section `boutique-blocs` (prix individuels par nom de matériau). Les états techniques sans objet (portails, eau posée…) ne figurent pas dans la boutique. Les achats payés attendent une place libre dans l’inventaire d’avant-poste ; ils ne sont jamais livrés dans le monde clicker.
+
+Les portails BuyZone renvoient désormais **15 blocs au nord**, avec le regard vers le sud. En créatif, les portes, trappes et autres interactions sont autorisées. Les mobs clicker et raid sont silencieux ; un coup réussi déclenche un son de bloc musical, avec l’animation de dégâts qui monte d’un bloc.
+
+Détails et vérifications : [inventaires et boutique de construction](docs/AVANTPOSTES-INVENTAIRES.md).

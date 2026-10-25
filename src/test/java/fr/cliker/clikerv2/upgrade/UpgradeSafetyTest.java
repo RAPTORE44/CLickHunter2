@@ -37,6 +37,23 @@ class UpgradeSafetyTest {
     }
 
     @Test
+    void presetBuysExactCountAndNeverPartial() {
+        economy.set(owner, "Joueur", CurrencyType.GEMMES_SOMBRES, 160000).join();
+        assertEquals(5, store.purchase(owner, UpgradeType.FORCE, 5).join());
+        assertEquals(10000, economy.getBalances(owner).join().gemmesSombres());
+        assertEquals(-1, store.purchase(owner, UpgradeType.FORCE, 5).join());
+        assertEquals(5, store.getLevels(owner).join().get(UpgradeType.FORCE));
+    }
+
+    @Test
+    void presetCannotOvershootMaxAndDoesNotCharge() {
+        store.setLevel(owner, UpgradeType.FORCE, 98).join();
+        economy.set(owner, "Joueur", CurrencyType.GEMMES_SOMBRES, 10000000).join();
+        assertEquals(-2, store.purchase(owner, UpgradeType.FORCE, 5).join());
+        assertEquals(10000000, economy.getBalances(owner).join().gemmesSombres());
+    }
+
+    @Test
     void maximumBuysOnlyAffordableLevelsAtUnchangedPrices() {
         economy.set(owner, "Joueur", CurrencyType.GEMMES_SOMBRES, 65000).join();
         assertEquals(3, store.purchase(owner, UpgradeType.FORCE, true).join());

@@ -173,6 +173,7 @@ public final class PlayerComfort implements Listener, CommandExecutor {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void decoration(PlayerInteractEvent event) {
+        if (event.getPlayer().getGameMode() == org.bukkit.GameMode.CREATIVE) return;
         if (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK
                 || event.getClickedBlock() == null
                 || !plugin.getConfig().getBoolean("comfort.protect-decoration", true)) return;

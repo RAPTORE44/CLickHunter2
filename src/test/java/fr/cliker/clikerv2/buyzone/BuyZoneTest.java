@@ -82,7 +82,7 @@ class BuyZoneTest {
         center = new Location(world, 0.5, 65, 0.5);
         // Un sol plat, y compris pour le retour à Z=-4.5.
         for (int x = -22; x <= 22; x++)
-            for (int z = -10; z <= 10; z++) world.getBlockAt(x, 64, z).setType(Material.STONE);
+            for (int z = -20; z <= 10; z++) world.getBlockAt(x, 64, z).setType(Material.STONE);
         admin = server.addPlayer();
         admin.addAttachment(plugin, BuyZoneModule.ADMIN, true);
         admin.addAttachment(plugin, BuyZoneModule.BYPASS, true);
@@ -177,8 +177,10 @@ class BuyZoneTest {
         server.getPluginManager().callEvent(event);
         server.getScheduler().performTicks(2);
         assertFalse(event.isCancelled());
-        assertTrue(player.getOpenInventory().getTopInventory() == null
-                || player.getOpenInventory().getTopInventory().getType() != InventoryType.DISPENSER);
+        assertTrue(
+                player.getOpenInventory().getTopInventory() == null
+                        || player.getOpenInventory().getTopInventory().getType()
+                                != InventoryType.DISPENSER);
         player.setGameMode(GameMode.SURVIVAL);
         enter();
     }
@@ -205,7 +207,7 @@ class BuyZoneTest {
         assertTrue(zone.crosses(center.clone().add(20, 0, -10), center.clone().add(20, 0, 10)));
         assertFalse(zone.crosses(center.clone().add(21, 0, -10), center.clone().add(21, 0, 10)));
         assertEquals(center.getX(), zone.northReturn().getX());
-        assertEquals(center.getZ() - 5, zone.northReturn().getZ());
+        assertEquals(center.getZ() - 15, zone.northReturn().getZ());
         assertFalse(zone.contains(zone.northReturn()));
         assertEquals(0, zone.northReturn().getYaw());
     }
@@ -242,7 +244,7 @@ class BuyZoneTest {
         player.closeInventory();
         server.getScheduler().performOneTick();
         assertEquals(center.getX(), player.getLocation().getX());
-        assertEquals(center.getZ() - 5, player.getLocation().getZ());
+        assertEquals(center.getZ() - 15, player.getLocation().getZ());
         assertFalse(player.hasPermission("cliker.zone.cochon"));
     }
 
@@ -262,7 +264,7 @@ class BuyZoneTest {
                         .join());
         assertTrue(new BuyZoneStore(database).load(player.getUniqueId()).join().isEmpty());
         assertFalse(player.hasPermission("cliker.zone.cochon"));
-        assertEquals(center.getZ() - 5, player.getLocation().getZ());
+        assertEquals(center.getZ() - 15, player.getLocation().getZ());
     }
 
     @Test

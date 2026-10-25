@@ -13,7 +13,7 @@ Arbitrage confirmé par le propriétaire : les demandes antérieures prévalent,
 | 823 | 16 | Partiel / adapté | **Bouton "Que faire maintenant ?" (`/guide`) ** — `/guide` conseille le prochain palier le moins cher avec le solde réel ; aucune estimation fictive de rentabilité. |
 | 35 | 18 | Partiel / adapté | **Numérotation abrégée lisible ** — Suffixes K/M/B/T/Qa/Qi et arrondi corrigé dans le formateur commun ; les confirmations financières gardent les montants exacts. |
 | 24 | 19 | Partiel / adapté | **Aperçu des statistiques comparatives ** — Comparaison des dégâts de base de l’épée proposée avec celle tenue ; enchantements et procs exclus et signalés. |
-| 36 | 20 | Partiel / adapté | **Bouton "Acheter le Max" (Buy Max) ** — Clic droit dans `/upgrade` : achat de tous les niveaux abordables en une transaction. Les marchands vendent des pièces et non des niveaux : pas de répétition d’achat inutile. |
+| 36 | 20 | Partiel / adapté | **Bouton "Acheter le Max" (Buy Max) ** — Clic droit dans `/upgrade` : choix X1/X5/X10/X50 ou maximum abordable ; coût cumulé, boutons bloqués si impossibles, achat en une transaction. Les marchands vendent des pièces et non des niveaux : pas de répétition d’achat inutile. |
 | 960 | 21 | À développer | **Hitbox Élargie Confortable (Interaction Entities) ** — Non livré ; conserver la demande dans le périmètre de développement. |
 | 997 | 24 | Existant / à compléter | **Collecte Automatique des Ressources Oubliées (`/claim) ** — Déjà présent : les drops passent par ItemDelivery et /claim si l’inventaire est plein. |
 | 961 | 27 | Intégré | **Commande Rapide `/zone <numéro>` ou `/z <numéro>` ** — `/zone <numéro>` et `/z` ; permissions BuyZone vérifiées avant la téléportation. |

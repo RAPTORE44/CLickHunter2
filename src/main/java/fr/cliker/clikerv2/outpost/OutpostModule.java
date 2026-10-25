@@ -41,9 +41,13 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
     private World world;
     private boolean ready, stopped;
     private BukkitTask task;
+    private WorldInventories inventories;
+    private final DatabaseManager database;
+    private OutpostBlocks blocks;
 
     public OutpostModule(JavaPlugin plugin, DatabaseManager db, ClaimService claims) {
         this.plugin = plugin;
+        database = db;
         this.store = new OutpostStore(db);
         this.claims = claims;
         File file = new File(plugin.getDataFolder(), "avantpostes.yml");
@@ -70,6 +74,10 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
 
     public void start() {
         world = ActivityWorlds.create(config.getString("monde", "clickhunter_avantpostes"), false);
+        inventories = new WorldInventories(plugin, world.getName());
+        inventories.start();
+        blocks = new OutpostBlocks(plugin, database, config, world);
+        blocks.start();
         world.setGameRule(GameRule.DO_PATROL_SPAWNING, false);
         world.setGameRule(GameRule.DO_TRADER_SPAWNING, false);
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -112,6 +120,7 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
 
     private boolean denied(Player player, Location location) {
         return location.getWorld() == world
+                && player.getGameMode() != GameMode.CREATIVE
                 && !player.hasPermission("cliker.avantposte.admin")
                 && !canBuild(player.getUniqueId(), location);
     }
@@ -282,6 +291,26 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
             return true;
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
+        if (sub.equals("pnj") && args.length == 2 && args[1].equalsIgnoreCase("deplacer")) {
+            var own = plots.get(player.getUniqueId());
+            if (own == null
+                    || player.getWorld() != world
+                    || !own.contains(player.getX(), player.getZ(), radius(own))) {
+                player.sendMessage(
+                        "Place-toi dans ton propre avant-poste pour déplacer ton marchand.");
+                return true;
+            }
+            blocks.move(player, own);
+            return true;
+        }
+        if (sub.equals("blocs")) {
+            if (player.getWorld() != world) {
+                player.sendMessage("Rejoins ton avant-poste avant d’ouvrir la boutique.");
+                return true;
+            }
+            blocks.open(player, 0);
+            return true;
+        }
         if (sub.equals("sortir")) {
             leave(player);
             return true;
@@ -392,6 +421,7 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
 
     private void tick() {
         if (!ready) return;
+        Set<UUID> visiblePlots = new HashSet<>();
         for (Player player : world.getPlayers()) {
             var plot = viewing.get(player.getUniqueId());
             if (plot != null) plot = plots.get(plot.owner());
@@ -401,6 +431,8 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
                 leave(player);
                 continue;
             }
+            visiblePlots.add(plot.owner());
+            blocks.ensureNpc(plot);
             if (!plot.equals(viewing.get(player.getUniqueId()))) {
                 viewing.put(player.getUniqueId(), plot);
                 border(player, plot);
@@ -414,6 +446,7 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
                 } else player.teleport(destination);
             }
         }
+        blocks.retainNpcs(visiblePlots);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -596,10 +629,23 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
     public List<String> onTabComplete(
             CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1)
-            return List.of("aller", "agrandir", "visite", "ajouter", "retirer", "top", "sortir")
+            return List.of(
+                            "aller",
+                            "agrandir",
+                            "visite",
+                            "ajouter",
+                            "retirer",
+                            "top",
+                            "sortir",
+                            "blocs",
+                            "pnj")
                     .stream()
                     .filter(s -> s.startsWith(args[0].toLowerCase(Locale.ROOT)))
                     .toList();
+        if (args.length == 2 && args[0].equalsIgnoreCase("pnj"))
+            return "deplacer".startsWith(args[1].toLowerCase(Locale.ROOT))
+                    ? List.of("deplacer")
+                    : List.of();
         if (args.length == 2 && args[0].equalsIgnoreCase("visite"))
             return plots.values().stream()
                     .map(OutpostStore.Plot::name)
@@ -612,6 +658,8 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
     }
 
     public void shutdown() {
+        if (blocks != null) blocks.shutdown();
+        if (inventories != null) inventories.shutdown();
         stopped = true;
         if (task != null) task.cancel();
         if (world != null) world.getPlayers().forEach(p -> p.setWorldBorder(null));

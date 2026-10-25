@@ -218,6 +218,11 @@ public final class SessionConvenience implements Listener, CommandExecutor, TabC
         if (event.getPlayer() instanceof Player player) retry(player);
     }
 
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void worldChanged(PlayerChangedWorldEvent event) {
+        retry(event.getPlayer());
+    }
+
     @EventHandler
     public void death(PlayerDeathEvent event) {
         event.getDrops().removeIf(this::isMenu);

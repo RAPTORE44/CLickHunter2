@@ -103,7 +103,7 @@ Ne pas réduire les rayons déjà vendus ni changer l’ordre des paliers sur un
 
 ## Vérifier un portail buyzone
 
-Depuis le monde de jeu, prévoir un sol sûr **5 blocs au nord** du centre (`Z - 5`), puis utiliser
+Depuis le monde de jeu, prévoir un sol sûr **15 blocs au nord** du centre (`Z - 15`), puis utiliser
 `/buyzone spawn cochon`, en remplaçant `cochon` par l’identifiant voulu.
 Le portail mesure 40 blocs sur l’axe est-ouest et 10 blocs de haut. Il ne tourne pas selon l’orientation du joueur.
 

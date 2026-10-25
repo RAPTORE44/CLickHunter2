@@ -1,10 +1,17 @@
 # Monde vide dédié ; terrain initial 21 × 21, parcelles espacées de 256 blocs.
-# Les extensions agrandissent le droit de construire et la bordure : apporte tes blocs !
+# Inventaire et XP séparés du clicker. Les blocs restent dans ce monde.
+# Les extensions agrandissent le droit de construire et la bordure.
 # Ne réduis pas les paliers après leur achat par des joueurs.
 monde: clickhunter_avantpostes
 extensions:
   rayons: [16, 24, 32, 48, 64, 96]
   prix-ecus: [0, 25000, 100000, 500000, 2000000, 10000000]
+# Tous les blocs ayant une forme d’objet sont vendus. Les états techniques sans objet sont exclus.
+boutique-blocs:
+  skin: Nati144378
+  prix-defaut: 10
+  # Prix par bloc en Écus ; clic gauche = 1, clic droit = une pile vanilla.
+  prix: {}
 messages:
   retour-impossible: '&cAucun point de retour sûr. Libère un espace au centre de ton avant-poste.'
   portail: '&eUtilise /avantposte sortir pour quitter ton terrain.'
@@ -20,4 +27,4 @@ messages:
   joueur-inconnu: '&cJoueur inconnu ou cible invalide.'
   ajoute: '&aCe joueur peut maintenant construire et ouvrir tes coffres. Invite uniquement des personnes de confiance.'
   retire: '&aCe joueur ne peut plus modifier ton avant-poste.'
-  aide: '&e/avantposte [aller|agrandir|visite <pseudo>|ajouter <pseudo>|retirer <pseudo>|top|sortir]'
+  aide: '&e/avantposte [aller|agrandir|visite <pseudo>|ajouter <pseudo>|retirer <pseudo>|top|blocs|pnj deplacer|sortir]'
