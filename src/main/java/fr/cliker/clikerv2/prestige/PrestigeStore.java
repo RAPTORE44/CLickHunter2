@@ -23,7 +23,11 @@ public final class PrestigeStore {
                                     "SELECT level FROM player_prestige WHERE uuid = ?")) {
                         statement.setString(1, uuid.toString());
                         try (ResultSet result = statement.executeQuery()) {
-                            return result.next() ? result.getInt("level") : 0;
+                            long level = result.next() ? result.getLong("level") : 0;
+                            if (level < 0 || level > 100)
+                                throw new SQLException(
+                                        "Prestige hors limites pour " + uuid + " : " + level);
+                            return (int) level;
                         }
                     } catch (SQLException exception) {
                         throw new DatabaseManager.DatabaseException(exception);
@@ -34,6 +38,8 @@ public final class PrestigeStore {
     public record Reset(int level, long earnedXP) {}
 
     public CompletableFuture<Boolean> advance(UUID owner, int expected, long requiredKills) {
+        if (expected < 0 || expected >= 100 || requiredKills < 0)
+            return CompletableFuture.completedFuture(false);
         return database.submit(
                 c -> {
                     try {
@@ -45,7 +51,16 @@ public final class PrestigeStore {
                                         "SELECT level FROM player_prestige WHERE uuid=?")) {
                             s.setString(1, owner.toString());
                             try (var rs = s.executeQuery()) {
-                                if (rs.next()) current = rs.getInt(1);
+                                if (rs.next()) {
+                                    long saved = rs.getLong(1);
+                                    if (saved < 0 || saved > 100)
+                                        throw new SQLException(
+                                                "Prestige hors limites pour "
+                                                        + owner
+                                                        + " : "
+                                                        + saved);
+                                    current = (int) saved;
+                                }
                             }
                         }
                         try (var s =
@@ -131,6 +146,9 @@ public final class PrestigeStore {
     }
 
     public CompletableFuture<Void> setLevel(UUID uuid, int level) {
+        if (level < 0 || level > 100)
+            return CompletableFuture.failedFuture(
+                    new IllegalArgumentException("Prestige hors limites"));
         return database.submit(
                 connection -> {
                     try (PreparedStatement statement =

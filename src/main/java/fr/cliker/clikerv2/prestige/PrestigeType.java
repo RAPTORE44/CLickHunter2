@@ -5,33 +5,40 @@ public final class PrestigeType {
 
     /** Écus supplémentaires par kill, par niveau de prestige. */
     public static final long ECUS_PER_LEVEL = 100;
-    /** Gemmes Sombres supplémentaires par kill, par niveau de prestige (unité affichée, pas dixièmes). */
+
+    /**
+     * Gemmes Sombres supplémentaires par kill, par niveau de prestige (unité affichée, pas
+     * dixièmes).
+     */
     public static final long GEMMES_PER_LEVEL = 1;
+
     /** XP supplémentaire par kill, par niveau de prestige. */
     public static final long XP_PER_LEVEL = 10;
+
     /** Dégâts supplémentaires, par niveau de prestige. */
     public static final long FORCE_PER_LEVEL = 10;
 
     /** Niveau XP requis pour atteindre le prestige donné. */
-    public static int requiredLevel(int prestige) { return prestige * 100; }
+    public static int requiredLevel(int prestige) {
+        if (prestige < 0) throw new IllegalArgumentException("Prestige négatif");
+        return (int) Math.min(Integer.MAX_VALUE, (long) prestige * 100);
+    }
 
-    /** Nombre de mobs tués requis pour atteindre le prestige donné. */
+    /** Calcul borné : les hauts prestiges saturent sans allocation proportionnelle à l'entrée. */
     public static long requiredKills(int prestige) {
+        if (prestige < 0) throw new IllegalArgumentException("Prestige négatif");
         return switch (prestige) {
             case 1 -> 2_500L;
             case 2 -> 10_000L;
             case 3 -> 30_000L;
             case 4 -> 70_000L;
-            case 5 -> 150_000L;
-            default -> {
-                java.math.BigInteger required = java.math.BigInteger.valueOf(150_000L).shiftLeft(Math.max(0, prestige - 5));
-                yield required.min(java.math.BigInteger.valueOf(Long.MAX_VALUE)).longValueExact();
-            }
+            default -> prestige >= 51 ? Long.MAX_VALUE : 150_000L << Math.max(0, prestige - 5);
         };
     }
 
     public static String toRoman(int number) {
         if (number <= 0) return "0";
+        if (number > 3999) return Integer.toString(number);
         int[] values = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
         String[] symbols = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
         StringBuilder result = new StringBuilder();

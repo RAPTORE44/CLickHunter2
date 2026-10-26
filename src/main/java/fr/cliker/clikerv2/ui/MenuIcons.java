@@ -23,6 +23,8 @@ public final class MenuIcons implements Listener {
     private final Set<String> catalog;
     private final Map<String, String> words = new LinkedHashMap<>();
     private final Map<UUID, Inventory> views = new HashMap<>();
+    // Cache faible par inventaire : éviter de re-normaliser noms/lore inchangés toutes les 5 ticks.
+    private final Map<Inventory, ItemStack[]> rendered = new WeakHashMap<>();
 
     @FunctionalInterface
     interface Resolver {
@@ -137,9 +139,16 @@ public final class MenuIcons implements Listener {
 
     public void render(Inventory inventory) {
         if (!config.getBoolean("active", true)) return;
+        ItemStack[] previous =
+                rendered.computeIfAbsent(inventory, ignored -> new ItemStack[inventory.getSize()]);
         for (int slot = 0; slot < inventory.getSize(); slot++) {
             if (!eligible(inventory, slot)) continue;
             var item = inventory.getItem(slot);
+            if (item == null) {
+                previous[slot] = null;
+                continue;
+            }
+            if (item.equals(previous[slot])) continue;
             if (item == null || !item.hasItemMeta()) continue;
             var meta = item.getItemMeta();
             if (!meta.hasDisplayName()) continue;
@@ -200,6 +209,7 @@ public final class MenuIcons implements Listener {
             else if (target.serialize().containsKey("item-model")) target.setItemModel(null);
             decorated.setItemMeta(target);
             if (!decorated.equals(item)) inventory.setItem(slot, decorated);
+            previous[slot] = decorated.clone();
         }
     }
 
@@ -257,11 +267,13 @@ public final class MenuIcons implements Listener {
     @EventHandler
     public void close(InventoryCloseEvent event) {
         views.remove(event.getPlayer().getUniqueId(), event.getInventory());
+        rendered.remove(event.getInventory());
     }
 
     @EventHandler
     public void quit(PlayerQuitEvent event) {
-        views.remove(event.getPlayer().getUniqueId());
+        Inventory inventory = views.remove(event.getPlayer().getUniqueId());
+        if (inventory != null) rendered.remove(inventory);
     }
 
     private ItemStack template(String id) {
@@ -303,6 +315,7 @@ public final class MenuIcons implements Listener {
     }
 
     public void invalidate() {
+        rendered.clear();
         templates.clear();
         retryAfter.clear();
         warned.clear();

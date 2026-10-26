@@ -102,6 +102,13 @@ public final class DatabaseManager {
             statement.executeUpdate(
                     "CREATE INDEX IF NOT EXISTS claim_owner_state ON claim_items(owner,state)");
             statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS outgoing_items(id TEXT PRIMARY KEY,owner TEXT NOT"
+                        + " NULL,payload TEXT NOT NULL,state INTEGER NOT NULL DEFAULT 0 CHECK(state"
+                        + " IN(0,1,2,3)))");
+            statement.executeUpdate(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS outgoing_owner_pending ON"
+                        + " outgoing_items(owner) WHERE state=0");
+            statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS referral_players(uuid TEXT PRIMARY KEY, name TEXT"
                             + " NOT NULL, first_join INTEGER NOT NULL, deadline INTEGER NOT NULL,"
                             + " last_seen INTEGER NOT NULL)");

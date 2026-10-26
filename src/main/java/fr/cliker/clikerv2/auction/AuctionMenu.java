@@ -601,15 +601,12 @@ public final class AuctionMenu implements Listener {
                             player.closeInventory();
                             return;
                         }
-                        int remaining = hand.getAmount() - confirm.item.getAmount();
-                        hand.setAmount(remaining);
-                        player.getInventory().setItemInMainHand(remaining == 0 ? null : hand);
-                        manager.createListing(
-                                player, confirm.item, confirm.price, confirm.advertise);
-                        player.sendMessage(
-                                Component.text(
-                                        "Publication de l’annonce en cours…",
-                                        NamedTextColor.GREEN));
+                        if (manager.createListing(
+                                player, confirm.item, confirm.price, confirm.advertise))
+                            player.sendMessage(
+                                    Component.text(
+                                            "Publication de l’annonce en cours…",
+                                            NamedTextColor.GREEN));
                         player.closeInventory();
                     }
                 });

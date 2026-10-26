@@ -33,6 +33,46 @@ class MenuIconsTest {
     }
 
     @Test
+    void changedDailyStateRefreshesModelAndLoreAfterAnUnchangedFrame() {
+        MockBukkit.mock();
+        var plugin = MockBukkit.createMockPlugin();
+        var ids = new java.util.ArrayList<String>();
+        var icons =
+                new MenuIcons(
+                        plugin,
+                        id -> {
+                            ids.add(id);
+                            var item = new ItemStack(Material.PAPER);
+                            var meta = item.getItemMeta();
+                            meta.setCustomModelData(id.contains("cadenas") ? 10 : 20);
+                            item.setItemMeta(meta);
+                            return item;
+                        });
+        var holder = new Holder();
+        holder.inventory = Bukkit.createInventory(holder, 27);
+        var day = button(Material.CHEST, "Jour 2");
+        var meta = day.getItemMeta();
+        meta.lore(java.util.List.of(Component.text("État : verrouillé")));
+        day.setItemMeta(meta);
+        holder.inventory.setItem(13, day);
+        icons.render(holder.inventory);
+        icons.render(holder.inventory);
+        assertEquals(10, holder.inventory.getItem(13).getItemMeta().getCustomModelData());
+        var changed = holder.inventory.getItem(13);
+        meta = changed.getItemMeta();
+        meta.lore(java.util.List.of(Component.text("État : disponible")));
+        changed.setItemMeta(meta);
+        holder.inventory.setItem(13, changed);
+        icons.render(holder.inventory);
+        assertEquals(20, holder.inventory.getItem(13).getItemMeta().getCustomModelData());
+        assertEquals(meta.lore(), holder.inventory.getItem(13).getItemMeta().lore());
+        assertEquals(
+                java.util.List.of(
+                        "icons:etats_cadenas_ferme_grise", "icons:recompenses_cadeau"),
+                ids);
+    }
+
+    @Test
     void shopProductModelsStayIntactWhileNavigationUsesIcons() {
         var server = MockBukkit.mock();
         var plugin = MockBukkit.createMockPlugin();

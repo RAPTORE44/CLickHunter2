@@ -69,10 +69,16 @@ public final class ChatActivities implements Listener {
                         return true;
                     }
                     if (args[0].equalsIgnoreCase("stop")) {
+                        boolean active = round != null;
                         round = null;
                         attempts.clear();
                         nextGame = System.nanoTime() + interval() * 1_000_000_000L;
-                        sender.sendMessage("Jeu interrompu, aucune récompense attribuée.");
+                        sender.sendMessage(
+                                active
+                                        ? "Jeu interrompu. Les récompenses déjà gagnées sont"
+                                              + " conservées."
+                                        : "Aucun jeu n'est en cours. Les récompenses déjà gagnées"
+                                              + " sont conservées.");
                         return true;
                     }
                     if (args[0].equalsIgnoreCase("lancer")) {

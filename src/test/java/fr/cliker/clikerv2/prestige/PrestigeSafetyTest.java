@@ -34,6 +34,65 @@ class PrestigeSafetyTest {
     }
 
     @Test
+    void extremePrestigeComputationsStayBoundedAndNormalRequirementsRemainIdentical() {
+        for (int p = 5; p <= 100; p++) {
+            long expected =
+                    java.math.BigInteger.valueOf(150000)
+                            .shiftLeft(p - 5)
+                            .min(java.math.BigInteger.valueOf(Long.MAX_VALUE))
+                            .longValueExact();
+            assertEquals(expected, PrestigeType.requiredKills(p));
+            assertEquals(p * 100, PrestigeType.requiredLevel(p));
+        }
+        assertEquals(Long.MAX_VALUE, PrestigeType.requiredKills(Integer.MAX_VALUE));
+        assertEquals(Integer.MAX_VALUE, PrestigeType.requiredLevel(Integer.MAX_VALUE));
+        assertEquals(Integer.toString(Integer.MAX_VALUE), PrestigeType.toRoman(Integer.MAX_VALUE));
+        assertEquals("XCIX", PrestigeType.toRoman(99));
+        assertThrows(IllegalArgumentException.class, () -> PrestigeType.requiredKills(-1));
+        assertThrows(IllegalArgumentException.class, () -> PrestigeType.requiredLevel(-1));
+    }
+
+    @Test
+    void corruptPrestigeIsRejectedWithoutChangingSavedValue() {
+        db.submit(
+                        c -> {
+                            try (var s =
+                                    c.prepareStatement(
+                                            "INSERT INTO player_prestige(uuid,level)"
+                                                + " VALUES(?,?)")) {
+                                s.setString(1, owner.toString());
+                                s.setLong(2, 4294967296L);
+                                s.executeUpdate();
+                                return null;
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+                .join();
+        assertThrows(
+                java.util.concurrent.CompletionException.class, () -> store.getLevel(owner).join());
+        assertFalse(store.advance(owner, -1, 0).join());
+        assertThrows(
+                java.util.concurrent.CompletionException.class,
+                () -> store.setLevel(owner, -1).join());
+        long value =
+                db.submit(
+                                c -> {
+                                    try (var s = c.createStatement();
+                                            var rows =
+                                                    s.executeQuery(
+                                                            "SELECT level FROM player_prestige")) {
+                                        rows.next();
+                                        return rows.getLong(1);
+                                    } catch (Exception e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                })
+                        .join();
+        assertEquals(4294967296L, value);
+    }
+
+    @Test
     void concurrentRequestsCannotGrantSamePrestigeTwiceAndResetPersists() {
         new MobKillStore(db).add(owner, 10000).join();
         var a = store.advance(owner, 0, 100);

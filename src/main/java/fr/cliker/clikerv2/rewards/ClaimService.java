@@ -96,7 +96,8 @@ public final class ClaimService implements Listener, CommandExecutor {
     }
 
     public boolean isDelivering(UUID uuid) {
-        return busy.contains(uuid);
+        var outgoing = Bukkit.getServicesManager().load(OutgoingItems.class);
+        return busy.contains(uuid) || (outgoing != null && outgoing.locked(uuid));
     }
 
     public CompletableFuture<UUID> resolve(String name) {
@@ -137,7 +138,7 @@ public final class ClaimService implements Listener, CommandExecutor {
         if (online != null
                 && online.isOnline()
                 && !fr.cliker.clikerv2.outpost.WorldInventories.isolated(online)
-                && !busy.contains(owner)) {
+                && !isDelivering(owner)) {
             var leftovers = online.getInventory().addItem(remaining);
             if (leftovers.isEmpty()) return;
             for (ItemStack leftover : leftovers.values()) enqueue(owner, leftover);
@@ -177,7 +178,7 @@ public final class ClaimService implements Listener, CommandExecutor {
                                                                     error);
                                                     if (player != null) message(player, "erreur");
                                                 } else if (player != null) {
-                                                    if (!busy.contains(owner))
+                                                    if (!isDelivering(owner))
                                                         notifyAndDeliver(owner);
                                                 }
                                             }));
@@ -187,16 +188,17 @@ public final class ClaimService implements Listener, CommandExecutor {
     public void notifyAndDeliver(UUID owner) {
         Player player = Bukkit.getPlayer(owner);
         if (player != null && fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
-        if (player == null || !player.isOnline()) return;
+        if (player == null || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)) return;
         store.page(owner, 0)
                 .whenComplete(
                         (page, error) ->
                                 sync(
                                         () -> {
-                                            if (!player.isOnline()
+                                            if (!fr.cliker.clikerv2.runtime.PlayerSessions
+                                                            .isCurrent(player)
                                                     || error != null
                                                     || page.entries().isEmpty()) return;
-                                            if (busy.contains(owner)) return;
+                                            if (isDelivering(owner)) return;
                                             for (var entry : page.entries()) {
                                                 try {
                                                     if (hasReceipt(player, entry.id())
@@ -254,9 +256,16 @@ public final class ClaimService implements Listener, CommandExecutor {
                                                                                                                     + " de livraison"
                                                                                                                     + " impossible",
                                                                                                                 failure);
-                                                                                                message(
-                                                                                                        player,
-                                                                                                        "erreur");
+                                                                                                if (fr
+                                                                                                        .cliker
+                                                                                                        .clikerv2
+                                                                                                        .runtime
+                                                                                                        .PlayerSessions
+                                                                                                        .isCurrent(
+                                                                                                                player))
+                                                                                                    message(
+                                                                                                            player,
+                                                                                                            "erreur");
                                                                                             } else if (Boolean
                                                                                                     .TRUE
                                                                                                     .equals(
@@ -274,6 +283,7 @@ public final class ClaimService implements Listener, CommandExecutor {
     }
 
     public void open(Player player, int page) {
+        if (stopped || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)) return;
         if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) {
             player.sendMessage("Les récompenses clicker attendent ton retour au /spawn.");
             return;
@@ -282,7 +292,7 @@ public final class ClaimService implements Listener, CommandExecutor {
             player.sendMessage(DailySettings.color("&cTu n'as pas la permission."));
             return;
         }
-        if (busy.contains(player.getUniqueId())) {
+        if (isDelivering(player.getUniqueId())) {
             message(player, "traitement");
             return;
         }
@@ -298,7 +308,8 @@ public final class ClaimService implements Listener, CommandExecutor {
                         (result, error) ->
                                 sync(
                                         () -> {
-                                            if (!player.isOnline()
+                                            if (!fr.cliker.clikerv2.runtime.PlayerSessions
+                                                            .isCurrent(player)
                                                     || opening.get(player.getUniqueId()) != token)
                                                 return;
                                             opening.remove(player.getUniqueId());
@@ -384,10 +395,11 @@ public final class ClaimService implements Listener, CommandExecutor {
     }
 
     public void deliver(Player player, String id, boolean automatic) {
+        if (stopped || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)) return;
         if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
         UUID owner = player.getUniqueId();
         Inventory currentView = player.getOpenInventory().getTopInventory();
-        if (!busy.add(owner)) {
+        if (isDelivering(owner) || !busy.add(owner)) {
             if (!automatic) message(player, "traitement");
             return;
         }
@@ -399,7 +411,9 @@ public final class ClaimService implements Listener, CommandExecutor {
                                         () -> {
                                             if (error != null || entry == null) {
                                                 busy.remove(owner);
-                                                if (player.isOnline() && !automatic)
+                                                if (fr.cliker.clikerv2.runtime.PlayerSessions
+                                                                .isCurrent(player)
+                                                        && !automatic)
                                                     message(
                                                             player,
                                                             error == null
@@ -407,11 +421,11 @@ public final class ClaimService implements Listener, CommandExecutor {
                                                                     : "erreur");
                                                 return;
                                             }
-                                            if (!player.isOnline()
+                                            if (!fr.cliker.clikerv2.runtime.PlayerSessions
+                                                            .isCurrent(player)
                                                     || fr.cliker.clikerv2.outpost.WorldInventories
                                                             .isolated(player)) {
-                                                store.finish(owner, id, lease, false);
-                                                busy.remove(owner);
+                                                releaseAndReconcile(owner, id, lease);
                                                 return;
                                             }
                                             try {
@@ -485,7 +499,8 @@ public final class ClaimService implements Listener, CommandExecutor {
 
     private void saveAndAcknowledge(Player player, String id, String lease, boolean automatic) {
         if (stopped) return;
-        if (Bukkit.getPlayer(player.getUniqueId()) != player || !player.isOnline()) {
+        if (Bukkit.getPlayer(player.getUniqueId()) != player
+                || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)) {
             releaseAndReconcile(player.getUniqueId(), id, lease);
             return;
         }
@@ -494,7 +509,8 @@ public final class ClaimService implements Listener, CommandExecutor {
             acknowledge(player, id, lease, automatic);
         } catch (RuntimeException error) {
             plugin.getLogger().log(Level.SEVERE, "Sauvegarde joueur /claim à réessayer", error);
-            if (player.isOnline()) message(player, "sauvegarde");
+            if (fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player))
+                message(player, "sauvegarde");
             Bukkit.getScheduler()
                     .runTaskLater(
                             plugin, () -> saveAndAcknowledge(player, id, lease, automatic), 40L);
@@ -571,7 +587,8 @@ public final class ClaimService implements Listener, CommandExecutor {
                                                         "Validation /claim à réessayer pour "
                                                                 + owner,
                                                         error);
-                                        if (player.isOnline()) message(player, "sauvegarde");
+                                        if (fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(
+                                                player)) message(player, "sauvegarde");
                                         Bukkit.getScheduler()
                                                 .runTaskLater(
                                                         plugin,
@@ -677,6 +694,7 @@ public final class ClaimService implements Listener, CommandExecutor {
     }
 
     private void reconcile(Player player) {
+        if (stopped || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)) return;
         if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
         UUID owner = player.getUniqueId();
         Set<String> receipts = new HashSet<>();
@@ -686,14 +704,15 @@ public final class ClaimService implements Listener, CommandExecutor {
         }
         // Bloquer les déplacements le temps de réconcilier un reçu issu d'une livraison
         // interrompue.
-        if (!busy.add(owner)) return;
+        if (isDelivering(owner) || !busy.add(owner)) return;
         store.delivered(owner, receipts)
                 .whenComplete(
                         (ids, error) ->
                                 sync(
                                         () -> {
                                             if (Bukkit.getPlayer(owner) != player
-                                                    || !player.isOnline()) {
+                                                    || !fr.cliker.clikerv2.runtime.PlayerSessions
+                                                            .isCurrent(player)) {
                                                 busy.remove(owner);
                                                 Player current = Bukkit.getPlayer(owner);
                                                 if (current != null) reconcile(current);
@@ -743,7 +762,7 @@ public final class ClaimService implements Listener, CommandExecutor {
 
     @EventHandler
     public void click(InventoryClickEvent event) {
-        if (busy.contains(event.getWhoClicked().getUniqueId())) {
+        if (isDelivering(event.getWhoClicked().getUniqueId())) {
             event.setCancelled(true);
             return;
         }
@@ -763,39 +782,39 @@ public final class ClaimService implements Listener, CommandExecutor {
 
     @EventHandler
     public void drag(InventoryDragEvent event) {
-        if (busy.contains(event.getWhoClicked().getUniqueId())
+        if (isDelivering(event.getWhoClicked().getUniqueId())
                 || event.getView().getTopInventory().getHolder() instanceof Holder)
             event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void opening(InventoryOpenEvent event) {
-        if (busy.contains(event.getPlayer().getUniqueId())) event.setCancelled(true);
+        if (isDelivering(event.getPlayer().getUniqueId())) event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void interactEntity(PlayerInteractEntityEvent event) {
-        if (busy.contains(event.getPlayer().getUniqueId())) event.setCancelled(true);
+        if (isDelivering(event.getPlayer().getUniqueId())) event.setCancelled(true);
     }
 
     @EventHandler
     public void drop(PlayerDropItemEvent event) {
-        if (busy.contains(event.getPlayer().getUniqueId())) event.setCancelled(true);
+        if (isDelivering(event.getPlayer().getUniqueId())) event.setCancelled(true);
     }
 
     @EventHandler
     public void swap(PlayerSwapHandItemsEvent event) {
-        if (busy.contains(event.getPlayer().getUniqueId())) event.setCancelled(true);
+        if (isDelivering(event.getPlayer().getUniqueId())) event.setCancelled(true);
     }
 
     @EventHandler
     public void use(PlayerInteractEvent event) {
-        if (busy.contains(event.getPlayer().getUniqueId())) event.setCancelled(true);
+        if (isDelivering(event.getPlayer().getUniqueId())) event.setCancelled(true);
     }
 
     @EventHandler
     public void command(PlayerCommandPreprocessEvent event) {
-        if (busy.contains(event.getPlayer().getUniqueId())) {
+        if (isDelivering(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
             message(event.getPlayer(), "traitement");
         }
@@ -803,13 +822,13 @@ public final class ClaimService implements Listener, CommandExecutor {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void attacking(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Player player && busy.contains(player.getUniqueId()))
+        if (event.getDamager() instanceof Player player && isDelivering(player.getUniqueId()))
             event.setCancelled(true);
     }
 
     @EventHandler
     public void protect(EntityDamageEvent event) {
-        if (event.getEntity() instanceof Player p && busy.contains(p.getUniqueId()))
+        if (event.getEntity() instanceof Player p && isDelivering(p.getUniqueId()))
             event.setCancelled(true);
     }
 

@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-26",
+  "base_commit": "cafa603",
+  "jar_sha256": "cb69cd0ceaad035458886ce84c7a6b794ec9345b35a8336b8ac355eb2feb5445",
+  "tests": {
+    "tests": 260,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "baseline_tests": 240,
+  "native_environment": {
+    "paper": "1.21.4 build 232",
+    "java": "21.0.9",
+    "npc": "ZNPCsPlus 2.0.0",
+    "network": "127.0.0.1:25580, offline, synthetic players only",
+    "holograms": "native fallback; actual Holographic Displays provider unavailable",
+    "itemsadder": "actual production pack unavailable; model resolver/unit tests"
+  },
+  "native_checks": {
+    "audit-escrow": [
+      "Publication native : 17 améthystes retirées, journal validé, annonce créée, frais de 100 Écus appliqués une fois",
+      "Retrait de sa propre annonce : 17 objets rendus directement, taxe conservée, aucun remboursement supplémentaire du journal",
+      "Frais insuffisants : aucune annonce créée, remboursement journalisé une seule fois et 11 objets rendus dans l’inventaire",
+      "Permission native : /respawnmobs refusé au joueur non administrateur",
+      "Régression native : menus Session/Diagnostic accessibles et arrêt du jeu de chat sans message trompeur"
+    ],
+    "audit-recovery": [
+      "Reprise Paper après redémarrage : état simulé « objet retiré + reçu sauvegardé » remboursé exactement une fois, 11 cristaux directement dans l’inventaire et reçu nettoyé",
+      "Reprise Paper après redémarrage : état simulé « intention SQL sans retrait sauvegardé » annulé, 11 cristaux originaux conservés et aucun remboursement ajouté",
+      "Nouvelle reconnexion des deux joueurs : quantités conservées, aucun second remboursement et PRAGMA quick_check = ok",
+      "Ancrage natif : mob transféré dans le Nether par commande, revenu automatiquement à son point exact dans le monde d’origine sans exception"
+    ]
+  },
+  "native_check_count": 9,
+  "recovery_method": "Normal stop/restart. Two interrupted-publication states reconstructed in synthetic offline playerdata + SQLite: receipt with saved removal; pending SQL without removal. Followed by real Paper login and repeated reconnect. Not a power-failure guarantee.",
+  "regression_before_fix": {
+    "test": "MobAnchorTest.externallyTeleportedMobReturnsToItsOwnWorldWithoutBreakingTheAnchorLoop",
+    "original_error": "IllegalArgumentException: Cannot measure distance between other and origin",
+    "after_fix": "passed in final suite"
+  },
+  "readme_commands": {
+    "declared": 58,
+    "missing": [],
+    "missing_aliases": []
+  },
+  "limitations": [
+    "Outgoing journal currently covers AH publication; station deposits and essence reservations need their own crash-boundary campaign.",
+    "No representative multi-player load test or CPU percentage claim.",
+    "No real production Holographic Displays/ItemsAdder visual validation.",
+    "No global Paper /reload validation; normal restart used.",
+    "MockBukkit saveData boundary injected; native storage tested separately."
+  ]
+}

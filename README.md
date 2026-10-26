@@ -243,7 +243,7 @@ Sélection du classeur : [suivi des 141 lignes jaunes, livraisons et travail res
 
 Audit de suivi : [corrections de reconnexion, sauvegarde, compresseur et achats](docs/AUDIT-SUIVI-2026-10-25.md). Les boutons des marchands et de transformation répondent aux clics gauche/droit ; les touches de déplacement d’objets ne déclenchent pas de dépense. Le compresseur s’active dans l’air ou sur un bloc, selon les protections du serveur.
 
-Icônes des boutons : [utilisation des items `icons:*` déjà installés dans ItemsAdder](docs/ICONES-MENUS.md). Aucun pack supplémentaire à installer. Aucune commande supplémentaire : les 46 commandes et leurs permissions restent inchangées.
+Icônes des boutons : [utilisation des items `icons:*` déjà installés dans ItemsAdder](docs/ICONES-MENUS.md). Aucun pack supplémentaire à installer. Les commandes et leurs permissions sont répertoriées par catégorie ci-dessus.
 
 PNJ : [intégration ZNPCsPlus 2.0.0, installation et migration](docs/PNJ-ZNPCSPLUS.md).
 
@@ -299,3 +299,10 @@ Instructions, sauvegardes et limites : [améliorations UX et hologrammes](docs/A
 Le pied du TAB alterne Site, Boutique, Discord et Vote toutes les dix secondes, avec un indicateur coloré animé (`affichage/tab.yml`, section `animation`). Les aides et jeux de chat sont réglables dans `activites/tchat.yml` : calculs, devinettes Minecraft et langues parlées dans différents pays. Le premier gagnant reçoit une seule lootbox divine via la livraison sécurisée ; inventaire plein ou avant-poste, elle attend dans `/claim`.
 
 Les magma cubes utilisent la taille moyenne 2 et les ghasts une échelle 0,5 par défaut, configurables dans `mobs/creatures.yml`. `/spawnboss` concerne les boss de zone ; le boss public du serveur conserve son seuil de kills. Une vague manuelle recale la prochaine vague automatique selon l’intervalle configuré.
+
+
+### Audit de fiabilité du 26 octobre 2026
+
+La publication AH utilise un journal de sortie et un reçu playerdata : une interruption avant validation est reprise à la connexion, sans publier ni rembourser deux fois le même objet. Le remboursement rejoint directement l’inventaire si possible, sinon `/claim`. Les annonces existantes restent compatibles. Les callbacks `/claim` vérifient la bonne connexion du joueur, les calculs de prestige sont bornés et les positions YAML invalides sont signalées sans réécriture du fichier. Les icônes de menus inchangées ne sont plus entièrement retraitées à chaque rafraîchissement. Un mob déplacé dans un autre monde est ramené à son point d’origine sans interrompre sa tâche d’immobilisation.
+
+La liste des **58 commandes** et de leurs alias a été comparée à `plugin.yml` ; aucune commande n’est ajoutée par cet audit. [Rapport, tests, installation et limites](docs/AUDIT-2026-10-26.md). Pour installer le JAR : arrêter le serveur, sauvegarder ensemble le dossier du plugin et les mondes/playerdata, remplacer le JAR de ClikerV2, puis redémarrer. Ne pas supprimer les configurations ni la base. Le journal AH ajoute automatiquement une table et un index, sans conversion des anciennes données.

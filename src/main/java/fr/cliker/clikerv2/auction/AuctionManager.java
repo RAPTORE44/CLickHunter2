@@ -26,11 +26,11 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Cœur de l'hôtel des ventes : listings en cache mémoire (chargées depuis la BDD au démarrage),
- * achat/vente/annulation. Anti-dupe : l'item est retiré de l'inventaire du vendeur AVANT que la
- * listing existe (côté appelant), et une listing en cours d'achat est verrouillée synchronement
- * (avant tout appel async) pour empêcher un double achat. Une annonce expire après 72h : elle
- * disparaît de la vente, et l'item est rendu au vendeur (direct s'il est en ligne, sinon à sa
- * prochaine connexion — la ligne reste en BDD marquée "expired" jusqu'à la livraison).
+ * achat/vente/annulation. La publication possède un journal SQL et un reçu playerdata. Une annonce
+ * en cours d'achat est verrouillée synchronement (avant tout appel async) pour empêcher un double
+ * achat. Une annonce expire après 72h : elle disparaît de la vente, et l'item est rendu au vendeur
+ * (direct s'il est en ligne, sinon à sa prochaine connexion — la ligne reste en BDD marquée
+ * "expired" jusqu'à la livraison).
  */
 public final class AuctionManager implements Listener {
     public static final double TAX_RATE = 0.01;
@@ -182,95 +182,100 @@ public final class AuctionManager implements Listener {
         return config.getItemStack("item");
     }
 
-    /**
-     * L'appelant doit avoir DÉJÀ retiré l'item de l'inventaire du vendeur avant d'appeler cette
-     * méthode.
-     */
-    public void createListing(Player seller, ItemStack item, long price) {
-        createListing(seller, item, price, false);
+    /** Réserve puis retire l'objet tenu ; le reçu est validé avec l'annonce et ses frais. */
+    public boolean createListing(Player seller, ItemStack item, long price) {
+        return createListing(seller, item, price, false);
     }
 
-    public void createListing(Player seller, ItemStack item, long price, boolean advertise) {
+    public boolean createListing(Player seller, ItemStack item, long price, boolean advertise) {
+        if (item == null || item.getType().isAir() || item.getAmount() <= 0 || price <= 0) {
+            seller.sendMessage(
+                    Component.text(
+                            "Choisis un objet et un prix strictement positif.",
+                            NamedTextColor.RED));
+            return false;
+        }
+        var outgoing =
+                Bukkit.getServicesManager().load(fr.cliker.clikerv2.rewards.OutgoingItems.class);
+        if (outgoing == null) {
+            seller.sendMessage(
+                    Component.text(
+                            "Publication temporairement indisponible. Ton objet est conservé.",
+                            NamedTextColor.RED));
+            return false;
+        }
+        ItemStack offered = item.clone();
         String id = UUID.randomUUID().toString();
         AuctionListing listing =
                 new AuctionListing(
                         id,
                         seller.getUniqueId(),
                         seller.getName(),
-                        serialize(item),
+                        serialize(offered),
                         price,
                         System.currentTimeMillis());
-        store.publish(listing, advertise)
-                .whenComplete(
-                        (ignored, error) ->
-                                fr.cliker.clikerv2.runtime.ServerTasks.run(
-                                        plugin,
-                                        () -> {
-                                            if (error != null) {
-                                                delivery()
-                                                        .give(
-                                                                seller.getUniqueId(),
-                                                                seller.getName(),
-                                                                item);
-                                                plugin.getLogger()
-                                                        .log(
-                                                                java.util.logging.Level.SEVERE,
-                                                                "Création d'annonce"
-                                                                        + " impossible ; objet"
-                                                                        + " rendu",
-                                                                error);
-                                                if (seller.isOnline())
-                                                    seller.sendMessage(
+        boolean accepted =
+                outgoing.consumeHeld(
+                        seller,
+                        offered,
+                        receipt -> store.publish(listing, advertise, receipt),
+                        error -> {
+                            if (error != null) {
+                                plugin.getLogger()
+                                        .log(
+                                                java.util.logging.Level.WARNING,
+                                                "Publication AH interrompue ; reprise par le"
+                                                        + " journal pour "
+                                                        + seller.getUniqueId(),
+                                                error);
+                                if (fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(seller))
+                                    seller.sendMessage(
+                                            Component.text(
+                                                    "Annonce annulée. Ton objet est conservé ou"
+                                                        + " sera rendu dans ton inventaire, sinon"
+                                                        + " dans /claim.",
+                                                    NamedTextColor.RED));
+                            } else {
+                                listings.put(id, listing);
+                                if (advertise) {
+                                    var message =
+                                            Component.text(
+                                                            "[AH] "
+                                                                    + seller.getName()
+                                                                    + " vend "
+                                                                    + offered.getAmount()
+                                                                    + " × ",
+                                                            NamedTextColor.GOLD)
+                                                    .append(
+                                                            offered.getItemMeta().hasDisplayName()
+                                                                    ? offered.getItemMeta()
+                                                                            .displayName()
+                                                                    : Component.translatable(
+                                                                            offered.getType()
+                                                                                    .translationKey()))
+                                                    .append(
                                                             Component.text(
-                                                                    "Annonce impossible :"
-                                                                            + " objet rendu ou"
-                                                                            + " disponible dans"
-                                                                            + " /claim.",
-                                                                    NamedTextColor.RED));
-                                            } else {
-                                                listings.put(id, listing);
-                                                if (advertise) {
-                                                    var message =
-                                                            Component.text(
-                                                                            "[AH] "
-                                                                                    + seller
-                                                                                            .getName()
-                                                                                    + " vend "
-                                                                                    + item
-                                                                                            .getAmount()
-                                                                                    + " × ",
-                                                                            NamedTextColor.GOLD)
-                                                                    .append(
-                                                                            item.getItemMeta()
-                                                                                            .hasDisplayName()
-                                                                                    ? item.getItemMeta()
-                                                                                            .displayName()
-                                                                                    : Component
-                                                                                            .translatable(
-                                                                                                    item.getType()
-                                                                                                            .translationKey()))
-                                                                    .append(
-                                                                            Component.text(
-                                                                                    " pour " + price
-                                                                                            + " Écus"
-                                                                                            + " — /ah"))
-                                                                    .clickEvent(
-                                                                            net.kyori.adventure.text
-                                                                                    .event
-                                                                                    .ClickEvent
-                                                                                    .runCommand(
-                                                                                            "/ah"));
-                                                    Bukkit.broadcast(message);
-                                                }
-                                                if (seller.isOnline())
-                                                    seller.sendMessage(
-                                                            Component.text(
-                                                                    "Annonce publiée : "
-                                                                            + price
-                                                                            + " Écus.",
-                                                                    NamedTextColor.GREEN));
-                                            }
-                                        }));
+                                                                    " pour " + price + " Écus"
+                                                                            + " — /ah"))
+                                                    .clickEvent(
+                                                            net.kyori.adventure.text.event
+                                                                    .ClickEvent.runCommand("/ah"));
+                                    Bukkit.broadcast(message);
+                                }
+                                if (fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(seller))
+                                    seller.sendMessage(
+                                            Component.text(
+                                                    "Annonce publiée : " + price + " Écus.",
+                                                    NamedTextColor.GREEN));
+                            }
+                        });
+        if (!accepted)
+            seller.sendMessage(
+                    Component.text(
+                            "Une opération est en cours ou l'objet a changé. Réessaie dans un"
+                                    + " instant.",
+                            NamedTextColor.RED));
+        return accepted;
     }
 
     public void buy(Player buyer, String listingId, Runnable onDone) {

@@ -191,11 +191,13 @@ public final class CustomMobManager implements Listener {
             Entity entity = plugin.getServer().getEntity(entry.getValue());
             if (spawn == null || !(entity instanceof LivingEntity living) || !living.isValid())
                 continue;
-            living.setVelocity(new Vector(0, 0, 0));
+            if (living.getVelocity().lengthSquared() != 0) living.setVelocity(new Vector(0, 0, 0));
             float orientation = bossSpawnIds.contains(entry.getKey()) ? 270 : 0;
             if (living.getYaw() != orientation || living.getPitch() != 0)
                 living.setRotation(orientation, 0);
-            if (living.getLocation().distanceSquared(spawn) > 0.01) {
+            Location current = living.getLocation();
+            if (!current.getWorld().equals(spawn.getWorld())
+                    || current.distanceSquared(spawn) > 0.01) {
                 var target = spawn.clone();
                 target.setYaw(orientation);
                 target.setPitch(0);

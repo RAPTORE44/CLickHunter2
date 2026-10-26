@@ -39,10 +39,18 @@ public final class AuctionStore {
     }
 
     public CompletableFuture<Void> publish(AuctionListing listing, boolean advertise) {
+        return publish(listing, advertise, null);
+    }
+
+    public CompletableFuture<Void> publish(
+            AuctionListing listing, boolean advertise, String outgoingId) {
         return database.submit(
                 c -> {
                     try {
                         c.setAutoCommit(false);
+                        if (outgoingId != null)
+                            fr.cliker.clikerv2.rewards.OutgoingStore.commit(
+                                    c, outgoingId, listing.sellerUuid(), listing.itemYaml());
                         long fee =
                                 Math.addExact(
                                         AuctionListing.tax(listing.price()),

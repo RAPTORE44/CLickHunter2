@@ -100,6 +100,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private CustomMobManager mobManager;
     private BagMenu bagMenu;
     private fr.cliker.clikerv2.rewards.ClaimService claims;
+    private fr.cliker.clikerv2.rewards.OutgoingItems outgoingItems;
     private fr.cliker.clikerv2.referral.ReferralModule referrals;
     private fr.cliker.clikerv2.discord.DiscordModule discordModule;
     private MoneyScoreboard scoreboard;
@@ -159,6 +160,8 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         for (var player : getServer().getOnlinePlayers()) initializeAccount(player);
         claims = new fr.cliker.clikerv2.rewards.ClaimService(this, database);
         claims.start();
+        outgoingItems = new fr.cliker.clikerv2.rewards.OutgoingItems(this, database, claims);
+        outgoingItems.start();
         rewardLedger = new fr.cliker.clikerv2.hunting.RewardLedger(this, database);
         activityUI = new fr.cliker.clikerv2.hunting.HuntUI(this);
         new fr.cliker.clikerv2.ui.MenuNavigation(this);
@@ -617,6 +620,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         if (bossEventManager != null) bossEventManager.shutdown();
         if (gearAttributeManager != null) gearAttributeManager.shutdown();
         if (mobManager != null) mobManager.shutdown();
+        if (outgoingItems != null) outgoingItems.shutdown();
         if (claims != null) claims.shutdown();
         if (sharedHolograms != null) sharedHolograms.shutdown();
         if (database != null) database.close();

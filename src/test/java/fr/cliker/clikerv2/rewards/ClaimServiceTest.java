@@ -338,6 +338,59 @@ class ClaimServiceTest {
         assertEquals(1, claims.store().page(player.getUniqueId(), 0).join().total());
     }
 
+    private PlayerMock useUuidBasedOnlinePlayer() {
+        UUID id = player.getUniqueId();
+        String name = player.getName();
+        assertTrue(player.disconnect());
+        var replacement =
+                new PlayerMock(server, name, id) {
+                    @Override
+                    public boolean isOnline() {
+                        return Bukkit.getPlayer(getUniqueId()) != null;
+                    }
+                };
+        server.addPlayer(replacement);
+        player = replacement;
+        for (int j = 0; j < 6; j++) drain();
+        return replacement;
+    }
+
+    @Test
+    void staleReservedClaimNeverWritesInventoryOfOldConnection() throws Exception {
+        var old = useUuidBasedOnlinePlayer();
+        var entry = enqueue(old.getUniqueId(), "stale-reserve", new ItemStack(Material.DIAMOND, 2));
+        claims.deliver(old, entry.id(), true);
+        database.submit(c -> null)
+                .join(); // SQL complete, main-thread callback deliberately delayed.
+        assertTrue(old.disconnect());
+        var fresh = new PlayerMock(server, old.getName(), old.getUniqueId());
+        server.addPlayer(fresh);
+        assertTrue(old.isOnline(), "Reproduce a Player implementation reporting UUID presence");
+        await(
+                () ->
+                        !claims.isDelivering(fresh.getUniqueId())
+                                && claims.store().page(fresh.getUniqueId(), 0).join().total() == 0);
+        assertNull(old.getInventory().getItem(0), "No item may enter the obsolete inventory");
+        assertEquals(2, fresh.getInventory().getItem(0).getAmount());
+    }
+
+    @Test
+    void staleNotificationCannotDeliverToOldPlayerOrReserveForIt() throws Exception {
+        var old = useUuidBasedOnlinePlayer();
+        enqueue(old.getUniqueId(), "stale-notify", new ItemStack(Material.EMERALD, 3));
+        claims.notifyAndDeliver(old.getUniqueId());
+        database.submit(c -> null).join();
+        assertTrue(old.disconnect());
+        var fresh = new PlayerMock(server, old.getName(), old.getUniqueId());
+        server.addPlayer(fresh);
+        await(
+                () ->
+                        !claims.isDelivering(fresh.getUniqueId())
+                                && claims.store().page(fresh.getUniqueId(), 0).join().total() == 0);
+        assertNull(old.getInventory().getItem(0));
+        assertEquals(3, fresh.getInventory().getItem(0).getAmount());
+    }
+
     @Test
     void reconnectDuringFailedSaveNeverWritesOldPlayerInstance() throws Exception {
         claims.shutdown();

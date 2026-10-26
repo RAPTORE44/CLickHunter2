@@ -53,3 +53,16 @@ Voir `AUDIT-SUIVI-2026-10-25.md` et `validation/audit-suivi.json` pour les preuv
 ### Fournisseur de PNJ
 
 Terminée : migration vers ZNPCsPlus 2.0.0 pour Daily, Discord, Contrats et marchands. Les commandes et positions existantes sont conservées. Vérifications natives sur Paper : interactions des quatre types, refus de doublon, restauration après redémarrage et suppression ciblée. Voir `PNJ-ZNPCSPLUS.md` et `validation/znpcsplus.json`.
+
+
+### Audit du 26 octobre 2026
+
+- Terminée : publication AH avec journal SQL, reçu playerdata, validation conjointe des frais et reprise idempotente.
+- Terminée : contrôles de connexion dans `/claim`, valeurs de prestige bornées et positions YAML invalides préservées.
+- Terminée : cache des boutons inchangés, invalidation ItemsAdder et messages de publication/arrêt de jeu cohérents.
+- Terminée : ancrage des mobs déplacés dans un autre monde, test reproduit avant correction puis réussi.
+- À vérifier sur le serveur réel : rendu du fournisseur Holographic Displays et du pack ItemsAdder, profil de charge représentatif.
+- À développer : généralisation du journal de sortie aux dépôts de stations et aux lots d’essences ; elle n’est pas déclarée livrée par la protection AH.
+- Section 17 : aucune nouvelle idée renseignée dans le document joint. Les autres demandes et lignes jaunes conservent leur suivi existant.
+
+Détails et preuves : [audit du 26 octobre](AUDIT-2026-10-26.md).
