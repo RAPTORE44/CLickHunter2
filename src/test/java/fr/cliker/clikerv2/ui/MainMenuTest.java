@@ -115,6 +115,25 @@ class MainMenuTest {
     }
 
     @Test
+    void progressionGuideIsLinkedFromMainMenu() {
+        player.addAttachment(plugin, "cliker.upgrade.use", true);
+        server.getCommandMap()
+                .register(
+                        "test",
+                        new Command("guide") {
+                            @Override
+                            public boolean execute(
+                                    CommandSender sender, String label, String[] args) {
+                                commands.incrementAndGet();
+                                return true;
+                            }
+                        });
+        click(33);
+        server.getScheduler().performOneTick();
+        assertEquals(1, commands.get());
+    }
+
+    @Test
     void lockedEntryAndPermissionRevocationAreEnforced() {
         player.addAttachment(plugin, "cliker.daily.use", false);
         menu.onCommand(player, entry, "menu", new String[0]);

@@ -110,7 +110,7 @@ L'autocompresseur s'achète chez le marchand puis s'active par clic droit : l'ob
 
 | Commande | Utilité |
 | --- | --- |
-| `/guide` | Conseiller le prochain palier d’amélioration le moins cher, selon les niveaux et le solde réel. |
+| `/guide` | Conseiller le prochain palier d’amélioration le moins cher, selon les niveaux et le solde réel. Aussi accessible dans `/menu`. |
 | `/zone <numéro>` | Rejoindre une zone déjà débloquée et configurée ; alias `/z`. |
 | `/warp` | Zones débloquées : gauche vers l’entrée, droite devant leur boss ; raccourcis spawn, raids et boss public. |
 | `/boss` | Rejoindre l’arène publique du boss serveur, accessible à tous. |
@@ -172,7 +172,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/respawnmobs` | Faire réapparaître tous les mobs placés, sans les boss ni les invocations temporaires ; alias `/mobsrespawn`. | `cliker.mob.admin` |
 | `/spawnboss` | Lancer une vague de tous les boss de zone, avec annonce globale ; alias `/bossrespawn`. | `cliker.mob.admin` |
 | `/jeutchat lancer [calcul\|devinette\|pays]` / `/jeutchat stop` | Lancer ou interrompre une manche de jeu de chat. | `cliker.jeutchat.admin` |
-| `/diagnostic` | Vérifier SQLite, livraisons, mobs manquants, PNJ, hologrammes et destinations absentes ; lecture seule, résultats paginés. | `cliker.diagnostic.admin` |
+| `/diagnostic` | Vérifier SQLite, livraisons, mobs manquants, PNJ, hologrammes et destinations absentes ; indique la commande de correction et la commande Spark si Spark manque. Lecture seule, résultats paginés. | `cliker.diagnostic.admin` |
 | `/avantposte vedette <pseudo>` / `/avantposte vedette retirer` | Mettre un terrain public à l’honneur pendant sept jours ou retirer sa mise en avant. | `cliker.services.admin` |
 | `/gm [0\|1\|2\|3] [joueur]` | Changer de mode ; sans argument, basculer entre survie et créatif. Modes : 0 survie, 1 créatif, 2 aventure, 3 spectateur. | `cliker.gamemode.admin` |
 | `/setspawn` | Définir le point d'accueil à la position actuelle. | `cliker.spawn.admin` |

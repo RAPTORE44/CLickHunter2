@@ -17,7 +17,7 @@ Produit par `python3 scripts/audit-inventory.py`. Chaque fichier de production e
 | display | 5 | 824 |
 | economy | 4 | 280 |
 | essence | 8 | 689 |
-| features | 14 | 3618 |
+| features | 14 | 3626 |
 | gear | 19 | 2145 |
 | hologram | 4 | 823 |
 | hunting | 6 | 1188 |
@@ -39,7 +39,7 @@ Produit par `python3 scripts/audit-inventory.py`. Chaque fichier de production e
 | spawn | 5 | 279 |
 | station | 4 | 410 |
 | tuto | 3 | 292 |
-| ui | 5 | 738 |
+| ui | 5 | 739 |
 | upgrade | 6 | 995 |
 | world | 1 | 98 |
 
@@ -108,7 +108,7 @@ Total : **179 fichiers Java**, **34 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/essence/EssenceRarity.java](../src/main/java/fr/cliker/clikerv2/essence/EssenceRarity.java) | `0c9b5d7d402b5b7c7c4eba2c2f75e2fa9135d343078b6f3393b6444f45873989` |
 | [src/main/java/fr/cliker/clikerv2/essence/SellCommand.java](../src/main/java/fr/cliker/clikerv2/essence/SellCommand.java) | `ec5690f15eb461e3f65da5d464fd3c5d812d990cef74a4c11feed1bb4dc1c26b` |
 | [src/main/java/fr/cliker/clikerv2/essence/SellMenu.java](../src/main/java/fr/cliker/clikerv2/essence/SellMenu.java) | `b421dfaa733d49c40e5a26adc514fe8cc52693c7dd48a15b3dc1b2e8e7930a23` |
-| [src/main/java/fr/cliker/clikerv2/features/AdminDiagnostic.java](../src/main/java/fr/cliker/clikerv2/features/AdminDiagnostic.java) | `d4cd3da96abee18606726412c35974144e76d1d6dfbbc89744e560770502cbd1` |
+| [src/main/java/fr/cliker/clikerv2/features/AdminDiagnostic.java](../src/main/java/fr/cliker/clikerv2/features/AdminDiagnostic.java) | `ad1daa8dda2ff83da9c6583b3cbfd4e3c44b38b28ad023d65e2fc82d9aa9b0fa` |
 | [src/main/java/fr/cliker/clikerv2/features/Boosts.java](../src/main/java/fr/cliker/clikerv2/features/Boosts.java) | `19929624ea83ccedda53202873cb3c219c05d0e8fa1bf5fdfd37f11ed4ac9db7` |
 | [src/main/java/fr/cliker/clikerv2/features/ChatActivities.java](../src/main/java/fr/cliker/clikerv2/features/ChatActivities.java) | `f52e219e770971a23ecc19f2e13372daa735e97b527eff9db1dd98de267cfd95` |
 | [src/main/java/fr/cliker/clikerv2/features/CreatureSettings.java](../src/main/java/fr/cliker/clikerv2/features/CreatureSettings.java) | `07e59c7af0854ba724b081fc0bd3d64b093da4008581da99bbdb92192f9dce15` |
@@ -217,7 +217,7 @@ Total : **179 fichiers Java**, **34 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/tuto/TutoCommand.java](../src/main/java/fr/cliker/clikerv2/tuto/TutoCommand.java) | `0af182925a279ee0cb7885b125e250ec6b29e5d9f340188616714b930688ef85` |
 | [src/main/java/fr/cliker/clikerv2/tuto/TutoJoinListener.java](../src/main/java/fr/cliker/clikerv2/tuto/TutoJoinListener.java) | `fcaf63e4fb76f0e8b0f1a90b29a212ed660afbfb58942e8f9e8dc6d56eec6e10` |
 | [src/main/java/fr/cliker/clikerv2/ui/GainBar.java](../src/main/java/fr/cliker/clikerv2/ui/GainBar.java) | `d35fa63373256c5761a844774f439e3db34b18bb9645e6a4b06a12a9020e11d1` |
-| [src/main/java/fr/cliker/clikerv2/ui/MainMenu.java](../src/main/java/fr/cliker/clikerv2/ui/MainMenu.java) | `ada7a7f289c1ba63d9f33e38fb4181aa41d747385144b4ed53c1a7517a30745a` |
+| [src/main/java/fr/cliker/clikerv2/ui/MainMenu.java](../src/main/java/fr/cliker/clikerv2/ui/MainMenu.java) | `286c7f3fe09a0992783947cb89fb5bdd17996c996b80f057cd36f1f2e2000bb1` |
 | [src/main/java/fr/cliker/clikerv2/ui/MenuIcons.java](../src/main/java/fr/cliker/clikerv2/ui/MenuIcons.java) | `a882ae358debdbe7d1daf7a2bcbe0cc548cd3a0d910dcd35e15fd23995a95f1a` |
 | [src/main/java/fr/cliker/clikerv2/ui/MenuNavigation.java](../src/main/java/fr/cliker/clikerv2/ui/MenuNavigation.java) | `5e95103a79347efeda8a6e06829b9312682135cb574707d8355a7765a7f999df` |
 | [src/main/java/fr/cliker/clikerv2/ui/ViewRequests.java](../src/main/java/fr/cliker/clikerv2/ui/ViewRequests.java) | `0e4eff064c662350d17b8347362f63db442cf9f219a081a4ab0ff926b87bdd28` |
@@ -252,7 +252,7 @@ Total : **179 fichiers Java**, **34 configurations YAML**.
 | [src/main/resources/discord.yml](../src/main/resources/discord.yml) | `7742894dc5e91ba3973e8e55cee44f7f8243e51ea11be5af8e750383a0db1777` |
 | [src/main/resources/enchants.yml](../src/main/resources/enchants.yml) | `37ae5a5ecac5c7e8a571407fd5c1d4ee8264dc15cbc12c7173864b99b95feef0` |
 | [src/main/resources/gui/icons.yml](../src/main/resources/gui/icons.yml) | `f59c12d4f079b636506049ffe20f79b0560f2b55f1732da70bc1320faae92714` |
-| [src/main/resources/gui/menu.yml](../src/main/resources/gui/menu.yml) | `0c829745c168f988503015e6ef38ef3a6b3b4873588749a0982fbf0efb788069` |
+| [src/main/resources/gui/menu.yml](../src/main/resources/gui/menu.yml) | `454789727f953beb69a53c733abf22bd51e29121fc694ff8a1f9eda25f32c43f` |
 | [src/main/resources/lootboxes.yml](../src/main/resources/lootboxes.yml) | `5b2d966ee0111ba4df62a70eb4a8c7ca0cc60fd5e54117624ab15e4cc2b5e2e3` |
 | [src/main/resources/mobs/creatures.yml](../src/main/resources/mobs/creatures.yml) | `9b0ed43cf15495d50cce1ca93f7055f20f93740d7acfab572ade62b3212e1147` |
 | [src/main/resources/navigation/warps.yml](../src/main/resources/navigation/warps.yml) | `b9053ea5b07047bcc2f98ac20125bf9075a68faa5c13b9e162d177933c99924a` |

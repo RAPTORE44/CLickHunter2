@@ -137,3 +137,10 @@ boutons:
     nom: '&dTalismans et bonus actifs'
     description: ['&7Collection, découvertes et effets de tes sacs.']
     commande: tallisement
+  guide:
+    slot: 33
+    materiau: COMPASS
+    nom: '&eConseil de progression'
+    description: ['&7Prochain palier selon ton solde réel.', '&7Commande : /guide', '', '&eClique pour voir ton conseil.']
+    commande: guide
+    permission: cliker.upgrade.use

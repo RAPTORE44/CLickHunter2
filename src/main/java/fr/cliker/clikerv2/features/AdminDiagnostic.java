@@ -73,7 +73,7 @@ public final class AdminDiagnostic {
         results.addAll(mobs.diagnostic());
         results.addAll(fr.cliker.clikerv2.npc.ZnpcsNpc.diagnostics());
         for (String dependency :
-                List.of("ZNPCsPlus", "HolographicDisplays", "ItemsAdder", "LuckPerms"))
+                List.of("ZNPCsPlus", "HolographicDisplays", "ItemsAdder", "LuckPerms", "spark"))
             results.add(
                     dependency
                             + " : "
@@ -86,6 +86,10 @@ public final class AdminDiagnostic {
                         + (provider != null && provider.usesHolographicDisplays()
                                 ? "Holographic Displays"
                                 : "secours natif ou désactivé"));
+        if (!Bukkit.getPluginManager().isPluginEnabled("spark"))
+            results.add(
+                    "Profilage TPS absent : installe Spark puis utilise /spark profiler --timeout"
+                        + " 60");
         Settings warps = new Settings(plugin, "navigation/warps.yml");
         for (MobTier tier : MobTier.values())
             for (boolean boss : new boolean[] {false, true}) {
@@ -97,6 +101,10 @@ public final class AdminDiagnostic {
                                     + tier.id()
                                     + " "
                                     + (boss ? "boss" : "entrée"));
+                if (fr.cliker.clikerv2.config.YamlFiles.location(warps.yaml, path) == null
+                        && mobs.travelPoint(tier, boss).isEmpty())
+                    results.add(
+                            "Correction : /warp set " + tier.id() + (boss ? " boss" : " entree"));
             }
         if (sender instanceof Player p) show(p, results, 0);
         else results.forEach(sender::sendMessage);
