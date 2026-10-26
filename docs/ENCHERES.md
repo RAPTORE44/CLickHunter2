@@ -1,60 +1,48 @@
-# Enchères légendaires événementielles
+# Enchères légendaires et salle commune
 
-Module de ClikerV2, Paper 1.21.4 et Java 21. Il est distinct de `/ah` : le serveur propose trois lots, sans frais de publication ni taxe AH. Le débit du prix gagnant retire les Écus de l’économie, sans vendeur joueur à créditer.
+Module intégré à ClikerV2, indépendant des annonces AH et de leurs taxes. Paper 1.21.4, Java 21 ; aucune nouvelle dépendance. Le présentoir utilise ItemDisplay + Interaction natifs ; son titre utilise le service commun d’hologrammes.
 
-## Commandes et permissions
+## Préparation
 
-| Commande | Fonction | Permission |
-| --- | --- | --- |
-| `/enchere` | Consulter l’état et le délai actuel. | `cliker.enchere.use`, tous par défaut |
-| `/enchere rejoindre` | S’inscrire pendant les trois minutes puis ouvrir le coffre. Un inscrit peut le rouvrir une fois la vente commencée. | `cliker.enchere.use` |
-| `/enchere quitter` | Fermer le menu ; se désinscrire si la vente n’a pas commencé. Les offres déjà déposées restent fermes. | `cliker.enchere.use` |
-| `/enchere forcer` | Ouvrir immédiatement une session d’inscription de trois minutes, sans doubler un événement existant. | `cliker.enchere.admin`, op par défaut |
-| `/enchere demarrer` | Terminer les inscriptions et démarrer avec les inscrits actuels. S’il n’y en a aucun, la session est annulée sans débit. | `cliker.enchere.admin` |
+Construire une pièce avec sol sûr. À son point d’arrivée : `/enchere setsalle`. Au-dessus du socle de présentation : `/enchere setpresentoir`. La position exacte et l’orientation sont sauvegardées dans `activites/encheres.yml`. Sans salle définie, aucun événement n’est lancé et aucune entrée n’est prélevée. Sans présentoir défini, celui-ci apparaît trois blocs au sud du centre, à 1,5 bloc de hauteur.
 
-Alias `/encheres`. Les sous-commandes proposées tiennent compte de la permission de gestion. Depuis un avant-poste, revenir au `/spawn` avant de participer pour conserver l’isolation des inventaires.
+`salle-rayon` définit la demi-largeur du périmètre de présence autour du centre (16 blocs par défaut, hauteur ±12). Prévoir une salle cohérente avec cette valeur. Un joueur sorti du périmètre est désinscrit au contrôle suivant. Le présentoir ne produit aucun objet ramassable, est protégé et nettoyé au redémarrage. Les participants présents sont protégés des dégâts dans la salle.
 
-## Déroulement
+## Joueurs
 
-1. Toutes les trois heures, trois minutes d’inscription s’ouvrent. L’annonce et les rappels à 120, 60, 30 et 10 secondes indiquent `/enchere rejoindre` et sont cliquables.
-2. Les trois lots sont visibles dans un double coffre pendant l’inscription. Les nouveaux inscrits sont refusés après sa fermeture ; les inscriptions sont sauvegardées par UUID.
-3. Chaque lot commence avec 30 secondes et aucune offre. Cliquer sur une somme dépose une offre ferme si le solde suffit, relance les 30 secondes et place la tête du meneur sur le montant. Tous les montants inférieurs ou égaux sont verrouillés. Un joueur peut dépasser sa propre offre.
-4. À zéro, la plus haute offre solvable est débitée et son lot est placé dans le journal de livraison **dans la même transaction**. Puis le lot suivant commence, jusqu’au troisième. Sans offre solvable, le lot reste invendu et personne n’est débité.
+Tous les trois heures, trois minutes d’inscriptions sont annoncées plusieurs fois. Le lien exécute `/enchere rejoindre`. L’entrée coûte **10 000K = 10 000 000 Écus**, débitée atomiquement une seule fois par UUID et événement. Les frais sont annoncés avant inscription et sont non remboursables. Réouvrir une inscription déjà payée pendant la fenêtre ne refacture pas l’entrée. Sans solde suffisant, aucune inscription ni téléportation n’est validée.
 
-Le plafond par défaut est **1 000 000B = 1 000 000 000 000 000 Écus = 1Qa**, selon la notation existante du plugin. Les prix commencent à 1 000 et augmentent de 20 %, arrondis vers le haut, jusqu’au plafond exact. Cinq lignes de neuf cases forment un serpent continu, de gauche à droite puis de droite à gauche. Les flèches parcourent les pages suivantes ; les prix antérieurs restent verrouillés sur toutes les pages. Le dernier montant s’arrête au plafond, sans dépassement numérique.
+Le joueur rejoint physiquement les autres participants. Pendant l’attente, il voit le premier objet flotter, sans menu présentant les trois lots futurs. Le temps avant début s’affiche dans la hotbar. Le clic droit sur le présentoir ouvre uniquement le lot courant lorsque sa vente est active.
 
-Le bas du coffre affiche le temps restant, le lot courant, les règles, le nombre d’inscrits, le meilleur enchérisseur, le solde consulté et les commandes de navigation. Le solde peut être actualisé par clic sur son bouton. Le serveur vérifie toujours le solde réel à l’offre et à la clôture. Les lots et têtes gardent leur apparence réelle ; les boutons de navigation utilisent les icônes habituelles du plugin.
+Au début du lot, le menu s’ouvre automatiquement aux participants dans la salle. Le double coffre reste épuré : montants et flèche suivante. Le parcours descend dans la colonne gauche, avance de deux cases, remonte, avance de deux cases, etc. Les raccords font partie du chemin : **29 montants par page**. Les prix strictement croissants commencent à 1K et atteignent le plafond configurable de 1 000 000B (1Qa).
 
-## Engagement financier et départ
+Un clic mise le montant exact affiché, après contrôle du solde SQL. Les montants dépassés deviennent du fond inactif, et la tête du meneur occupe sa mise. Atteindre le dernier montant d’une page fait passer les menus concernés à la suivante. Chaque changement de page ou de lot ouvre un nouveau conteneur : un ancien paquet de clic ne peut pas acheter un autre montant. Les touches numériques, doubles clics et glissements ne déplacent aucun objet.
 
-**Aucun débit ni réservation n’est effectué lors d’un clic d’enchère.** L’offre reste ferme jusqu’à son dépassement ou à l’attribution, même si le joueur ferme le menu, quitte avec la commande ou se déconnecte. Cette règle est affichée à l’inscription, dans les prix et dans le bouton de sortie.
+Chaque offre acceptée remet le chronomètre à **30 secondes**, affiché uniquement en hotbar. Trois lots sont vendus successivement. Il est permis de regarder un lot, fermer le menu ou ne rien miser ; le présentoir permet de rouvrir. Un lot sans offre solvable reste invendu, sans prélèvement du prix d’un lot.
 
-Si le meilleur enchérisseur a dépensé son argent ailleurs, sa dernière offre est écartée : on examine la dernière offre de chaque autre enchérisseur, dans l’ordre décroissant, jusqu’à trouver un solde suffisant. Un joueur insolvable ne peut pas revenir automatiquement à sa propre ancienne offre moins chère. Il n’y a ni solde négatif, ni lot gratuit, ni débit d’un perdant. Le gagnant peut être hors ligne.
+`/enchere quit` ou `/enchere quitter` désinscrit, ferme le menu et renvoie au spawn. Aucune nouvelle offre n’est ensuite autorisée. **Les offres déjà déposées restent fermes**, même après départ ou déconnexion ; elles ne sont pas annulées pour contourner une surenchère. Les frais d’entrée ne sont pas remboursés. En fin de vente, les joueurs encore présents retournent au spawn.
 
-L’objet rejoint directement l’inventaire si de la place existe ; le surplus, l’inventaire plein et les gains hors ligne passent par `/claim`. Les mêmes sources idempotentes empêchent une double livraison après répétition d’une clôture. Les offres, délais, inscriptions, lots et résultats sont sauvegardés en SQLite. Après redémarrage, un lot expiré est traité une seule fois et la session continue. Un rechargement global Paper n’est pas le mode d’installation recommandé : utiliser un arrêt/redémarrage normal.
+## Paiement, objets et reprise
 
-## Catalogue et configuration
+Les fonds des mises ne sont pas réservés. Le solde est contrôlé à l’offre et à l’attribution. Si le meilleur enchérisseur est devenu insolvable, sa dernière offre est écartée au profit de la dernière offre la plus haute encore solvable d’un autre joueur ; un même joueur ne revient pas automatiquement à son ancien prix plus bas.
 
-Fichier SFTP : `plugins/ClikerV2/activites/encheres.yml`.
+Le débit du lot, l’enregistrement du gagnant, le passage au lot suivant et l’objet livré sont validés dans une transaction SQL. L’objet est remis directement si possible, sinon `/claim` pour inventaire plein ou gagnant hors ligne. Une répétition de règlement ne doit ni payer ni donner deux fois.
 
-- `intervalle-secondes: 10800`, `inscriptions-secondes: 180`, `offre-secondes: 30` et `rappels-secondes` règlent la cadence.
-- `prix.depart`, `prix.augmentation-pourcent` et `prix.maximum` définissent l’échelle commune des prix ; une configuration invalide est refusée.
-- `lots.zones` et `lots.types` définissent les équipements candidats. Par défaut : épées et armures des zones Blaze, Wither Squelette et Ghast, réellement légendaires selon `TierGear`. Trois équipements sont tirés à chaque événement. Les statistiques, matériaux et couleurs d’origine sont conservés ; aucun équipement mythique n’est réétiqueté légendaire.
-- `messages` contient les annonces françaises. Les rappels et démarrages sont globaux ; les messages de surenchère sont limités aux joueurs ayant le menu ouvert.
-- `prochaine-inscription` est conservée automatiquement pour ne pas repousser le délai à chaque redémarrage. Une ouverture forcée recale cette échéance. Une session encore en cours ne peut jamais être doublée.
+Les événements, lots, offres, inscriptions et reçus d’entrée sont conservés dans SQLite. Après un arrêt normal, un lot expiré est réglé une seule fois puis la vente poursuit son cycle. Les joueurs reconnectés dans la salle récupèrent leur participation s’ils sont encore inscrits, sans repayer ; sinon `/enchere rejoindre` rouvre leur participation existante pendant l’événement. Les demandes d’interface tardives d’une ancienne connexion sont ignorées.
 
-Les prix, achats et objets des autres modules sont inchangés. Quatre nouvelles tables et un index sont ajoutés sans conversion des anciennes données. Sauvegarder ensemble le dossier du plugin et les mondes/playerdata avant installation.
+Si une protection du serveur refuse une téléportation après la validation SQL de l’inscription, l’inscription payée reste conservée et peut être rejointe sans nouveaux frais. Préparer et tester le point d’arrivée avant l’ouverture publique.
 
-## Validation
+## Administration et configuration
 
-Tests SQLite : inscription, désinscription, offre hors délai, solde insuffisant, concurrence sur le même prix, absence de débit avant clôture, relance du délai, gagnant hors ligne, insolvabilité, trois lots successifs, reprise d’état, transaction annulée sur erreur, prix extrêmes et attribution unique. Tests de menu : départ pendant inscription asynchrone et protection des déplacements d’objets.
+- `/enchere setsalle` : arrivée et centre de présence.
+- `/enchere setpresentoir` : position flottante du lot.
+- `/enchere forcer` : ouvrir immédiatement les inscriptions.
+- `/enchere demarrer` : terminer les inscriptions et commencer avec les participants actuels.
+- Permission : `cliker.enchere.admin` ; joueurs : `cliker.enchere.use` par défaut.
+- Alias racine : `/encheres`.
 
-Les résultats et les durées réellement utilisées sur Paper sont consignés dans `validation/enchere-pinata.json`. Les essais accélérés ne sont pas présentés comme une attente réelle de trois heures. La durée réelle de trois minutes de la piñata a fait l’objet d’un contrôle séparé. Aucun test de charge représentatif ni rendu ItemsAdder de production n’est revendiqué.
+`activites/encheres.yml` contient les délais, frais, messages, prix, positions et catalogue. Par défaut, les trois lots sont des équipements légendaires distincts tirés parmi les armes/armures existantes des zones Blaze, Wither Squelette et Ghast. Le choix exact d’objets personnalisés n’a pas été fourni. Les équipements conservent leurs attributs et métadonnées ; aucune récompense de test ni pièce générique ne remplace leur contenu.
 
+## Vérification
 
-Validation livrée : **280 tests automatisés, zéro échec, zéro erreur, zéro test ignoré**. Sept contrôles natifs accélérés ont été rejoués sur le JAR final pour couvrir la vente complète ; six autres contrôles vérifient la reprise, avec un compteur réel mesuré à 30932 ms. La reprise d’une offre après arrêt normal a été exercée, y compris le paiement hors ligne et les reconnexions sans duplication.
-
-Les skins déjà disponibles sont copiés et mis en cache. Pour un joueur réel absent, une seule résolution asynchrone est tentée par événement ; une texture indisponible conserve une tête de secours avec le nom du meneur. Les UUID synthétiques hors ligne ne sont pas recherchés dans l’annuaire Mojang : aucune recherche répétée pour ces profils n’a été émise pendant le contrôle final. Le rendu de vrais skins en ligne reste à vérifier sur le serveur public.
-
-
-Les clics différés sont liés à l’événement, au lot, à la phase et à la page affichés au moment du clic. Un changement de page ou de lot utilise un nouveau conteneur : un ancien paquet client ne peut pas être réinterprété comme une offre sur un montant ou un objet différent. Les trois scénarios déterministes (aperçu d’inscription, page suivante et lot suivant) échouaient avant la correction et passent dans la suite finale ; un quatrième test vérifie les clics d’un ancien conteneur. Les rafraîchissements du compteur et des skins conservent le conteneur tant que le contexte financier reste identique.
+Les tests automatisés couvrent frais atomiques uniques, fonds insuffisants, offres concurrentes, délai relancé, insolvabilité, déconnexion/fermeture, anciens clics de page/lot, paiement et livraison uniques, reprise SQL et parcours vertical contigu de 29 montants. Les preuves locales distinguent l’ancienne interface validée auparavant de cette évolution avec salle ; les essais accélérés ne prétendent pas avoir attendu trois heures réelles.

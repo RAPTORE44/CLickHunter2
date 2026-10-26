@@ -5,6 +5,28 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  tag:
+    description: Collection de tags et grades par catégorie
+    permission: cliker.tag.use
+  chatcouleur:
+    description: Choisir la couleur de ses messages selon ses permissions
+    aliases: [chatcolor]
+    permission: cliker.chatcouleur.use
+  bvn:
+    description: Souhaiter la bienvenue au dernier nouveau joueur (cinq minutes)
+    aliases: [bienvenue]
+    permission: cliker.bienvenue.use
+  marry:
+    description: Mariage, cadeaux et commandes entre partenaires
+    usage: /marry help
+    permission: cliker.marry.use
+  rc:
+    description: Recommander un joueur et lui offrir 500 XP
+    usage: /rc <joueur>
+    permission: cliker.popularite.use
+  echelons:
+    description: Voir les échelons de popularité et leurs seuils
+    permission: cliker.popularite.use
   enchere:
     description: Enchères légendaires événementielles et inscription
     aliases: [encheres]
@@ -32,6 +54,9 @@ commands:
     permission: cliker.session
   warp:
     description: Menu des destinations débloquées
+  warpbloc:
+    description: Définir un bloc ouvrant le menu warp et son hologramme
+    permission: cliker.services.admin
   upgradebloc:
     description: Raccourci upgrade sur un bloc (administration)
     permission: cliker.services.admin
@@ -235,6 +260,21 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.marry.use:
+    description: Utiliser les commandes de mariage
+    default: true
+  cliker.marry.teleport:
+    description: Téléportations entre partenaires mariés
+    default: true
+  cliker.marry.consulter:
+    description: Consulter les inventaires du partenaire en lecture seule
+    default: true
+  cliker.marry.admin:
+    description: Donner l’objet spécial autorisant les demandes hors février
+    default: op
+  cliker.popularite.use:
+    description: Recommander des joueurs et consulter les échelons
+    default: true
   cliker.enchere.use:
     default: true
   cliker.enchere.admin:
@@ -381,3 +421,415 @@ permissions:
   cliker.bonus.xp.8: { default: false }
   cliker.bonus.xp.9: { default: false }
   cliker.bonus.xp.10: { default: false }
+
+  cliker.zone.vache:
+    description: Accès et visibilité de la zone vache
+    default: true
+  cliker.zone.cochon:
+    description: Accès et visibilité de la zone cochon
+    default: false
+  cliker.zone.poulet:
+    description: Accès et visibilité de la zone poulet
+    default: false
+  cliker.zone.mouton:
+    description: Accès et visibilité de la zone mouton
+    default: false
+  cliker.zone.lapin:
+    description: Accès et visibilité de la zone lapin
+    default: false
+  cliker.zone.ourse:
+    description: Accès et visibilité de la zone ourse
+    default: false
+  cliker.zone.ane:
+    description: Accès et visibilité de la zone ane
+    default: false
+  cliker.zone.pigman:
+    description: Accès et visibilité de la zone pigman
+    default: false
+  cliker.zone.piglin:
+    description: Accès et visibilité de la zone piglin
+    default: false
+  cliker.zone.piglin_brute:
+    description: Accès et visibilité de la zone piglin_brute
+    default: false
+  cliker.zone.hoglin:
+    description: Accès et visibilité de la zone hoglin
+    default: false
+  cliker.zone.magma_slime:
+    description: Accès et visibilité de la zone magma_slime
+    default: false
+  cliker.zone.blaze:
+    description: Accès et visibilité de la zone blaze
+    default: false
+  cliker.zone.wither_skeleton:
+    description: Accès et visibilité de la zone wither_skeleton
+    default: false
+  cliker.zone.ghast:
+    description: Accès et visibilité de la zone ghast
+    default: false
+  cliker.zone.vindicator:
+    description: Accès et visibilité de la zone vindicator
+    default: false
+  cliker.zone.ravager:
+    description: Accès et visibilité de la zone ravager
+    default: false
+  cliker.zone.wither:
+    description: Accès et visibilité de la zone wither
+    default: false
+  cliker.zone.warden:
+    description: Accès et visibilité de la zone warden
+    default: false
+  cliker.tag.use:
+    default: true
+  cliker.tag.admin:
+    default: op
+  cliker.chatcouleur.use:
+    default: true
+  cliker.bienvenue.use:
+    default: true
+  cliker.chat.couleur.white:
+    default: true
+  cliker.chat.couleur.black:
+    default: false
+  cliker.chat.couleur.dark_blue:
+    default: false
+  cliker.chat.couleur.dark_green:
+    default: false
+  cliker.chat.couleur.dark_aqua:
+    default: false
+  cliker.chat.couleur.dark_red:
+    default: false
+  cliker.chat.couleur.dark_purple:
+    default: false
+  cliker.chat.couleur.gold:
+    default: false
+  cliker.chat.couleur.gray:
+    default: false
+  cliker.chat.couleur.dark_gray:
+    default: false
+  cliker.chat.couleur.blue:
+    default: false
+  cliker.chat.couleur.green:
+    default: false
+  cliker.chat.couleur.aqua:
+    default: false
+  cliker.chat.couleur.red:
+    default: false
+  cliker.chat.couleur.light_purple:
+    default: false
+  cliker.chat.couleur.yellow:
+    default: false
+  cliker.chat.couleur.*:
+    default: op
+    children:
+      cliker.chat.couleur.black: true
+      cliker.chat.couleur.dark_blue: true
+      cliker.chat.couleur.dark_green: true
+      cliker.chat.couleur.dark_aqua: true
+      cliker.chat.couleur.dark_red: true
+      cliker.chat.couleur.dark_purple: true
+      cliker.chat.couleur.gold: true
+      cliker.chat.couleur.gray: true
+      cliker.chat.couleur.dark_gray: true
+      cliker.chat.couleur.blue: true
+      cliker.chat.couleur.green: true
+      cliker.chat.couleur.aqua: true
+      cliker.chat.couleur.red: true
+      cliker.chat.couleur.light_purple: true
+      cliker.chat.couleur.yellow: true
+      cliker.chat.couleur.white: true
+  cliker.tag.*:
+    default: op
+    children:
+      cliker.tag.bugs.1: true
+      cliker.tag.bugs.2: true
+      cliker.tag.bugs.3: true
+      cliker.tag.bugs.4: true
+      cliker.tag.bugs.5: true
+      cliker.tag.bugs.6: true
+      cliker.tag.bugs.7: true
+      cliker.tag.bugs.8: true
+      cliker.tag.bugs.9: true
+      cliker.tag.bugs.10: true
+      cliker.tag.bugs.11: true
+      cliker.tag.bugs.12: true
+      cliker.tag.bugs.13: true
+      cliker.tag.bugs.14: true
+      cliker.tag.bugs.15: true
+      cliker.tag.mobs.1: true
+      cliker.tag.mobs.2: true
+      cliker.tag.mobs.3: true
+      cliker.tag.mobs.4: true
+      cliker.tag.mobs.5: true
+      cliker.tag.mobs.6: true
+      cliker.tag.mobs.7: true
+      cliker.tag.mobs.8: true
+      cliker.tag.mobs.9: true
+      cliker.tag.mobs.10: true
+      cliker.tag.mobs.11: true
+      cliker.tag.mobs.12: true
+      cliker.tag.mobs.13: true
+      cliker.tag.mobs.14: true
+      cliker.tag.mobs.15: true
+      cliker.tag.jeu.1: true
+      cliker.tag.jeu.2: true
+      cliker.tag.jeu.3: true
+      cliker.tag.jeu.4: true
+      cliker.tag.jeu.5: true
+      cliker.tag.jeu.6: true
+      cliker.tag.jeu.7: true
+      cliker.tag.jeu.8: true
+      cliker.tag.jeu.9: true
+      cliker.tag.jeu.10: true
+      cliker.tag.jeu.11: true
+      cliker.tag.jeu.12: true
+      cliker.tag.jeu.13: true
+      cliker.tag.jeu.14: true
+      cliker.tag.jeu.15: true
+      cliker.tag.boss.1: true
+      cliker.tag.boss.2: true
+      cliker.tag.boss.3: true
+      cliker.tag.boss.4: true
+      cliker.tag.boss.5: true
+      cliker.tag.boss.6: true
+      cliker.tag.boss.7: true
+      cliker.tag.boss.8: true
+      cliker.tag.boss.9: true
+      cliker.tag.boss.10: true
+      cliker.tag.boss.11: true
+      cliker.tag.boss.12: true
+      cliker.tag.boss.13: true
+      cliker.tag.boss.14: true
+      cliker.tag.boss.15: true
+      cliker.tag.popularite.1: true
+      cliker.tag.popularite.2: true
+      cliker.tag.popularite.3: true
+      cliker.tag.popularite.4: true
+      cliker.tag.popularite.5: true
+      cliker.tag.popularite.6: true
+      cliker.tag.popularite.7: true
+      cliker.tag.popularite.8: true
+      cliker.tag.popularite.9: true
+      cliker.tag.popularite.10: true
+      cliker.tag.popularite.11: true
+      cliker.tag.popularite.12: true
+      cliker.tag.popularite.13: true
+      cliker.tag.popularite.14: true
+      cliker.tag.popularite.15: true
+      cliker.tag.prestige.1: true
+      cliker.tag.prestige.2: true
+      cliker.tag.prestige.3: true
+      cliker.tag.prestige.4: true
+      cliker.tag.prestige.5: true
+      cliker.tag.prestige.6: true
+      cliker.tag.prestige.7: true
+      cliker.tag.prestige.8: true
+      cliker.tag.prestige.9: true
+      cliker.tag.prestige.10: true
+      cliker.tag.prestige.11: true
+      cliker.tag.prestige.12: true
+      cliker.tag.prestige.13: true
+      cliker.tag.prestige.14: true
+      cliker.tag.prestige.15: true
+  cliker.tag.bugs.1:
+    default: false
+  cliker.tag.bugs.2:
+    default: false
+  cliker.tag.bugs.3:
+    default: false
+  cliker.tag.bugs.4:
+    default: false
+  cliker.tag.bugs.5:
+    default: false
+  cliker.tag.bugs.6:
+    default: false
+  cliker.tag.bugs.7:
+    default: false
+  cliker.tag.bugs.8:
+    default: false
+  cliker.tag.bugs.9:
+    default: false
+  cliker.tag.bugs.10:
+    default: false
+  cliker.tag.bugs.11:
+    default: false
+  cliker.tag.bugs.12:
+    default: false
+  cliker.tag.bugs.13:
+    default: false
+  cliker.tag.bugs.14:
+    default: false
+  cliker.tag.bugs.15:
+    default: false
+  cliker.tag.mobs.1:
+    default: false
+  cliker.tag.mobs.2:
+    default: false
+  cliker.tag.mobs.3:
+    default: false
+  cliker.tag.mobs.4:
+    default: false
+  cliker.tag.mobs.5:
+    default: false
+  cliker.tag.mobs.6:
+    default: false
+  cliker.tag.mobs.7:
+    default: false
+  cliker.tag.mobs.8:
+    default: false
+  cliker.tag.mobs.9:
+    default: false
+  cliker.tag.mobs.10:
+    default: false
+  cliker.tag.mobs.11:
+    default: false
+  cliker.tag.mobs.12:
+    default: false
+  cliker.tag.mobs.13:
+    default: false
+  cliker.tag.mobs.14:
+    default: false
+  cliker.tag.mobs.15:
+    default: false
+  cliker.tag.jeu.1:
+    default: false
+  cliker.tag.jeu.2:
+    default: false
+  cliker.tag.jeu.3:
+    default: false
+  cliker.tag.jeu.4:
+    default: false
+  cliker.tag.jeu.5:
+    default: false
+  cliker.tag.jeu.6:
+    default: false
+  cliker.tag.jeu.7:
+    default: false
+  cliker.tag.jeu.8:
+    default: false
+  cliker.tag.jeu.9:
+    default: false
+  cliker.tag.jeu.10:
+    default: false
+  cliker.tag.jeu.11:
+    default: false
+  cliker.tag.jeu.12:
+    default: false
+  cliker.tag.jeu.13:
+    default: false
+  cliker.tag.jeu.14:
+    default: false
+  cliker.tag.jeu.15:
+    default: false
+  cliker.tag.boss.1:
+    default: false
+  cliker.tag.boss.2:
+    default: false
+  cliker.tag.boss.3:
+    default: false
+  cliker.tag.boss.4:
+    default: false
+  cliker.tag.boss.5:
+    default: false
+  cliker.tag.boss.6:
+    default: false
+  cliker.tag.boss.7:
+    default: false
+  cliker.tag.boss.8:
+    default: false
+  cliker.tag.boss.9:
+    default: false
+  cliker.tag.boss.10:
+    default: false
+  cliker.tag.boss.11:
+    default: false
+  cliker.tag.boss.12:
+    default: false
+  cliker.tag.boss.13:
+    default: false
+  cliker.tag.boss.14:
+    default: false
+  cliker.tag.boss.15:
+    default: false
+  cliker.tag.popularite.1:
+    default: false
+  cliker.tag.popularite.2:
+    default: false
+  cliker.tag.popularite.3:
+    default: false
+  cliker.tag.popularite.4:
+    default: false
+  cliker.tag.popularite.5:
+    default: false
+  cliker.tag.popularite.6:
+    default: false
+  cliker.tag.popularite.7:
+    default: false
+  cliker.tag.popularite.8:
+    default: false
+  cliker.tag.popularite.9:
+    default: false
+  cliker.tag.popularite.10:
+    default: false
+  cliker.tag.popularite.11:
+    default: false
+  cliker.tag.popularite.12:
+    default: false
+  cliker.tag.popularite.13:
+    default: false
+  cliker.tag.popularite.14:
+    default: false
+  cliker.tag.popularite.15:
+    default: false
+  cliker.tag.prestige.1:
+    default: false
+  cliker.tag.prestige.2:
+    default: false
+  cliker.tag.prestige.3:
+    default: false
+  cliker.tag.prestige.4:
+    default: false
+  cliker.tag.prestige.5:
+    default: false
+  cliker.tag.prestige.6:
+    default: false
+  cliker.tag.prestige.7:
+    default: false
+  cliker.tag.prestige.8:
+    default: false
+  cliker.tag.prestige.9:
+    default: false
+  cliker.tag.prestige.10:
+    default: false
+  cliker.tag.prestige.11:
+    default: false
+  cliker.tag.prestige.12:
+    default: false
+  cliker.tag.prestige.13:
+    default: false
+  cliker.tag.prestige.14:
+    default: false
+  cliker.tag.prestige.15:
+    default: false
+  cliker.zone.*:
+    default: op
+    children:
+      cliker.zone.vache: true
+      cliker.zone.cochon: true
+      cliker.zone.poulet: true
+      cliker.zone.mouton: true
+      cliker.zone.lapin: true
+      cliker.zone.ourse: true
+      cliker.zone.ane: true
+      cliker.zone.pigman: true
+      cliker.zone.piglin: true
+      cliker.zone.piglin_brute: true
+      cliker.zone.hoglin: true
+      cliker.zone.magma_slime: true
+      cliker.zone.blaze: true
+      cliker.zone.wither_skeleton: true
+      cliker.zone.ghast: true
+      cliker.zone.vindicator: true
+      cliker.zone.ravager: true
+      cliker.zone.wither: true
+      cliker.zone.warden: true

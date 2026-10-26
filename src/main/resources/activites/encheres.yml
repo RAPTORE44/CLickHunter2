@@ -21,3 +21,8 @@ messages:
   invendu: '&6Enchère &8» &7Lot {lot}/3 invendu : aucune offre solvable.'
   fin: '&6Enchère terminée ! &7Prochaine inscription dans environ {minutes} min.'
   sans-inscrits: '&6Enchère annulée : aucun joueur inscrit.'
+
+# 10 000K = 10 000 000 Écus, payés une seule fois par événement, non remboursables.
+entree-ecus: 10000000
+# /enchere setsalle et /enchere setpresentoir : positions sauvegardées ici.
+salle-rayon: 16

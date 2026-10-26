@@ -1,0 +1,8 @@
+# Uniquement à la première connexion : les reconnexions ne déclenchent aucune récompense.
+actif: true
+duree-secondes: 300
+recompenses: {ecus: 250, xp: 50}
+messages:
+  nouveau: '&a&lBienvenue à {joueur} sur ClickHunter ! &7Souhaite-lui la bienvenue avec &e/bvn &7pendant cinq minutes.'
+  souhait: '&a{joueur} &fsouhaite la bienvenue à &a{nouveau} &f!'
+  gagne: '&aMerci pour ton accueil ! &e+{ecus} Écus &b+{xp} XP'

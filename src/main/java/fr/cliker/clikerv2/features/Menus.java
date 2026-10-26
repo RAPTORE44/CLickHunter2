@@ -27,8 +27,19 @@ public final class Menus implements Listener {
     public static ItemStack item(Material m, String title, String... lines) {
         var i = new ItemStack(m);
         var meta = i.getItemMeta();
-        meta.displayName(Component.text(title));
-        meta.lore(Arrays.stream(lines).map(Component::text).toList());
+        meta.displayName(
+                fr.cliker.clikerv2.daily.DailySettings.color(title)
+                        .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
+        meta.lore(
+                Arrays.stream(lines)
+                        .map(fr.cliker.clikerv2.daily.DailySettings::color)
+                        .map(
+                                c ->
+                                        c.decoration(
+                                                net.kyori.adventure.text.format.TextDecoration
+                                                        .ITALIC,
+                                                false))
+                        .toList());
         i.setItemMeta(meta);
         return i;
     }

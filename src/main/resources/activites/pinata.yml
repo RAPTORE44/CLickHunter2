@@ -3,6 +3,7 @@ active: true
 intervalle-min-secondes: 1200
 intervalle-max-secondes: 1800
 duree-secondes: 180
+points-vie: 10000
 # Limite indépendante par joueur ; plusieurs joueurs frappent simultanément.
 intervalle-coups-millisecondes: 400
 # Un seul type est tiré au sort à chaque apparition, à chances égales.
@@ -21,5 +22,6 @@ messages:
   point-manquant: '&cDéfinis le point dans la zone Vache avec /pinata setspawn.'
   deja-active: '&cUne piñata est déjà active ou en cours d’apparition.'
   point-defini: '&aPoint unique de la piñata sauvegardé dans la zone Vache.'
-  titre: '&a&lPiñata {type} &7— &e{secondes}s'
+  titre-sans-chrono: '&a&lPiñata {type} &7— &c{pv}&7/&c{pv-max} ♥'
+  gain-total: '&a+{montant} {type} &8| &fTotal : &e{total}'
 # Point et prochaine échéance sont sauvegardés automatiquement ; ne pas les supprimer.

@@ -50,7 +50,15 @@ public final class WorldInventories implements Listener {
                     "settings",
                     "parametres",
                     "antidrop",
-                    "ramassage");
+                    "ramassage",
+                    "marry",
+                    "rc",
+                    "echelons",
+                    "tag",
+                    "chatcouleur",
+                    "chatcolor",
+                    "bvn",
+                    "bienvenue");
 
     public WorldInventories(JavaPlugin plugin, String world) {
         this.plugin = plugin;

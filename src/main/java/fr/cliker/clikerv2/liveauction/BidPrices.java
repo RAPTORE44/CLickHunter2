@@ -3,7 +3,8 @@ package fr.cliker.clikerv2.liveauction;
 import java.util.*;
 
 /**
- * Prix strictement croissants, calculés en entiers ; les cases suivent cinq rangées serpentines.
+ * Prix strictement croissants, calculés en entiers ; les cases suivent colonnes descendantes et
+ * montantes, espacées de deux cases.
  */
 public final class BidPrices {
     private BidPrices() {}
@@ -25,9 +26,27 @@ public final class BidPrices {
         return List.copyOf(prices);
     }
 
+    public static final int PAGE_SIZE = 29;
+    private static final int[] SLOTS = buildPath();
+
+    private static int[] buildPath() {
+        int[] result = new int[PAGE_SIZE];
+        int at = 0;
+        for (int column = 0; column <= 8; column += 2) {
+            boolean down = column % 4 == 0;
+            if (column > 0) result[at++] = (down ? 0 : 4) * 9 + column - 1;
+            for (int row = 0; row < 5; row++) result[at++] = (down ? row : 4 - row) * 9 + column;
+        }
+        return result;
+    }
+
     public static int slot(int index) {
-        if (index < 0 || index >= 45) throw new IllegalArgumentException();
-        int row = index / 9, col = index % 9;
-        return row * 9 + (row % 2 == 0 ? col : 8 - col);
+        if (index < 0 || index >= PAGE_SIZE) throw new IllegalArgumentException();
+        return SLOTS[index];
+    }
+
+    public static int indexAt(int slot) {
+        for (int i = 0; i < PAGE_SIZE; i++) if (SLOTS[i] == slot) return i;
+        return -1;
     }
 }

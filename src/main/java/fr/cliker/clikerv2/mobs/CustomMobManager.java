@@ -569,6 +569,7 @@ public final class CustomMobManager implements Listener {
         var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
         if (provider != null && provider.available()) {
             entity.setCustomNameVisible(false);
+            entity.customName(null);
             String spawnId =
                     entity.getPersistentDataContainer().get(spawnIdKey, PersistentDataType.STRING);
             var hologram = provider.get("mob:" + spawnId);
@@ -579,7 +580,7 @@ public final class CustomMobManager implements Listener {
                 hologram.setLocation(at);
                 hologram.setLines(List.of(line));
             }
-        }
+        } else entity.setCustomNameVisible(true);
     }
 
     /**

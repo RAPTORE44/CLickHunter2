@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "server": "Paper 1.21.4 build 232 / Java 21",
+  "checks": [
+    "En octobre : demande sans anneau refusée ; don de l’objet administrateur refusé au non-op",
+    "Anneau authentique non consommé, demande privée cliquable et union réciproque enregistrée hors saison",
+    "Divorce : confirmation obligatoire, coût exact de 100 millions d’Écus, aucun double débit",
+    "Fonds insuffisants : union préservée, aucun débit ; remariage après divorce possible",
+    "Inventaire et Enderchest du partenaire consultables toute l’année ; clic d’extraction refusé, aucun déplacement réel",
+    "Cadeau : pile entière retirée une fois et livrée directement ; reçu SQL acquitté, pas de détour visible par /claim",
+    "Cadeau refusé lorsque l’inventaire du partenaire est plein : objet conservé dans la main de l’émetteur",
+    "Téléportations réciproques sur sol sûr et bisou privé fonctionnels hors février",
+    "Popularité : cinq heures obligatoires, +1 point et 500 XP au destinataire, délai global d’une heure et annonce au seuil 10",
+    "Échelon Nouveau et dix recommandations au survol du pseudo dans le chat ; menu des seize échelons ouvert",
+    "Dernier lieu de mort du partenaire enregistré et /marry dback sur destination sûre"
+  ],
+  "scope": "Essais du mariage et de la popularité avant les changements ultérieurs de salle d’enchères, tags et piñata. Les tests automatisés sont rejoués sur le JAR final.",
+  "test_jar_sha256": "3cb6995b7a14a8f33cbbfca7b60084ba0911708e6ba74a8952ed1fb307a74c4c"
+}

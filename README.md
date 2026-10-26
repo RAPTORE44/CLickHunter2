@@ -30,7 +30,30 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | `/tuto` | Consulter le livre-guide. |
 | `/spawn` | Rejoindre le point d'accueil. |
 | `/discord` | Recevoir le lien du Discord. |
+| `/tag` | Collection des tags : Bugs, Chasse, Temps de jeu, Boss, Popularité et Prestige ; 15 grades par catégorie. Permission **et** progression requises. |
+| `/chatcouleur` | Choisir une couleur de parole autorisée ; alias `/chatcolor`. |
+| `/bvn` | Souhaiter la bienvenue au dernier **nouveau** joueur sous cinq minutes : 250 Écus et 50 XP, une seule fois par arrivant ; alias `/bienvenue`. |
 | `/parrain <pseudo>` | Déclarer son parrain pendant le délai autorisé ; alias `/parrainage`. |
+
+### Mariage et popularité
+
+| Commande | Utilité |
+| --- | --- |
+| `/marry` / `/marry info` | Voir son partenaire. |
+| `/marry help` | Aide cliquable ; `aide` est aussi accepté. |
+| `/marry demand <pseudo>` | Demander en mariage : joueur en ligne, célibataire, demande valable 60 secondes ; `demande` est aussi accepté. En février, ou avec un anneau spécial tenu en main hors saison. |
+| `/marry accept <pseudo>` | Accepter la demande active de ce joueur. |
+| `/marry deny <pseudo>` | Refuser la demande ; `refuser` est aussi accepté. |
+| `/marry divorce` / `/marry divorce confirmer` | Aperçu du prix puis confirmation sous 30 secondes : **100 000 000 Écus**, prélevés uniquement si le divorce aboutit. |
+| `/marry tp` / `/marry s` | Rejoindre son partenaire / le faire venir, dans le même monde de jeu et hors zones verrouillées. |
+| `/marry gift` | Offrir toute la pile tenue en main principale ; partenaire connecté et place suffisante. |
+| `/marry dback` | Rejoindre son dernier lieu de mort sauvegardé, si la destination est sûre et accessible. |
+| `/marry kiss` | Envoyer un bisou privé et des particules de cœur. |
+| `/marry inv` / `/marry ec` | Consulter un instantané de l’inventaire / Enderchest du partenaire connecté, en **lecture seule**. |
+| `/rc <joueur>` | Recommander un autre joueur connecté : +1 point et **500 XP pour lui**, après 5 heures de jeu, une fois par heure pour l’émetteur. |
+| `/echelons` | Menu des 16 échelons, seuils et progression personnelle. La popularité est aussi affichée au survol du pseudo dans le chat. |
+
+Les couples conservent leurs commandes toute l’année. L’anneau est identifié par le plugin, non consommé, et doit rester en main principale jusqu’à l’acceptation hors février. Le fuseau par défaut est Europe/Paris. Les commandes de transfert et de consultation ne traversent pas l’isolation des avant-postes ou des arènes. Les cadeaux sont livrés par le journal existant : inventaire directement, `/claim` si le destinataire se déconnecte ou n’a plus de place entre-temps. [Configuration et règles](docs/COMMUNAUTE.md).
 
 ### Récompenses et stockage
 
@@ -68,8 +91,8 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | `/gemmes balance [joueur]` | Consulter un solde de Gemmes Sombres ; alias `/gemmessombres`. |
 | `/cendres balance [joueur]` | Consulter un solde de Cendres. |
 | `/sell` | Sur la pile cliquée : gauche vend 1 essence, droite vend cette pile uniquement. |
-| `/enchere` / `/enchere rejoindre` | Consulter l’événement et s’inscrire pendant les trois minutes ; alias `/encheres`. Les inscrits peuvent rouvrir la vente ensuite. |
-| `/enchere quitter` | Quitter le menu ; pendant les inscriptions, se désinscrire. Une offre déjà déposée reste ferme. |
+| `/enchere` / `/enchere rejoindre` | Consulter l’événement et rejoindre la salle pendant les trois minutes d’inscription ; **entrée : 10 000 000 Écus**, une seule fois par événement, non remboursable ; alias `/encheres`. |
+| `/enchere quitter` / `/enchere quit` | Se désinscrire, fermer le menu et retourner au spawn ; une offre déjà déposée reste ferme. |
 | `/ah` | Ouvrir l'hôtel des ventes. |
 | `/ah vendre <prix>` / `/ah sell <prix>` | Confirmer la vente de l’objet tenu ; frais non remboursables de 1 % à la publication, annonce chat optionnelle pour 5 % supplémentaires. |
 | `/ah rechercher <nom>` | Rechercher sans accents, avec filtres de catégorie et tri conservé pendant la pagination. |
@@ -136,8 +159,14 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 
 | Commande | Utilité | Permission |
 | --- | --- | --- |
+| `/marry objet <joueur>` | Donner l’anneau spécial (également depuis la console) ; livraison inventaire, sinon `/claim`. | `cliker.marry.admin` |
+| `/enchere setsalle` | Définir le point d’arrivée commun et le centre de la salle, avec son orientation. | `cliker.enchere.admin` |
+| `/enchere setpresentoir` | Définir l’objet flottant ; repli à trois blocs du centre si non défini. | `cliker.enchere.admin` |
+| `/tag bugs <joueur> <nombre>` | Définir le total de bugs validés d’un joueur connu. | `cliker.tag.admin` |
+| `/warpbloc set` / `/warpbloc remove` | Définir/retirer un raccourci Warp avec hologramme en visant un bloc à moins de cinq blocs. | `cliker.services.admin` |
 | `/enchere forcer` | Ouvrir immédiatement les trois minutes d’inscription à une nouvelle enchère. | `cliker.enchere.admin` |
 | `/enchere demarrer` | Commencer la vente avec les inscrits actuels sans attendre la fin du délai. | `cliker.enchere.admin` |
+| `/pinata settp` | Définir séparément la destination du lien cliquable de la piñata. | `cliker.pinata.admin` |
 | `/pinata setspawn` | Définir le point unique de l’arpenteur à sa position, dans la zone Vache. | `cliker.pinata.admin` |
 | `/pinata spawn` | Forcer une apparition au point sauvegardé, sans doublon. | `cliker.pinata.admin` |
 | `/respawnmobs` | Faire réapparaître tous les mobs placés, sans les boss ni les invocations temporaires ; alias `/mobsrespawn`. | `cliker.mob.admin` |
@@ -317,17 +346,33 @@ Lors de cet audit, la liste des **58 commandes** et de leurs alias a été compa
 
 ### Piñata de la zone Vache
 
-Un arpenteur immobile et immortel apparaît au point défini par `/pinata setspawn`, toutes les 20 à 30 minutes (délai aléatoire entre apparitions). Il reste trois minutes. Son annonce est cliquable et lance `/pinata tp`. Chaque apparition choisit **un seul type** : Écus, Gemmes Sombres ou XP, commun à tous les joueurs pendant tout l’événement. Les quantités par coup sont tirées dans les bornes configurées.
+Un arpenteur immobile doté de PV configurables apparaît au point défini par `/pinata setspawn`, toutes les 20 à 30 minutes (délai aléatoire entre apparitions). Il reste au maximum trois minutes, ou jusqu’à épuisement de ses PV. Son annonce est cliquable et lance `/pinata tp`. Chaque apparition choisit **un seul type** : Écus, Gemmes Sombres ou XP, commun à tous les joueurs pendant tout l’événement. Les quantités par coup sont tirées dans les bornes configurées.
 
-Plusieurs joueurs peuvent frapper simultanément ; chaque joueur a son propre délai entre coups. Seuls les coups directs de joueurs en survie ou aventure, à portée et en vue de la piñata, rapportent une récompense. Les dégâts des armes ne changent pas le montant gagné. Les crédits sont directs et journalisés ; les récapitulatifs privés restent disponibles à la reconnexion si nécessaire.
+Plusieurs joueurs peuvent frapper simultanément ; chaque joueur a son propre délai entre coups. Seuls les coups directs de joueurs en survie ou aventure, à portée et en vue de la piñata, rapportent une récompense. Les dégâts des armes ne changent pas le montant gagné. Les crédits sont directs et journalisés ; la hotbar affiche les gains personnels cumulés et les récapitulatifs privés restent disponibles à la reconnexion si nécessaire. `/pinata settp` définit une arrivée séparée. Le titre partagé affiche les PV sans chrono et remplace le nom vanilla pour éviter le doublon.
 
 Configuration française : `plugins/ClikerV2/activites/pinata.yml` (délais, durée, récompenses, textes, hologramme et point). Les Gemmes Sombres y sont exprimées en gemmes entières. Permission joueur `cliker.pinata.use` accordée par défaut ; administration `cliker.pinata.admin`, opérateurs par défaut. Aucune nouvelle dépendance. [Détails et vérifications](docs/PINATA.md).
 
 
 ### Enchères légendaires toutes les trois heures
 
-`/enchere rejoindre` inscrit le joueur pendant la fenêtre de trois minutes, annoncée plusieurs fois dans le chat avec un lien cliquable. Trois équipements légendaires existants sont ensuite vendus successivement, avec 30 secondes par lot et remise à 30 secondes à chaque offre acceptée. Le double coffre parcourt les montants en serpent, sur plusieurs pages : de 1K jusqu’au plafond configurable de 1 000 000B (1Qa). La tête du meneur occupe son montant et les prix précédents sont verrouillés.
+Le staff définit `/enchere setsalle` et, idéalement, `/enchere setpresentoir`. Les inscriptions durent trois minutes, avec plusieurs annonces cliquables. `/enchere rejoindre` prélève **10 000K = 10 000 000 Écus** une seule fois par événement et téléporte dans la salle commune. Les frais sont annoncés avant inscription et ne sont pas remboursés. Le compte à rebours apparaît dans la hotbar ; un seul objet légendaire flotte sur le présentoir. Son clic droit rouvre les mises du lot courant après le début.
 
-Le solde doit suffire pour déposer une offre. Les offres sont fermes, même après fermeture du menu, `/enchere quitter` ou déconnexion ; seul le gagnant est débité à l’attribution. Les offres devenues insolvables sont écartées au profit de la plus haute offre encore solvable. L’objet est livré directement si possible, sinon conservé dans `/claim`. Les annonces AH et leurs taxes restent un système séparé.
+Au début de chaque lot, le double coffre s’ouvre automatiquement aux joueurs présents. Le menu contient les montants et la page suivante : parcours descendant à gauche, deux cases à droite, remontée, et ainsi de suite (**29 montants par page**). Les prix dépassés disparaissent, la tête du meneur occupe sa mise et atteindre le dernier montant d’une page entraîne le passage automatique à la suivante. Le chronomètre reste dans la hotbar, avec 30 secondes relancées par offre.
 
-Configuration française : `plugins/ClikerV2/activites/encheres.yml`. Permission joueur `cliker.enchere.use` par défaut ; gestion `cliker.enchere.admin` pour les opérateurs. [Fonctionnement, catalogue et tests](docs/ENCHERES.md). La liste ci-dessus couvre maintenant les **60 commandes principales** déclarées par le plugin, avec leurs sous-commandes et alias.
+Trois équipements légendaires existants sont vendus successivement. Aucune obligation de miser sur chaque objet. Les offres restent fermes après fermeture, déconnexion ou `/enchere quit` ; seul le gagnant solvable est débité pour le lot. Quitter supprime le droit de déposer de nouvelles offres et renvoie au spawn. Les lots sont livrés dans l’inventaire si possible, sinon `/claim`. En fin de vente, les participants encore présents retournent au spawn. Configuration : `activites/encheres.yml`. [Règles détaillées](docs/ENCHERES.md).
+
+La liste ci-dessus couvre les **67 commandes principales** déclarées par le plugin, leurs alias et sous-commandes.
+
+
+### Configuration communautaire
+
+`plugins/ClikerV2/communaute/social.yml` regroupe les tarifs, messages français, calendrier, objet spécial, XP et les 16 échelons. Permissions joueur par défaut : `cliker.marry.use`, `cliker.marry.teleport`, `cliker.marry.consulter`, `cliker.popularite.use`. Administration : `cliker.marry.admin`. Aucune dépendance supplémentaire. Modifier les fichiers puis redémarrer ; conserver SQLite et les playerdata ensemble dans les sauvegardes.
+
+
+### Warps, marché noir, tags et accueil
+
+Le menu Warp masque complètement les destinations non accessibles. Chaque zone possède `cliker.zone.<identifiant>` ; seule `cliker.zone.vache` est accordée à tous par défaut. Un refus explicite LuckPerms reste prioritaire pour l’affichage. Les achats de zone existants continuent d’appliquer leurs permissions internes ; les droits de voyage sont revérifiés au clic. `/warpbloc set` ajoute un raccourci physique avec hologramme. Le marché noir permet désormais l’achat des lots quelle que soit leur zone d’origine, avec les mêmes prix et stocks. Les éventuelles conditions d’utilisation des œufs restent distinctes de l’achat.
+
+Les noms du shop suivent les couleurs des matériaux/potions, sans italique, avec description et prix différenciés. Les tags et couleurs sont sauvegardés dans SQLite. Permissions : `cliker.tag.<categorie>.<grade>` (grade 1 à 15), `cliker.chat.couleur.<couleur>` ; groupes `cliker.tag.*` et `cliker.chat.couleur.*` pour tout accorder. Les tags réclament toujours la progression, même avec la permission. Les compteurs de bugs sont validés par le staff, pas par les joueurs. Configuration et seuils : `communaute/tags.yml`, `communaute/bienvenue.yml` et `communaute/tchat.yml`.
+
+Un nouveau joueur reçoit un message global de bienvenue. `/bvn` ou `/bienvenue` accueille le dernier arrivant dans les cinq minutes ; les reconnexions, répétitions et auto-bienvenues ne versent aucune récompense. [Détails et permissions](docs/COMMUNAUTE.md).

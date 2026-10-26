@@ -32,6 +32,8 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
     private final EconomyService economy;
     private final ClaimService claims;
     private final Settings config;
+    private final AuctionRoom room;
+    private final long entryFee;
     private final List<Long> prices;
     private final long interval, registration, bidTime;
     private final Map<UUID, View> views = new HashMap<>();
@@ -71,6 +73,10 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
         this.economy = economy;
         this.claims = claims;
         config = new Settings(plugin, "activites/encheres.yml");
+        entryFee = config.yaml.getLong("entree-ecus", 10_000_000);
+        if (entryFee < 0 || entryFee > 1_000_000_000_000_000L)
+            throw new IllegalArgumentException("Frais d’entrée invalides");
+        room = new AuctionRoom(plugin, config, this::openCurrent, this::leave);
         interval = seconds("intervalle-secondes", 10800, 60, 604800);
         registration = seconds("inscriptions-secondes", 180, 1, 3600);
         bidTime = seconds("offre-secondes", 30, 1, 300);
@@ -102,6 +108,7 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
 
     public void start() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
+        room.start();
         var command = Objects.requireNonNull(plugin.getCommand("enchere"));
         command.setExecutor(this);
         command.setTabCompleter(this);
@@ -153,20 +160,7 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
             lastRemaining = seconds;
         }
         if (System.currentTimeMillis() >= state.deadline() && !changing) advance(false);
-        for (var v : new ArrayList<>(views.values())) {
-            Player p = Bukkit.getPlayer(v.owner);
-            if (p == null || p.getOpenInventory().getTopInventory() != v.inventory) {
-                views.remove(v.owner, v);
-                continue;
-            }
-            v.inventory.setItem(
-                    48,
-                    item(
-                            Material.CLOCK,
-                            "&eTemps restant : " + seconds + "s",
-                            "&7Chaque surenchère relance le compteur.",
-                            "&7Lot " + (state.lot() + 1) + "/3"));
-        }
+        room.update(state, seconds);
     }
 
     private List<ItemStack> lots() {
@@ -203,6 +197,14 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                 sender.sendMessage("Les enchères sont désactivées dans activites/encheres.yml.");
             return;
         }
+        if (!room.configured()) {
+            if (sender != null)
+                sender.sendMessage(
+                        "§cDéfinis la salle avec /enchere setsalle, puis le présentoir avec"
+                            + " /enchere setpresentoir.");
+            schedule();
+            return;
+        }
         List<String> payloads;
         try {
             payloads = lots().stream().map(ClaimService::serialize).toList();
@@ -234,7 +236,10 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
     private void registrationAnnouncement(long seconds) {
         Bukkit.broadcast(
                 DailySettings.color(
-                                text("inscription").replace("{secondes}", Long.toString(seconds)))
+                                text("inscription").replace("{secondes}", Long.toString(seconds))
+                                        + " &7— Entrée : &e"
+                                        + Numbers.compact(entryFee)
+                                        + " Écus &7(non remboursable)")
                         .clickEvent(ClickEvent.runCommand("/enchere rejoindre")));
     }
 
@@ -262,9 +267,48 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
             Player p = Bukkit.getPlayer(v.owner);
             if (p != null && p.getOpenInventory().getTopInventory() == v.inventory) {
                 if (newLot && updated.phase().equals("ACTIVE")) replaceView(p, v, 0, true);
-                else render(v);
+                else {
+                    int leader = Collections.binarySearch(prices, updated.price());
+                    int target =
+                            leader < 0
+                                    ? v.page
+                                    : Math.min(
+                                            (prices.size() - 1) / BidPrices.PAGE_SIZE,
+                                            (leader + 1) / BidPrices.PAGE_SIZE);
+                    if (target > v.page && updated.phase().equals("ACTIVE"))
+                        replaceView(p, v, target, false);
+                    else render(v);
+                }
             }
         }
+        if (newLot && updated.phase().equals("ACTIVE"))
+            for (UUID owner : new ArrayList<>(room.present)) {
+                Player player = Bukkit.getPlayer(owner);
+                if (player != null && !views.containsKey(owner)) openCurrent(player);
+            }
+        if (updated.phase().equals("DONE")) room.update(updated, 0);
+    }
+
+    private void openCurrent(Player player) {
+        if (state == null || !room.present.contains(player.getUniqueId()) || !room.inside(player))
+            return;
+        if (!state.phase().equals("ACTIVE")) {
+            player.sendMessage(
+                    "§eLa vente de ce lot commencera dans " + remaining() + " secondes.");
+            return;
+        }
+        View view = new View(player, state.id());
+        int leader = Collections.binarySearch(prices, state.price());
+        view.page =
+                leader < 0
+                        ? 0
+                        : Math.min(
+                                (prices.size() - 1) / BidPrices.PAGE_SIZE,
+                                (leader + 1) / BidPrices.PAGE_SIZE);
+        views.put(player.getUniqueId(), view);
+        render(view);
+        player.openInventory(view.inventory);
+        refreshBalance(player, view);
     }
 
     /** Nouveau conteneur sur changement de contexte : les anciens paquets client sont invalides. */
@@ -392,7 +436,12 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
         UUID owner = player.getUniqueId();
         Object token = new Object();
         joining.put(owner, token);
-        store.join(id, owner)
+        if (!room.configured()) {
+            joining.remove(owner);
+            player.sendMessage("§cLa salle d’enchères n’est pas encore définie.");
+            return;
+        }
+        store.join(id, owner, entryFee)
                 .whenComplete(
                         (allowed, error) ->
                                 sync(
@@ -413,9 +462,10 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                                             if (!allowed) {
                                                 joining.remove(owner, token);
                                                 player.sendMessage(
-                                                        "Les inscriptions sont fermées ; seuls les"
-                                                                + " joueurs déjà inscrits peuvent"
-                                                                + " rejoindre.");
+                                                        "Inscription refusée : solde insuffisant"
+                                                            + " pour l’entrée ou inscriptions"
+                                                            + " fermées ; seuls les joueurs déjà"
+                                                            + " inscrits peuvent rejoindre.");
                                                 return;
                                             }
                                             store.state(id)
@@ -453,34 +503,36 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                                                                                                         id))
                                                                                     return;
                                                                                 apply(fresh);
-                                                                                View view =
-                                                                                        new View(
-                                                                                                player,
-                                                                                                id);
-                                                                                views.put(
-                                                                                        owner,
-                                                                                        view);
-                                                                                render(view);
-                                                                                player
-                                                                                        .openInventory(
-                                                                                                view.inventory);
-                                                                                refreshBalance(
-                                                                                        player,
-                                                                                        view);
+                                                                                if (!room.enter(
+                                                                                        player))
+                                                                                    return;
+                                                                                if (state.phase()
+                                                                                        .equals(
+                                                                                                "ACTIVE"))
+                                                                                    openCurrent(
+                                                                                            player);
+                                                                                else
+                                                                                    player
+                                                                                            .closeInventory();
                                                                                 player.sendMessage(
                                                                                         "§aInscription"
                                                                                             + " confirmée."
-                                                                                            + " §7Les"
-                                                                                            + " offres"
-                                                                                            + " sont"
-                                                                                            + " fermes,"
-                                                                                            + " même"
-                                                                                            + " après"
-                                                                                            + " fermeture"
-                                                                                            + " ou déconnexion"
-                                                                                            + " ; débit"
-                                                                                            + " uniquement"
-                                                                                            + " à l’attribution.");
+                                                                                            + " §eEntrée"
+                                                                                            + " : "
+                                                                                                + Numbers
+                                                                                                        .compact(
+                                                                                                                entryFee)
+                                                                                                + " Écus"
+                                                                                                + " §7(non"
+                                                                                                + " remboursable,"
+                                                                                                + " une seule"
+                                                                                                + " fois"
+                                                                                                + " par événement)."
+                                                                                                + " Les offres"
+                                                                                                + " restent"
+                                                                                                + " fermes"
+                                                                                                + " après"
+                                                                                                + " départ.");
                                                                             }));
                                         }));
     }
@@ -573,108 +625,53 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
 
     private void render(View v) {
         if (state == null || !state.id().equals(v.event)) return;
-        for (int i = 0; i < 54; i++)
-            v.inventory.setItem(i, item(Material.BLACK_STAINED_GLASS_PANE, " "));
-        if (state.phase().equals("REGISTERING")) {
-            for (int i = 0; i < 3; i++)
-                v.inventory.setItem(11 + i * 2, ClaimService.deserialize(state.items().get(i)));
-            v.inventory.setItem(
-                    22,
-                    item(
-                            Material.LIME_DYE,
-                            "&aTu es inscrit",
-                            "&7Début dans " + remaining() + " secondes.",
-                            "&7Trois lots seront vendus successivement."));
-        } else if (state.phase().equals("ACTIVE")) {
-            int maxPage = (prices.size() - 1) / 45;
-            v.page = Math.max(0, Math.min(maxPage, v.page));
-            for (int i = 0; i < 45; i++) {
-                int index = v.page * 45 + i;
-                if (index >= prices.size()) break;
-                long price = prices.get(index);
-                String amount = Numbers.compact(price) + " Écus";
-                ItemStack button;
-                if (price == state.price() && state.bidder() != null) {
-                    button =
-                            playerHead(
+        for (int slot = 0; slot < 54; slot++)
+            v.inventory.setItem(slot, item(Material.BLACK_STAINED_GLASS_PANE, " "));
+        if (!state.phase().equals("ACTIVE")) return;
+        int maxPage = (prices.size() - 1) / BidPrices.PAGE_SIZE;
+        v.page = Math.max(0, Math.min(maxPage, v.page));
+        for (int i = 0; i < BidPrices.PAGE_SIZE; i++) {
+            int index = v.page * BidPrices.PAGE_SIZE + i;
+            if (index >= prices.size()) break;
+            long price = prices.get(index);
+            if (price < state.price()) continue;
+            String label = Numbers.compact(price) + " Écus";
+            ItemStack button =
+                    price == state.price() && state.bidder() != null
+                            ? playerHead(
                                     state.bidder(),
                                     state.name(),
-                                    "&e" + state.name() + " — " + amount,
-                                    "&7Meilleure offre actuelle.",
-                                    "&7Les montants précédents sont verrouillés.");
-                } else if (price <= state.price())
-                    button =
-                            item(
-                                    Material.BARRIER,
-                                    "&8" + amount,
-                                    "&cMontant dépassé : inaccessible.");
-                else
-                    button =
-                            item(
+                                    "&e" + state.name() + " &7— &6" + label,
+                                    "&7Meilleure offre actuelle.")
+                            : item(
                                     price <= v.balance
                                             ? Material.GOLD_INGOT
                                             : Material.RED_STAINED_GLASS_PANE,
-                                    (price <= v.balance ? "&a" : "&c") + amount,
-                                    "&7Prix exact : "
+                                    (price <= v.balance ? "&e" : "&c") + label,
+                                    "&7Montant exact : &f"
                                             + String.format(Locale.FRANCE, "%,d", price)
                                             + " Écus",
                                     price <= v.balance
-                                            ? "&eClic pour surenchérir."
-                                            : "&cSolde insuffisant ; clique sur Solde pour"
-                                                    + " actualiser.",
-                                    "&7Offre ferme ; débit à la fin du lot.",
-                                    "&7Solde vérifié à l’offre et à l’attribution.");
-                v.inventory.setItem(BidPrices.slot(i), button);
-            }
+                                            ? "&aClic : miser ce montant."
+                                            : "&cSolde insuffisant.",
+                                    "&8Offre ferme, paiement à l’attribution.");
+            v.inventory.setItem(BidPrices.slot(i), button);
+        }
+        if (v.page < maxPage)
             v.inventory.setItem(
-                    45,
+                    53,
                     item(
                             Material.ARROW,
-                            "&ePage précédente",
+                            "&aPage suivante",
                             "&7Page " + (v.page + 1) + "/" + (maxPage + 1)));
-            v.inventory.setItem(
-                    51, item(Material.ARROW, "&ePage suivante", "&7Parcours des prix en serpent."));
-            v.inventory.setItem(49, ClaimService.deserialize(state.items().get(state.lot())));
-        }
-        if (state.bidder() != null) {
-            ItemStack leader =
-                    playerHead(
-                            state.bidder(),
-                            state.name(),
-                            "&e" + state.name() + " — " + Numbers.compact(state.price()) + " Écus",
-                            "&7Meilleure offre du lot en cours.");
-            v.inventory.setItem(50, leader);
-        }
-        v.inventory.setItem(46, item(Material.PLAYER_HEAD, "&fInscrits : " + state.members()));
-        v.inventory.setItem(
-                47,
-                item(
-                        Material.BOOK,
-                        "&eRègles de l’enchère",
-                        "&7Offres fermes, même après déconnexion.",
-                        "&7Débit à l’attribution si le solde suffit.",
-                        "&7Les offres insolvables sont écartées.",
-                        "&7Plus haute offre solvable : gagnante."));
-        v.inventory.setItem(
-                48,
-                item(
-                        Material.CLOCK,
-                        "&eTemps restant : " + remaining() + "s",
-                        "&7Lot " + (state.lot() + 1) + "/3"));
-        v.inventory.setItem(
-                52,
-                item(
-                        Material.EMERALD,
-                        "&eSolde : " + Numbers.compact(v.balance) + " Écus",
-                        "&eClique pour actualiser le solde."));
-        v.inventory.setItem(
-                53, item(Material.BARRIER, "&cQuitter", "&7Une offre déjà déposée reste ferme."));
     }
 
     private void offer(Player p, View view, long amount) {
         if (state == null
                 || !state.id().equals(view.event)
                 || !state.phase().equals("ACTIVE")
+                || !room.present.contains(p.getUniqueId())
+                || !room.inside(p)
                 || changing
                 || isolated(p)) return;
         if (amount <= state.price()) return;
@@ -745,25 +742,21 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
 
     private void leave(Player p) {
         joining.remove(p.getUniqueId());
-        View v = views.remove(p.getUniqueId());
-        if (v != null && p.getOpenInventory().getTopInventory() == v.inventory) p.closeInventory();
-        if (state != null && state.phase().equals("REGISTERING"))
+        View view = views.remove(p.getUniqueId());
+        if (view != null && p.getOpenInventory().getTopInventory() == view.inventory)
+            p.closeInventory();
+        boolean wasPresent = room.present.contains(p.getUniqueId());
+        room.remove(p, wasPresent);
+        p.sendActionBar(Component.empty());
+        if (state != null)
             store.leaveRegistration(state.id(), p.getUniqueId())
                     .whenComplete(
-                            (ignored, error) ->
-                                    sync(
-                                            () -> {
-                                                if (error != null)
-                                                    log("Désinscription impossible", error);
-                                                else if (PlayerSessions.isCurrent(p))
-                                                    p.sendMessage(
-                                                            "Tu es désinscrit de la prochaine"
-                                                                    + " enchère.");
-                                            }));
-        else
-            p.sendMessage(
-                    "Tu as quitté le menu. Une offre déjà déposée reste ferme jusqu’à l’attribution"
-                            + " du lot.");
+                            (v, e) -> {
+                                if (e != null) log("Désinscription impossible", e);
+                            });
+        p.sendMessage(
+                "§7Tu as quitté l’enchère. Les frais d’entrée ne sont pas remboursés et tes offres"
+                    + " déjà déposées restent fermes.");
     }
 
     @EventHandler
@@ -783,14 +776,6 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                     if (stopped
                             || !PlayerSessions.isCurrent(p)
                             || p.getOpenInventory().getTopInventory() != v.inventory) return;
-                    if (slot == 53) {
-                        leave(p);
-                        return;
-                    }
-                    if (slot == 52) {
-                        refreshBalance(p, v);
-                        return;
-                    }
                     if (state == null
                             || clickedState == null
                             || !state.id().equals(v.event)
@@ -799,20 +784,14 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                             || !state.phase().equals(clickedState.phase())
                             || v.page != clickedPage
                             || !state.phase().equals("ACTIVE")) return;
-                    if (slot == 45 || slot == 51) {
-                        int page =
-                                Math.max(
-                                        0,
-                                        Math.min(
-                                                (prices.size() - 1) / 45,
-                                                v.page + (slot == 45 ? -1 : 1)));
+                    if (slot == 53) {
+                        int page = Math.min((prices.size() - 1) / BidPrices.PAGE_SIZE, v.page + 1);
                         if (page != v.page) replaceView(p, v, page, false);
                         return;
                     }
-                    if (slot < 0 || slot >= 45) return;
-                    int row = slot / 9,
-                            col = slot % 9,
-                            index = clickedPage * 45 + row * 9 + (row % 2 == 0 ? col : 8 - col);
+                    int offset = BidPrices.indexAt(slot);
+                    if (offset < 0) return;
+                    int index = clickedPage * BidPrices.PAGE_SIZE + offset;
                     if (index < prices.size()) offer(p, v, prices.get(index));
                 });
     }
@@ -828,7 +807,29 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
     }
 
     @EventHandler
+    public void connected(org.bukkit.event.player.PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        if (!ready || state == null || state.phase().equals("DONE") || !room.inside(player)) return;
+        String id = state.id();
+        store.member(id, player.getUniqueId())
+                .whenComplete(
+                        (member, error) ->
+                                sync(
+                                        () -> {
+                                            if (error != null) {
+                                                log("Reprise de l’inscription impossible", error);
+                                                return;
+                                            }
+                                            if (PlayerSessions.isCurrent(player)
+                                                    && Boolean.TRUE.equals(member)
+                                                    && state != null
+                                                    && state.id().equals(id)) join(player);
+                                        }));
+    }
+
+    @EventHandler
     public void quit(PlayerQuitEvent e) {
+        room.present.remove(e.getPlayer().getUniqueId());
         joining.remove(e.getPlayer().getUniqueId());
         views.remove(e.getPlayer().getUniqueId());
     }
@@ -836,6 +837,18 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
     @Override
     public boolean onCommand(CommandSender sender, Command c, String label, String[] args) {
         String sub = args.length == 0 ? "info" : args[0].toLowerCase(Locale.ROOT);
+        if (sub.equals("setsalle") || sub.equals("setpresentoir")) {
+            if (!sender.hasPermission("cliker.enchere.admin") || !(sender instanceof Player p)) {
+                sender.sendMessage("§cPermission administrateur et présence en jeu requises.");
+                return true;
+            }
+            fr.cliker.clikerv2.config.YamlFiles.location(
+                    config.yaml, sub.equals("setsalle") ? "salle" : "presentoir", p.getLocation());
+            config.save();
+            room.clear();
+            sender.sendMessage("§aPosition d’enchère sauvegardée.");
+            return true;
+        }
         if (sub.equals("forcer") || sub.equals("demarrer")) {
             if (!sender.hasPermission("cliker.enchere.admin")) {
                 sender.sendMessage("Tu n’as pas la permission.");
@@ -852,7 +865,7 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
             else sender.sendMessage("Commande réservée aux joueurs.");
             return true;
         }
-        if (sub.equals("quitter")) {
+        if (sub.equals("quitter") || sub.equals("quit")) {
             if (sender instanceof Player p) leave(p);
             else sender.sendMessage("Commande réservée aux joueurs.");
             return true;
@@ -888,8 +901,9 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
     @Override
     public List<String> onTabComplete(CommandSender s, Command c, String label, String[] args) {
         if (args.length != 1) return List.of();
-        var choices = new ArrayList<>(List.of("rejoindre", "quitter"));
-        if (s.hasPermission("cliker.enchere.admin")) choices.addAll(List.of("forcer", "demarrer"));
+        var choices = new ArrayList<>(List.of("rejoindre", "quitter", "quit"));
+        if (s.hasPermission("cliker.enchere.admin"))
+            choices.addAll(List.of("forcer", "demarrer", "setsalle", "setpresentoir"));
         return choices.stream()
                 .filter(x -> x.startsWith(args[0].toLowerCase(Locale.ROOT)))
                 .toList();
@@ -914,6 +928,7 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
 
     public void shutdown() {
         stopped = true;
+        room.shutdown();
         if (task != null) task.cancel();
         for (View v : new ArrayList<>(views.values())) {
             var p = Bukkit.getPlayer(v.owner);

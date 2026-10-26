@@ -197,6 +197,22 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
                 || unlocked.get(player.getUniqueId()).contains(id);
     }
 
+    /** Les téléportations sociales ne doivent pas sauter un portail d’achat. */
+    public boolean canSocialTravel(Player player, Location destination) {
+        if (destination == null || destination.getWorld() == null) return false;
+        for (BuyZone zone : gates.values()) {
+            if (hasAccess(player, zone)) continue;
+            Location center = zone.center();
+            if (!center.getWorld().equals(destination.getWorld())) continue;
+            if (zone.contains(destination)
+                    || zone.crosses(player.getLocation(), destination)
+                    || (destination.getZ() >= center.getZ() - zone.depth() / 2
+                            && Math.abs(destination.getX() - center.getX()) <= zone.halfWidth()))
+                return false;
+        }
+        return true;
+    }
+
     private void load(Player player) {
         UUID uuid = player.getUniqueId();
         Object token = new Object();

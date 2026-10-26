@@ -1,0 +1,93 @@
+# ClikerV2 — Mariage et popularité. Modifier puis redémarrer le serveur.
+mariage:
+  actif: true
+  fevrier-uniquement: true
+  # false : seules les nouvelles demandes sont saisonnières ; les couples restent actifs.
+  commandes-saisonnieres: false
+  fuseau: Europe/Paris
+  demande-secondes: 60
+  divorce-ecus: 100000000
+  # Un objet renommé ne fonctionne pas : le marqueur du plugin est obligatoire.
+  # Il suffit de le tenir en main principale à la demande ET à l’acceptation.
+  # Non consommé. Administration : /marry objet <joueur>.
+  objet:
+    material: AMETHYST_SHARD
+    nom: '&dAnneau de Saint-Valentin'
+    description:
+      - '&7Autorise une demande en mariage hors février.'
+      - '&7À tenir en main jusqu’à l’acceptation.'
+      - '&7Cet objet n’est pas consommé.'
+  # Les transferts ne traversent jamais les avant-postes ni les mondes d’activité.
+  delai-action-secondes: 5
+popularite:
+  actif: true
+  temps-jeu-secondes: 18000
+  delai-secondes: 3600
+  xp: 500
+  son: ENTITY_PLAYER_LEVELUP
+  echelons:
+    - {seuil: 0, nom: 'Inconnu'}
+    - {seuil: 10, nom: '🔹 Nouveau'}
+    - {seuil: 25, nom: '🤝 Membre actif'}
+    - {seuil: 50, nom: '🧲 Apprécié'}
+    - {seuil: 100, nom: '💬 Estimé'}
+    - {seuil: 250, nom: '📇 On le connaît'}
+    - {seuil: 500, nom: '👣 Habitué'}
+    - {seuil: 750, nom: '📘 Figure publique'}
+    - {seuil: 1000, nom: '🔥 Populaire'}
+    - {seuil: 1500, nom: '🎖 Respecté'}
+    - {seuil: 2000, nom: '🏆 Icône du serveur'}
+    - {seuil: 3000, nom: '⚡ Légende vivante'}
+    - {seuil: 5000, nom: '🐉 Mythe'}
+    - {seuil: 7500, nom: '⭐ Héros du serveur'}
+    - {seuil: 10000, nom: '🌌 Divinité'}
+    - {seuil: 20000, nom: '👑 Champion suprême'}
+messages:
+  prefixe: '&dCommunauté &8» &r'
+  attente: '&eChargement… Réessaie dans un instant.'
+  erreur: '&cAction non validée. Réessaie ; si le problème persiste, préviens le staff.'
+  permission: '&cTu n’as pas la permission.'
+  joueur: '&cCette commande doit être exécutée en jeu.'
+  indisponible: '&cCe système est désactivé.'
+  saison: '&cLes demandes sont ouvertes en février. Hors saison, tiens l’anneau spécial en main.'
+  saison-commandes: '&cLes commandes de mariage sont réservées au mois de février.'
+  hors-ligne: '&cCe joueur doit être connecté et disponible.'
+  soi-meme: '&cTu ne peux pas te choisir toi-même.'
+  deja-marie: '&cUn de vous deux est déjà marié.'
+  non-marie: '&cTu n’es pas marié. &7Aide : /marry help'
+  demande-occupee: '&cUne demande est déjà en attente pour l’un de vous deux.'
+  demande-envoyee: '&aDemande envoyée à {joueur} pour {secondes} secondes.'
+  demande-recue: '&d{joueur} te demande en mariage ! '
+  accepter: '&a[Accepter]'
+  refuser: '&c[Refuser]'
+  expiree: '&cCette demande a expiré ou n’existe plus.'
+  expiration: '&7La demande en mariage a expiré.'
+  annulee: '&7La demande en mariage a été annulée.'
+  maries: '&dFélicitations ! Tu es désormais marié à {joueur}.'
+  divorce-confirmer: '&eLe divorce coûte {prix} Écus. Confirme avec /marry divorce confirmer sous 30 secondes.'
+  divorce-fonds: '&cTu n’as pas les {prix} Écus nécessaires au divorce.'
+  divorce: '&7Le mariage a été dissous. Frais payés : {prix} Écus.'
+  divorce-partenaire: '&7{joueur} a mis fin à votre mariage.'
+  isolation: '&cCette action est indisponible dans un avant-poste ou une arène. Reviens au spawn.'
+  monde: '&cCette téléportation nécessite d’être dans le même monde de jeu que ton partenaire.'
+  zone: '&cCette destination est derrière une zone que tu n’as pas débloquée.'
+  dangereux: '&cLe point d’arrivée n’est pas sûr. Demande à ton partenaire de se déplacer.'
+  chargement-tp: '&eChargement du point d’arrivée…'
+  teleportation: '&aTéléportation effectuée.'
+  refus-tp: '&cUne protection du serveur a refusé cette téléportation.'
+  delai: '&ePatiente encore {secondes} seconde(s).'
+  cadeau-vide: '&cTiens le cadeau en main principale.'
+  cadeau-plein: '&cL’inventaire de ton partenaire n’a pas assez de place.'
+  cadeau-envoye: '&aCadeau envoyé à {joueur}.'
+  cadeau-recu: '&dTu as reçu un cadeau de {joueur} !'
+  cadeau-traitement: '&eLe transfert est en cours ou un objet est protégé. Réessaie dans un instant.'
+  mort-absente: '&cAucun dernier lieu de mort de ton partenaire n’est disponible.'
+  bisou: '&dTu envoies un bisou à {joueur} !'
+  bisou-recu: '&d{joueur} t’envoie un bisou ! ♥'
+  lecture: '&7Consultation uniquement : aucun objet ne peut être déplacé.'
+  objet-donne: '&aAnneau spécial envoyé à {joueur} (inventaire, sinon /claim).'
+  jeu-insuffisant: '&cTu dois avoir joué au moins {heures} heures pour recommander un joueur.'
+  rc-delai: '&eTu pourras recommander un joueur dans {temps}.'
+  rc-envoyee: '&aTu as recommandé {joueur} : +1 point et +{xp} XP pour lui.'
+  rc-recue: '&d{joueur} te recommande ! &a+1 point de popularité et +{xp} XP.'
+  echelon: '&d{joueur} atteint l’échelon {echelon} &davec {points} recommandations !'

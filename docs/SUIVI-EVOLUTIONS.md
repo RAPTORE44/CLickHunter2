@@ -78,3 +78,22 @@ Détails et preuves : [audit du 26 octobre](AUDIT-2026-10-26.md).
 - Validation : 280 tests automatisés réussis et 21 contrôles natifs répartis entre les deux modules. Pas de campagne de charge ni de validation humaine des skins/du pack ItemsAdder public.
 
 Documentation : [piñata](PINATA.md), [enchères](ENCHERES.md), [preuves](validation/enchere-pinata.json). Les 60 commandes principales et leurs alias sont répertoriés par catégorie dans le README.
+
+
+## Mariage et popularité — 26 octobre 2026
+
+- **Terminée** : `/marry` intégré, demandes de 60 secondes en février Europe/Paris ou avec l’anneau spécial en main ; les couples restent actifs toute l’année, choix confirmé par le propriétaire. Une seule union par UUID ; divorce confirmé à 100 000 000 Écus selon le dernier tarif demandé.
+- **Terminée** : téléportations contrôlées, cadeaux journalisés, dernier lieu de mort persistant, bisous et inventaires consultables en lecture seule. Les contenus d’avant-poste ne peuvent pas être exportés par ces commandes.
+- **Terminée** : `/rc` après cinq heures de jeu, délai global d’une heure sauvegardé, +1 point et 500 XP au destinataire ; `/echelons`, son, annonce de montée et survol du pseudo.
+- **À vérifier sur le serveur public** : rendu des émojis selon le pack de polices installé et destinations selon la géométrie réelle des portails BuyZone. La documentation distingue les tests locaux du rendu de production.
+
+Voir [les règles et tests](COMMUNAUTE.md).
+
+
+## Salle d’enchères, piñata et communauté — 26 octobre 2026
+
+- **Terminée** : piñata avec PV, animation de blessure, titre public unique sans chrono, gains cumulés personnels en hotbar et `/pinata settp` indépendant.
+- **Terminée** : salle et présentoir, entrée 10M Écus transactionnelle, attente en hotbar, ouverture automatique du lot, serpent vertical 29 cases et passage automatique de page, alias `/enchere quit` avec retour spawn. Les offres déjà engagées restent fermes.
+- **Terminée** : warps cachés sans permission, Vache par défaut, `/warpbloc` avec hologramme ; noms du shop colorés sans italique, achat du marché noir indépendant des zones.
+- **Terminée** : 90 tags en six catégories avec permission ET objectif, compteur Bugs réservé au staff, seize couleurs de parole et accueil `/bvn` idempotent pendant cinq minutes.
+- **À vérifier sur le serveur public** : géométrie et protections des nouveaux points de salle/présentoir/TP piñata, rendus Holographic Displays et polices du pack ItemsAdder réels.

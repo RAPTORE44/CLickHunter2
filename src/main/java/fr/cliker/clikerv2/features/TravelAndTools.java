@@ -30,6 +30,7 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
     private final NamespacedKey wand, boss, egg;
     private final Map<String, String> bagBlocks = new HashMap<>();
     private final Map<String, String> upgradeBlocks = new HashMap<>();
+    private final Map<String, String> warpBlocks = new HashMap<>();
     private final Map<String, fr.cliker.clikerv2.hologram.SharedHolograms.Handle> shortcutHolos =
             new HashMap<>();
     private org.bukkit.scheduler.BukkitTask holoTask;
@@ -63,8 +64,16 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                     upgradeBlocks.put(
                             fr.cliker.clikerv2.station.StationStore.idFor(at.getBlock()), key);
             }
+        var warps = settings.yaml.getConfigurationSection("raccourcis-warp");
+        if (warps != null)
+            for (String key : warps.getKeys(false)) {
+                var at = YamlFiles.location(settings.yaml, "raccourcis-warp." + key);
+                if (at != null)
+                    warpBlocks.put(
+                            fr.cliker.clikerv2.station.StationStore.idFor(at.getBlock()), key);
+            }
         holoTask = Bukkit.getScheduler().runTaskTimer(p, this::refreshHolos, 1, 40);
-        for (String cmd : List.of("warp", "sacbloc", "upgradebloc", "batonspawn")) {
+        for (String cmd : List.of("warp", "warpbloc", "sacbloc", "upgradebloc", "batonspawn")) {
             p.getCommand(cmd).setExecutor(this);
             p.getCommand(cmd).setTabCompleter(this);
         }
@@ -72,7 +81,17 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
     }
 
     private boolean access(Player p, MobTier t) {
-        return zones != null && zones.canTravel(p, t.id());
+        if (t == MobTier.VACHE) return true;
+        String node = "cliker.zone." + t.id();
+        if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
+            var permission =
+                    net.luckperms.api.LuckPermsProvider.get()
+                            .getPlayerAdapter(Player.class)
+                            .getPermissionData(p)
+                            .checkPermission(node);
+            if (permission == net.luckperms.api.util.Tristate.FALSE) return false;
+        }
+        return p.hasPermission(node);
     }
 
     private Location point(MobTier t, boolean b) {
@@ -116,68 +135,45 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
     private void renderWarp(Player p, Set<String> known) {
         if (!p.hasPermission("cliker.navigation.use")) return;
         var view = menus.create(p, 54, "Voyager — ClickHunter");
+        int visibleSlot = 0;
         for (var t : MobTier.values()) {
-            boolean unlocked = access(p, t);
+            if (!access(p, t)) continue;
             Material icon = Material.matchMaterial(t.entityType().name() + "_SPAWN_EGG");
             if (icon == null) icon = Material.DRAGON_HEAD;
             view.put(
-                    t.ordinal(),
+                    visibleSlot++,
                     Menus.item(
-                            unlocked ? icon : Material.BARRIER,
-                            unlocked
-                                    ? "Zone " + (t.ordinal() + 1) + " — " + t.label()
-                                    : "Zone " + (t.ordinal() + 1) + " — Mystère",
-                            unlocked
-                                    ? "Gauche : début de zone | Droite : devant le boss"
-                                    : "Débloque cette zone pour voyager.",
-                            "Un point non configuré reste inaccessible.",
-                            unlocked
-                                    ? "PV de base : "
-                                            + fr.cliker.clikerv2.Numbers.compact(
-                                                    Math.round(t.maxHealth()))
-                                    : "",
-                            unlocked
-                                    ? "Écus de base : "
-                                            + fr.cliker.clikerv2.Numbers.compact(
-                                                    (long)
-                                                            CreatureSettings.value(
-                                                                    t,
-                                                                    "ecus",
-                                                                    10L * (t.ordinal() + 1)))
-                                    : "",
-                            unlocked
-                                    ? "Gemmes de base : "
-                                            + fr.cliker.clikerv2.economy.CurrencyType.GEMMES_SOMBRES
-                                                    .format(
-                                                            (long)
-                                                                    CreatureSettings.value(
-                                                                            t,
-                                                                            "gemmes-dixiemes",
-                                                                            t.ordinal() + 1))
-                                    : "",
-                            unlocked
-                                    ? "XP de base : "
-                                            + fr.cliker.clikerv2.Numbers.compact(
-                                                    (long)
-                                                            CreatureSettings.value(
-                                                                    t, "xp", t.ordinal() + 1))
-                                    : "",
-                            unlocked
-                                    ? "Ressources : essences communes, peu communes et rares."
-                                    : "",
-                            unlocked
-                                    ? "Talismans manquants (créature/boss) : "
-                                            + ((known.contains("mob:" + t.id()) ? 0 : 1)
-                                                    + (known.contains("boss:" + t.id()) ? 0 : 1))
-                                            + " / 2"
-                                    : "",
-                            unlocked
-                                    ? "Consulte /bestiaire et /tallisement pour les découvertes"
-                                            + " manquantes."
-                                    : ""),
+                            icon,
+                            "&a&lZone " + (t.ordinal() + 1) + " &8— &f" + t.label(),
+                            "&aClic gauche &7: entrée de la zone",
+                            "&6Clic droit &7: devant le boss",
+                            "&8─────────────────",
+                            "&7PV de base : &c"
+                                    + fr.cliker.clikerv2.Numbers.compact(Math.round(t.maxHealth())),
+                            "&7Écus de base : &e"
+                                    + fr.cliker.clikerv2.Numbers.compact(
+                                            (long)
+                                                    CreatureSettings.value(
+                                                            t, "ecus", 10L * (t.ordinal() + 1))),
+                            "&7Gemmes de base : &5"
+                                    + fr.cliker.clikerv2.economy.CurrencyType.GEMMES_SOMBRES.format(
+                                            (long)
+                                                    CreatureSettings.value(
+                                                            t, "gemmes-dixiemes", t.ordinal() + 1)),
+                            "&7XP de base : &b"
+                                    + fr.cliker.clikerv2.Numbers.compact(
+                                            (long)
+                                                    CreatureSettings.value(
+                                                            t, "xp", t.ordinal() + 1)),
+                            "&7Talismans manquants : &d"
+                                    + ((known.contains("mob:" + t.id()) ? 0 : 1)
+                                            + (known.contains("boss:" + t.id()) ? 0 : 1))
+                                    + "/2",
+                            "&8Consulte /bestiaire pour les découvertes.",
+                            "&8Point non configuré : voyage indisponible."),
                     (player, right) -> {
                         if (!access(player, t)) {
-                            player.sendMessage("Zone verrouillée.");
+                            player.sendMessage("§cZone verrouillée.");
                             return;
                         }
                         safeTeleport(player, point(t, right));
@@ -261,10 +257,11 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                         p.sendMessage("Point de voyage sauvegardé.");
                     } else p.sendMessage("/warp set <zone> <entree|boss>");
                 }
-                case "sacbloc", "upgradebloc" -> {
+                case "sacbloc", "upgradebloc", "warpbloc" -> {
                     boolean upgrade = c.getName().equals("upgradebloc");
-                    var blocks = upgrade ? upgradeBlocks : bagBlocks;
-                    String section = upgrade ? "upgrades." : "sacs.";
+                    boolean warp = c.getName().equals("warpbloc");
+                    var blocks = warp ? warpBlocks : upgrade ? upgradeBlocks : bagBlocks;
+                    String section = warp ? "raccourcis-warp." : upgrade ? "upgrades." : "sacs.";
                     Block b = p.getTargetBlockExact(5);
                     if (b == null) {
                         p.sendMessage("Vise un bloc à moins de cinq blocs.");
@@ -277,9 +274,11 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                         settings.save();
                         blocks.put(id, key);
                         p.sendMessage(
-                                upgrade
-                                        ? "Bloc lié au menu /upgrade."
-                                        : "Bloc lié au /sac de chaque joueur.");
+                                warp
+                                        ? "Bloc lié au menu /warp."
+                                        : upgrade
+                                                ? "Bloc lié au menu /upgrade."
+                                                : "Bloc lié au /sac de chaque joueur.");
                     } else if (a.length == 1 && a[0].equalsIgnoreCase("remove")) {
                         String key = blocks.get(id);
                         if (key != null) {
@@ -379,6 +378,12 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                                         e.getClickedBlock())))) {
             e.setCancelled(true);
             p.sendMessage("Reviens au /spawn pour utiliser ce raccourci clicker.");
+            return;
+        }
+        if (warpBlocks.containsKey(
+                fr.cliker.clikerv2.station.StationStore.idFor(e.getClickedBlock()))) {
+            e.setCancelled(true);
+            open(p);
             return;
         }
         if (upgradeBlocks.containsKey(
@@ -509,7 +514,9 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
             values = new ArrayList<>(MobTier.byId().keySet());
         if (c.getName().equals("warp") && a.length == 3 && s.hasPermission("cliker.services.admin"))
             values = List.of("entree", "boss");
-        if ((c.getName().equals("sacbloc") || c.getName().equals("upgradebloc"))
+        if ((c.getName().equals("sacbloc")
+                        || c.getName().equals("upgradebloc")
+                        || c.getName().equals("warpbloc"))
                 && s.hasPermission("cliker.services.admin")) values = List.of("set", "remove");
         if (c.getName().equals("batonspawn") && s.hasPermission("cliker.services.admin"))
             values =
@@ -542,7 +549,7 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
 
     private void refreshHolos() {
         var wanted = new HashSet<String>();
-        for (String section : List.of("sacs", "upgrades")) {
+        for (String section : List.of("sacs", "upgrades", "raccourcis-warp")) {
             var entries = settings.yaml.getConfigurationSection(section);
             if (entries == null) continue;
             for (String key : entries.getKeys(false)) {
@@ -567,8 +574,13 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                                                         section.equals("sacs")
                                                                 ? "&a&lSacs\n"
                                                                         + "&fClic droit pour ouvrir"
-                                                                : "&a&lAméliorations\n"
-                                                                      + "&fClic droit pour ouvrir")
+                                                                : section.equals("raccourcis-warp")
+                                                                        ? "&a&lVoyager\n"
+                                                                              + "&fClic droit pour"
+                                                                              + " ouvrir"
+                                                                        : "&a&lAméliorations\n"
+                                                                              + "&fClic droit pour"
+                                                                              + " ouvrir")
                                                 .split("\n")),
                                 null,
                                 false);

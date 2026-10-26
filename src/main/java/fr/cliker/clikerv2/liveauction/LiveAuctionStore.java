@@ -65,6 +65,10 @@ public final class LiveAuctionStore {
                                 "CREATE TABLE IF NOT EXISTS live_auction_bids(event TEXT NOT"
                                     + " NULL,lot INTEGER NOT NULL,owner TEXT NOT NULL,name TEXT NOT"
                                     + " NULL,price INTEGER NOT NULL,PRIMARY KEY(event,lot,price))");
+                        s.executeUpdate(
+                                "CREATE TABLE IF NOT EXISTS live_auction_entries(event TEXT NOT"
+                                    + " NULL,owner TEXT NOT NULL,fee INTEGER NOT NULL,PRIMARY"
+                                    + " KEY(event,owner))");
                         try (var r =
                                 s.executeQuery(
                                         "SELECT id FROM live_auctions WHERE phase<>'DONE' LIMIT"
@@ -150,7 +154,31 @@ public final class LiveAuctionStore {
                 });
     }
 
+    public CompletableFuture<Boolean> member(String id, UUID owner) {
+        return db.submit(
+                c -> {
+                    try (var q =
+                            c.prepareStatement(
+                                    "SELECT 1 FROM live_auction_members WHERE event=? AND"
+                                        + " owner=?")) {
+                        q.setString(1, id);
+                        q.setString(2, owner.toString());
+                        try (var r = q.executeQuery()) {
+                            return r.next();
+                        }
+                    } catch (SQLException e) {
+                        throw failure(e);
+                    }
+                });
+    }
+
     public CompletableFuture<Boolean> join(String id, UUID owner) {
+        return join(id, owner, 0);
+    }
+
+    public CompletableFuture<Boolean> join(String id, UUID owner, long entryFee) {
+        if (entryFee < 0 || entryFee > 1_000_000_000_000_000L)
+            throw new IllegalArgumentException("Frais invalides");
         return db.submit(
                 c -> {
                     try {
@@ -162,6 +190,42 @@ public final class LiveAuctionStore {
                         }
                         if (state.phase.equals("REGISTERING")
                                 && state.deadline > System.currentTimeMillis()) {
+                            boolean paid;
+                            try (var q =
+                                    c.prepareStatement(
+                                            "SELECT 1 FROM live_auction_entries WHERE event=? AND"
+                                                + " owner=?")) {
+                                q.setString(1, id);
+                                q.setString(2, owner.toString());
+                                try (var r = q.executeQuery()) {
+                                    paid = r.next();
+                                }
+                            }
+                            if (!paid) {
+                                if (entryFee > 0)
+                                    try (var debit =
+                                            c.prepareStatement(
+                                                    "UPDATE player_balances SET ecus=ecus-? WHERE"
+                                                        + " uuid=? AND ecus>=?")) {
+                                        debit.setLong(1, entryFee);
+                                        debit.setString(2, owner.toString());
+                                        debit.setLong(3, entryFee);
+                                        if (debit.executeUpdate() != 1) {
+                                            c.rollback();
+                                            return false;
+                                        }
+                                    }
+                                try (var receipt =
+                                        c.prepareStatement(
+                                                "INSERT INTO live_auction_entries(event,owner,fee)"
+                                                    + " VALUES(?,?,?)")) {
+                                    receipt.setString(1, id);
+                                    receipt.setString(2, owner.toString());
+                                    receipt.setLong(3, entryFee);
+                                    receipt.executeUpdate();
+                                }
+                            }
+
                             try (var s =
                                     c.prepareStatement(
                                             "INSERT OR IGNORE INTO"
@@ -198,12 +262,9 @@ public final class LiveAuctionStore {
                 c -> {
                     try (var s =
                             c.prepareStatement(
-                                    "DELETE FROM live_auction_members WHERE event=? AND owner=? AND"
-                                            + " EXISTS(SELECT 1 FROM live_auctions WHERE id=? AND"
-                                            + " phase='REGISTERING')")) {
+                                    "DELETE FROM live_auction_members WHERE event=? AND owner=?")) {
                         s.setString(1, id);
                         s.setString(2, owner.toString());
-                        s.setString(3, id);
                         s.executeUpdate();
                         return null;
                     } catch (SQLException e) {

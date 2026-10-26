@@ -40,6 +40,10 @@ class LiveAuctionMenuTest {
         economy.set(player.getUniqueId(), player.getName(), CurrencyType.ECUS, 10000).join();
         String item = ClaimService.serialize(new ItemStack(Material.DIAMOND_SWORD));
         store.create("event", List.of(item, item, item), 180000).join();
+        var config = new fr.cliker.clikerv2.features.Settings(plugin, "activites/encheres.yml");
+        config.yaml.set("entree-ecus", 0);
+        fr.cliker.clikerv2.config.YamlFiles.location(config.yaml, "salle", player.getLocation());
+        config.save();
         module = new LiveAuctions(plugin, db, economy, claims);
         set("ready", true);
         set("state", store.state("event").join());
@@ -149,7 +153,15 @@ class LiveAuctionMenuTest {
     void registrationPreviewClickCannotBecomeAnOfferWhenSaleStarts() throws Exception {
         module.onCommand(player, null, "enchere", new String[] {"rejoindre"});
         drain();
-        leftClick(15);
+        assertTrue(
+                player.getOpenInventory().getTopInventory() == null
+                        || !(player.getOpenInventory().getTopInventory().getHolder() != null
+                                && player.getOpenInventory()
+                                        .getTopInventory()
+                                        .getHolder()
+                                        .getClass()
+                                        .getName()
+                                        .contains("LiveAuctions$View")));
         set("state", store.advance("event", 30000, true).join().state());
         runClickBeforeResultCallback();
         assertEquals(0, store.state("event").join().price());
@@ -207,7 +219,7 @@ class LiveAuctionMenuTest {
         module.onCommand(player, null, "enchere", new String[] {"rejoindre"});
         drain();
         var oldView = player.getOpenInventory();
-        leftClick(51);
+        leftClick(53);
         drain();
         assertNotSame(oldView.getTopInventory(), player.getOpenInventory().getTopInventory());
         var delayed =

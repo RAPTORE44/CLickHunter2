@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "server": "Paper 1.21.4 build 232 / Java 21",
+  "test_jar_sha256": "471b5c103d647f2deb89d90eefe0637c16fec7d9dc82aa6c52e962f799c42b6e",
+  "checks": [
+    "JAR final après redémarrage : tag Bugs, couleur dorée, mariage et délai de recommandation conservés",
+    "PNJ Shop : catégories vanilla, épée en bois vanilla au nom brun, italique désactivé, description et prix lisibles",
+    "Marché noir : achat réel par un non-op d’un œuf de zone non débloquée, prix débité et livraison directe",
+    "Bienvenue finale : un seul message global, livre-guide conservé et /bvn disponible",
+    "Piñata à 3 PV dans cette copie : un coup d’épée la vainc avant le délai de 30 secondes et ferme son journal proprement",
+    "Menus de mariage toujours accessibles et contrôle d’intégrité SQLite : ok"
+  ],
+  "accelerated_config": {
+    "pinata_points_vie": 3,
+    "pinata_duree_secondes": 30
+  },
+  "notes": "Dernier JAR : arrêt normal et reprise des préférences, union et délais ; boutiques, bienvenue unique et fin de piñata par dégâts. La campagne complète salle/tags/piñata précédente est dans salle-tags-pinata.json ; seule la suppression du double message de bienvenue et la couleur de secours ont été ajoutées ensuite."
+}

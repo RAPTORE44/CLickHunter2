@@ -1,0 +1,25 @@
+{
+  "success": true,
+  "server": "Paper 1.21.4 build 232 / Java 21",
+  "test_jar_sha256": "c2575e00aaa89c9680d52a6efcf1ed26a3b2075f1e09bd2b52014990c4927ad1",
+  "checks": [
+    "Redémarrage : mariage et dernier lieu de mort conservés ; délai /rc toujours actif",
+    "Non-op sans permission de zone : seul le warp Vache apparaît, aucune case de zone verrouillée",
+    "Bloc /warpbloc set : clic droit ouvre le menu Warp, hologramme créé par le service commun",
+    "Tags : catégorie Bugs, compteur validé 3, équipement persistant et suffixe ☣3 ; couleur dorée permise à l’op, refusée au non-op",
+    "Première connexion : bienvenue globale ; /bvn et /bienvenue récompensent une seule fois (+250 Écus, +50 XP)",
+    "Salle d’enchères : fonds requis, 10M débités une fois, téléportation commune, attente sans menu, objet flottant unique et chronomètre en hotbar",
+    "Début automatique du menu épuré ; serpent vertical 29 cases, tête du meneur et prix dépassés retirés",
+    "Dernière mise de page : passage automatique à la suivante ; /enchere quit désinscrit et renvoie au spawn, offre ferme attribuée une seule fois",
+    "Lots 2 et 3 ignorés sans obligation de miser ; invendus sans débit supplémentaire et retour au spawn en fin de vente",
+    "Piñata : point TP indépendant, coups provoquant une animation de dégâts et gains cumulés personnels en hotbar"
+  ],
+  "accelerated_config": {
+    "inscriptions_secondes": 12,
+    "offre_secondes": 6,
+    "pinata_duree_secondes": 12,
+    "pinata_points_vie": 100,
+    "entree_ecus": 10000000
+  },
+  "limits": "API Holographic Displays et polices ItemsAdder du serveur public non présentes ; secours natif utilisé. Contrôles métier, paquets et métadonnées, pas de validation visuelle par un client graphique."
+}

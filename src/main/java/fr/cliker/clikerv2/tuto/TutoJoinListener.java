@@ -19,8 +19,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class TutoJoinListener implements Listener {
     private final JavaPlugin plugin;
     private final PlayerLevelStore levelStore;
+    private final java.util.function.BooleanSupplier welcomeHandled;
 
     public TutoJoinListener(JavaPlugin plugin, PlayerLevelStore levelStore) {
+        this(plugin, levelStore, () -> false);
+    }
+
+    public TutoJoinListener(
+            JavaPlugin plugin,
+            PlayerLevelStore levelStore,
+            java.util.function.BooleanSupplier welcomeHandled) {
+        this.welcomeHandled = welcomeHandled;
         this.plugin = plugin;
         this.levelStore = levelStore;
     }
@@ -39,33 +48,38 @@ public final class TutoJoinListener implements Listener {
                                         plugin,
                                         () -> {
                                             if (error != null || !player.isOnline()) return;
-                                            Bukkit.broadcast(
-                                                    Component.text(
-                                                                    "✦ ",
-                                                                    NamedTextColor.LIGHT_PURPLE,
-                                                                    TextDecoration.BOLD)
-                                                            .append(
-                                                                    Component.text(
-                                                                            player.getName(),
-                                                                            NamedTextColor.WHITE,
-                                                                            TextDecoration.BOLD))
-                                                            .append(
-                                                                    Component.text(
-                                                                            " rejoint"
+                                            if (!welcomeHandled.getAsBoolean())
+                                                Bukkit.broadcast(
+                                                        Component.text(
+                                                                        "✦ ",
+                                                                        NamedTextColor.LIGHT_PURPLE,
+                                                                        TextDecoration.BOLD)
+                                                                .append(
+                                                                        Component.text(
+                                                                                player.getName(),
+                                                                                NamedTextColor
+                                                                                        .WHITE,
+                                                                                TextDecoration
+                                                                                        .BOLD))
+                                                                .append(
+                                                                        Component.text(
+                                                                                " rejoint"
                                                                                     + " ClickHunter"
                                                                                     + " pour la"
                                                                                     + " première"
-                                                                                    + " fois !"
-                                                                                    + " (",
-                                                                            NamedTextColor.GRAY))
-                                                            .append(
-                                                                    Component.text(
-                                                                            total + "e joueur",
-                                                                            NamedTextColor.GOLD))
-                                                            .append(
-                                                                    Component.text(
-                                                                            ")",
-                                                                            NamedTextColor.GRAY)));
+                                                                                    + " fois ! (",
+                                                                                NamedTextColor
+                                                                                        .GRAY))
+                                                                .append(
+                                                                        Component.text(
+                                                                                total + "e joueur",
+                                                                                NamedTextColor
+                                                                                        .GOLD))
+                                                                .append(
+                                                                        Component.text(
+                                                                                ")",
+                                                                                NamedTextColor
+                                                                                        .GRAY)));
 
                                             plugin.getServer()
                                                     .getScheduler()

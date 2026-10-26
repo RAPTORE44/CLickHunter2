@@ -118,6 +118,7 @@ public final class MenuIcons implements Listener {
         if (holder == null) return false;
         if (holder instanceof fr.cliker.clikerv2.features.Menus.View view && view.vanilla)
             return false;
+        if (fr.cliker.clikerv2.social.SocialModule.isSnapshot(inventory)) return false;
         String type = holder.getClass().getName();
         if (!type.startsWith("fr.cliker.clikerv2.")) return false;
         if (type.contains("MerchantMenu$") && slot != 49) return false;

@@ -336,7 +336,10 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
         for (int j = 0; j < 45 && page * 45 + j < offers.size(); j++) {
             Offer o = offers.get(page * 45 + j);
             int slot = id.equals("blackmarket") ? new int[] {11, 13, 15, 29, 31, 33}[j] : j;
-            boolean unlocked = o.zone == null || zones != null && zones.canTravel(p, o.zone.id());
+            boolean unlocked =
+                    id.equals("blackmarket")
+                            || o.zone == null
+                            || zones != null && zones.canTravel(p, o.zone.id());
             int left = o.cap == 0 ? -1 : Math.max(0, o.cap - stocks.getOrDefault(o.key, 0));
             var item =
                     unlocked && left != 0
@@ -344,11 +347,54 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
                             : Menus.item(
                                     Material.BARRIER, unlocked ? "Épuisé" : "Zone verrouillée");
             var meta = item.getItemMeta();
+            if (id.equals("shop") && meta.hasDisplayName()) {
+                String material = item.getType().name();
+                net.kyori.adventure.text.format.TextColor color =
+                        material.startsWith("DIAMOND")
+                                ? net.kyori.adventure.text.format.NamedTextColor.AQUA
+                                : material.startsWith("GOLDEN")
+                                        ? net.kyori.adventure.text.format.NamedTextColor.GOLD
+                                        : material.startsWith("NETHERITE")
+                                                ? net.kyori.adventure.text.format.TextColor.color(
+                                                        0x49434b)
+                                                : material.startsWith("LEATHER")
+                                                                || material.startsWith("WOODEN")
+                                                        ? net.kyori.adventure.text.format.TextColor
+                                                                .color(0xa87932)
+                                                        : material.startsWith("IRON")
+                                                                ? net.kyori.adventure.text.format
+                                                                        .NamedTextColor.WHITE
+                                                                : material.equals("POTION")
+                                                                        ? net.kyori.adventure.text
+                                                                                .format
+                                                                                .NamedTextColor
+                                                                                .LIGHT_PURPLE
+                                                                        : net.kyori.adventure.text
+                                                                                .format
+                                                                                .NamedTextColor
+                                                                                .GRAY;
+                if (meta instanceof org.bukkit.inventory.meta.PotionMeta potion
+                        && potion.hasColor())
+                    color =
+                            net.kyori.adventure.text.format.TextColor.color(
+                                    potion.getColor().asRGB());
+                meta.displayName(
+                        meta.displayName()
+                                .color(color)
+                                .decoration(
+                                        net.kyori.adventure.text.format.TextDecoration.ITALIC,
+                                        false));
+            }
             var lore =
                     meta.lore() == null
                             ? new ArrayList<net.kyori.adventure.text.Component>()
                             : new ArrayList<>(meta.lore());
-            lore.add(net.kyori.adventure.text.Component.text("Prix : " + o.price + " Écus"));
+            lore.add(
+                    fr.cliker.clikerv2.daily.DailySettings.color(
+                            "&7Prix : &e" + fr.cliker.clikerv2.Numbers.compact(o.price) + " Écus"));
+            lore.add(
+                    fr.cliker.clikerv2.daily.DailySettings.color(
+                            "&aClic gauche : acheter cet objet."));
             if (left >= 0)
                 lore.add(
                         net.kyori.adventure.text.Component.text(
@@ -362,7 +408,8 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
                         if (right || !unlocked || left == 0 || !pending.add(player.getUniqueId()))
                             return;
                         if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)
-                                || o.zone != null
+                                || !id.equals("blackmarket")
+                                        && o.zone != null
                                         && (zones == null
                                                 || !zones.canTravel(player, o.zone.id()))) {
                             pending.remove(player.getUniqueId());

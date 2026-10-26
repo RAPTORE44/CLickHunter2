@@ -173,6 +173,17 @@ class BuyZoneTest {
     }
 
     @Test
+    void spouseTeleportCannotSkipThePurchasePortalOrLandPastItsSouthSide() throws Exception {
+        module.onCommand(admin, COMMAND, "buyzone", new String[] {"spawn", "cochon"});
+        await(() -> !module.canSocialTravel(player, center.clone().add(0, 0, 30)));
+        assertTrue(module.canSocialTravel(player, center.clone().add(0, 0, -15)));
+        assertFalse(module.canSocialTravel(player, center.clone().add(0, 0, 30)));
+        assertFalse(module.canSocialTravel(player, center.clone().add(0, 30, 30)));
+        player.addAttachment(plugin, BuyZoneModule.BYPASS, true);
+        assertTrue(module.canSocialTravel(player, center.clone().add(0, 0, 30)));
+    }
+
+    @Test
     void creativeCrossesWithoutOfferOrPurchase() throws Exception {
         spawn();
         player.setGameMode(GameMode.CREATIVE);

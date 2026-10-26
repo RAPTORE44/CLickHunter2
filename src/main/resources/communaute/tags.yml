@@ -1,0 +1,150 @@
+# Chaque catégorie contient 15 grades. Permission ET progression sont nécessaires.
+actualisation-secondes: 30
+categories:
+  bugs:
+    nom: Chasseur de bugs
+    icone: SLIME_BALL
+    emoji: ☣
+    unite: bugs validés
+    seuils:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    couleurs: &id001
+    - gray
+    - white
+    - dark_green
+    - green
+    - dark_aqua
+    - aqua
+    - blue
+    - dark_blue
+    - light_purple
+    - dark_purple
+    - red
+    - dark_red
+    - gold
+    - yellow
+    - aqua
+  mobs:
+    nom: Chasseur
+    icone: IRON_SWORD
+    emoji: ⚔
+    unite: mobs tués
+    seuils:
+    - 100
+    - 500
+    - 1000
+    - 5000
+    - 10000
+    - 25000
+    - 50000
+    - 100000
+    - 250000
+    - 500000
+    - 1000000
+    - 2000000
+    - 5000000
+    - 10000000
+    - 100000000
+    couleurs: *id001
+  jeu:
+    nom: Aventurier
+    icone: CLOCK
+    emoji: ⌛
+    unite: secondes de jeu
+    seuils:
+    - 3600
+    - 7200
+    - 18000
+    - 36000
+    - 72000
+    - 180000
+    - 360000
+    - 720000
+    - 1260000
+    - 1800000
+    - 2700000
+    - 3600000
+    - 5400000
+    - 9000000
+    - 18000000
+    couleurs: *id001
+  boss:
+    nom: Pourfendeur
+    icone: NETHERITE_SWORD
+    emoji: ♜
+    unite: boss tués
+    seuils:
+    - 1
+    - 5
+    - 10
+    - 25
+    - 50
+    - 100
+    - 250
+    - 500
+    - 1000
+    - 2500
+    - 5000
+    - 10000
+    - 25000
+    - 50000
+    - 100000
+    couleurs: *id001
+  popularite:
+    nom: Célébrité
+    icone: EMERALD
+    emoji: ★
+    unite: recommandations
+    seuils:
+    - 1
+    - 5
+    - 10
+    - 25
+    - 50
+    - 100
+    - 250
+    - 500
+    - 750
+    - 1000
+    - 1500
+    - 2000
+    - 5000
+    - 10000
+    - 20000
+    couleurs: *id001
+  prestige:
+    nom: Ascension
+    icone: NETHER_STAR
+    emoji: ✦
+    unite: prestiges
+    seuils:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    couleurs: *id001

@@ -102,6 +102,8 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.rewards.ClaimService claims;
     private fr.cliker.clikerv2.pinata.PinataModule pinata;
     private fr.cliker.clikerv2.liveauction.LiveAuctions liveAuctions;
+    private volatile fr.cliker.clikerv2.social.SocialModule socialModule;
+    private volatile fr.cliker.clikerv2.social.CommunityExtras communityExtras;
     private fr.cliker.clikerv2.rewards.OutgoingItems outgoingItems;
     private fr.cliker.clikerv2.referral.ReferralModule referrals;
     private fr.cliker.clikerv2.discord.DiscordModule discordModule;
@@ -188,7 +190,22 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         getServer().getPluginManager().registerEvents(prestigeManager, this);
         getServer()
                 .getPluginManager()
-                .registerEvents(new PrestigeChatFormatter(prestigeManager), this);
+                .registerEvents(
+                        new PrestigeChatFormatter(
+                                prestigeManager,
+                                owner -> {
+                                    var social = socialModule;
+                                    return social == null
+                                            ? net.kyori.adventure.text.Component.empty()
+                                            : social.hover(owner);
+                                },
+                                owner -> {
+                                    var extras = communityExtras;
+                                    return extras == null
+                                            ? fr.cliker.clikerv2.social.CommunityExtras.DEFAULT
+                                            : extras.style(owner);
+                                }),
+                        this);
 
         if (getConfig().getInt("displays.tab.style-version", 0) < 1) {
             getConfig().set("displays.tab.enabled", true);
@@ -448,7 +465,14 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         setExecutor("setspawn", new SetSpawnCommand(this, spawnManager));
         getServer().getPluginManager().registerEvents(new RespawnListener(spawnManager), this);
 
-        getServer().getPluginManager().registerEvents(new TutoJoinListener(this, levelStore), this);
+        getServer()
+                .getPluginManager()
+                .registerEvents(
+                        new TutoJoinListener(
+                                this,
+                                levelStore,
+                                () -> communityExtras != null && communityExtras.welcomeEnabled()),
+                        this);
         setExecutor("tuto", new TutoCommand());
 
         StatsMenu statsMenu =
@@ -554,6 +578,43 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         liveAuctions =
                 new fr.cliker.clikerv2.liveauction.LiveAuctions(this, database, economy, claims);
         liveAuctions.start();
+        try {
+            socialModule =
+                    new fr.cliker.clikerv2.social.SocialModule(
+                            this, database, rewardLedger, claims, outgoingItems, buyZoneModule);
+            socialModule.start();
+        } catch (RuntimeException error) {
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Configuration communautaire invalide : vérifier communaute/social.yml",
+                            error);
+            if (socialModule != null) socialModule.shutdown();
+            socialModule = null;
+            for (String name : java.util.List.of("marry", "rc", "echelons"))
+                getCommand(name)
+                        .setExecutor(
+                                (sender, command, label, args) -> {
+                                    sender.sendMessage(
+                                            "§cLe système communautaire est indisponible. Préviens"
+                                                    + " le staff.");
+                                    return true;
+                                });
+        }
+        try {
+            communityExtras =
+                    new fr.cliker.clikerv2.social.CommunityExtras(
+                            this, database, rewardLedger, claims);
+            communityExtras.start();
+        } catch (RuntimeException error) {
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Configuration tags/accueil invalide : communaute/",
+                            error);
+            if (communityExtras != null) communityExtras.shutdown();
+            communityExtras = null;
+        }
         playerComfort = new fr.cliker.clikerv2.comfort.PlayerComfort(this);
         playerComfort.start();
         farmTelemetry = new fr.cliker.clikerv2.comfort.FarmTelemetry(this);
@@ -617,6 +678,8 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         if (huntingModule != null) huntingModule.shutdown();
         if (liveAuctions != null) liveAuctions.shutdown();
         if (pinata != null) pinata.shutdown();
+        if (communityExtras != null) communityExtras.shutdown();
+        if (socialModule != null) socialModule.shutdown();
         if (rewardLedger != null) rewardLedger.shutdown();
         if (referrals != null) referrals.shutdown();
         if (discordModule != null) discordModule.shutdown();

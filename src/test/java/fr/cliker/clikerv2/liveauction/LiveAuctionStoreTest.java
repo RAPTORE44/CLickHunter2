@@ -83,6 +83,27 @@ class LiveAuctionStoreTest {
     }
 
     @Test
+    void entryFeeIsAtomicPaidOnceAndQuittingStopsNewBidsWithoutErasingFirmOffers() {
+        create();
+        economy.set(a, "A", CurrencyType.ECUS, 20_000_000).join();
+        assertTrue(store.join("event", a, 10_000_000).join());
+        assertTrue(store.join("event", a, 10_000_000).join());
+        assertEquals(10_000_000, economy.getBalances(a).join().ecus());
+        assertFalse(store.join("event", b, 10_000_000).join());
+        store.advance("event", 30000, true).join();
+        assertEquals(
+                LiveAuctionStore.Bid.ACCEPTED,
+                store.bid("event", 0, a, "A", 1000, 30000).join().result());
+        store.leaveRegistration("event", a).join();
+        assertEquals(
+                LiveAuctionStore.Bid.NOT_REGISTERED,
+                store.bid("event", 0, a, "A", 1200, 30000).join().result());
+        expire();
+        assertEquals(a, store.advance("event", 30000, false).join().sale().winner());
+        assertEquals(9_999_000, economy.getBalances(a).join().ecus());
+    }
+
+    @Test
     void registrationClosesForNewPlayersAndOnlyOneEventCanExist() {
         create();
         assertThrows(
@@ -229,7 +250,7 @@ class LiveAuctionStoreTest {
     @Test
     void snakeIsContiguousAndPricesIncreaseToExactMaximumWithoutOverflow() {
         var seen = new HashSet<Integer>();
-        for (int i = 0; i < 45; i++) {
+        for (int i = 0; i < BidPrices.PAGE_SIZE; i++) {
             int slot = BidPrices.slot(i);
             assertTrue(seen.add(slot));
             if (i > 0) {
@@ -238,7 +259,15 @@ class LiveAuctionStoreTest {
             }
         }
         assertEquals(0, BidPrices.slot(0));
-        assertEquals(45, seen.size());
+        assertEquals(29, seen.size());
+        assertEquals(9, BidPrices.slot(1));
+        assertEquals(36, BidPrices.slot(4));
+        assertEquals(37, BidPrices.slot(5));
+        assertEquals(38, BidPrices.slot(6));
+        assertEquals(2, BidPrices.slot(10));
+        assertEquals(-1, BidPrices.indexAt(10));
+        for (int i = 0; i < BidPrices.PAGE_SIZE; i++)
+            assertEquals(i, BidPrices.indexAt(BidPrices.slot(i)));
         var prices = BidPrices.generate(1000, 1_000_000_000_000_000L, 20);
         assertEquals(List.of(1000L, 1200L, 1440L), prices.subList(0, 3));
         assertEquals(1_000_000_000_000_000L, prices.getLast());

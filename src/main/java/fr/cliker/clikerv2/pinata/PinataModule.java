@@ -36,6 +36,8 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
     private final Map<UUID, Long> lastHit = new HashMap<>();
     private final Set<UUID> pending = new HashSet<>(), notifying = new HashSet<>();
     private final long minimum, maximum, duration, hitInterval;
+    private Map<UUID, Long> totals = new HashMap<>();
+    private long health, maxHealth;
     private Strider entity;
     private Location point;
     private org.bukkit.Chunk heldChunk;
@@ -128,8 +130,12 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
         if (seconds != shownSecond) {
             shownSecond = seconds;
             String title =
-                    text("titre")
-                            .replace("{secondes}", Long.toString(seconds))
+                    settings.yaml
+                            .getString(
+                                    "messages.titre-sans-chrono",
+                                    "&a&lPiñata {type} &7— &c{pv}&7/&c{pv-max} ♥")
+                            .replace("{pv}", Long.toString(health))
+                            .replace("{pv-max}", Long.toString(maxHealth))
                             .replace("{type}", rewardLabel());
             var holos = SharedHolograms.service();
             if (holos != null && holos.available()) {
@@ -138,6 +144,7 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                     holos.create("pinata", point.clone().add(0, 2, 0), List.of(title), null, false);
                 else holo.setLines(List.of(title));
                 entity.setCustomNameVisible(false);
+                entity.customName(null);
             } else {
                 entity.customName(DailySettings.color(title));
                 entity.setCustomNameVisible(true);
@@ -218,6 +225,10 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                                 if (!entity.isValid())
                                                     throw new IllegalStateException(
                                                             "Apparition annulée");
+                                                totals = new HashMap<>();
+                                                maxHealth =
+                                                        bounded("points-vie", 10000, 1, 1000000000);
+                                                health = maxHealth;
                                                 rewardType = selectedType;
                                                 round = id;
                                                 until =
@@ -284,6 +295,9 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                 || !pending.add(owner)) return;
         lastHit.put(owner, now);
         String type = rewardType;
+        long damage = Math.max(1, Math.min(1000, (long) Math.ceil(event.getFinalDamage())));
+        String hitRound = round;
+        Map<UUID, Long> hitTotals = totals;
         long amount =
                 ThreadLocalRandom.current()
                         .nextLong(
@@ -311,11 +325,33 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                                 return;
                                             }
                                             if (Boolean.TRUE.equals(paid)) {
+                                                if (Objects.equals(round, hitRound)
+                                                        && entity != null
+                                                        && entity.isValid()) {
+                                                    health = Math.max(0, health - damage);
+                                                    entity.playHurtAnimation(player.getYaw());
+                                                    shownSecond = -1;
+                                                    if (health == 0) finish();
+                                                    else tick();
+                                                }
+                                                long total =
+                                                        hitTotals.merge(
+                                                                owner, amount, Math::addExact);
                                                 if (gains.xp() > 0) ledger.flushXP(owner);
                                                 if (PlayerSessions.isCurrent(player)) {
                                                     player.sendActionBar(
                                                             DailySettings.color(
-                                                                    text("gain")
+                                                                    settings.yaml
+                                                                            .getString(
+                                                                                    "messages.gain-total",
+                                                                                    "&a+{montant}"
+                                                                                        + " {type}"
+                                                                                        + " &8| &fTotal"
+                                                                                        + " : &e{total}")
+                                                                            .replace(
+                                                                                    "{total}",
+                                                                                    Long.toString(
+                                                                                            total))
                                                                             .replace(
                                                                                     "{montant}",
                                                                                     Long.toString(
@@ -505,7 +541,7 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         String sub = args.length == 0 ? "info" : args[0].toLowerCase(Locale.ROOT);
-        if (sub.equals("setspawn") || sub.equals("spawn")) {
+        if (sub.equals("setspawn") || sub.equals("settp") || sub.equals("spawn")) {
             if (!sender.hasPermission("cliker.pinata.admin")) {
                 sender.sendMessage("Tu n’as pas la permission.");
                 return true;
@@ -522,7 +558,10 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                 message(sender, "deja-active");
                 return true;
             }
-            fr.cliker.clikerv2.config.YamlFiles.location(settings.yaml, "point", p.getLocation());
+            fr.cliker.clikerv2.config.YamlFiles.location(
+                    settings.yaml,
+                    sub.equals("settp") ? "teleportation" : "point",
+                    p.getLocation());
             settings.save();
             message(sender, "point-defini");
             return true;
@@ -539,7 +578,10 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                 player.sendMessage("Reviens au /spawn avant de rejoindre la piñata.");
                 return true;
             }
-            if (!player.teleport(point.clone()))
+            Location arrival =
+                    fr.cliker.clikerv2.config.YamlFiles.location(settings.yaml, "teleportation");
+            if (arrival == null) arrival = point.clone().add(0, 0, -3);
+            if (!fr.cliker.clikerv2.features.TravelAndTools.safeTeleport(player, arrival))
                 player.sendMessage(
                         "Téléportation refusée. Termine ton action en cours puis réessaie.");
             return true;
@@ -548,7 +590,7 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
             sender.sendMessage(
                     "/pinata [tp]"
                             + (sender.hasPermission("cliker.pinata.admin")
-                                    ? " · /pinata setspawn · /pinata spawn"
+                                    ? " · /pinata setspawn · /pinata settp · /pinata spawn"
                                     : ""));
             return true;
         }
@@ -564,7 +606,8 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
     public List<String> onTabComplete(CommandSender s, Command c, String label, String[] args) {
         if (args.length != 1) return List.of();
         var choices = new ArrayList<>(List.of("tp"));
-        if (s.hasPermission("cliker.pinata.admin")) choices.addAll(List.of("setspawn", "spawn"));
+        if (s.hasPermission("cliker.pinata.admin"))
+            choices.addAll(List.of("setspawn", "settp", "spawn"));
         return choices.stream()
                 .filter(x -> x.startsWith(args[0].toLowerCase(Locale.ROOT)))
                 .toList();
