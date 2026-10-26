@@ -203,6 +203,11 @@ public final class TierGear {
         return Material.NETHERITE_SWORD;
     }
 
+    /** Source unique de la rareté des équipements pour les catalogues d’événements. */
+    public static boolean isLegendary(MobTier tier) {
+        return tier != null && rarityOf(tier) == Rarity.LEGENDAIRE;
+    }
+
     static Rarity rarityOf(MobTier tier) {
         int index = tier.ordinal();
         if (index < 3) return Rarity.COMMUN;

@@ -1,0 +1,23 @@
+active: true
+intervalle-secondes: 10800
+inscriptions-secondes: 180
+offre-secondes: 30
+rappels-secondes: [120, 60, 30, 10]
+prix:
+  depart: 1000
+  augmentation-pourcent: 20
+  maximum: 1000000000000000
+# Trois équipements légendaires distincts, tirés dans les zones ci-dessous.
+# Les équipements conservent leurs statistiques et leur apparence existantes.
+lots:
+  zones: [blaze, wither_skeleton, ghast]
+  types: [epee, casque, plastron, jambieres, bottes]
+messages:
+  inscription: '&6&lENCHÈRE &8» &fTrois lots légendaires ! &e{secondes}s pour t’inscrire : &a/enchere rejoindre'
+  debut: '&6&lENCHÈRE &8» &fLa vente commence ! Inscrits : &e/enchere rejoindre'
+  lot: '&6Enchère &8» &fLot {lot}/3 : les offres sont ouvertes pour {secondes}s.'
+  offre: '&6Enchère &8» &e{joueur} &fpropose &e{prix} Écus &7— compteur relancé à {secondes}s.'
+  gagne: '&6Enchère &8» &a{joueur} remporte le lot {lot}/3 pour {prix} Écus !'
+  invendu: '&6Enchère &8» &7Lot {lot}/3 invendu : aucune offre solvable.'
+  fin: '&6Enchère terminée ! &7Prochaine inscription dans environ {minutes} min.'
+  sans-inscrits: '&6Enchère annulée : aucun joueur inscrit.'

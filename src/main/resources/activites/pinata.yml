@@ -1,0 +1,25 @@
+active: true
+# Temps réel, en secondes ; le délai entre deux apparitions est tiré à chaque apparition.
+intervalle-min-secondes: 1200
+intervalle-max-secondes: 1800
+duree-secondes: 180
+# Limite indépendante par joueur ; plusieurs joueurs frappent simultanément.
+intervalle-coups-millisecondes: 400
+# Un seul type est tiré au sort à chaque apparition, à chances égales.
+# Tous les joueurs reçoivent uniquement ce type pendant les trois minutes.
+# Gemmes : nombres entiers affichés (1 = une Gemme Sombre, conversion interne automatique).
+recompenses:
+  ecus: {min: 25, max: 75}
+  xp: {min: 10, max: 30}
+  gemmes: {min: 1, max: 2}
+messages:
+  apparition: '&a&lPIÑATA &8» &fUn arpenteur piñata est apparu dans la zone Vache ! &fRécompense : &e{type} &e[Clique pour le rejoindre]'
+  fin: '&aPiñata terminée ! &7Les participants reçoivent leur récapitulatif en privé.'
+  recap: '&aPiñata &8» &f{coups} coups &7· &e{ecus} Écus &7· &b{xp} XP &7· &5{gemmes} Gemmes Sombres'
+  gain: '&a+{montant} {type}'
+  absent: '&7Aucune piñata active pour le moment.'
+  point-manquant: '&cDéfinis le point dans la zone Vache avec /pinata setspawn.'
+  deja-active: '&cUne piñata est déjà active ou en cours d’apparition.'
+  point-defini: '&aPoint unique de la piñata sauvegardé dans la zone Vache.'
+  titre: '&a&lPiñata {type} &7— &e{secondes}s'
+# Point et prochaine échéance sont sauvegardés automatiquement ; ne pas les supprimer.

@@ -121,6 +121,9 @@ public final class MenuIcons implements Listener {
         String type = holder.getClass().getName();
         if (!type.startsWith("fr.cliker.clikerv2.")) return false;
         if (type.contains("MerchantMenu$") && slot != 49) return false;
+        // Les prix, les lots et la tête du meilleur enchérisseur gardent leur apparence réelle.
+        if (type.contains("LiveAuctions$View") && (slot < 45 || slot == 49 || slot == 50))
+            return false;
         if (holder instanceof fr.cliker.clikerv2.features.Menus.View view
                 && view.merchandise
                 && slot < 45) return false;

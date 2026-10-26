@@ -66,3 +66,15 @@ Terminée : migration vers ZNPCsPlus 2.0.0 pour Daily, Discord, Contrats et marc
 - Section 17 : aucune nouvelle idée renseignée dans le document joint. Les autres demandes et lignes jaunes conservent leur suivi existant.
 
 Détails et preuves : [audit du 26 octobre](AUDIT-2026-10-26.md).
+
+
+### Piñata et enchères événementielles — 26 octobre 2026
+
+- Terminée : piñata en arpenteur, point unique sauvegardé dans la zone Vache, apparition aléatoire entre 20 et 30 minutes, durée de trois minutes, annonce cliquable et téléportation.
+- Terminée : un seul type de récompense par apparition, commun à tous les participants. Le propriétaire a confirmé que « souls » désigne les Gemmes Sombres. Gains journalisés, limites individuelles et récapitulatifs privés conservés hors ligne.
+- Terminée : enchères toutes les trois heures, inscriptions pendant trois minutes avec rappels, trois lots légendaires successifs, prix en serpent paginé et compteur de 30 secondes relancé par offre.
+- Terminée : offres fermes, contrôle de solvabilité au dépôt et au débit final, attribution atomique avec journal de livraison, reprise après redémarrage et inventaire plein via `/claim`.
+- Catalogue par défaut : trois équipements déjà légendaires tirés dans les zones Blaze, Wither Squelette et Ghast ; la demande d’objets exacts reste une personnalisation possible si le propriétaire fournit une autre sélection.
+- Validation : 280 tests automatisés réussis et 21 contrôles natifs répartis entre les deux modules. Pas de campagne de charge ni de validation humaine des skins/du pack ItemsAdder public.
+
+Documentation : [piñata](PINATA.md), [enchères](ENCHERES.md), [preuves](validation/enchere-pinata.json). Les 60 commandes principales et leurs alias sont répertoriés par catégorie dans le README.

@@ -4,7 +4,7 @@ Produit par `python3 scripts/audit-inventory.py`. Chaque fichier de production e
 
 | Composant | Fichiers Java | Lignes |
 | --- | ---: | ---: |
-| noyau | 5 | 1629 |
+| noyau | 5 | 1638 |
 | auction | 5 | 1389 |
 | bag | 7 | 1016 |
 | buyzone | 3 | 865 |
@@ -18,15 +18,17 @@ Produit par `python3 scripts/audit-inventory.py`. Chaque fichier de production e
 | economy | 4 | 280 |
 | essence | 8 | 689 |
 | features | 14 | 3517 |
-| gear | 19 | 2140 |
+| gear | 19 | 2145 |
 | hologram | 4 | 823 |
 | hunting | 6 | 1188 |
 | level | 3 | 140 |
+| liveauction | 3 | 1375 |
 | lootbox | 4 | 515 |
 | merchant | 4 | 1001 |
 | mobs | 7 | 1870 |
 | npc | 1 | 323 |
 | outpost | 4 | 2000 |
+| pinata | 2 | 768 |
 | prestige | 6 | 885 |
 | raid | 2 | 679 |
 | referral | 2 | 576 |
@@ -36,17 +38,17 @@ Produit par `python3 scripts/audit-inventory.py`. Chaque fichier de production e
 | spawn | 5 | 279 |
 | station | 4 | 410 |
 | tuto | 3 | 278 |
-| ui | 5 | 722 |
+| ui | 5 | 725 |
 | upgrade | 6 | 986 |
 | world | 1 | 98 |
 
-Total : **166 fichiers Java**, **28 configurations YAML**.
+Total : **171 fichiers Java**, **30 configurations YAML**.
 
 ## Fichiers indexés
 
 | Fichier | SHA-256 au moment de l’inventaire |
 | --- | --- |
-| [src/main/java/fr/cliker/clikerv2/ClikerPlugin.java](../src/main/java/fr/cliker/clikerv2/ClikerPlugin.java) | `45d822204ed56c12af358f1ad118ea2f94df82465cd02ca30e2e693476ca2f48` |
+| [src/main/java/fr/cliker/clikerv2/ClikerPlugin.java](../src/main/java/fr/cliker/clikerv2/ClikerPlugin.java) | `a4f18afff3d64a728ae6688caadce6b0f48f3823ede829209d4b56f6c9e2d497` |
 | [src/main/java/fr/cliker/clikerv2/DatabaseManager.java](../src/main/java/fr/cliker/clikerv2/DatabaseManager.java) | `1876886b8fc739e0b443517414a3670b1b79a2e803ab25b81701d285f695e568` |
 | [src/main/java/fr/cliker/clikerv2/EconomyService.java](../src/main/java/fr/cliker/clikerv2/EconomyService.java) | `98912dd947c1c61a7e103091fc5ae036f4a8e5dcbbc2fb77dea50237b5573754` |
 | [src/main/java/fr/cliker/clikerv2/MobTier.java](../src/main/java/fr/cliker/clikerv2/MobTier.java) | `f7489c7fede9215108dfa529cf50d449b5b37ce739b042db58edb7835352f7aa` |
@@ -135,7 +137,7 @@ Total : **166 fichiers Java**, **28 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/gear/RuneCommand.java](../src/main/java/fr/cliker/clikerv2/gear/RuneCommand.java) | `a15bfa858844f00c1c3f9bdf27586b3a8e1c74befee6121271a39120aec6b605` |
 | [src/main/java/fr/cliker/clikerv2/gear/RuneMenu.java](../src/main/java/fr/cliker/clikerv2/gear/RuneMenu.java) | `87754d30a9a5c6e7f8a05d280dab713d98f9f2f9fce4a332a4e7e8c7c3c9f76a` |
 | [src/main/java/fr/cliker/clikerv2/gear/RuneType.java](../src/main/java/fr/cliker/clikerv2/gear/RuneType.java) | `06262786984152088e48cc07c9f80454f3efa195139124b93599907da71a80ae` |
-| [src/main/java/fr/cliker/clikerv2/gear/TierGear.java](../src/main/java/fr/cliker/clikerv2/gear/TierGear.java) | `1106b5300a9c309f0d56c830192f5ecbc03efe415e057d808dc10aab5e07326c` |
+| [src/main/java/fr/cliker/clikerv2/gear/TierGear.java](../src/main/java/fr/cliker/clikerv2/gear/TierGear.java) | `0dce34e7baa11ee2047a9df1c6e8afde1014c67e2c644e684fe24b66eb1f4e50` |
 | [src/main/java/fr/cliker/clikerv2/gear/TierGearCommand.java](../src/main/java/fr/cliker/clikerv2/gear/TierGearCommand.java) | `a42f067d3958d7488c04db69e9db22bacfd19fcb8818b5b58c8fc7d4c5444634` |
 | [src/main/java/fr/cliker/clikerv2/hologram/HologramCommand.java](../src/main/java/fr/cliker/clikerv2/hologram/HologramCommand.java) | `7213961934693ae3f76c67b86a8c00ca4ca39d66c3ca5e32f0c6f98fd545b503` |
 | [src/main/java/fr/cliker/clikerv2/hologram/HologramManager.java](../src/main/java/fr/cliker/clikerv2/hologram/HologramManager.java) | `bc5c13ee5ad705b37070fadeb285c148ca07ab1aacb495acba9436b88304ecb7` |
@@ -150,6 +152,9 @@ Total : **166 fichiers Java**, **28 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/level/LevelDamageBonus.java](../src/main/java/fr/cliker/clikerv2/level/LevelDamageBonus.java) | `d69a167933b5853ce570100ccdca5b13e90e0d8e20744a0e59714f68f1a0f081` |
 | [src/main/java/fr/cliker/clikerv2/level/LevelUpListener.java](../src/main/java/fr/cliker/clikerv2/level/LevelUpListener.java) | `feb8cbe2d8ec1a7be446a23c775e4ee4cacea14ac84f82cca68b8ceafcd61b5c` |
 | [src/main/java/fr/cliker/clikerv2/level/PlayerLevelStore.java](../src/main/java/fr/cliker/clikerv2/level/PlayerLevelStore.java) | `004bfbe457c56db3c79af03cc190fe1e628cde7671e2456888f9c7a73315b48e` |
+| [src/main/java/fr/cliker/clikerv2/liveauction/BidPrices.java](../src/main/java/fr/cliker/clikerv2/liveauction/BidPrices.java) | `426e98ce27b21da042e5ed5b861ff05b971a951e05ffc9548e47158fc6272034` |
+| [src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctionStore.java](../src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctionStore.java) | `08cad3bdb4035d71fc33228ed854fdb68739457b17351ba74ce11f19ea912294` |
+| [src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctions.java](../src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctions.java) | `85b350abeea6a4ffc219791d38aeb9240c02b947def1c4ba29b89d836cd73912` |
 | [src/main/java/fr/cliker/clikerv2/lootbox/LootboxCommand.java](../src/main/java/fr/cliker/clikerv2/lootbox/LootboxCommand.java) | `e33e19a283b3ea5e4537849466fe3dbb5f0a27b78055b28210808851656ff8a3` |
 | [src/main/java/fr/cliker/clikerv2/lootbox/LootboxItem.java](../src/main/java/fr/cliker/clikerv2/lootbox/LootboxItem.java) | `b1c28f85524d0da279acc92845c477f464793f56b87671822c82e9811b7ee64e` |
 | [src/main/java/fr/cliker/clikerv2/lootbox/LootboxManager.java](../src/main/java/fr/cliker/clikerv2/lootbox/LootboxManager.java) | `aec57fb9bcecd561ebe3584b973a396bca4c9939ee0dfb6971b5ae828bc651b0` |
@@ -170,6 +175,8 @@ Total : **166 fichiers Java**, **28 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/outpost/OutpostModule.java](../src/main/java/fr/cliker/clikerv2/outpost/OutpostModule.java) | `db34ed41de600eba6fdad4b734036a3c516d7b07d70a0528a1131c0c16a15e6a` |
 | [src/main/java/fr/cliker/clikerv2/outpost/OutpostStore.java](../src/main/java/fr/cliker/clikerv2/outpost/OutpostStore.java) | `8eb61b5674857a60756fc1679e0f33b4af46b23195907330ec30b291148a5bb8` |
 | [src/main/java/fr/cliker/clikerv2/outpost/WorldInventories.java](../src/main/java/fr/cliker/clikerv2/outpost/WorldInventories.java) | `3085423bf50110d6d3d1af94681941e7ac00ce3f2624b276021f3803c160b4f8` |
+| [src/main/java/fr/cliker/clikerv2/pinata/PinataModule.java](../src/main/java/fr/cliker/clikerv2/pinata/PinataModule.java) | `aaf94f3a7b257cd9531c4ff655c3c93755e4022471785eac3acacbc781ff62ee` |
+| [src/main/java/fr/cliker/clikerv2/pinata/PinataStore.java](../src/main/java/fr/cliker/clikerv2/pinata/PinataStore.java) | `8abb949ea5aa36b9287a81f8fe4ae38fa46369be41dd51400f297a66936d4ebf` |
 | [src/main/java/fr/cliker/clikerv2/prestige/PrestigeChatFormatter.java](../src/main/java/fr/cliker/clikerv2/prestige/PrestigeChatFormatter.java) | `da029d3d3a4b9f3d1a3dacde609960cc5115248ae84517e9e83f3a47d4ea21fc` |
 | [src/main/java/fr/cliker/clikerv2/prestige/PrestigeCommand.java](../src/main/java/fr/cliker/clikerv2/prestige/PrestigeCommand.java) | `0c3859ef9f620fc2bf32f8758fe06faf0acd11fe13a5389ef6bfd0dad400d33d` |
 | [src/main/java/fr/cliker/clikerv2/prestige/PrestigeManager.java](../src/main/java/fr/cliker/clikerv2/prestige/PrestigeManager.java) | `c31f900106b31c1484b8b70f6b47eb6a4321b6e12163b6542f19ee72409d9312` |
@@ -202,7 +209,7 @@ Total : **166 fichiers Java**, **28 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/tuto/TutoJoinListener.java](../src/main/java/fr/cliker/clikerv2/tuto/TutoJoinListener.java) | `524a0118a64163e5d87f83e63b213dfcf8d5834cc81442d5621c24cebd9fe471` |
 | [src/main/java/fr/cliker/clikerv2/ui/GainBar.java](../src/main/java/fr/cliker/clikerv2/ui/GainBar.java) | `d35fa63373256c5761a844774f439e3db34b18bb9645e6a4b06a12a9020e11d1` |
 | [src/main/java/fr/cliker/clikerv2/ui/MainMenu.java](../src/main/java/fr/cliker/clikerv2/ui/MainMenu.java) | `ada7a7f289c1ba63d9f33e38fb4181aa41d747385144b4ed53c1a7517a30745a` |
-| [src/main/java/fr/cliker/clikerv2/ui/MenuIcons.java](../src/main/java/fr/cliker/clikerv2/ui/MenuIcons.java) | `21dc5ddbf2c5457b6b15e98ef6f8bdc2bcbf6c93418899710d6f394c70d6a953` |
+| [src/main/java/fr/cliker/clikerv2/ui/MenuIcons.java](../src/main/java/fr/cliker/clikerv2/ui/MenuIcons.java) | `66a467f46dec596ec8b22ef82faf2880d04a7056f873f537c1b084145ae40131` |
 | [src/main/java/fr/cliker/clikerv2/ui/MenuNavigation.java](../src/main/java/fr/cliker/clikerv2/ui/MenuNavigation.java) | `5e95103a79347efeda8a6e06829b9312682135cb574707d8355a7765a7f999df` |
 | [src/main/java/fr/cliker/clikerv2/ui/ViewRequests.java](../src/main/java/fr/cliker/clikerv2/ui/ViewRequests.java) | `730ae2d62b51f2d3b66545cf7bb43d771bdd3262d45409bf110cf9270da1d410` |
 | [src/main/java/fr/cliker/clikerv2/upgrade/UpgradeCommand.java](../src/main/java/fr/cliker/clikerv2/upgrade/UpgradeCommand.java) | `4c89c6bf39cc2fd688deb507878891e668b53b1d8d2faecc093e5039387fcd28` |
@@ -212,6 +219,8 @@ Total : **166 fichiers Java**, **28 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/upgrade/UpgradeStore.java](../src/main/java/fr/cliker/clikerv2/upgrade/UpgradeStore.java) | `9c2dd56f3adfbee795489094642cc183ea52090ef1d632c3c9230d90d89ebd94` |
 | [src/main/java/fr/cliker/clikerv2/upgrade/UpgradeType.java](../src/main/java/fr/cliker/clikerv2/upgrade/UpgradeType.java) | `25576171b9d224f98804d504d12dca69b49b1fef7c4e77c8a1e69e7190f3f7a5` |
 | [src/main/java/fr/cliker/clikerv2/world/ActivityWorlds.java](../src/main/java/fr/cliker/clikerv2/world/ActivityWorlds.java) | `dc5fc09bc4a93b4fd3f2e787dbf08fd5709739da2356439b8ed1e6407fd961b1` |
+| [src/main/resources/activites/encheres.yml](../src/main/resources/activites/encheres.yml) | `085900226f89ccea08af5b0daaada0f35ef982aad47f6e4f8845426461f7ac95` |
+| [src/main/resources/activites/pinata.yml](../src/main/resources/activites/pinata.yml) | `7d7ff8665f5b3dc44ae448e63c577e31fb35cd2e7a21c457869ba417e52f7b95` |
 | [src/main/resources/activites/raids-groupes.yml](../src/main/resources/activites/raids-groupes.yml) | `6c6ea9c658b62d08ffb8d88ac3851f7a94cf401b06e8d55228502715850193ae` |
 | [src/main/resources/activites/tchat.yml](../src/main/resources/activites/tchat.yml) | `618a93149366f6bebc3a69bbd8ad94ed30b937354695fcbfaae85e528c83bf86` |
 | [src/main/resources/affichage/classements.yml](../src/main/resources/affichage/classements.yml) | `7ad350ced24b0c34f47b0ecf8575df66a79e01d7b93f2f4e8929788d77daf245` |
@@ -235,7 +244,7 @@ Total : **166 fichiers Java**, **28 configurations YAML**.
 | [src/main/resources/mobs/creatures.yml](../src/main/resources/mobs/creatures.yml) | `9b0ed43cf15495d50cce1ca93f7055f20f93740d7acfab572ade62b3212e1147` |
 | [src/main/resources/navigation/warps.yml](../src/main/resources/navigation/warps.yml) | `de7ae84fd139747e0a374704c4433c9ab05ccbfc554cd34337d3594da5e31d43` |
 | [src/main/resources/parrainage.yml](../src/main/resources/parrainage.yml) | `7d0a849eb624db2866de7592ce77405b46939495acb9917c425d3e5d4958ca24` |
-| [src/main/resources/plugin.yml](../src/main/resources/plugin.yml) | `a75cc5f8f8ab03fd12e91251e14e84f7927f1f85d59556b63917cef4ef6427d7` |
+| [src/main/resources/plugin.yml](../src/main/resources/plugin.yml) | `bc044a3fc47850afcba9d560a9b7b80f84c6572ed531624439dbaaafc936e818` |
 | [src/main/resources/pnj/marchands.yml](../src/main/resources/pnj/marchands.yml) | `4612239b5da619690f46c168065705b0ea3567df69f39679f284c29c3d8e977e` |
 | [src/main/resources/progression/talismans.yml](../src/main/resources/progression/talismans.yml) | `217b2c8fa04111239fec852abc16667343c3c29e50d7b6d8df01384a5ce51db0` |
 | [src/main/resources/raid.yml](../src/main/resources/raid.yml) | `565d3165a53e29189ae99c1416404bc23774cdfb8c188df0385554c42366be0d` |

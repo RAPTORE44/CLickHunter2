@@ -5,6 +5,14 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  enchere:
+    description: Enchères légendaires événementielles et inscription
+    aliases: [encheres]
+    permission: cliker.enchere.use
+  pinata:
+    description: Piñata de la zone Vache et téléportation
+    aliases: [pignata]
+    permission: cliker.pinata.use
   respawnmobs:
     description: Faire réapparaître tous les mobs placés, sans toucher aux boss
     permission: cliker.mob.admin
@@ -227,6 +235,14 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.enchere.use:
+    default: true
+  cliker.enchere.admin:
+    default: op
+  cliker.pinata.use:
+    default: true
+  cliker.pinata.admin:
+    default: op
   cliker.jeutchat:
     default: true
   cliker.jeutchat.admin:

@@ -51,6 +51,7 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | `/prestige` | Consulter les conditions et effectuer un prestige si les conditions sont remplies. |
 | `/bestiaire` | Consulter les créatures découvertes et les maîtrises. |
 | `/contrats` | Accepter ou réclamer les contrats de chasse. |
+| `/pinata` / `/pinata tp` | Voir la piñata active et la rejoindre ; alias `/pignata`. |
 | `/raid` | Ouvrir son groupe de raid (1 à 8 joueurs). |
 | `/raid inviter <pseudo>` | Inviter un joueur en ligne pour 60 secondes. |
 | `/raid accepter <pseudo>` | Accepter l’invitation d’un chef. |
@@ -67,6 +68,8 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | `/gemmes balance [joueur]` | Consulter un solde de Gemmes Sombres ; alias `/gemmessombres`. |
 | `/cendres balance [joueur]` | Consulter un solde de Cendres. |
 | `/sell` | Sur la pile cliquée : gauche vend 1 essence, droite vend cette pile uniquement. |
+| `/enchere` / `/enchere rejoindre` | Consulter l’événement et s’inscrire pendant les trois minutes ; alias `/encheres`. Les inscrits peuvent rouvrir la vente ensuite. |
+| `/enchere quitter` | Quitter le menu ; pendant les inscriptions, se désinscrire. Une offre déjà déposée reste ferme. |
 | `/ah` | Ouvrir l'hôtel des ventes. |
 | `/ah vendre <prix>` / `/ah sell <prix>` | Confirmer la vente de l’objet tenu ; frais non remboursables de 1 % à la publication, annonce chat optionnelle pour 5 % supplémentaires. |
 | `/ah rechercher <nom>` | Rechercher sans accents, avec filtres de catégorie et tri conservé pendant la pagination. |
@@ -133,6 +136,10 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 
 | Commande | Utilité | Permission |
 | --- | --- | --- |
+| `/enchere forcer` | Ouvrir immédiatement les trois minutes d’inscription à une nouvelle enchère. | `cliker.enchere.admin` |
+| `/enchere demarrer` | Commencer la vente avec les inscrits actuels sans attendre la fin du délai. | `cliker.enchere.admin` |
+| `/pinata setspawn` | Définir le point unique de l’arpenteur à sa position, dans la zone Vache. | `cliker.pinata.admin` |
+| `/pinata spawn` | Forcer une apparition au point sauvegardé, sans doublon. | `cliker.pinata.admin` |
 | `/respawnmobs` | Faire réapparaître tous les mobs placés, sans les boss ni les invocations temporaires ; alias `/mobsrespawn`. | `cliker.mob.admin` |
 | `/spawnboss` | Lancer une vague de tous les boss de zone, avec annonce globale ; alias `/bossrespawn`. | `cliker.mob.admin` |
 | `/jeutchat lancer [calcul\|devinette\|pays]` / `/jeutchat stop` | Lancer ou interrompre une manche de jeu de chat. | `cliker.jeutchat.admin` |
@@ -305,4 +312,22 @@ Les magma cubes utilisent la taille moyenne 2 et les ghasts une échelle 0,5 par
 
 La publication AH utilise un journal de sortie et un reçu playerdata : une interruption avant validation est reprise à la connexion, sans publier ni rembourser deux fois le même objet. Le remboursement rejoint directement l’inventaire si possible, sinon `/claim`. Les annonces existantes restent compatibles. Les callbacks `/claim` vérifient la bonne connexion du joueur, les calculs de prestige sont bornés et les positions YAML invalides sont signalées sans réécriture du fichier. Les icônes de menus inchangées ne sont plus entièrement retraitées à chaque rafraîchissement. Un mob déplacé dans un autre monde est ramené à son point d’origine sans interrompre sa tâche d’immobilisation.
 
-La liste des **58 commandes** et de leurs alias a été comparée à `plugin.yml` ; aucune commande n’est ajoutée par cet audit. [Rapport, tests, installation et limites](docs/AUDIT-2026-10-26.md). Pour installer le JAR : arrêter le serveur, sauvegarder ensemble le dossier du plugin et les mondes/playerdata, remplacer le JAR de ClikerV2, puis redémarrer. Ne pas supprimer les configurations ni la base. Le journal AH ajoute automatiquement une table et un index, sans conversion des anciennes données.
+Lors de cet audit, la liste des **58 commandes** et de leurs alias a été comparée à `plugin.yml` ; aucune commande n’est ajoutée par cet audit. [Rapport, tests, installation et limites](docs/AUDIT-2026-10-26.md). Pour installer le JAR : arrêter le serveur, sauvegarder ensemble le dossier du plugin et les mondes/playerdata, remplacer le JAR de ClikerV2, puis redémarrer. Ne pas supprimer les configurations ni la base. Le journal AH ajoute automatiquement une table et un index, sans conversion des anciennes données.
+
+
+### Piñata de la zone Vache
+
+Un arpenteur immobile et immortel apparaît au point défini par `/pinata setspawn`, toutes les 20 à 30 minutes (délai aléatoire entre apparitions). Il reste trois minutes. Son annonce est cliquable et lance `/pinata tp`. Chaque apparition choisit **un seul type** : Écus, Gemmes Sombres ou XP, commun à tous les joueurs pendant tout l’événement. Les quantités par coup sont tirées dans les bornes configurées.
+
+Plusieurs joueurs peuvent frapper simultanément ; chaque joueur a son propre délai entre coups. Seuls les coups directs de joueurs en survie ou aventure, à portée et en vue de la piñata, rapportent une récompense. Les dégâts des armes ne changent pas le montant gagné. Les crédits sont directs et journalisés ; les récapitulatifs privés restent disponibles à la reconnexion si nécessaire.
+
+Configuration française : `plugins/ClikerV2/activites/pinata.yml` (délais, durée, récompenses, textes, hologramme et point). Les Gemmes Sombres y sont exprimées en gemmes entières. Permission joueur `cliker.pinata.use` accordée par défaut ; administration `cliker.pinata.admin`, opérateurs par défaut. Aucune nouvelle dépendance. [Détails et vérifications](docs/PINATA.md).
+
+
+### Enchères légendaires toutes les trois heures
+
+`/enchere rejoindre` inscrit le joueur pendant la fenêtre de trois minutes, annoncée plusieurs fois dans le chat avec un lien cliquable. Trois équipements légendaires existants sont ensuite vendus successivement, avec 30 secondes par lot et remise à 30 secondes à chaque offre acceptée. Le double coffre parcourt les montants en serpent, sur plusieurs pages : de 1K jusqu’au plafond configurable de 1 000 000B (1Qa). La tête du meneur occupe son montant et les prix précédents sont verrouillés.
+
+Le solde doit suffire pour déposer une offre. Les offres sont fermes, même après fermeture du menu, `/enchere quitter` ou déconnexion ; seul le gagnant est débité à l’attribution. Les offres devenues insolvables sont écartées au profit de la plus haute offre encore solvable. L’objet est livré directement si possible, sinon conservé dans `/claim`. Les annonces AH et leurs taxes restent un système séparé.
+
+Configuration française : `plugins/ClikerV2/activites/encheres.yml`. Permission joueur `cliker.enchere.use` par défaut ; gestion `cliker.enchere.admin` pour les opérateurs. [Fonctionnement, catalogue et tests](docs/ENCHERES.md). La liste ci-dessus couvre maintenant les **60 commandes principales** déclarées par le plugin, avec leurs sous-commandes et alias.

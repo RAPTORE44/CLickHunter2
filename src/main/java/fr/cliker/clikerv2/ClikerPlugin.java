@@ -100,6 +100,8 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private CustomMobManager mobManager;
     private BagMenu bagMenu;
     private fr.cliker.clikerv2.rewards.ClaimService claims;
+    private fr.cliker.clikerv2.pinata.PinataModule pinata;
+    private fr.cliker.clikerv2.liveauction.LiveAuctions liveAuctions;
     private fr.cliker.clikerv2.rewards.OutgoingItems outgoingItems;
     private fr.cliker.clikerv2.referral.ReferralModule referrals;
     private fr.cliker.clikerv2.discord.DiscordModule discordModule;
@@ -547,6 +549,11 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
                                 return true;
                             });
         }
+        pinata = new fr.cliker.clikerv2.pinata.PinataModule(this, database, rewardLedger);
+        pinata.start();
+        liveAuctions =
+                new fr.cliker.clikerv2.liveauction.LiveAuctions(this, database, economy, claims);
+        liveAuctions.start();
         playerComfort = new fr.cliker.clikerv2.comfort.PlayerComfort(this);
         playerComfort.start();
         farmTelemetry = new fr.cliker.clikerv2.comfort.FarmTelemetry(this);
@@ -608,6 +615,8 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         if (outpostModule != null) outpostModule.shutdown();
         if (raidModule != null) raidModule.shutdown();
         if (huntingModule != null) huntingModule.shutdown();
+        if (liveAuctions != null) liveAuctions.shutdown();
+        if (pinata != null) pinata.shutdown();
         if (rewardLedger != null) rewardLedger.shutdown();
         if (referrals != null) referrals.shutdown();
         if (discordModule != null) discordModule.shutdown();

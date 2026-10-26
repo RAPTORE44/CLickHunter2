@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-26",
+  "base_commit": "c8d46f4",
+  "jar_sha256": "738fc58e6099841500ed4d471155bf1c89b5583cfe98bf6989e22b928212b0fe",
+  "tests": {
+    "tests": 280,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "native_checks": {
+    "pinata": [
+      "Arpenteur unique au point configuré, annonce cliquable /pinata tp, refus de doublon et gestion refusée au non-op",
+      "Deux joueurs frappent simultanément : coups payés indépendamment, une seule monnaie commune à toute l’apparition",
+      "Durée réduite à 12 secondes dans cette copie : disparition effective et récapitulatif privé des gains",
+      "Participant déconnecté à la fin : récapitulatif personnel reçu à sa reconnexion",
+      "Prochaine apparition automatique avec délai réduit à 25–30 secondes dans la copie ; aucun doublon"
+    ],
+    "pinata-duration": [
+      "Point sauvegardé retrouvé après redémarrage ; prochaine échéance tirée entre 20 et 30 minutes avec les valeurs de production",
+      "Durée réelle de trois minutes vérifiée sur Paper : présence à 90 secondes, disparition autour de 180 secondes et récapitulatif privé",
+      "JAR final : deux participants, type unique par apparition, récapitulatif hors ligne à la reconnexion et intégrité SQLite ok"
+    ],
+    "live-auction": [
+      "Inscription par commande, annonce cliquable, aperçu de trois lots et menu double coffre ; forçage refusé au non-op",
+      "Fin des inscriptions : nouveau joueur refusé, inscrits conservés",
+      "Offres 1K puis 1.2K : tête du meneur sur le montant, précédents verrouillés, compteur relancé et aucun débit avant attribution",
+      "Parcours de prix paginé en serpent et offre supérieure au solde refusée",
+      "Lot 1/3 attribué au gagnant hors ligne : débit exact et objet conservé dans /claim ; prochain lot repart à 1K",
+      "Trois lots successifs : deuxième invendu sans débit, troisième payé une seule fois et livré directement au gagnant en ligne",
+      "Inventaire plein à la reconnexion : lot visible dans /claim, puis récupération unique après libération de place"
+    ],
+    "live-auction-restart": [
+      "Offre conservée pendant l’arrêt : lot 1 attribué au redémarrage, gagnant hors ligne débité une seule fois et reçu de livraison unique",
+      "Inscription et lot 2 conservés après redémarrage ; menu rouvert, tête du meneur affichée et offre non débitée immédiatement",
+      "Compteur réel de 30 secondes validé après une surenchère, attribution au joueur déconnecté et débit exact à zéro",
+      "Dernier lot invendu sans paiement ; reconnexion sans double débit ni double lot, intégrité SQLite ok",
+      "Configuration de production 3 h / 3 min / 30 s vérifiée et module piñata accessible dans le même JAR",
+      "Têtes : aucune recherche Mojang répétée pour le profil synthétique hors ligne ; affichage de secours opérationnel"
+    ]
+  },
+  "native_check_count": 21,
+  "real_pinata_duration_ms": 180736,
+  "real_bid_duration_ms": 30932,
+  "offline_profile_requests": 0,
+  "readme": {
+    "commands": 60,
+    "missing": [],
+    "missing_aliases": []
+  },
+  "environment": {
+    "paper": "1.21.4 build 232",
+    "java": "21.0.9",
+    "address": "127.0.0.1:25580",
+    "players": "Synthetic offline accounts only, up to 3 clients",
+    "holograms": "Native fallback; actual Holographic Displays provider not available",
+    "itemsadder": "Production pack not available locally"
+  },
+  "test_settings": {
+    "accelerated_pinata_duration_seconds": 12,
+    "accelerated_pinata_interval_seconds": [
+      25,
+      30
+    ],
+    "real_pinata_duration_seconds": 180,
+    "accelerated_auction_registration_seconds": 12,
+    "accelerated_auction_bid_seconds": 6,
+    "accelerated_auction_interval_seconds": 60,
+    "production_configuration_verified": {
+      "auction_interval_seconds": 10800,
+      "auction_registration_seconds": 180,
+      "auction_bid_seconds": 30,
+      "pinata_interval_seconds": [
+        1200,
+        1800
+      ],
+      "pinata_duration_seconds": 180
+    }
+  },
+  "notes": [
+    "Piñata duration and automatic-spawn scenarios were run before adding the independent live-auction module; the piñata implementation was preserved, and both modules were checked together in the final JAR.",
+    "Real three-minute piñata and thirty-second bid timers were measured. The three-hour recurrence was checked by configuration/persisted deadlines, not by waiting three hours.",
+    "No representative load test or real online-player skin rendering was performed. Offline UUID heads use a generic fallback; available real textures are copied/cached, with at most one asynchronous lookup per real UUID per event.",
+    "Highest latest solvent offer wins. Leaving after bidding does not cancel a firm offer; no escrow/debit before settlement.",
+    "Default legendary lots are randomly selected existing legendary equipment; exact alternative objects were not supplied.",
+    "The final full-sale Paper scenario was rerun after UI context protection was added. The earlier restart/real-timer scenarios exercise the unchanged settlement/timer implementation; piñata code remains unchanged since its duration test."
+  ],
+  "final_jar_native_groups": [
+    "live-auction"
+  ],
+  "ui_context_regressions": {
+    "failed_before_correction": {
+      "registration_preview_became_offer": 7436,
+      "old_page_became_higher_offer": 3661362,
+      "previous_lot_click_became_offer_on_next_lot": 1000
+    },
+    "final_status": "All three rejected without an offer; old-container replay also rejected. Tests included in the final suite."
+  }
+}
