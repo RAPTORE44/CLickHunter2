@@ -5,6 +5,9 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  aide:
+    description: Aide contextuelle des commandes accessibles
+    usage: /aide [commande]
   tag:
     description: Collection de tags et grades par catégorie
     permission: cliker.tag.use

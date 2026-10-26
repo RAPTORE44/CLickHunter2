@@ -59,4 +59,27 @@ class MerchantSafetyTest {
         click(15, ClickType.DROP);
         assertEquals(64, EssenceItem.count(player, MobTier.VACHE, EssenceRarity.COMMUNE));
     }
+
+    @Test
+    void armorOfferShowsDifferenceAgainstEquippedPiece() {
+        player.getInventory()
+                .setHelmet(TierGear.createArmor(MobTier.VACHE, TierGear.ArmorSlot.HELMET));
+        menu.open(player, MobTier.COCHON);
+        String lore =
+                player
+                        .getOpenInventory()
+                        .getTopInventory()
+                        .getItem(11)
+                        .getItemMeta()
+                        .lore()
+                        .stream()
+                        .map(
+                                net.kyori.adventure.text.serializer.plain
+                                                .PlainTextComponentSerializer.plainText()
+                                        ::serialize)
+                        .toList()
+                        .toString();
+        assertTrue(lore.contains("Comparaison avec ta pièce équipée"));
+        assertTrue(lore.contains("dégâts fixes par coup"));
+    }
 }

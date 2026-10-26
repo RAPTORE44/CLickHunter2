@@ -26,6 +26,7 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 
 | Commande | Utilité |
 | --- | --- |
+| `/aide [commande]` | Liste les commandes accessibles par catégorie ; `/aide warp` affiche le détail. |
 | `/menu` | Ouvrir le menu principal. |
 | `/tuto` | Consulter le livre-guide. |
 | `/spawn` | Rejoindre le point d'accueil. |
@@ -73,9 +74,9 @@ Les couples conservent leurs commandes toute l’année. L’anneau est identifi
 | `/stats` | Consulter ses statistiques. |
 | `/prestige` | Consulter les conditions et effectuer un prestige si les conditions sont remplies. |
 | `/bestiaire` | Consulter les créatures découvertes et les maîtrises. |
-| `/contrats` | Accepter ou réclamer les contrats de chasse. |
+| `/contrats` | Clic gauche pour accepter/réclamer ; clic droit sur une créature découverte pour épingler sa progression dans la barre d'action. |
 | `/pinata` / `/pinata tp` | Voir la piñata active et la rejoindre ; alias `/pignata`. |
-| `/raid` | Ouvrir son groupe de raid (1 à 8 joueurs). |
+| `/raid` | Ouvrir son groupe de raid (1 à 8 joueurs). Le boss affiche sa jauge de vie ; à la victoire, les participants voient le top 5 des dégâts et leur récapitulatif individuel de gains. |
 | `/raid inviter <pseudo>` | Inviter un joueur en ligne pour 60 secondes. |
 | `/raid accepter <pseudo>` | Accepter l’invitation d’un chef. |
 | `/raid lancer` | Le chef consomme le parchemin tenu et lance un raid privé de sa difficulté. |
@@ -141,7 +142,7 @@ Toutes ces commandes acceptent aussi `/is` et `/avantpostes` à la place de `/av
 | --- | --- |
 | `/avantposte` | Ouvrir le menu du terrain personnel. |
 | `/avantposte aller` | Créer ou rejoindre son terrain. |
-| `/avantposte agrandir` | Acheter l'extension suivante. |
+| `/avantposte agrandir` | Voir la taille et le prix suivants, puis confirmer ou annuler l'achat dans le menu. |
 | `/avantposte visites` | Parcourir les avant-postes publics ; gauche visite, droite ajoute ou retire un favori. |
 | `/avantposte favoris` | Retrouver les terrains favoris encore publics. |
 | `/avantposte public` / `/avantposte prive` | Ouvrir les visites à tous ou les réserver au propriétaire et aux joueurs de confiance. |
@@ -172,7 +173,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/respawnmobs` | Faire réapparaître tous les mobs placés, sans les boss ni les invocations temporaires ; alias `/mobsrespawn`. | `cliker.mob.admin` |
 | `/spawnboss` | Lancer une vague de tous les boss de zone, avec annonce globale ; alias `/bossrespawn`. | `cliker.mob.admin` |
 | `/jeutchat lancer [calcul\|devinette\|pays]` / `/jeutchat stop` | Lancer ou interrompre une manche de jeu de chat. | `cliker.jeutchat.admin` |
-| `/diagnostic` | Vérifier SQLite, livraisons, mobs manquants, PNJ, hologrammes et destinations absentes ; indique la commande de correction et la commande Spark si Spark manque. Lecture seule, résultats paginés. | `cliker.diagnostic.admin` |
+| `/diagnostic` | Vérifier SQLite (durée de la requête), TPS, tâches planifiées, livraisons, mobs manquants, PNJ, hologrammes et destinations absentes ; indique la commande de correction et la commande Spark si Spark manque. Lecture seule, résultats paginés. | `cliker.diagnostic.admin` |
 | `/avantposte vedette <pseudo>` / `/avantposte vedette retirer` | Mettre un terrain public à l’honneur pendant sept jours ou retirer sa mise en avant. | `cliker.services.admin` |
 | `/gm [0\|1\|2\|3] [joueur]` | Changer de mode ; sans argument, basculer entre survie et créatif. Modes : 0 survie, 1 créatif, 2 aventure, 3 spectateur. | `cliker.gamemode.admin` |
 | `/setspawn` | Définir le point d'accueil à la position actuelle. | `cliker.spawn.admin` |
@@ -341,7 +342,11 @@ Les magma cubes utilisent la taille moyenne 2 et les ghasts une échelle 0,5 par
 
 L’audit du 26 octobre couvre aussi les gains de morts de mobs, les coffres, le calendrier à 31 jours, les enchères, les niveaux d’amélioration, les sorties d’inventaire et les protections d’avant-poste. L’inscription d’enchère annulée par un refus de téléportation rembourse uniquement ses propres frais. Les détails, le nombre de tests et les limites vérifiées sont dans [le rapport complet](docs/AUDIT-COMPLET-2026-10-26.md).
 
-La liste des **67 commandes principales** et de leurs alias est classée par catégorie ci-dessus. Cet audit n’ajoute aucune commande. Pour installer le JAR : arrêter le serveur, sauvegarder ensemble le dossier du plugin et les mondes/playerdata, remplacer le JAR de ClikerV2, puis redémarrer. Ne pas supprimer les configurations ni la base. Les migrations conservent les données existantes et ajoutent seulement les colonnes ou tables nécessaires.
+La liste des **68 commandes principales** et de leurs alias est classée par catégorie ci-dessus. Pour installer le JAR : arrêter le serveur, sauvegarder ensemble le dossier du plugin et les mondes/playerdata, remplacer le JAR de ClikerV2, puis redémarrer. Ne pas supprimer les configurations ni la base. Les migrations conservent les données existantes et ajoutent seulement les colonnes ou tables nécessaires.
+
+### Aide, suivi et confirmations
+
+`/aide` ne liste que les commandes permises par LuckPerms et les permissions Bukkit effectives ; `/aide <commande>` affiche son usage et propose de saisir la commande. Dans `/contrats`, le clic gauche conserve l'acceptation/la réclamation et le clic droit épingle ou retire le suivi. La barre d'action indique l'objectif, reprend à la reconnexion et ne compte que les éliminations confirmées en base. Une extension d'avant-poste affiche sa nouvelle surface et son prix avant le bouton de confirmation ; annuler ne touche pas au solde. À la victoire du boss de raid, les participants voient le top 5 des dégâts puis le message individuel de récompense, alloué comme avant.
 
 
 ### Piñata de la zone Vache
@@ -361,7 +366,7 @@ Au début de chaque lot, le double coffre s’ouvre automatiquement aux joueurs 
 
 Trois équipements légendaires existants sont vendus successivement. Aucune obligation de miser sur chaque objet. Les offres restent fermes après fermeture, déconnexion ou `/enchere quit` ; seul le gagnant solvable est débité pour le lot. Quitter supprime le droit de déposer de nouvelles offres et renvoie au spawn. Les lots sont livrés dans l’inventaire si possible, sinon `/claim`. En fin de vente, les participants encore présents retournent au spawn. Configuration : `activites/encheres.yml`. [Règles détaillées](docs/ENCHERES.md).
 
-La liste ci-dessus couvre les **67 commandes principales** déclarées par le plugin, leurs alias et sous-commandes.
+La liste ci-dessus couvre les **68 commandes principales** déclarées par le plugin, leurs alias et sous-commandes.
 
 
 ### Configuration communautaire

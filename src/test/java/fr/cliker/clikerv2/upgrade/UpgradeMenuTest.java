@@ -60,6 +60,13 @@ class UpgradeMenuTest {
         var inventory = player.getOpenInventory().getTopInventory();
         assertTrue(inventory.getItem(10).getItemMeta().lore().toString().contains("Il manque"));
         assertTrue(
+                inventory
+                        .getItem(10)
+                        .getItemMeta()
+                        .lore()
+                        .toString()
+                        .contains("Gain de ce niveau"));
+        assertTrue(
                 inventory.getItem(13).getItemMeta().lore().toString().contains("NIVEAU MAXIMUM"));
         assertEquals(Material.ARROW, inventory.getItem(26).getType());
         economy.set(player.getUniqueId(), player.getName(), CurrencyType.GEMMES_SOMBRES, 500000)

@@ -439,6 +439,24 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     }
 
     private void payBoss(UUID source, Map<UUID, Long> contribution, Map<UUID, String> players) {
+        List<Map.Entry<UUID, Long>> ranking =
+                contribution.entrySet().stream()
+                        .sorted(Map.Entry.<UUID, Long>comparingByValue().reversed())
+                        .limit(5)
+                        .toList();
+        if (!ranking.isEmpty()) {
+            String podium =
+                    ranking.stream()
+                            .map(
+                                    entry ->
+                                            players.getOrDefault(entry.getKey(), "Joueur")
+                                                    + " : "
+                                                    + Numbers.compact(entry.getValue()))
+                            .collect(java.util.stream.Collectors.joining("  •  "));
+            for (Player participant : world.getPlayers())
+                if (contribution.containsKey(participant.getUniqueId()))
+                    participant.sendMessage(DailySettings.color("&6Bilan du boss &8• &e" + podium));
+        }
         var shares = ProportionalRewards.allocate(bossReward, contribution);
         Map<UUID, Gains> credited = new LinkedHashMap<>();
         shares.forEach(

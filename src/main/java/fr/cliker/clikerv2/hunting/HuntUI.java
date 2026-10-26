@@ -19,11 +19,13 @@ public final class HuntUI implements Listener {
         final UUID owner;
         final Inventory inventory;
         final IntConsumer action;
+        final IntConsumer rightAction;
         boolean pending;
 
-        View(Player player, String title, int size, IntConsumer action) {
+        View(Player player, String title, int size, IntConsumer action, IntConsumer rightAction) {
             owner = player.getUniqueId();
             this.action = action;
+            this.rightAction = rightAction;
             inventory = Bukkit.createInventory(this, size, DailySettings.color(title));
             for (int i = 0; i < size; i++)
                 inventory.setItem(i, item(Material.BLACK_STAINED_GLASS_PANE, " ", List.of()));
@@ -43,7 +45,12 @@ public final class HuntUI implements Listener {
     }
 
     public static View view(Player player, String title, int size, IntConsumer action) {
-        return new View(player, title, size, action);
+        return new View(player, title, size, action, slot -> {});
+    }
+
+    public static View view(
+            Player player, String title, int size, IntConsumer action, IntConsumer rightAction) {
+        return new View(player, title, size, action, rightAction);
     }
 
     public static ItemStack item(Material material, String title, List<String> lore) {
@@ -85,16 +92,17 @@ public final class HuntUI implements Listener {
             if (e.getWhoClicked().getUniqueId().equals(view.owner)
                     && e.getRawSlot() >= 0
                     && e.getRawSlot() < view.inventory.getSize()
-                    && e.getClick().isLeftClick()
+                    && (e.getClick().isLeftClick() || e.getClick().isRightClick())
                     && !view.pending) {
                 view.pending = true;
                 int slot = e.getRawSlot();
+                IntConsumer action = e.getClick().isRightClick() ? view.rightAction : view.action;
                 fr.cliker.clikerv2.runtime.ServerTasks.run(
                         plugin,
                         () -> {
                             view.pending = false;
                             if (e.getWhoClicked().getOpenInventory().getTopInventory()
-                                    == view.inventory) view.action.accept(slot);
+                                    == view.inventory) action.accept(slot);
                         });
             }
         }

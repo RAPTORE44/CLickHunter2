@@ -90,32 +90,48 @@ public final class MerchantMenu implements Listener {
                         tier));
         inventory.setItem(
                 HELMET_SLOT,
-                purchaseItem(
-                        TierGear.createArmor(tier, TierGear.ArmorSlot.HELMET),
-                        armorEcus,
-                        armorEssence,
-                        tier));
+                compareArmor(
+                        player,
+                        purchaseItem(
+                                TierGear.createArmor(tier, TierGear.ArmorSlot.HELMET),
+                                armorEcus,
+                                armorEssence,
+                                tier),
+                        tier,
+                        TierGear.ArmorSlot.HELMET));
         inventory.setItem(
                 CHESTPLATE_SLOT,
-                purchaseItem(
-                        TierGear.createArmor(tier, TierGear.ArmorSlot.CHESTPLATE),
-                        armorEcus,
-                        armorEssence,
-                        tier));
+                compareArmor(
+                        player,
+                        purchaseItem(
+                                TierGear.createArmor(tier, TierGear.ArmorSlot.CHESTPLATE),
+                                armorEcus,
+                                armorEssence,
+                                tier),
+                        tier,
+                        TierGear.ArmorSlot.CHESTPLATE));
         inventory.setItem(
                 LEGGINGS_SLOT,
-                purchaseItem(
-                        TierGear.createArmor(tier, TierGear.ArmorSlot.LEGGINGS),
-                        armorEcus,
-                        armorEssence,
-                        tier));
+                compareArmor(
+                        player,
+                        purchaseItem(
+                                TierGear.createArmor(tier, TierGear.ArmorSlot.LEGGINGS),
+                                armorEcus,
+                                armorEssence,
+                                tier),
+                        tier,
+                        TierGear.ArmorSlot.LEGGINGS));
         inventory.setItem(
                 BOOTS_SLOT,
-                purchaseItem(
-                        TierGear.createArmor(tier, TierGear.ArmorSlot.BOOTS),
-                        armorEcus,
-                        armorEssence,
-                        tier));
+                compareArmor(
+                        player,
+                        purchaseItem(
+                                TierGear.createArmor(tier, TierGear.ArmorSlot.BOOTS),
+                                armorEcus,
+                                armorEssence,
+                                tier),
+                        tier,
+                        TierGear.ArmorSlot.BOOTS));
         inventory.setItem(
                 COMPRESSOR_SLOT, purchaseItem(CompressorItem.create(tier), armorEcus, 0, tier));
         inventory.setItem(
@@ -249,6 +265,38 @@ public final class MerchantMenu implements Listener {
         lore.add(
                 Component.text(
                         (delta >= 0 ? "+" : "") + Numbers.compact(delta) + " dégâts" + percent,
+                        delta >= 0 ? NamedTextColor.GREEN : NamedTextColor.RED));
+        meta.lore(lore);
+        offered.setItemMeta(meta);
+        return offered;
+    }
+
+    private ItemStack compareArmor(
+            Player player, ItemStack offered, MobTier tier, TierGear.ArmorSlot slot) {
+        ItemStack equipped =
+                switch (slot) {
+                    case HELMET -> player.getInventory().getHelmet();
+                    case CHESTPLATE -> player.getInventory().getChestplate();
+                    case LEGGINGS -> player.getInventory().getLeggings();
+                    case BOOTS -> player.getInventory().getBoots();
+                };
+        MobTier current = null;
+        if (equipped != null && equipped.hasItemMeta()) {
+            String id =
+                    equipped.getItemMeta()
+                            .getPersistentDataContainer()
+                            .get(TierGear.ARMOR_KEY, PersistentDataType.STRING);
+            if (id != null) current = MobTier.parse(id);
+        }
+        long before = current == null ? 0 : TierGear.pieceDamage(current);
+        long after = TierGear.pieceDamage(tier);
+        long delta = after - before;
+        var meta = offered.getItemMeta();
+        var lore = new ArrayList<Component>(meta.lore() == null ? List.of() : meta.lore());
+        lore.add(Component.text("Comparaison avec ta pièce équipée", NamedTextColor.GRAY));
+        lore.add(
+                Component.text(
+                        (delta >= 0 ? "+" : "") + Numbers.compact(delta) + " dégâts fixes par coup",
                         delta >= 0 ? NamedTextColor.GREEN : NamedTextColor.RED));
         meta.lore(lore);
         offered.setItemMeta(meta);

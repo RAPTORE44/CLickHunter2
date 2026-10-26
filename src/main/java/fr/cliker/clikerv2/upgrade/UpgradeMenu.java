@@ -156,6 +156,16 @@ public final class UpgradeMenu implements Listener {
                                                     + " "
                                                     + type.unitLabel(),
                                             NamedTextColor.GREEN));
+            Component gainLine =
+                    Component.text("Gain de ce niveau : ", NamedTextColor.GRAY)
+                            .decoration(TextDecoration.ITALIC, false)
+                            .append(
+                                    Component.text(
+                                            "+"
+                                                    + Numbers.compact(type.perLevelEffect())
+                                                    + " "
+                                                    + type.unitLabel(),
+                                            NamedTextColor.AQUA));
             Component costLine =
                     Component.text("Coût : ", NamedTextColor.GRAY)
                             .decoration(TextDecoration.ITALIC, false)
@@ -169,6 +179,7 @@ public final class UpgradeMenu implements Listener {
                             levelLine,
                             Component.text(""),
                             nextLine,
+                            gainLine,
                             costLine,
                             Component.text(
                                     "Ton solde : "

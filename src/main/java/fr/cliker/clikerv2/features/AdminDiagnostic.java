@@ -42,6 +42,7 @@ public final class AdminDiagnostic {
 
     private static List<String> readDatabase(Connection connection) {
         List<String> lines = new ArrayList<>();
+        long started = System.nanoTime();
         try (var statement = connection.createStatement()) {
             try (var result = statement.executeQuery("PRAGMA quick_check")) {
                 while (result.next()) lines.add("SQLite : " + result.getString(1));
@@ -57,6 +58,7 @@ public final class AdminDiagnostic {
         } catch (SQLException error) {
             throw new DatabaseManager.DatabaseException(error);
         }
+        lines.add("SQLite diagnostic : " + ((System.nanoTime() - started) / 1_000_000) + " ms");
         return lines;
     }
 
@@ -72,6 +74,14 @@ public final class AdminDiagnostic {
         List<String> results = new ArrayList<>(lines);
         results.addAll(mobs.diagnostic());
         results.addAll(fr.cliker.clikerv2.npc.ZnpcsNpc.diagnostics());
+        long pluginTasks =
+                Bukkit.getScheduler().getPendingTasks().stream()
+                        .filter(task -> task.getOwner() == plugin)
+                        .count();
+        results.add("Tâches planifiées du plugin : " + pluginTasks);
+        double[] tps = Bukkit.getTPS();
+        if (tps.length > 0)
+            results.add("TPS moyen Paper (1 min) : " + String.format(Locale.ROOT, "%.1f", tps[0]));
         for (String dependency :
                 List.of("ZNPCsPlus", "HolographicDisplays", "ItemsAdder", "LuckPerms", "spark"))
             results.add(
@@ -89,7 +99,7 @@ public final class AdminDiagnostic {
         if (!Bukkit.getPluginManager().isPluginEnabled("spark"))
             results.add(
                     "Profilage TPS absent : installe Spark puis utilise /spark profiler --timeout"
-                        + " 60");
+                            + " 60");
         Settings warps = new Settings(plugin, "navigation/warps.yml");
         for (MobTier tier : MobTier.values())
             for (boolean boss : new boolean[] {false, true}) {

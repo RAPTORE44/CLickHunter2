@@ -29,6 +29,7 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
     private final YamlConfiguration config;
     private final ZoneId zone;
     private final ZnpcsNpc npc;
+    private final org.bukkit.NamespacedKey pinnedContract;
     private final Set<UUID> busy = new HashSet<>();
 
     private record OpenRequest(long id, org.bukkit.inventory.Inventory inventory, UUID world) {}
@@ -43,6 +44,7 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
         this.store = store;
         this.ledger = ledger;
         this.mobs = mobs;
+        pinnedContract = new org.bukkit.NamespacedKey(plugin, "pinned_hunting_contract");
         contracts = new ContractStore(ledger);
         file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "chasse.yml");
         if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "chasse.yml");
@@ -257,6 +259,39 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
                 ignored -> {
                     if (!current(player, request)) return;
                     var known = stats.join();
+                    java.util.function.IntConsumer pin =
+                            slot -> {
+                                if (slot < 0 || slot >= definitions.size()) return;
+                                var contract = definitions.get(slot);
+                                var stat = known.get(contract.mob());
+                                if (stat == null || stat.kills() == 0) {
+                                    player.sendMessage("§7Découvre d'abord cette créature.");
+                                    return;
+                                }
+                                var data = player.getPersistentDataContainer();
+                                String existing =
+                                        data.get(
+                                                pinnedContract,
+                                                org.bukkit.persistence.PersistentDataType.STRING);
+                                if (contract.id().equals(existing)) {
+                                    data.remove(pinnedContract);
+                                    player.sendMessage("§7Suivi du contrat retiré.");
+                                    player.sendActionBar(
+                                            net.kyori.adventure.text.Component.empty());
+                                } else {
+                                    data.set(
+                                            pinnedContract,
+                                            org.bukkit.persistence.PersistentDataType.STRING,
+                                            contract.id());
+                                    player.sendMessage(
+                                            "§aContrat épinglé : "
+                                                    + MobTier.parse(contract.mob()).label()
+                                                    + (contract.boss() ? " (boss)" : "")
+                                                    + "."
+                                                    + " Le suivi apparaît dans ta barre d'action.");
+                                    updatePinned(player, contract);
+                                }
+                            };
                     var view =
                             HuntUI.view(
                                     player,
@@ -286,7 +321,8 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
                                                             == clickedInventory)
                                                         openContracts(player);
                                                 });
-                                    });
+                                    },
+                                    pin);
                     for (int i = 0; i < definitions.size(); i++) {
                         var contract = definitions.get(i);
                         var mob = MobTier.parse(contract.mob());
@@ -315,6 +351,7 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
                         lore.add("");
                         lore.addAll(HuntUI.gains(contract.reward()));
                         lore.add("");
+                        lore.add("&eClic droit pour épingler le suivi.");
                         lore.add(
                                 state.claimed()
                                         ? "&aRécompense récupérée"
@@ -346,6 +383,71 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
                     fr.cliker.clikerv2.ui.MenuNavigation.back(plugin, view.inventory, 45);
                     player.openInventory(view.inventory);
                 });
+    }
+
+    private ContractStore.Contract pinned(Player player) {
+        String id =
+                player.getPersistentDataContainer()
+                        .get(pinnedContract, org.bukkit.persistence.PersistentDataType.STRING);
+        return id == null
+                ? null
+                : definitions.stream().filter(def -> def.id().equals(id)).findFirst().orElse(null);
+    }
+
+    private void updatePinned(Player player, ContractStore.Contract contract) {
+        String cycle = cycle();
+        contracts
+                .progress(player.getUniqueId(), contract, cycle)
+                .whenComplete(
+                        (progress, error) -> {
+                            if (error != null || progress == null || stopped) return;
+                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                    plugin,
+                                    () -> {
+                                        if (!fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(
+                                                        player)
+                                                || pinned(player) != contract) return;
+                                        String text =
+                                                progress.claimed()
+                                                        ? "Récompense récupérée"
+                                                        : !progress.accepted()
+                                                                ? "À accepter dans /contrats"
+                                                                : Math.min(
+                                                                                progress.done(),
+                                                                                contract.target())
+                                                                        + "/"
+                                                                        + contract.target()
+                                                                        + (progress.done()
+                                                                                        >= contract
+                                                                                                .target()
+                                                                                ? " — à réclamer !"
+                                                                                : "");
+                                        player.sendActionBar(
+                                                fr.cliker.clikerv2.daily.DailySettings.color(
+                                                        "&6Contrat &8• &e"
+                                                                + MobTier.parse(contract.mob())
+                                                                        .label()
+                                                                + (contract.boss() ? " (boss)" : "")
+                                                                + " &8• &f"
+                                                                + text));
+                                    });
+                        });
+    }
+
+    @EventHandler
+    public void trackContract(fr.cliker.clikerv2.features.HuntKillEvent event) {
+        Player player = Bukkit.getPlayer(event.owner);
+        if (player == null) return;
+        ContractStore.Contract contract = pinned(player);
+        if (contract != null
+                && contract.mob().equals(event.tier.id())
+                && contract.boss() == event.boss) updatePinned(player, contract);
+    }
+
+    @EventHandler
+    public void trackContractOnJoin(PlayerJoinEvent event) {
+        ContractStore.Contract contract = pinned(event.getPlayer());
+        if (contract != null) updatePinned(event.getPlayer(), contract);
     }
 
     @Override

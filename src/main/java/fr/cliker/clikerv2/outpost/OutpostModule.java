@@ -380,6 +380,72 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
         player.openInventory(view.getInventory());
     }
 
+    private void confirmExpansion(Player player) {
+        var plot = plots.get(player.getUniqueId());
+        if (plot == null) {
+            message(player, "absent");
+            return;
+        }
+        int next = plot.tier() + 1;
+        var view = visitMenus.create(player, 27, "Confirmer l'extension");
+        if (next >= radii.length) {
+            view.put(
+                    13,
+                    fr.cliker.clikerv2.features.Menus.item(
+                            Material.BARRIER, "Taille maximale atteinte"),
+                    null);
+        } else {
+            int diameter = radii[next] * 2 + 1;
+            view.put(
+                    13,
+                    fr.cliker.clikerv2.features.Menus.item(
+                            Material.GOLD_INGOT,
+                            "Extension vers " + diameter + " × " + diameter,
+                            "Coût : " + fr.cliker.clikerv2.Numbers.compact(prices[next]) + " Écus",
+                            "Le solde est vérifié avant le débit.",
+                            "Confirmer pour agrandir le terrain."),
+                    (who, right) -> expand(who));
+            view.put(
+                    11,
+                    fr.cliker.clikerv2.features.Menus.item(
+                            Material.LIME_CONCRETE, "Confirmer l'achat"),
+                    (who, right) -> expand(who));
+        }
+        view.put(
+                15,
+                fr.cliker.clikerv2.features.Menus.item(Material.RED_CONCRETE, "Annuler"),
+                (who, right) -> menu(who));
+        view.show(player);
+    }
+
+    private void expand(Player player) {
+        if (!busy.add(player.getUniqueId())) return;
+        result(
+                player,
+                store.expand(player.getUniqueId(), prices),
+                expansion -> {
+                    if (expansion.plot() != null) {
+                        cache(expansion.plot());
+                        viewing.replaceAll(
+                                (id, plot) ->
+                                        plot.owner().equals(player.getUniqueId())
+                                                ? expansion.plot()
+                                                : plot);
+                        for (Player visitor : world.getPlayers())
+                            if (viewing.get(visitor.getUniqueId()) != null
+                                    && viewing.get(visitor.getUniqueId())
+                                            .owner()
+                                            .equals(player.getUniqueId()))
+                                border(visitor, expansion.plot());
+                    }
+                    if (player.isOnline()) {
+                        message(player, expansion.status());
+                        if (player.getOpenInventory().getTopInventory().getHolder()
+                                instanceof fr.cliker.clikerv2.features.Menus.View) menu(player);
+                    }
+                });
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) return true;
@@ -531,27 +597,7 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
             return true;
         }
         if (sub.equals("agrandir")) {
-            if (!busy.add(player.getUniqueId())) return true;
-            result(
-                    player,
-                    store.expand(player.getUniqueId(), prices),
-                    expansion -> {
-                        if (expansion.plot() != null) {
-                            cache(expansion.plot());
-                            viewing.replaceAll(
-                                    (id, plot) ->
-                                            plot.owner().equals(player.getUniqueId())
-                                                    ? expansion.plot()
-                                                    : plot);
-                            for (Player visitor : world.getPlayers())
-                                if (viewing.get(visitor.getUniqueId()) != null
-                                        && viewing.get(visitor.getUniqueId())
-                                                .owner()
-                                                .equals(player.getUniqueId()))
-                                    border(visitor, expansion.plot());
-                        }
-                        if (player.isOnline()) message(player, expansion.status());
-                    });
+            confirmExpansion(player);
             return true;
         }
         if ((sub.equals("ajouter") || sub.equals("retirer")) && args.length == 2) {
