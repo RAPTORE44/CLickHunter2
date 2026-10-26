@@ -63,6 +63,28 @@ class OutpostProtectionTest {
     }
 
     @Test
+    void visitorsCannotPlaceEntitiesInSomeoneElsesPlot() {
+        var inside = new Location(world, 256, 65, 0);
+        var stand = world.spawn(inside, org.bukkit.entity.ArmorStand.class);
+        var visitor =
+                new org.bukkit.event.entity.EntityPlaceEvent(
+                        stand, guest, inside.getBlock(), org.bukkit.block.BlockFace.UP);
+        server.getPluginManager().callEvent(visitor);
+        assertTrue(visitor.isCancelled());
+        var allowed =
+                new org.bukkit.event.entity.EntityPlaceEvent(
+                        stand, owner, inside.getBlock(), org.bukkit.block.BlockFace.UP);
+        server.getPluginManager().callEvent(allowed);
+        assertFalse(allowed.isCancelled());
+        stand.teleport(new Location(world, 273, 65, 0));
+        var outside =
+                new org.bukkit.event.entity.EntityPlaceEvent(
+                        stand, owner, inside.getBlock(), org.bukkit.block.BlockFace.UP);
+        server.getPluginManager().callEvent(outside);
+        assertTrue(outside.isCancelled());
+    }
+
+    @Test
     void visitorsCannotBreakAndOwnerCannotBuildBeyondBoughtBoundary() {
         var inside = new Location(world, 256, 65, 0);
         assertTrue(module.canBuild(owner.getUniqueId(), inside));

@@ -11,6 +11,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -64,6 +65,10 @@ public final class AutoClickManager implements CommandExecutor, Listener {
                 lastAttackTick.remove(uuid);
                 continue;
             }
+            // Un joueur sur l’écran de mort reste connecté : damage(..., player)
+            // contournerait sinon l’absence d’attaque vanilla. L’activation est conservée
+            // pour reprendre normalement après réapparition ou sortie du mode spectateur.
+            if (player.isDead() || player.getGameMode() == GameMode.SPECTATOR) continue;
             int interval = effectiveIntervalTicks(player);
             int last = lastAttackTick.getOrDefault(uuid, -interval);
             if (elapsedTicks - last < interval) continue;

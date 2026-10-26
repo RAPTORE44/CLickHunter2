@@ -44,13 +44,13 @@ class MasterRulesTest {
     }
 
     @Test
-    void legacyClaimsCannotBeClaimedAgainAfterCalendarMigration() {
+    void legacyClaimsThroughDay31RemainClaimedAfterCalendarMigration() {
         LocalDate date = LocalDate.of(2026, 10, 24);
         for (int oldDay = 29; oldDay <= 31; oldDay++) {
             var progress = new DailyProgress(date, oldDay);
-            assertEquals(28, progress.day());
+            assertEquals(oldDay, progress.day());
             assertTrue(progress.claimedToday(date));
-            assertEquals(1, progress.currentDay(date.plusDays(1)));
+            assertEquals(oldDay == 31 ? 1 : oldDay + 1, progress.currentDay(date.plusDays(1)));
         }
     }
 
@@ -66,10 +66,10 @@ class MasterRulesTest {
                 old.set("recompenses." + d + ".description", "Récompense test — Jour " + d);
             old.save(file.toFile());
             var settings = new DailySettings(plugin);
-            assertEquals(2, settings.config().getInt("schema-version"));
-            assertEquals("Epic Lootbox x1", settings.reward(1));
-            assertEquals("Divine Lootbox x7", settings.reward(28));
-            assertFalse(settings.config().contains("recompenses.29"));
+            assertEquals(3, settings.config().getInt("schema-version"));
+            assertEquals("Récompense test — Jour 1", settings.reward(1));
+            assertEquals("Récompense test — Jour 31", settings.reward(31));
+            assertTrue(settings.config().contains("recompenses.29"));
             try (var backups = java.nio.file.Files.list(file.getParent().resolve("backups"))) {
                 assertEquals(1, backups.count());
             }

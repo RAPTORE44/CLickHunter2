@@ -711,6 +711,17 @@ public final class OutpostModule implements Listener, CommandExecutor, TabComple
                 || denied(player, e.getEntity().getLocation())) e.setCancelled(true);
     }
 
+    /** Armor stands, boats and minecarts are entities, not BlockPlaceEvents. */
+    @EventHandler(ignoreCancelled = true)
+    public void entityPlace(EntityPlaceEvent e) {
+        if (e.getEntity().getWorld() != world) return;
+        if (e.getPlayer() != null) {
+            if (denied(e.getPlayer(), e.getEntity().getLocation())) e.setCancelled(true);
+        } else if (!samePlot(e.getBlock(), e.getEntity().getLocation().getBlock())) {
+            e.setCancelled(true);
+        }
+    }
+
     @EventHandler(ignoreCancelled = true)
     public void hangPlace(HangingPlaceEvent e) {
         if (e.getEntity().getWorld() == world

@@ -201,7 +201,7 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
             if (sender != null)
                 sender.sendMessage(
                         "§cDéfinis la salle avec /enchere setsalle, puis le présentoir avec"
-                            + " /enchere setpresentoir.");
+                                + " /enchere setpresentoir.");
             schedule();
             return;
         }
@@ -441,9 +441,9 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
             player.sendMessage("§cLa salle d’enchères n’est pas encore définie.");
             return;
         }
-        store.join(id, owner, entryFee)
+        store.admit(id, owner, entryFee)
                 .whenComplete(
-                        (allowed, error) ->
+                        (admission, error) ->
                                 sync(
                                         () -> {
                                             if (joining.get(owner) != token) return;
@@ -459,7 +459,7 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                                                                 + " instant.");
                                                 return;
                                             }
-                                            if (!allowed) {
+                                            if (admission == null || !admission.allowed()) {
                                                 joining.remove(owner, token);
                                                 player.sendMessage(
                                                         "Inscription refusée : solde insuffisant"
@@ -504,8 +504,42 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                                                                                     return;
                                                                                 apply(fresh);
                                                                                 if (!room.enter(
-                                                                                        player))
+                                                                                        player)) {
+                                                                                    store.rejectAdmission(
+                                                                                                    id,
+                                                                                                    owner,
+                                                                                                    admission
+                                                                                                            .receipt())
+                                                                                            .whenComplete(
+                                                                                                    (refunded,
+                                                                                                            refundError) -> {
+                                                                                                        if (refundError
+                                                                                                                != null)
+                                                                                                            log(
+                                                                                                                    "Remboursement"
+                                                                                                                        + " après"
+                                                                                                                        + " téléportation"
+                                                                                                                        + " refusée"
+                                                                                                                        + " impossible",
+                                                                                                                    refundError);
+                                                                                                        else if (Boolean
+                                                                                                                        .TRUE
+                                                                                                                        .equals(
+                                                                                                                                refunded)
+                                                                                                                && PlayerSessions
+                                                                                                                        .isCurrent(
+                                                                                                                                player))
+                                                                                                            player
+                                                                                                                    .sendMessage(
+                                                                                                                            "§cTéléportation"
+                                                                                                                                + " refusée."
+                                                                                                                                + " Tes frais"
+                                                                                                                                + " d’entrée"
+                                                                                                                                + " ont été"
+                                                                                                                                + " remboursés.");
+                                                                                                    });
                                                                                     return;
+                                                                                }
                                                                                 if (state.phase()
                                                                                         .equals(
                                                                                                 "ACTIVE"))
@@ -756,7 +790,7 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                             });
         p.sendMessage(
                 "§7Tu as quitté l’enchère. Les frais d’entrée ne sont pas remboursés et tes offres"
-                    + " déjà déposées restent fermes.");
+                        + " déjà déposées restent fermes.");
     }
 
     @EventHandler
@@ -840,6 +874,11 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
         if (sub.equals("setsalle") || sub.equals("setpresentoir")) {
             if (!sender.hasPermission("cliker.enchere.admin") || !(sender instanceof Player p)) {
                 sender.sendMessage("§cPermission administrateur et présence en jeu requises.");
+                return true;
+            }
+            if (state != null && !state.phase().equals("DONE")) {
+                sender.sendMessage(
+                        "§cLa salle et le présentoir ne peuvent pas changer pendant une enchère.");
                 return true;
             }
             fr.cliker.clikerv2.config.YamlFiles.location(

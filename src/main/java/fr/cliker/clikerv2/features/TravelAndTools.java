@@ -209,7 +209,19 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
             return false;
         }
         target = target.clone();
-        if (!Double.isFinite(target.getX()) || !Double.isFinite(target.getZ())) return false;
+        if (!Double.isFinite(target.getX())
+                || !Double.isFinite(target.getY())
+                || !Double.isFinite(target.getZ())
+                || !Float.isFinite(target.getYaw())
+                || !Float.isFinite(target.getPitch())
+                || target.getY() < target.getWorld().getMinHeight() + 1
+                || target.getY() >= target.getWorld().getMaxHeight() - 1
+                || !target.getWorld().getWorldBorder().isInside(target)) {
+            p.sendMessage(
+                    "Le point d’arrivée est invalide ou hors des limites du monde. Préviens un"
+                        + " administrateur.");
+            return false;
+        }
         var floor = target.clone().subtract(0, 1, 0).getBlock();
         if (!floor.getType().isSolid()
                 || floor.isLiquid()

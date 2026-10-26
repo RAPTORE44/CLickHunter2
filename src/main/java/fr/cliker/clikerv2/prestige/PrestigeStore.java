@@ -75,6 +75,19 @@ public final class PrestigeStore {
                             c.rollback();
                             return false;
                         }
+                        // Le niveau vanilla n’est remis à zéro qu’après ce commit SQL.
+                        // Ne pas laisser un second prestige réutiliser ce même niveau pendant
+                        // la sauvegarde/reprise du premier reset (ou après un redémarrage).
+                        try (var s =
+                                c.prepareStatement("SELECT 1 FROM prestige_resets WHERE owner=?")) {
+                            s.setString(1, owner.toString());
+                            try (var rs = s.executeQuery()) {
+                                if (rs.next()) {
+                                    c.rollback();
+                                    return false;
+                                }
+                            }
+                        }
                         try (var s =
                                 c.prepareStatement("SELECT total FROM earned_xp WHERE owner=?")) {
                             s.setString(1, owner.toString());

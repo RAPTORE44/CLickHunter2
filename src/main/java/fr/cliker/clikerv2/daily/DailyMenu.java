@@ -57,7 +57,7 @@ public final class DailyMenu implements Listener {
                 DailySettings.color("&cFermer")
                         .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
         close.setItemMeta(meta);
-        holder.inventory.setItem(49, close);
+        holder.inventory.setItem(53, close);
         render(holder);
         player.openInventory(holder.inventory);
         if (holder(player) == holder) openMenus.put(player.getUniqueId(), holder);
@@ -149,11 +149,12 @@ public final class DailyMenu implements Listener {
         if (!(event.getView().getTopInventory().getHolder() instanceof Holder holder)) return;
         event.setCancelled(
                 true); // Y compris shift-click, raccourcis clavier, double-clic et inventaire du
-                       // bas.
+        // bas.
         if (!(event.getWhoClicked() instanceof Player player)
                 || !holder.owner.equals(player.getUniqueId())) return;
-        if (!event.isLeftClick() && !event.isRightClick()) return;
-        if (event.getRawSlot() == 49) {
+        if (event.getClick() != org.bukkit.event.inventory.ClickType.LEFT
+                && event.getClick() != org.bukkit.event.inventory.ClickType.RIGHT) return;
+        if (event.getRawSlot() == 53) {
             Bukkit.getScheduler()
                     .runTask(
                             module.plugin(),

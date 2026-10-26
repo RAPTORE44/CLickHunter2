@@ -605,6 +605,10 @@ public final class CustomMobManager implements Listener {
             return;
         }
 
+        if (!fr.cliker.clikerv2.combat.CombatReach.canHit(player, victim)) {
+            event.setCancelled(true);
+            return;
+        }
         Long applied = calculateDamage(player, tier, bossSpawnIds.contains(spawnId));
         if (applied == null) {
             event.setDamage(0.0);
@@ -861,76 +865,15 @@ public final class CustomMobManager implements Listener {
             for (var viewer : plugin.getServer().getOnlinePlayers()) viewer.sendMessage(message);
         }
         if (killer != null) {
-            int amount = ThreadLocalRandom.current().nextInt(1, 4);
-            ItemStack essence = EssenceItem.create(tier, amount);
-            fr.cliker.clikerv2.rewards.ItemDelivery.give(killer, essence);
-            compressorManager.onHit(killer);
-            var gains = normalRewards(killer, tier);
-            if (boss) gains = gains.plus(bossRewards(killer, tier));
-            var earned = gains;
-            UUID owner = killer.getUniqueId();
-            hunting.kill(
-                            victim.getUniqueId().toString(),
-                            owner,
-                            killer.getName(),
-                            tier.id(),
-                            boss,
-                            gains,
-                            List.of())
-                    .whenComplete(
-                            (ok, error) -> {
-                                if (!plugin.isEnabled()) return;
-                                fr.cliker.clikerv2.runtime.ServerTasks.run(
-                                        plugin,
-                                        () -> {
-                                            if (error != null) {
-                                                plugin.getLogger()
-                                                        .log(
-                                                                java.util.logging.Level.SEVERE,
-                                                                "Enregistrement des gains"
-                                                                        + " impossible",
-                                                                error);
-                                                return;
-                                            }
-                                            if (Boolean.TRUE.equals(ok)) {
-                                                org.bukkit.Bukkit.getPluginManager()
-                                                        .callEvent(
-                                                                new fr.cliker.clikerv2.features
-                                                                        .HuntKillEvent(
-                                                                        owner,
-                                                                        killer.getName(),
-                                                                        tier,
-                                                                        boss));
-                                                var telemetry =
-                                                        org.bukkit.Bukkit.getServicesManager()
-                                                                .load(
-                                                                        fr.cliker.clikerv2.comfort
-                                                                                .FarmTelemetry
-                                                                                .class);
-                                                if (telemetry != null
-                                                        && killer.isOnline()
-                                                        && org.bukkit.Bukkit.getPlayer(owner)
-                                                                == killer)
-                                                    telemetry.confirmedKill(
-                                                            killer,
-                                                            tier,
-                                                            boss,
-                                                            earned,
-                                                            fightDuration);
-                                                ledger.flushXP(owner);
-                                                if (killer.isOnline()
-                                                        && fr.cliker.clikerv2.comfort.PlayerComfort
-                                                                .enabled(
-                                                                        killer,
-                                                                        "farm_actionbar",
-                                                                        true))
-                                                    killer.sendActionBar(
-                                                            fr.cliker.clikerv2.ui.GainBar.format(
-                                                                    earned));
-                                            }
-                                        });
-                            });
-            rollLootboxDrops(killer);
+            try {
+                rewardKill(killer, victim, tier, boss, fightDuration);
+            } catch (RuntimeException error) {
+                plugin.getLogger()
+                        .log(
+                                java.util.logging.Level.SEVERE,
+                                "Préparation des gains impossible pour " + victim.getUniqueId(),
+                                error);
+            }
         }
         if (oneShotSpawns.remove(spawnId)) {
             spawnLocation.remove(spawnId);
@@ -944,6 +887,102 @@ public final class CustomMobManager implements Listener {
         } else if (spawnLocation.containsKey(spawnId)) {
             scheduleRespawn(spawnId);
         }
+    }
+
+    /** Le reçu du kill valide tous les objets et monnaies avant le moindre affichage. */
+    private void rewardKill(
+            Player killer, LivingEntity victim, MobTier tier, boolean boss, long fightDuration) {
+        int amount = ThreadLocalRandom.current().nextInt(1, 4);
+        List<ItemStack> drops = new ArrayList<>();
+        drops.add(EssenceItem.create(tier, amount));
+        var extra =
+                boss
+                        ? bossRewards(killer, tier, drops)
+                        : fr.cliker.clikerv2.hunting.Gains.of(0, 0, 0, 0);
+        var gains = normalRewards(killer, tier).plus(extra);
+        List<LootboxTier> boxes = rollLootboxDrops(killer, drops);
+        var earned = gains;
+        UUID owner = killer.getUniqueId();
+        hunting.kill(
+                        victim.getUniqueId().toString(),
+                        owner,
+                        killer.getName(),
+                        tier.id(),
+                        boss,
+                        gains,
+                        serializeDrops(drops))
+                .whenComplete(
+                        (ok, error) -> {
+                            if (!plugin.isEnabled()) return;
+                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                    plugin,
+                                    () -> {
+                                        if (error != null) {
+                                            plugin.getLogger()
+                                                    .log(
+                                                            java.util.logging.Level.SEVERE,
+                                                            "Enregistrement des gains"
+                                                                    + " impossible",
+                                                            error);
+                                            return;
+                                        }
+                                        if (Boolean.TRUE.equals(ok)) {
+                                            var delivery =
+                                                    org.bukkit.Bukkit.getServicesManager()
+                                                            .load(
+                                                                    fr.cliker.clikerv2.rewards
+                                                                            .ClaimService.class);
+                                            if (delivery != null) delivery.notifyAndDeliver(owner);
+                                            Player current = org.bukkit.Bukkit.getPlayer(owner);
+                                            if (current != null) {
+                                                if (boss) showBossReward(current, extra);
+                                                announceLootboxes(current, boxes);
+                                            }
+                                            org.bukkit.Bukkit.getPluginManager()
+                                                    .callEvent(
+                                                            new fr.cliker.clikerv2.features
+                                                                    .HuntKillEvent(
+                                                                    owner,
+                                                                    killer.getName(),
+                                                                    tier,
+                                                                    boss));
+                                            var telemetry =
+                                                    org.bukkit.Bukkit.getServicesManager()
+                                                            .load(
+                                                                    fr.cliker.clikerv2.comfort
+                                                                            .FarmTelemetry.class);
+                                            if (telemetry != null
+                                                    && killer.isOnline()
+                                                    && org.bukkit.Bukkit.getPlayer(owner) == killer)
+                                                telemetry.confirmedKill(
+                                                        killer, tier, boss, earned, fightDuration);
+                                            ledger.flushXP(owner);
+                                            if (fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(
+                                                            killer)
+                                                    && fr.cliker.clikerv2.comfort.PlayerComfort
+                                                            .enabled(
+                                                                    killer, "farm_actionbar", true))
+                                                killer.sendActionBar(
+                                                        fr.cliker.clikerv2.ui.GainBar.format(
+                                                                earned));
+                                        }
+                                    });
+                        });
+    }
+
+    static List<String> serializeDrops(List<ItemStack> drops) {
+        List<String> result = new ArrayList<>();
+        for (ItemStack item : drops) {
+            int remaining = item.getAmount();
+            while (remaining > 0) {
+                ItemStack part = item.clone();
+                int amount = Math.min(remaining, Math.min(64, item.getMaxStackSize()));
+                part.setAmount(amount);
+                result.add(fr.cliker.clikerv2.rewards.ClaimService.serialize(part));
+                remaining -= amount;
+            }
+        }
+        return List.copyOf(result);
     }
 
     /**
@@ -966,7 +1005,8 @@ public final class CustomMobManager implements Listener {
      * Chance de coffre identique pour les 19 mobs custom, roll indépendant par rareté (peut cumuler
      * plusieurs coffres sur un kill chanceux).
      */
-    private void rollLootboxDrops(Player killer) {
+    private List<LootboxTier> rollLootboxDrops(Player killer, List<ItemStack> drops) {
+        List<LootboxTier> found = new ArrayList<>();
         double lootFinderBonus = armorEnchantBonus(killer, EnchantType.LOOT_FINDER);
         for (LootboxTier tier : LootboxTier.values()) {
             if (ThreadLocalRandom.current().nextDouble(100.0)
@@ -978,19 +1018,25 @@ public final class CustomMobManager implements Listener {
                                                     bagManager.generalTier(
                                                             killer.getUniqueId(), "fortune"))
                                             / 100)) {
-                ItemStack box = LootboxItem.create(tier);
-                fr.cliker.clikerv2.rewards.ItemDelivery.give(killer, box);
-                if (tier.ordinal() > LootboxTier.PEU_COMMUN.ordinal()
-                        || fr.cliker.clikerv2.comfort.PlayerComfort.enabled(
-                                killer, "common_drop_messages", true))
-                    killer.sendMessage(
-                            Component.text("✦ Coffre obtenu : ", NamedTextColor.YELLOW)
-                                    .append(
-                                            Component.text(
-                                                    tier.boxName(),
-                                                    tier.color(),
-                                                    TextDecoration.BOLD)));
+                drops.add(LootboxItem.create(tier));
+                found.add(tier);
             }
+        }
+        return List.copyOf(found);
+    }
+
+    private void announceLootboxes(Player killer, List<LootboxTier> found) {
+        for (LootboxTier tier : found) {
+            if (tier.ordinal() > LootboxTier.PEU_COMMUN.ordinal()
+                    || fr.cliker.clikerv2.comfort.PlayerComfort.enabled(
+                            killer, "common_drop_messages", true))
+                killer.sendMessage(
+                        Component.text("✦ Coffre obtenu : ", NamedTextColor.YELLOW)
+                                .append(
+                                        Component.text(
+                                                tier.boxName(),
+                                                tier.color(),
+                                                TextDecoration.BOLD)));
         }
     }
 
@@ -1076,7 +1122,8 @@ public final class CustomMobManager implements Listener {
      * d'essence Commune garanti + essence de rareté supérieure (Peu Commune tiers 1-7, Rare tiers
      * 8-19), et une grosse fourchette d'Écus/Gemmes.
      */
-    private fr.cliker.clikerv2.hunting.Gains bossRewards(Player killer, MobTier tier) {
+    private fr.cliker.clikerv2.hunting.Gains bossRewards(
+            Player killer, MobTier tier, List<ItemStack> drops) {
         int index = tier.ordinal() + 1;
         ThreadLocalRandom random = ThreadLocalRandom.current();
         /** Les 7 premiers mobs ont des gains de boss réduits de moitié. */
@@ -1085,8 +1132,8 @@ public final class CustomMobManager implements Listener {
         int communeAmount = Math.max(1, (50 * index) / gainDivisor);
         EssenceRarity altRarity = index <= 7 ? EssenceRarity.PEU_COMMUNE : EssenceRarity.RARE;
         int altAmount = Math.max(1, (random.nextInt(1, 11) * index) / gainDivisor);
-        giveItem(killer, EssenceItem.create(tier, EssenceRarity.COMMUNE, communeAmount));
-        giveItem(killer, EssenceItem.create(tier, altRarity, altAmount));
+        drops.add(EssenceItem.create(tier, EssenceRarity.COMMUNE, communeAmount));
+        drops.add(EssenceItem.create(tier, altRarity, altAmount));
 
         long ecusReward = ((long) random.nextInt(1000, 5001) * index) / gainDivisor;
         long gemmesReward = ((long) random.nextInt(10, 21) * index) / gainDivisor;
@@ -1094,6 +1141,10 @@ public final class CustomMobManager implements Listener {
                 fr.cliker.clikerv2.features.Boosts.rewards(
                         killer,
                         fr.cliker.clikerv2.hunting.Gains.of(ecusReward, gemmesReward * 10, 0, 0));
+        return bonus;
+    }
+
+    private void showBossReward(Player killer, fr.cliker.clikerv2.hunting.Gains bonus) {
         killer.showTitle(
                 net.kyori.adventure.title.Title.title(
                         Component.text(
@@ -1113,12 +1164,6 @@ public final class CustomMobManager implements Listener {
                                                                         .GEMMES_SOMBRES))
                                         + " Gemmes",
                                 NamedTextColor.GOLD)));
-        return bonus;
-    }
-
-    private void giveItem(Player player, ItemStack item) {
-        fr.cliker.clikerv2.rewards.ItemDelivery.give(player, item);
-        compressorManager.onHit(player);
     }
 
     /**

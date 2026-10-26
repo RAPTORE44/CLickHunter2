@@ -4,52 +4,52 @@ Produit par `python3 scripts/audit-inventory.py`. Chaque fichier de production e
 
 | Composant | Fichiers Java | Lignes |
 | --- | ---: | ---: |
-| noyau | 5 | 1701 |
+| noyau | 5 | 1739 |
 | auction | 5 | 1389 |
 | bag | 7 | 1016 |
 | buyzone | 3 | 881 |
-| combat | 5 | 523 |
+| combat | 6 | 547 |
 | comfort | 5 | 1299 |
 | config | 3 | 219 |
 | cooldown | 1 | 62 |
-| daily | 6 | 787 |
+| daily | 6 | 814 |
 | discord | 1 | 143 |
 | display | 5 | 824 |
 | economy | 4 | 280 |
 | essence | 8 | 689 |
-| features | 14 | 3587 |
+| features | 14 | 3618 |
 | gear | 19 | 2145 |
 | hologram | 4 | 823 |
 | hunting | 6 | 1188 |
 | level | 3 | 140 |
-| liveauction | 4 | 1678 |
-| lootbox | 4 | 515 |
+| liveauction | 4 | 1819 |
+| lootbox | 5 | 554 |
 | merchant | 4 | 1001 |
-| mobs | 7 | 1871 |
+| mobs | 7 | 1916 |
 | npc | 1 | 323 |
-| outpost | 4 | 2008 |
+| outpost | 4 | 2019 |
 | pinata | 2 | 811 |
-| prestige | 6 | 924 |
-| raid | 2 | 679 |
+| prestige | 6 | 939 |
+| raid | 2 | 680 |
 | referral | 2 | 576 |
 | rewards | 5 | 1488 |
 | runtime | 2 | 37 |
 | security | 1 | 32 |
-| social | 5 | 2472 |
+| social | 5 | 2491 |
 | spawn | 5 | 279 |
 | station | 4 | 410 |
 | tuto | 3 | 292 |
-| ui | 5 | 726 |
-| upgrade | 6 | 986 |
+| ui | 5 | 738 |
+| upgrade | 6 | 995 |
 | world | 1 | 98 |
 
-Total : **177 fichiers Java**, **34 configurations YAML**.
+Total : **179 fichiers Java**, **34 configurations YAML**.
 
 ## Fichiers indexés
 
 | Fichier | SHA-256 au moment de l’inventaire |
 | --- | --- |
-| [src/main/java/fr/cliker/clikerv2/ClikerPlugin.java](../src/main/java/fr/cliker/clikerv2/ClikerPlugin.java) | `7f1ffc104ca0613c8f5a0740416650c0d51f5531217000f88713d5f138a1215c` |
+| [src/main/java/fr/cliker/clikerv2/ClikerPlugin.java](../src/main/java/fr/cliker/clikerv2/ClikerPlugin.java) | `638ec4dfde3850bd3d95c72a2abc774f313a267d3f459cf075bf9a182c64876d` |
 | [src/main/java/fr/cliker/clikerv2/DatabaseManager.java](../src/main/java/fr/cliker/clikerv2/DatabaseManager.java) | `1876886b8fc739e0b443517414a3670b1b79a2e803ab25b81701d285f695e568` |
 | [src/main/java/fr/cliker/clikerv2/EconomyService.java](../src/main/java/fr/cliker/clikerv2/EconomyService.java) | `98912dd947c1c61a7e103091fc5ae036f4a8e5dcbbc2fb77dea50237b5573754` |
 | [src/main/java/fr/cliker/clikerv2/MobTier.java](../src/main/java/fr/cliker/clikerv2/MobTier.java) | `f7489c7fede9215108dfa529cf50d449b5b37ce739b042db58edb7835352f7aa` |
@@ -69,7 +69,8 @@ Total : **177 fichiers Java**, **34 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/buyzone/BuyZone.java](../src/main/java/fr/cliker/clikerv2/buyzone/BuyZone.java) | `22550ae14d4733cfb089ff1d7d5f8fff35bbbcc2a0b02f1bbd85d3324fd72d50` |
 | [src/main/java/fr/cliker/clikerv2/buyzone/BuyZoneModule.java](../src/main/java/fr/cliker/clikerv2/buyzone/BuyZoneModule.java) | `9b52ec29b2bfd4bfabd5f5d3a74110394d80f713de09033b4321db7ff9c84183` |
 | [src/main/java/fr/cliker/clikerv2/buyzone/BuyZoneStore.java](../src/main/java/fr/cliker/clikerv2/buyzone/BuyZoneStore.java) | `83ab3b1e10e8970ad1f24234ee0abc62b825e4638594d7d00da2100443f97c01` |
-| [src/main/java/fr/cliker/clikerv2/combat/AutoClickManager.java](../src/main/java/fr/cliker/clikerv2/combat/AutoClickManager.java) | `0e4a6983a7d23fb732163d1bb19c001a69cd26bd7b804c78a618846956beaf0c` |
+| [src/main/java/fr/cliker/clikerv2/combat/AutoClickManager.java](../src/main/java/fr/cliker/clikerv2/combat/AutoClickManager.java) | `f273bbdfb6a800523f08857b2f60e73b529b2ef3f5aa89ee2abd2b8d10e627c3` |
+| [src/main/java/fr/cliker/clikerv2/combat/CombatReach.java](../src/main/java/fr/cliker/clikerv2/combat/CombatReach.java) | `421067510c05151911ad1a4b3b8e1c943e07df71b3bb52d7ee34029e243a91f2` |
 | [src/main/java/fr/cliker/clikerv2/combat/DamagePopups.java](../src/main/java/fr/cliker/clikerv2/combat/DamagePopups.java) | `b3e604911202d31c025b56a715f4f97fd3abe5eabce416b599f7aaa7dc995e3e` |
 | [src/main/java/fr/cliker/clikerv2/combat/DeathLogFilter.java](../src/main/java/fr/cliker/clikerv2/combat/DeathLogFilter.java) | `225281aa212c41d0ef98f79509d3a5df5a6d48b0bd1238d3a0b06307cd32edd8` |
 | [src/main/java/fr/cliker/clikerv2/combat/StarterSwordListener.java](../src/main/java/fr/cliker/clikerv2/combat/StarterSwordListener.java) | `eebd5c9bf7eedf5c8b3b7f2dcd32f6699c260b98f7f15cc2ccefde6aefa1a78e` |
@@ -83,11 +84,11 @@ Total : **177 fichiers Java**, **34 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/config/StoredLocation.java](../src/main/java/fr/cliker/clikerv2/config/StoredLocation.java) | `49336cc9cf11bbca0c01d34b81c1b725bd047510edfe59e15eb70cc62e1bbea0` |
 | [src/main/java/fr/cliker/clikerv2/config/YamlFiles.java](../src/main/java/fr/cliker/clikerv2/config/YamlFiles.java) | `d337184d373c48f9d9470041e8f538a93d0d220aa0fc9984ffe24a97dd13ad20` |
 | [src/main/java/fr/cliker/clikerv2/cooldown/CooldownCommand.java](../src/main/java/fr/cliker/clikerv2/cooldown/CooldownCommand.java) | `6dcf2122a5537f4854cf0a8963e4f6c8ebea7d24e7ee5d367f6d78262c898b09` |
-| [src/main/java/fr/cliker/clikerv2/daily/DailyMenu.java](../src/main/java/fr/cliker/clikerv2/daily/DailyMenu.java) | `755f6f65cfb68fcc699d10953fa280e363a74167555d20ea7653a0d197e2a82e` |
+| [src/main/java/fr/cliker/clikerv2/daily/DailyMenu.java](../src/main/java/fr/cliker/clikerv2/daily/DailyMenu.java) | `34cadda89905301f86c80b654c84be3934df5a2af588b5de17b2b32c4ff60082` |
 | [src/main/java/fr/cliker/clikerv2/daily/DailyModule.java](../src/main/java/fr/cliker/clikerv2/daily/DailyModule.java) | `7a4247ae4d141e90d8dbe10b0ab2974b47957c979788ea9f3e657884f63427c0` |
 | [src/main/java/fr/cliker/clikerv2/daily/DailyNpc.java](../src/main/java/fr/cliker/clikerv2/daily/DailyNpc.java) | `84905fda36e6b4cce8f0a8d801617ede984f7a1684661007ab16c53a443270ec` |
-| [src/main/java/fr/cliker/clikerv2/daily/DailyProgress.java](../src/main/java/fr/cliker/clikerv2/daily/DailyProgress.java) | `ee1d65ca541999b328c21857902abc1779cc6b9f1e509514adc31400d83984e4` |
-| [src/main/java/fr/cliker/clikerv2/daily/DailySettings.java](../src/main/java/fr/cliker/clikerv2/daily/DailySettings.java) | `9544861e9b36e6bd028e1bf45209fa94de741064b11f9dfe2c8cdb77353c4dec` |
+| [src/main/java/fr/cliker/clikerv2/daily/DailyProgress.java](../src/main/java/fr/cliker/clikerv2/daily/DailyProgress.java) | `b72d18c08c9f42b53551e7bb0be67ac6a68ccfdb61ebb25c9ccf01e61fba5014` |
+| [src/main/java/fr/cliker/clikerv2/daily/DailySettings.java](../src/main/java/fr/cliker/clikerv2/daily/DailySettings.java) | `083df67a96f6012299872ca8868711f6f2206e81b2afaa74a0631413dfd79e08` |
 | [src/main/java/fr/cliker/clikerv2/daily/RewardStore.java](../src/main/java/fr/cliker/clikerv2/daily/RewardStore.java) | `5f74f798fcb937f95846ce6b0237378755b2369d698abdd205833a06d1826c48` |
 | [src/main/java/fr/cliker/clikerv2/discord/DiscordModule.java](../src/main/java/fr/cliker/clikerv2/discord/DiscordModule.java) | `ef929784325c563d44fbb4b6847671bd1d65585a93033ef43eaaa88103add923` |
 | [src/main/java/fr/cliker/clikerv2/display/MoneyScoreboard.java](../src/main/java/fr/cliker/clikerv2/display/MoneyScoreboard.java) | `4cb12ece245bbc8cfe5dc8a40f925174d11dce8aab650b0e8a0153f4b360ee01` |
@@ -108,19 +109,19 @@ Total : **177 fichiers Java**, **34 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/essence/SellCommand.java](../src/main/java/fr/cliker/clikerv2/essence/SellCommand.java) | `ec5690f15eb461e3f65da5d464fd3c5d812d990cef74a4c11feed1bb4dc1c26b` |
 | [src/main/java/fr/cliker/clikerv2/essence/SellMenu.java](../src/main/java/fr/cliker/clikerv2/essence/SellMenu.java) | `b421dfaa733d49c40e5a26adc514fe8cc52693c7dd48a15b3dc1b2e8e7930a23` |
 | [src/main/java/fr/cliker/clikerv2/features/AdminDiagnostic.java](../src/main/java/fr/cliker/clikerv2/features/AdminDiagnostic.java) | `d4cd3da96abee18606726412c35974144e76d1d6dfbbc89744e560770502cbd1` |
-| [src/main/java/fr/cliker/clikerv2/features/Boosts.java](../src/main/java/fr/cliker/clikerv2/features/Boosts.java) | `626a14cf930f768a8b89dcf425e077a834aec541582c4bc8e5a30427d9db188b` |
-| [src/main/java/fr/cliker/clikerv2/features/ChatActivities.java](../src/main/java/fr/cliker/clikerv2/features/ChatActivities.java) | `4604912a334034873ea94117ffab76270e3f235f88dcf44b718646d63dfa0e6d` |
+| [src/main/java/fr/cliker/clikerv2/features/Boosts.java](../src/main/java/fr/cliker/clikerv2/features/Boosts.java) | `19929624ea83ccedda53202873cb3c219c05d0e8fa1bf5fdfd37f11ed4ac9db7` |
+| [src/main/java/fr/cliker/clikerv2/features/ChatActivities.java](../src/main/java/fr/cliker/clikerv2/features/ChatActivities.java) | `f52e219e770971a23ecc19f2e13372daa735e97b527eff9db1dd98de267cfd95` |
 | [src/main/java/fr/cliker/clikerv2/features/CreatureSettings.java](../src/main/java/fr/cliker/clikerv2/features/CreatureSettings.java) | `07e59c7af0854ba724b081fc0bd3d64b093da4008581da99bbdb92192f9dce15` |
 | [src/main/java/fr/cliker/clikerv2/features/ExpansionModule.java](../src/main/java/fr/cliker/clikerv2/features/ExpansionModule.java) | `2370ace995680e3b2313ecf8f19877e87b0b52ae779d1d9f6b59fe8bcb46105f` |
 | [src/main/java/fr/cliker/clikerv2/features/HuntKillEvent.java](../src/main/java/fr/cliker/clikerv2/features/HuntKillEvent.java) | `600a2a06738091ec967d8954fbfd11c4ba6ce238311977a3e32290e493d11456` |
 | [src/main/java/fr/cliker/clikerv2/features/Menus.java](../src/main/java/fr/cliker/clikerv2/features/Menus.java) | `249927273e348f0196f43a768514765b51aeffe62b5fad607a3f56765b0aea56` |
 | [src/main/java/fr/cliker/clikerv2/features/PartyRaids.java](../src/main/java/fr/cliker/clikerv2/features/PartyRaids.java) | `bd2753002f1de92b55984c17eee206a29ea7cca63256be47b5690ce5d4e5b3fb` |
 | [src/main/java/fr/cliker/clikerv2/features/PlainGear.java](../src/main/java/fr/cliker/clikerv2/features/PlainGear.java) | `a5814544697550f6b7c309d6a9100c6d898f42a92a449545cd88bda6b897fbf0` |
-| [src/main/java/fr/cliker/clikerv2/features/ServiceNpcs.java](../src/main/java/fr/cliker/clikerv2/features/ServiceNpcs.java) | `21a3549d65351d146d584a82bcaffd084eac44f1441e4d639c8f541b9eb8046c` |
+| [src/main/java/fr/cliker/clikerv2/features/ServiceNpcs.java](../src/main/java/fr/cliker/clikerv2/features/ServiceNpcs.java) | `0b9bd3102b32f9f04721b83b9faa625ee2fa6327bba5aaa0c48968094dd0c5f0` |
 | [src/main/java/fr/cliker/clikerv2/features/Settings.java](../src/main/java/fr/cliker/clikerv2/features/Settings.java) | `a8754ba8aff79e12a8a15f3084ed1668c25474fc49b6bdc6495fc6db10dd0181` |
 | [src/main/java/fr/cliker/clikerv2/features/ShopStore.java](../src/main/java/fr/cliker/clikerv2/features/ShopStore.java) | `11c0dcd98121a2f70c6b91ea4dc75da3e7a7f7bf1d70ba08ae9886c22be5a962` |
 | [src/main/java/fr/cliker/clikerv2/features/Talismans.java](../src/main/java/fr/cliker/clikerv2/features/Talismans.java) | `a1ff6c4cb81eff28b64969f3a917694480eef1a85ca16046aa0682df89fed37d` |
-| [src/main/java/fr/cliker/clikerv2/features/TravelAndTools.java](../src/main/java/fr/cliker/clikerv2/features/TravelAndTools.java) | `0eaa0bedc4b9242c4ef7ec808ae4487753e2c4a97d6a6741b0b8937089915007` |
+| [src/main/java/fr/cliker/clikerv2/features/TravelAndTools.java](../src/main/java/fr/cliker/clikerv2/features/TravelAndTools.java) | `2f3978c738c0b8fb3ea89f788988ffdd92c22b7ac9d71c4b677d8375d67f7064` |
 | [src/main/java/fr/cliker/clikerv2/gear/CharmCommand.java](../src/main/java/fr/cliker/clikerv2/gear/CharmCommand.java) | `2ce298d78c256ed4670284c82b27b8c3d6c0ab4561b9f0c36b5a4016a23272e7` |
 | [src/main/java/fr/cliker/clikerv2/gear/CharmItem.java](../src/main/java/fr/cliker/clikerv2/gear/CharmItem.java) | `7285abcf7012a3366067624cb00bc78f7fca84c41e0395f7560ffb4c77a72b65` |
 | [src/main/java/fr/cliker/clikerv2/gear/EnchantCommand.java](../src/main/java/fr/cliker/clikerv2/gear/EnchantCommand.java) | `1c16c8380f92cba067648fb87d2ba2d7d8253f07d67d18036a45bd7884f8b531` |
@@ -155,18 +156,19 @@ Total : **177 fichiers Java**, **34 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/level/PlayerLevelStore.java](../src/main/java/fr/cliker/clikerv2/level/PlayerLevelStore.java) | `004bfbe457c56db3c79af03cc190fe1e628cde7671e2456888f9c7a73315b48e` |
 | [src/main/java/fr/cliker/clikerv2/liveauction/AuctionRoom.java](../src/main/java/fr/cliker/clikerv2/liveauction/AuctionRoom.java) | `109a17446b77a1df92a8234e95cb304bf2e903602d3559503f9ff798d7991a02` |
 | [src/main/java/fr/cliker/clikerv2/liveauction/BidPrices.java](../src/main/java/fr/cliker/clikerv2/liveauction/BidPrices.java) | `cd0fc33897a00c7feac863485fe86e277841e2448e5930aebc5fc732e3caf3f3` |
-| [src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctionStore.java](../src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctionStore.java) | `0dc73fa60165b071910de8b498dc106d9d635d130ffae5d76efce0b1293c30e7` |
-| [src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctions.java](../src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctions.java) | `c55fd37057a6a169b9308c222abe04d2831e43b6d5182f9df0547a6a9cbe5698` |
+| [src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctionStore.java](../src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctionStore.java) | `2beaf89d0f4aec78f3a9edda9d665447d7c3b4fec84d67cfa0310e030582e848` |
+| [src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctions.java](../src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctions.java) | `61ddc6793fd0914326c7f3d5396b98caedc9b38087b0851b929b4df54b5a8ac4` |
 | [src/main/java/fr/cliker/clikerv2/lootbox/LootboxCommand.java](../src/main/java/fr/cliker/clikerv2/lootbox/LootboxCommand.java) | `e33e19a283b3ea5e4537849466fe3dbb5f0a27b78055b28210808851656ff8a3` |
 | [src/main/java/fr/cliker/clikerv2/lootbox/LootboxItem.java](../src/main/java/fr/cliker/clikerv2/lootbox/LootboxItem.java) | `b1c28f85524d0da279acc92845c477f464793f56b87671822c82e9811b7ee64e` |
-| [src/main/java/fr/cliker/clikerv2/lootbox/LootboxManager.java](../src/main/java/fr/cliker/clikerv2/lootbox/LootboxManager.java) | `aec57fb9bcecd561ebe3584b973a396bca4c9939ee0dfb6971b5ae828bc651b0` |
+| [src/main/java/fr/cliker/clikerv2/lootbox/LootboxManager.java](../src/main/java/fr/cliker/clikerv2/lootbox/LootboxManager.java) | `4e2c00cc0f02106b946dece8340dccfbec8b0719e00084675bb4741f0fb25bbd` |
+| [src/main/java/fr/cliker/clikerv2/lootbox/LootboxStore.java](../src/main/java/fr/cliker/clikerv2/lootbox/LootboxStore.java) | `208f50db22e5a5e54309e27818820d680d13c7780ef1fe535d639da8330e0041` |
 | [src/main/java/fr/cliker/clikerv2/lootbox/LootboxTier.java](../src/main/java/fr/cliker/clikerv2/lootbox/LootboxTier.java) | `a638051a76ab234d16d6ffc1577daf8203c61954b09f8c413cca229794fb7e40` |
 | [src/main/java/fr/cliker/clikerv2/merchant/MerchantCommand.java](../src/main/java/fr/cliker/clikerv2/merchant/MerchantCommand.java) | `165056084e520643917ec2247677b0655099893c63678523de376b37f199be87` |
 | [src/main/java/fr/cliker/clikerv2/merchant/MerchantManager.java](../src/main/java/fr/cliker/clikerv2/merchant/MerchantManager.java) | `0ee42938223618ebdea4cff4a26847a88a654bf222b2e339bb071a111f6817a8` |
 | [src/main/java/fr/cliker/clikerv2/merchant/MerchantMenu.java](../src/main/java/fr/cliker/clikerv2/merchant/MerchantMenu.java) | `7d111afb13a33b52e9f1357ee560857736a37bbac102395256e7a7c1d6a77a9a` |
 | [src/main/java/fr/cliker/clikerv2/merchant/MerchantStore.java](../src/main/java/fr/cliker/clikerv2/merchant/MerchantStore.java) | `5962c2ba365494b984c3202e98f8d8143eba814e649458a6c1b624abd1f55ba0` |
 | [src/main/java/fr/cliker/clikerv2/mobs/BossEventManager.java](../src/main/java/fr/cliker/clikerv2/mobs/BossEventManager.java) | `d314ace3e9c69c7c501002a9701b035f66b83748df4a23e8ce4d36415fbe3cd3` |
-| [src/main/java/fr/cliker/clikerv2/mobs/CustomMobManager.java](../src/main/java/fr/cliker/clikerv2/mobs/CustomMobManager.java) | `e0cf403167d81cdf2623b40fce23b64f6655b45a9732fb455747581dcf6b757d` |
+| [src/main/java/fr/cliker/clikerv2/mobs/CustomMobManager.java](../src/main/java/fr/cliker/clikerv2/mobs/CustomMobManager.java) | `aee1753792a8df5daca00ed8371ed20536eec69a24ec95b3f9b0d4f0e4eb89e8` |
 | [src/main/java/fr/cliker/clikerv2/mobs/MobKillStore.java](../src/main/java/fr/cliker/clikerv2/mobs/MobKillStore.java) | `5427af864d7ec23efb7d921db4414fc20cb9708048198d4627fcd56f894a923d` |
 | [src/main/java/fr/cliker/clikerv2/mobs/MobKillsCommand.java](../src/main/java/fr/cliker/clikerv2/mobs/MobKillsCommand.java) | `f9ad013bfafd3e103ab1ab91b58d1eb1555ec4563fb02d51e7f56ddc8160c6d0` |
 | [src/main/java/fr/cliker/clikerv2/mobs/MobSpawnCommand.java](../src/main/java/fr/cliker/clikerv2/mobs/MobSpawnCommand.java) | `3f251a566166e05eacaa553d3d7d3f913f7777f7f1c963dcc79677f62d0964a4` |
@@ -174,19 +176,19 @@ Total : **177 fichiers Java**, **34 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/mobs/VanillaSpawnListener.java](../src/main/java/fr/cliker/clikerv2/mobs/VanillaSpawnListener.java) | `618899ace54336ecb13d5def2f4d43309cf4c2070918f6e698bae1f1aa7d33ac` |
 | [src/main/java/fr/cliker/clikerv2/npc/ZnpcsNpc.java](../src/main/java/fr/cliker/clikerv2/npc/ZnpcsNpc.java) | `5ba6c122c75daeb68e61ec892fbf569e78075286e6becec10af86b1eebdbbde2` |
 | [src/main/java/fr/cliker/clikerv2/outpost/OutpostBlocks.java](../src/main/java/fr/cliker/clikerv2/outpost/OutpostBlocks.java) | `f2a6d80f4b96d579d87132cd6c7ca2376cfcc13a1c2f6fe01e866f6a7342ec95` |
-| [src/main/java/fr/cliker/clikerv2/outpost/OutpostModule.java](../src/main/java/fr/cliker/clikerv2/outpost/OutpostModule.java) | `db34ed41de600eba6fdad4b734036a3c516d7b07d70a0528a1131c0c16a15e6a` |
+| [src/main/java/fr/cliker/clikerv2/outpost/OutpostModule.java](../src/main/java/fr/cliker/clikerv2/outpost/OutpostModule.java) | `933364141a47f24648670835976c2db64b3e561ccaf18b3abda348dbb6182617` |
 | [src/main/java/fr/cliker/clikerv2/outpost/OutpostStore.java](../src/main/java/fr/cliker/clikerv2/outpost/OutpostStore.java) | `8eb61b5674857a60756fc1679e0f33b4af46b23195907330ec30b291148a5bb8` |
 | [src/main/java/fr/cliker/clikerv2/outpost/WorldInventories.java](../src/main/java/fr/cliker/clikerv2/outpost/WorldInventories.java) | `f685fbc45b25fd6a9d48b36a9bf5544c3b2e2bcb61008a7ff486a9321833b8d4` |
 | [src/main/java/fr/cliker/clikerv2/pinata/PinataModule.java](../src/main/java/fr/cliker/clikerv2/pinata/PinataModule.java) | `9317dd33a14ebccf2f8f846503e75a2e3829eb7170fc714ee4235595cf66af1e` |
 | [src/main/java/fr/cliker/clikerv2/pinata/PinataStore.java](../src/main/java/fr/cliker/clikerv2/pinata/PinataStore.java) | `8abb949ea5aa36b9287a81f8fe4ae38fa46369be41dd51400f297a66936d4ebf` |
 | [src/main/java/fr/cliker/clikerv2/prestige/PrestigeChatFormatter.java](../src/main/java/fr/cliker/clikerv2/prestige/PrestigeChatFormatter.java) | `7a5a915937cf6ac19ded0c4e886aabed1dd2dd2985bdc7dee810954104dd00c3` |
 | [src/main/java/fr/cliker/clikerv2/prestige/PrestigeCommand.java](../src/main/java/fr/cliker/clikerv2/prestige/PrestigeCommand.java) | `0c3859ef9f620fc2bf32f8758fe06faf0acd11fe13a5389ef6bfd0dad400d33d` |
-| [src/main/java/fr/cliker/clikerv2/prestige/PrestigeManager.java](../src/main/java/fr/cliker/clikerv2/prestige/PrestigeManager.java) | `c31f900106b31c1484b8b70f6b47eb6a4321b6e12163b6542f19ee72409d9312` |
+| [src/main/java/fr/cliker/clikerv2/prestige/PrestigeManager.java](../src/main/java/fr/cliker/clikerv2/prestige/PrestigeManager.java) | `dc6b99ee2367e653c3ecc038363545ebcac83093aef28f53b7c023e04a9a2b10` |
 | [src/main/java/fr/cliker/clikerv2/prestige/PrestigeMenu.java](../src/main/java/fr/cliker/clikerv2/prestige/PrestigeMenu.java) | `1abe9bab813485ee7712b89edaba7208b4214bc2dd7284c10f68b4c794d931fa` |
-| [src/main/java/fr/cliker/clikerv2/prestige/PrestigeStore.java](../src/main/java/fr/cliker/clikerv2/prestige/PrestigeStore.java) | `7eb1092d5e42cd5bcb8902421bc834dd905dace28fdf485b96cadf910c3668e9` |
+| [src/main/java/fr/cliker/clikerv2/prestige/PrestigeStore.java](../src/main/java/fr/cliker/clikerv2/prestige/PrestigeStore.java) | `3553d1557315f65e31bd4d074fab8b028c76763a478b8a5cdd345f66dccd4546` |
 | [src/main/java/fr/cliker/clikerv2/prestige/PrestigeType.java](../src/main/java/fr/cliker/clikerv2/prestige/PrestigeType.java) | `40dc56f11f2203bee8e0eb0afb39e2ad3ab51026c4bfdb4b2cb2704ae1651609` |
 | [src/main/java/fr/cliker/clikerv2/raid/ProportionalRewards.java](../src/main/java/fr/cliker/clikerv2/raid/ProportionalRewards.java) | `bc7e8702ed54d925827c14c2e61b89e0057a0de885656c80d2d73ffa33fd819c` |
-| [src/main/java/fr/cliker/clikerv2/raid/RaidModule.java](../src/main/java/fr/cliker/clikerv2/raid/RaidModule.java) | `d2f3c35c7d6a3710e4977bf86f10bd62923e7305d83d0180ff3f0e702a710854` |
+| [src/main/java/fr/cliker/clikerv2/raid/RaidModule.java](../src/main/java/fr/cliker/clikerv2/raid/RaidModule.java) | `3825847e90ab3d37da2a2bca5f15c4a24900d462db4f3e3d1420e6238cd76b74` |
 | [src/main/java/fr/cliker/clikerv2/referral/ReferralModule.java](../src/main/java/fr/cliker/clikerv2/referral/ReferralModule.java) | `088a78f8cffa45ad7c43a8a3af32bda634abaaf55f380f6204808c21df598680` |
 | [src/main/java/fr/cliker/clikerv2/referral/ReferralStore.java](../src/main/java/fr/cliker/clikerv2/referral/ReferralStore.java) | `d0a4a6330c10d0dde7b97d25a1a5e7db918a7a79d35c692ec0e4d5ac531d1ba6` |
 | [src/main/java/fr/cliker/clikerv2/rewards/ClaimService.java](../src/main/java/fr/cliker/clikerv2/rewards/ClaimService.java) | `ba6f61d531f7ad03df0f263169f09d1614130d07811b0ec4aca8cbfb997733b7` |
@@ -197,7 +199,7 @@ Total : **177 fichiers Java**, **34 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/runtime/PlayerSessions.java](../src/main/java/fr/cliker/clikerv2/runtime/PlayerSessions.java) | `f721d9ed994c54140f39c2220d68fd7fcc3c75632981ea6be6fb36898f5c1f2a` |
 | [src/main/java/fr/cliker/clikerv2/runtime/ServerTasks.java](../src/main/java/fr/cliker/clikerv2/runtime/ServerTasks.java) | `d77bd0f9ea6fcee886e7475b4825edba129676dcaa54171040dac6ebae0e475b` |
 | [src/main/java/fr/cliker/clikerv2/security/SystemEggProtection.java](../src/main/java/fr/cliker/clikerv2/security/SystemEggProtection.java) | `5b79b638f0e1363fbd95daef4dee0b11e17edde4dd523dc5c0de881fade4296d` |
-| [src/main/java/fr/cliker/clikerv2/social/CommunityExtras.java](../src/main/java/fr/cliker/clikerv2/social/CommunityExtras.java) | `9fc6731d1077a021cba8bfa5c84c49c7dd3c0328cc068c87c571c798d95d2654` |
+| [src/main/java/fr/cliker/clikerv2/social/CommunityExtras.java](../src/main/java/fr/cliker/clikerv2/social/CommunityExtras.java) | `1a50a494d2d524b1d0a395128df0662f8d3c8f0d88106580228e755fbaa0c49a` |
 | [src/main/java/fr/cliker/clikerv2/social/CommunityStore.java](../src/main/java/fr/cliker/clikerv2/social/CommunityStore.java) | `1b3599e2eb1bd4f4b4e9ade8bc4c91427a62b092708aa165d3588c9d2457318c` |
 | [src/main/java/fr/cliker/clikerv2/social/SocialModule.java](../src/main/java/fr/cliker/clikerv2/social/SocialModule.java) | `78622c249a20e050df8d9a518dbf83c7cf610f1575a6e3c4ce07d7c9ddc21e4e` |
 | [src/main/java/fr/cliker/clikerv2/social/SocialSettings.java](../src/main/java/fr/cliker/clikerv2/social/SocialSettings.java) | `88fcdf11cadbb86f3652480c819f06a71473c808fe0a1c40a67e9c9ea70402cf` |
@@ -218,12 +220,12 @@ Total : **177 fichiers Java**, **34 configurations YAML**.
 | [src/main/java/fr/cliker/clikerv2/ui/MainMenu.java](../src/main/java/fr/cliker/clikerv2/ui/MainMenu.java) | `ada7a7f289c1ba63d9f33e38fb4181aa41d747385144b4ed53c1a7517a30745a` |
 | [src/main/java/fr/cliker/clikerv2/ui/MenuIcons.java](../src/main/java/fr/cliker/clikerv2/ui/MenuIcons.java) | `a882ae358debdbe7d1daf7a2bcbe0cc548cd3a0d910dcd35e15fd23995a95f1a` |
 | [src/main/java/fr/cliker/clikerv2/ui/MenuNavigation.java](../src/main/java/fr/cliker/clikerv2/ui/MenuNavigation.java) | `5e95103a79347efeda8a6e06829b9312682135cb574707d8355a7765a7f999df` |
-| [src/main/java/fr/cliker/clikerv2/ui/ViewRequests.java](../src/main/java/fr/cliker/clikerv2/ui/ViewRequests.java) | `730ae2d62b51f2d3b66545cf7bb43d771bdd3262d45409bf110cf9270da1d410` |
+| [src/main/java/fr/cliker/clikerv2/ui/ViewRequests.java](../src/main/java/fr/cliker/clikerv2/ui/ViewRequests.java) | `0e4eff064c662350d17b8347362f63db442cf9f219a081a4ab0ff926b87bdd28` |
 | [src/main/java/fr/cliker/clikerv2/upgrade/UpgradeCommand.java](../src/main/java/fr/cliker/clikerv2/upgrade/UpgradeCommand.java) | `4c89c6bf39cc2fd688deb507878891e668b53b1d8d2faecc093e5039387fcd28` |
 | [src/main/java/fr/cliker/clikerv2/upgrade/UpgradeManager.java](../src/main/java/fr/cliker/clikerv2/upgrade/UpgradeManager.java) | `89410b7bcabe87a4cf467dec763c89ee892dd0f1b846337d5869fd00817a36c7` |
 | [src/main/java/fr/cliker/clikerv2/upgrade/UpgradeMenu.java](../src/main/java/fr/cliker/clikerv2/upgrade/UpgradeMenu.java) | `4114f5f450b5cf67e30fc0c7978e7a6a7bcb79b052630b1fb281d05312018b16` |
 | [src/main/java/fr/cliker/clikerv2/upgrade/UpgradeQuantityMenu.java](../src/main/java/fr/cliker/clikerv2/upgrade/UpgradeQuantityMenu.java) | `1947cf56e83357e4404927e431fd373b0d4b8f0915968c3573ca9b26ed50dd18` |
-| [src/main/java/fr/cliker/clikerv2/upgrade/UpgradeStore.java](../src/main/java/fr/cliker/clikerv2/upgrade/UpgradeStore.java) | `9c2dd56f3adfbee795489094642cc183ea52090ef1d632c3c9230d90d89ebd94` |
+| [src/main/java/fr/cliker/clikerv2/upgrade/UpgradeStore.java](../src/main/java/fr/cliker/clikerv2/upgrade/UpgradeStore.java) | `473ae6ffd2c23c1cf699fd30be04711eddc8527c8bf1b2653978b28ad4f1d236` |
 | [src/main/java/fr/cliker/clikerv2/upgrade/UpgradeType.java](../src/main/java/fr/cliker/clikerv2/upgrade/UpgradeType.java) | `25576171b9d224f98804d504d12dca69b49b1fef7c4e77c8a1e69e7190f3f7a5` |
 | [src/main/java/fr/cliker/clikerv2/world/ActivityWorlds.java](../src/main/java/fr/cliker/clikerv2/world/ActivityWorlds.java) | `dc5fc09bc4a93b4fd3f2e787dbf08fd5709739da2356439b8ed1e6407fd961b1` |
 | [src/main/resources/activites/encheres.yml](../src/main/resources/activites/encheres.yml) | `c1bec1511f534d9ac79188207d67d335a84560587170dd99753b566781919fd4` |
@@ -245,7 +247,7 @@ Total : **177 fichiers Java**, **34 configurations YAML**.
 | [src/main/resources/communaute/tags.yml](../src/main/resources/communaute/tags.yml) | `27316acb20b918b6320ef6aae07482215c91d2f12ac1e314ba97559178e949dd` |
 | [src/main/resources/communaute/tchat.yml](../src/main/resources/communaute/tchat.yml) | `5072969dbb82749fb74b8998d59d28579e0b6641a22ec1fd19e5789609ff9d7f` |
 | [src/main/resources/config.yml](../src/main/resources/config.yml) | `17763380ae594546629e5a91b884d64c49a2ca3ae278efea0c6cfa6559a72fe0` |
-| [src/main/resources/daily.yml](../src/main/resources/daily.yml) | `58078d54a85254cc41e9745287872d18caeec3d47ca3d22a42a3c401bce467ea` |
+| [src/main/resources/daily.yml](../src/main/resources/daily.yml) | `57bdc4adc73e02ec9e11ef64a70cda2b775d035a6aa41f4b3aed5b33d234df28` |
 | [src/main/resources/damage-popups.yml](../src/main/resources/damage-popups.yml) | `8a176eb44795df3fe7705720581d817073c7886cf4960a6ab9a6742a45c23256` |
 | [src/main/resources/discord.yml](../src/main/resources/discord.yml) | `7742894dc5e91ba3973e8e55cee44f7f8243e51ea11be5af8e750383a0db1777` |
 | [src/main/resources/enchants.yml](../src/main/resources/enchants.yml) | `37ae5a5ecac5c7e8a571407fd5c1d4ee8264dc15cbc12c7173864b99b95feef0` |

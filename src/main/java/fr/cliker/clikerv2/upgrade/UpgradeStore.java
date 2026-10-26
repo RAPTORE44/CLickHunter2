@@ -30,14 +30,8 @@ public final class UpgradeStore {
                         statement.setString(1, uuid.toString());
                         try (ResultSet result = statement.executeQuery()) {
                             if (result.next()) {
-                                levels.put(UpgradeType.RICHESSE, result.getInt("richesse"));
-                                levels.put(UpgradeType.FORTUNE, result.getInt("fortune"));
-                                levels.put(UpgradeType.SAGESSE, result.getInt("sagesse"));
-                                levels.put(UpgradeType.FORCE, result.getInt("force"));
-                                levels.put(UpgradeType.VITESSE, result.getInt("vitesse"));
-                                levels.put(UpgradeType.VITALITE, result.getInt("vitalite"));
-                                levels.put(UpgradeType.RESISTANCE, result.getInt("resistance"));
-                                levels.put(UpgradeType.CADENCE, result.getInt("cadence"));
+                                for (UpgradeType type : UpgradeType.values())
+                                    levels.put(type, readLevel(result, type.id()));
                             }
                         }
                     } catch (SQLException exception) {
@@ -48,6 +42,9 @@ public final class UpgradeStore {
     }
 
     public CompletableFuture<Void> setLevel(UUID uuid, UpgradeType type, int level) {
+        if (level < 0 || level > UpgradeType.MAX_LEVEL)
+            return CompletableFuture.failedFuture(
+                    new IllegalArgumentException("Niveau d’amélioration hors limites"));
         return database.submit(
                 connection -> {
                     try (PreparedStatement insert =
@@ -107,7 +104,7 @@ public final class UpgradeStore {
                             try (var rs = s.executeQuery()) {
                                 if (!rs.next())
                                     throw new SQLException("Améliorations introuvables");
-                                current = rs.getInt(1);
+                                current = readLevel(rs, column(type));
                             }
                         }
                         if (current >= UpgradeType.MAX_LEVEL) {
@@ -178,6 +175,18 @@ public final class UpgradeStore {
                         throw new DatabaseManager.DatabaseException(e);
                     }
                 });
+    }
+
+    /** Lire avant conversion : getInt tronquerait une valeur importée supérieure à 32 bits. */
+    private static int readLevel(ResultSet result, String column) throws SQLException {
+        Object raw = result.getObject(column);
+        if (!(raw instanceof Number n)
+                || n.doubleValue() != n.longValue()
+                || n.longValue() < 0
+                || n.longValue() > UpgradeType.MAX_LEVEL)
+            throw new SQLException(
+                    "Niveau d’amélioration invalide dans " + column + " ; valeur conservée");
+        return (int) ((Number) raw).longValue();
     }
 
     private static String column(UpgradeType type) {

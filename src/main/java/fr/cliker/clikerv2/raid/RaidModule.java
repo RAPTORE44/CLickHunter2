@@ -386,7 +386,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         if (!(attacker instanceof Player p)
                 || !(e.getDamager() instanceof Player)
                 || p.getWorld() != world
-                || p.getGameMode() == GameMode.SPECTATOR) return;
+                || !(e.getEntity() instanceof LivingEntity target)
+                || !fr.cliker.clikerv2.combat.CombatReach.canHit(p, target)) return;
         Long power = combat.calculateDamage(p, MobTier.VACHE);
         if (power == null) {
             message(p, "arme");

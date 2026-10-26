@@ -29,6 +29,17 @@ class ViewRequestsTest {
     }
 
     @Test
+    void navigatingAwayThenBackStillCancelsTheOldRequest() {
+        var requests = new ViewRequests(plugin);
+        var first = Bukkit.createInventory(null, 27);
+        player.openInventory(first);
+        var request = requests.begin(player);
+        player.openInventory(Bukkit.createInventory(null, 27));
+        player.openInventory(first);
+        assertFalse(requests.complete(player, request));
+    }
+
+    @Test
     void completedRequestCannotReopenAnOldMenuAfterNavigation() {
         var requests = new ViewRequests(plugin);
         var old = requests.begin(player);

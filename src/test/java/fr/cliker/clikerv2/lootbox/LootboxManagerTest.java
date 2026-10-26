@@ -23,6 +23,7 @@ class LootboxManagerTest {
     private RewardLedger ledger;
     private ClaimService claims;
     private LootboxManager boxes;
+    private OutgoingItems outgoing;
     private EconomyService economy;
     private org.mockbukkit.mockbukkit.entity.PlayerMock player;
 
@@ -39,11 +40,17 @@ class LootboxManagerTest {
         LootboxTier.load(plugin);
         boxes = new LootboxManager(plugin, ledger, claims);
         player = server.addPlayer();
+        org.bukkit.configuration.serialization.ConfigurationSerialization.registerClass(
+                org.mockbukkit.mockbukkit.inventory.ItemStackMock.class);
+        outgoing = new OutgoingItems(plugin, db, claims, p -> {});
+        outgoing.start();
+        drain();
     }
 
     @AfterEach
     void cleanup() {
         try {
+            outgoing.shutdown();
             claims.shutdown();
             ledger.shutdown();
             db.close();
@@ -64,8 +71,48 @@ class LootboxManagerTest {
     }
 
     private void drain() {
-        db.submit(c -> null).join();
-        server.getScheduler().performTicks(2);
+        for (int i = 0; i < 16; i++) {
+            db.submit(c -> null).join();
+            server.getScheduler().performOneTick();
+        }
+    }
+
+    @Test
+    void playerdataRemovalAndReceiptAreSavedBeforeAnyCurrencyCommit() {
+        outgoing.shutdown();
+        var saved = new java.util.concurrent.atomic.AtomicBoolean();
+        outgoing =
+                new OutgoingItems(
+                        plugin,
+                        db,
+                        claims,
+                        p -> {
+                            if (saved.get()
+                                    || !p.getPersistentDataContainer()
+                                            .has(new NamespacedKey(plugin, "outgoing_item")))
+                                return;
+                            assertTrue(p.getInventory().getItemInMainHand().getType().isAir());
+                            assertEquals(0, economy.getBalances(p.getUniqueId()).join().ecus());
+                            saved.set(true);
+                        });
+        outgoing.start();
+        drain();
+        player.getInventory().setItemInMainHand(LootboxItem.create(LootboxTier.COMMUN));
+        open();
+        drain();
+        assertTrue(saved.get());
+        assertEquals(
+                LootboxTier.COMMUN.ecus(), economy.getBalances(player.getUniqueId()).join().ecus());
+    }
+
+    @Test
+    void unavailableOutgoingJournalNeverRemovesTheBox() {
+        outgoing.shutdown();
+        player.getInventory().setItemInMainHand(LootboxItem.create(LootboxTier.COMMUN));
+        open();
+        drain();
+        assertEquals(1, player.getInventory().getItemInMainHand().getAmount());
+        assertEquals(0, economy.getBalances(player.getUniqueId()).join().ecus());
     }
 
     @Test

@@ -37,6 +37,64 @@ class UpgradeSafetyTest {
     }
 
     @Test
+    void corruptLevelsAreRefusedWithoutTruncationDebitOrRewrite() {
+        economy.set(owner, "Joueur", CurrencyType.GEMMES_SOMBRES, 100000).join();
+        store.setLevel(owner, UpgradeType.FORCE, 0).join();
+        for (Object value : List.of(-1L, 101L, 4_294_967_296L, "abc", 1.5)) {
+            db.submit(
+                            c -> {
+                                try (var q =
+                                        c.prepareStatement(
+                                                "UPDATE player_upgrades SET force=? WHERE"
+                                                    + " uuid=?")) {
+                                    q.setObject(1, value);
+                                    q.setString(2, owner.toString());
+                                    q.executeUpdate();
+                                    return null;
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            })
+                    .join();
+            assertThrows(CompletionException.class, () -> store.getLevels(owner).join());
+            assertThrows(
+                    CompletionException.class,
+                    () -> store.purchase(owner, UpgradeType.FORCE).join());
+            assertEquals(100000, economy.getBalances(owner).join().gemmesSombres());
+            Object after =
+                    db.submit(
+                                    c -> {
+                                        try (var q =
+                                                c.prepareStatement(
+                                                        "SELECT force FROM player_upgrades WHERE"
+                                                            + " uuid=?")) {
+                                            q.setString(1, owner.toString());
+                                            try (var r = q.executeQuery()) {
+                                                r.next();
+                                                return r.getObject(1);
+                                            }
+                                        } catch (Exception e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                    })
+                            .join();
+            assertEquals(value.toString(), after.toString());
+        }
+    }
+
+    @Test
+    void settersRejectOutOfRangeBeforeChangingStoredLevel() {
+        store.setLevel(owner, UpgradeType.FORCE, 7).join();
+        assertThrows(
+                CompletionException.class,
+                () -> store.setLevel(owner, UpgradeType.FORCE, -1).join());
+        assertThrows(
+                CompletionException.class,
+                () -> store.setLevel(owner, UpgradeType.FORCE, 101).join());
+        assertEquals(7, store.getLevels(owner).join().get(UpgradeType.FORCE));
+    }
+
+    @Test
     void presetBuysExactCountAndNeverPartial() {
         economy.set(owner, "Joueur", CurrencyType.GEMMES_SOMBRES, 160000).join();
         assertEquals(5, store.purchase(owner, UpgradeType.FORCE, 5).join());

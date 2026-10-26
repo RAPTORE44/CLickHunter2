@@ -84,4 +84,24 @@ class ChatActivitiesTest {
             database.close();
         }
     }
+
+    @Test
+    void queuedAnswerFromPreviousRoundCannotWinNextRound() {
+        var server = MockBukkit.mock();
+        var plugin = MockBukkit.createMockPlugin();
+        var activities = new ChatActivities(plugin);
+        try {
+            var player = server.addPlayer();
+            activities.start("calcul");
+            var oldRound = activities.currentRound();
+            String answer = oldRound.question().answers().iterator().next();
+            activities.clearRound();
+            activities.start("calcul");
+            var newRound = activities.currentRound();
+            activities.answer(player, answer, oldRound);
+            assertSame(newRound, activities.currentRound());
+        } finally {
+            activities.shutdown();
+        }
+    }
 }

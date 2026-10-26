@@ -220,7 +220,9 @@ public final class PrestigeManager implements Listener {
                                                                         + " éliminations"
                                                                         + " requises, ou"
                                                                         + " prestige déjà"
-                                                                        + " modifié.",
+                                                                        + " modifié, ou"
+                                                                        + " réinitialisation XP"
+                                                                        + " encore en cours.",
                                                                 NamedTextColor.RED));
                                         } else if (player.isOnline()) {
                                             cache.put(owner, next);

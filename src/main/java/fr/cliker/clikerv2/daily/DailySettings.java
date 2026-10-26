@@ -31,7 +31,7 @@ public final class DailySettings {
     }
 
     private void migrateCalendar() {
-        if (config.getInt("schema-version", 1) >= 2) return;
+        if (config.getInt("schema-version", 1) >= 3) return;
         try {
             java.nio.file.Path backup =
                     file.toPath()
@@ -39,29 +39,37 @@ public final class DailySettings {
                             .resolve("backups/daily-" + System.currentTimeMillis() + ".yml");
             java.nio.file.Files.createDirectories(backup.getParent());
             java.nio.file.Files.copy(file.toPath(), backup);
-            // Remplacer uniquement le pack de test livré auparavant ; préserver les récompenses
-            // personnalisées.
-            boolean testPack = true;
-            for (int day = 1; day <= 31; day++) {
-                if (!config.getString("recompenses." + day + ".description", "")
-                        .equals("Récompense test — Jour " + day)) testPack = false;
-            }
-            if (testPack) {
-                try (var input = plugin.getResource("daily.yml")) {
-                    var defaults =
-                            YamlConfiguration.loadConfiguration(
-                                    new java.io.InputStreamReader(
-                                            java.util.Objects.requireNonNull(input),
-                                            java.nio.charset.StandardCharsets.UTF_8));
-                    config.set("recompenses", defaults.getConfigurationSection("recompenses"));
-                    config.set("interface", defaults.getConfigurationSection("interface"));
+            try (var input = plugin.getResource("daily.yml")) {
+                var defaults =
+                        YamlConfiguration.loadConfiguration(
+                                new java.io.InputStreamReader(
+                                        java.util.Objects.requireNonNull(input),
+                                        java.nio.charset.StandardCharsets.UTF_8));
+                // Ajouter seulement les journées absentes ; conserver les récompenses
+                // personnalisées
+                // et les dates de récupération. L'ancien pack de test n'est plus remplacé.
+                for (int day = 1; day <= DailyProgress.DAYS; day++) {
+                    String path = "recompenses." + day;
+                    if (!config.contains(path))
+                        config.set(path, defaults.getConfigurationSection(path));
                 }
             }
-            config.set("schema-version", 2);
+            String path = "interface.icones.informations.description";
+            if (config.contains(path))
+                config.set(
+                        path,
+                        config.getStringList(path).stream()
+                                .map(
+                                        line ->
+                                                line.replace("/28", "/31")
+                                                        .replace("jour 28", "jour 31"))
+                                .toList());
+            config.set("schema-version", 3);
             save();
             plugin.getLogger()
                     .info(
-                            "Daily : cycle de 28 jours, configuration sauvegardée dans "
+                            "Daily : calendrier de 31 jours ; configuration précédente sauvegardée"
+                                    + " dans "
                                     + backup.getFileName());
         } catch (java.io.IOException e) {
             throw new IllegalStateException("Migration du calendrier impossible", e);
@@ -136,10 +144,18 @@ public final class DailySettings {
             item = new ItemStack(material);
         }
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(color(replace(config.getString(path + ".nom", " "), values)));
+        meta.displayName(
+                color(replace(config.getString(path + ".nom", " "), values))
+                        .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
         meta.lore(
                 config.getStringList(path + ".description").stream()
-                        .map(line -> color(replace(line, values)))
+                        .map(
+                                line ->
+                                        color(replace(line, values))
+                                                .decoration(
+                                                        net.kyori.adventure.text.format
+                                                                .TextDecoration.ITALIC,
+                                                        false))
                         .toList());
         int model = config.getInt(path + ".custom-model-data", 0);
         if (model > 0) meta.setCustomModelData(model);

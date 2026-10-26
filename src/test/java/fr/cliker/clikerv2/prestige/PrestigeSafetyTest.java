@@ -59,7 +59,7 @@ class PrestigeSafetyTest {
                             try (var s =
                                     c.prepareStatement(
                                             "INSERT INTO player_prestige(uuid,level)"
-                                                + " VALUES(?,?)")) {
+                                                    + " VALUES(?,?)")) {
                                 s.setString(1, owner.toString());
                                 s.setLong(2, 4294967296L);
                                 s.executeUpdate();
@@ -106,6 +106,28 @@ class PrestigeSafetyTest {
         assertNotNull(store.pendingReset(owner).join());
         store.acknowledgeReset(owner, 1).join();
         assertNull(store.pendingReset(owner).join());
+    }
+
+    @Test
+    void nextPrestigeCannotOverwriteAnUnacknowledgedExperienceReset() {
+        new MobKillStore(db).add(owner, 10000).join();
+        assertTrue(store.advance(owner, 0, 2500).join());
+        var reset = store.pendingReset(owner).join();
+        assertNotNull(reset);
+        assertEquals(1, reset.level());
+
+        // Le cache du manager peut déjà être à 1 alors que le joueur a encore son ancien XP.
+        // La reprise après redémarrage doit garder la même protection SQL.
+        var restarted = new PrestigeStore(db);
+        assertFalse(restarted.advance(owner, 1, 10000).join());
+        assertEquals(1, restarted.getLevel(owner).join());
+        assertEquals(reset, restarted.pendingReset(owner).join());
+
+        restarted.acknowledgeReset(owner, 2).join();
+        assertFalse(restarted.advance(owner, 1, 10000).join());
+        restarted.acknowledgeReset(owner, 1).join();
+        assertTrue(restarted.advance(owner, 1, 10000).join());
+        assertEquals(2, restarted.pendingReset(owner).join().level());
     }
 
     @Test

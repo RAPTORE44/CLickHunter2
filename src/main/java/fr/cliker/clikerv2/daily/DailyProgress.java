@@ -6,13 +6,16 @@ import java.time.ZonedDateTime;
 
 /** Calcul pur par dates locales : aucun délai de 24 heures. */
 public record DailyProgress(LocalDate lastClaim, int day) {
-    public static final int DAYS = 28;
+    public static final int DAYS = 31;
     public static final DailyProgress EMPTY = new DailyProgress(null, 0);
-    public enum Status { AVAILABLE, LOCKED, CLAIMED }
+
+    public enum Status {
+        AVAILABLE,
+        LOCKED,
+        CLAIMED
+    }
 
     public DailyProgress {
-        // Ancien cycle de 31 jours : conserver la date et considérer le cycle terminé.
-        if (lastClaim != null && day >= 29 && day <= 31) day = DAYS;
         if ((lastClaim == null && day != 0) || (lastClaim != null && (day < 1 || day > DAYS))) {
             throw new IllegalArgumentException("Progression journalière invalide");
         }
@@ -25,13 +28,17 @@ public record DailyProgress(LocalDate lastClaim, int day) {
 
     public int currentDay(LocalDate today) {
         if (claimedToday(today)) return day;
-        return lastClaim != null && lastClaim.equals(today.minusDays(1)) && day < DAYS ? day + 1 : 1;
+        return lastClaim != null && lastClaim.equals(today.minusDays(1)) && day < DAYS
+                ? day + 1
+                : 1;
     }
 
     public Status status(int rewardDay, LocalDate today) {
-        if (rewardDay < 1 || rewardDay > DAYS) throw new IllegalArgumentException("Jour hors calendrier");
+        if (rewardDay < 1 || rewardDay > DAYS)
+            throw new IllegalArgumentException("Jour hors calendrier");
         int current = currentDay(today);
-        if (rewardDay < current || (rewardDay == current && claimedToday(today))) return Status.CLAIMED;
+        if (rewardDay < current || (rewardDay == current && claimedToday(today)))
+            return Status.CLAIMED;
         return rewardDay == current ? Status.AVAILABLE : Status.LOCKED;
     }
 
@@ -39,7 +46,10 @@ public record DailyProgress(LocalDate lastClaim, int day) {
         if (status(rewardDay, now.toLocalDate()) != Status.LOCKED) return Duration.ZERO;
         long offset = rewardDay - currentDay(now.toLocalDate());
         // Une date future enregistrée ne doit pas annoncer un déblocage avant cette date.
-        LocalDate base = lastClaim != null && lastClaim.isAfter(now.toLocalDate()) ? lastClaim : now.toLocalDate();
+        LocalDate base =
+                lastClaim != null && lastClaim.isAfter(now.toLocalDate())
+                        ? lastClaim
+                        : now.toLocalDate();
         return Duration.between(now, base.plusDays(offset).atStartOfDay(now.getZone()));
     }
 }

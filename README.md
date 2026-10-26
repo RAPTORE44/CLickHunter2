@@ -339,9 +339,9 @@ Les magma cubes utilisent la taille moyenne 2 et les ghasts une échelle 0,5 par
 
 ### Audit de fiabilité du 26 octobre 2026
 
-La publication AH utilise un journal de sortie et un reçu playerdata : une interruption avant validation est reprise à la connexion, sans publier ni rembourser deux fois le même objet. Le remboursement rejoint directement l’inventaire si possible, sinon `/claim`. Les annonces existantes restent compatibles. Les callbacks `/claim` vérifient la bonne connexion du joueur, les calculs de prestige sont bornés et les positions YAML invalides sont signalées sans réécriture du fichier. Les icônes de menus inchangées ne sont plus entièrement retraitées à chaque rafraîchissement. Un mob déplacé dans un autre monde est ramené à son point d’origine sans interrompre sa tâche d’immobilisation.
+L’audit du 26 octobre couvre aussi les gains de morts de mobs, les coffres, le calendrier à 31 jours, les enchères, les niveaux d’amélioration, les sorties d’inventaire et les protections d’avant-poste. L’inscription d’enchère annulée par un refus de téléportation rembourse uniquement ses propres frais. Les détails, le nombre de tests et les limites vérifiées sont dans [le rapport complet](docs/AUDIT-COMPLET-2026-10-26.md).
 
-Lors de cet audit, la liste des **58 commandes** et de leurs alias a été comparée à `plugin.yml` ; aucune commande n’est ajoutée par cet audit. [Rapport, tests, installation et limites](docs/AUDIT-2026-10-26.md). Pour installer le JAR : arrêter le serveur, sauvegarder ensemble le dossier du plugin et les mondes/playerdata, remplacer le JAR de ClikerV2, puis redémarrer. Ne pas supprimer les configurations ni la base. Le journal AH ajoute automatiquement une table et un index, sans conversion des anciennes données.
+La liste des **67 commandes principales** et de leurs alias est classée par catégorie ci-dessus. Cet audit n’ajoute aucune commande. Pour installer le JAR : arrêter le serveur, sauvegarder ensemble le dossier du plugin et les mondes/playerdata, remplacer le JAR de ClikerV2, puis redémarrer. Ne pas supprimer les configurations ni la base. Les migrations conservent les données existantes et ajoutent seulement les colonnes ou tables nécessaires.
 
 
 ### Piñata de la zone Vache

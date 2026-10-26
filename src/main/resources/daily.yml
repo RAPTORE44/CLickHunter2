@@ -1,4 +1,4 @@
-schema-version: 2
+schema-version: 3
 # Module de récompenses journalières NorthBlue intégré à ClikerV2.
 # Les journées changent à MINUIT dans ce fuseau : aucun délai de 24 heures.
 fuseau-horaire: Europe/Paris
@@ -37,12 +37,12 @@ interface:
   # Sinon, materiau sert de remplacement. Les assets/textures ne sont pas inclus.
   icones:
     fond:
-      materiau: BLACK_STAINED_GLASS_PANE
+      materiau: BLUE_STAINED_GLASS_PANE
       itemsadder: ''
       nom: ' '
       description: []
     bandeau:
-      materiau: BLACK_STAINED_GLASS_PANE
+      materiau: CYAN_STAINED_GLASS_PANE
       itemsadder: ''
       nom: ' '
       description: []
@@ -52,7 +52,7 @@ interface:
       nom: '&b&lInformations'
       description:
         - '&8&m────────────────────────'
-        - '&7Jour actuel : &e{jour}&7/28'
+        - '&7Jour actuel : &e{jour}&7/31'
         - '&7Récompense : {etat}'
         - ''
         - '&7Une récompense par journée calendaire.'
@@ -62,7 +62,7 @@ interface:
         - '&cUne journée entière sans réclamer'
         - '&créinitialise ta série au jour 1.'
         - '&7Une simple connexion ne suffit pas.'
-        - '&7Après le jour 28 : nouveau cycle le lendemain.'
+        - '&7Après le jour 31 : nouveau cycle le lendemain.'
         - '&8&m────────────────────────'
     disponible:
       brillant: true
@@ -79,7 +79,7 @@ interface:
         - '&aCliquez pour réclamer !'
         - '&8&m────────────────────────'
     verrouille:
-      materiau: CHEST
+      materiau: TRIPWIRE_HOOK
       itemsadder: ''
       custom-model-data: 0
       nom: '&7&lJour {jour}'
@@ -108,117 +108,129 @@ interface:
 
 # Commandes exécutées par la CONSOLE, sans slash initial.
 # Variables : {joueur}, {uuid}, {jour}. Conserver au moins une commande par jour.
-# Cycle définitif de 28 jours : récompenses de lootboxes.
+# Cycle de 31 jours. Les récompenses 1–28 existantes sont conservées.
 recompenses:
   1:
-    description: 'Epic Lootbox x1'
+    description: 'Coffre épique ×1'
     commandes:
       - 'coffre {joueur} epique 1'
   2:
-    description: 'Epic Lootbox x2'
+    description: 'Coffre épique ×2'
     commandes:
       - 'coffre {joueur} epique 2'
   3:
-    description: 'Epic Lootbox x3'
+    description: 'Coffre épique ×3'
     commandes:
       - 'coffre {joueur} epique 3'
   4:
-    description: 'Epic Lootbox x4'
+    description: 'Coffre épique ×4'
     commandes:
       - 'coffre {joueur} epique 4'
   5:
-    description: 'Epic Lootbox x5'
+    description: 'Coffre épique ×5'
     commandes:
       - 'coffre {joueur} epique 5'
   6:
-    description: 'Epic Lootbox x6'
+    description: 'Coffre épique ×6'
     commandes:
       - 'coffre {joueur} epique 6'
   7:
-    description: 'Epic Lootbox x7'
+    description: 'Coffre épique ×7'
     commandes:
       - 'coffre {joueur} epique 7'
   8:
-    description: 'Legendary Lootbox x1'
+    description: 'Coffre légendaire ×1'
     commandes:
       - 'coffre {joueur} legendaire 1'
   9:
-    description: 'Legendary Lootbox x2'
+    description: 'Coffre légendaire ×2'
     commandes:
       - 'coffre {joueur} legendaire 2'
   10:
-    description: 'Legendary Lootbox x3'
+    description: 'Coffre légendaire ×3'
     commandes:
       - 'coffre {joueur} legendaire 3'
   11:
-    description: 'Legendary Lootbox x4'
+    description: 'Coffre légendaire ×4'
     commandes:
       - 'coffre {joueur} legendaire 4'
   12:
-    description: 'Legendary Lootbox x5'
+    description: 'Coffre légendaire ×5'
     commandes:
       - 'coffre {joueur} legendaire 5'
   13:
-    description: 'Legendary Lootbox x6'
+    description: 'Coffre légendaire ×6'
     commandes:
       - 'coffre {joueur} legendaire 6'
   14:
-    description: 'Legendary Lootbox x7'
+    description: 'Coffre légendaire ×7'
     commandes:
       - 'coffre {joueur} legendaire 7'
   15:
-    description: 'Mythic Lootbox x1'
+    description: 'Coffre mythique ×1'
     commandes:
       - 'coffre {joueur} mythique 1'
   16:
-    description: 'Mythic Lootbox x2'
+    description: 'Coffre mythique ×2'
     commandes:
       - 'coffre {joueur} mythique 2'
   17:
-    description: 'Mythic Lootbox x3'
+    description: 'Coffre mythique ×3'
     commandes:
       - 'coffre {joueur} mythique 3'
   18:
-    description: 'Mythic Lootbox x4'
+    description: 'Coffre mythique ×4'
     commandes:
       - 'coffre {joueur} mythique 4'
   19:
-    description: 'Mythic Lootbox x5'
+    description: 'Coffre mythique ×5'
     commandes:
       - 'coffre {joueur} mythique 5'
   20:
-    description: 'Mythic Lootbox x6'
+    description: 'Coffre mythique ×6'
     commandes:
       - 'coffre {joueur} mythique 6'
   21:
-    description: 'Mythic Lootbox x7'
+    description: 'Coffre mythique ×7'
     commandes:
       - 'coffre {joueur} mythique 7'
   22:
-    description: 'Divine Lootbox x1'
+    description: 'Coffre divin ×1'
     commandes:
       - 'coffre {joueur} divin 1'
   23:
-    description: 'Divine Lootbox x2'
+    description: 'Coffre divin ×2'
     commandes:
       - 'coffre {joueur} divin 2'
   24:
-    description: 'Divine Lootbox x3'
+    description: 'Coffre divin ×3'
     commandes:
       - 'coffre {joueur} divin 3'
   25:
-    description: 'Divine Lootbox x4'
+    description: 'Coffre divin ×4'
     commandes:
       - 'coffre {joueur} divin 4'
   26:
-    description: 'Divine Lootbox x5'
+    description: 'Coffre divin ×5'
     commandes:
       - 'coffre {joueur} divin 5'
   27:
-    description: 'Divine Lootbox x6'
+    description: 'Coffre divin ×6'
     commandes:
       - 'coffre {joueur} divin 6'
   28:
-    description: 'Divine Lootbox x7'
+    description: 'Coffre divin ×7'
     commandes:
       - 'coffre {joueur} divin 7'
+  29:
+    description: 'Récompense test — Jour 29'
+    commandes:
+      - 'tellraw {joueur} {"text":"Récompense test — Jour 29 récupérée !","color":"green"}'
+  30:
+    description: 'Récompense test — Jour 30'
+    commandes:
+      - 'tellraw {joueur} {"text":"Récompense test — Jour 30 récupérée !","color":"green"}'
+  31:
+    description: 'Récompense test — Jour 31'
+    commandes:
+      - 'tellraw {joueur} {"text":"Récompense test — Jour 31 récupérée !","color":"green"}'

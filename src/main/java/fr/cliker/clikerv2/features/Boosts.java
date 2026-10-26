@@ -13,6 +13,8 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.*;
 
 public final class Boosts implements Listener {
+    private static final List<String> TYPES =
+            List.of("chance", "coins", "xp", "vitesse", "degats", "gemmes", "cendres");
     private final JavaPlugin plugin;
     private final Settings palette;
     private final NamespacedKey kind, factor, seconds, speed;
@@ -47,9 +49,13 @@ public final class Boosts implements Listener {
                 service == null
                         ? NamespacedKey.fromString("clikerv2:boost_" + type + "_value")
                         : new NamespacedKey(service.plugin, "boost_" + type + "_value");
+        int value =
+                p.getPersistentDataContainer().getOrDefault(amount, PersistentDataType.INTEGER, 1);
         return p.getPersistentDataContainer().getOrDefault(key, PersistentDataType.LONG, 0L)
-                        > System.currentTimeMillis()
-                ? p.getPersistentDataContainer().getOrDefault(amount, PersistentDataType.INTEGER, 1)
+                                > System.currentTimeMillis()
+                        && value >= 2
+                        && value <= 4
+                ? value
                 : 1;
     }
 
@@ -183,12 +189,8 @@ public final class Boosts implements Listener {
                 duration =
                         m.getPersistentDataContainer()
                                 .getOrDefault(seconds, PersistentDataType.INTEGER, 0);
-        if (!Set.of("chance", "coins", "xp", "vitesse", "degats", "gemmes", "cendres")
-                        .contains(type)
-                || value < 2
-                || value > 4
-                || duration < 1
-                || duration > 1200) return;
+        if (!TYPES.contains(type) || value < 2 || value > 4 || duration < 1 || duration > 1200)
+            return;
         double current = multiplier(p, type);
         if (current > value) {
             p.sendMessage("Un bonus plus puissant est déjà actif. Potion conservée.");
@@ -219,7 +221,7 @@ public final class Boosts implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void milk(PlayerItemConsumeEvent e) {
         if (e.getItem().getType() != Material.MILK_BUCKET) return;
-        for (String type : List.of("chance", "coins", "xp", "vitesse", "degats")) {
+        for (String type : TYPES) {
             e.getPlayer()
                     .getPersistentDataContainer()
                     .remove(new NamespacedKey(plugin, "boost_" + type + "_expiry"));

@@ -103,20 +103,34 @@ class DailyMenuTest {
     void completeFrenchMenuAndTestRewardsAreConfigured() throws Exception {
         open();
         var inventory = player.getOpenInventory().getTopInventory();
-        assertEquals(Material.BLACK_STAINED_GLASS_PANE, inventory.getItem(0).getType());
-        assertEquals(Material.BLACK_STAINED_GLASS_PANE, inventory.getItem(9).getType());
+        assertEquals(Material.CYAN_STAINED_GLASS_PANE, inventory.getItem(0).getType());
+        assertEquals(Material.BLUE_STAINED_GLASS_PANE, inventory.getItem(9).getType());
         assertEquals(Material.BOOK, inventory.getItem(4).getType());
         assertEquals(Material.CHEST, inventory.getItem(DailyMenu.slot(1)).getType());
-        for (int day = 1; day <= 28; day++) {
-            var item = inventory.getItem(DailyMenu.slot(day));
+        for (int day = 1; day <= 31; day++) {
+            int currentDay = day;
+            var item = inventory.getItem(DailyMenu.slot(currentDay));
             var lore =
                     item.getItemMeta().lore().stream()
                             .map(PlainTextComponentSerializer.plainText()::serialize)
                             .toList();
-            assertTrue(lore.stream().anyMatch(line -> line.contains("Lootbox x")));
-            assertFalse(module.settings().commands(day).isEmpty());
-            assertTrue(module.settings().commands(day).getFirst().startsWith("coffre {joueur} "));
-            if (day > 1) assertEquals(Material.CHEST, item.getType());
+            assertFalse(lore.isEmpty());
+            assertFalse(module.settings().commands(currentDay).isEmpty());
+            if (currentDay <= 28)
+                assertTrue(
+                        module.settings()
+                                .commands(currentDay)
+                                .getFirst()
+                                .startsWith("coffre {joueur} "));
+            else
+                assertTrue(
+                        module.settings()
+                                .commands(currentDay)
+                                .getFirst()
+                                .startsWith("tellraw {joueur}"));
+            if (currentDay > 1)
+                assertEquals(
+                        currentDay == 1 ? Material.CHEST : Material.TRIPWIRE_HOOK, item.getType());
         }
     }
 

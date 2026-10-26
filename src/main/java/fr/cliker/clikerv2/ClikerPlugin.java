@@ -573,11 +573,34 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
                                 return true;
                             });
         }
-        pinata = new fr.cliker.clikerv2.pinata.PinataModule(this, database, rewardLedger);
-        pinata.start();
-        liveAuctions =
-                new fr.cliker.clikerv2.liveauction.LiveAuctions(this, database, economy, claims);
-        liveAuctions.start();
+        try {
+            pinata = new fr.cliker.clikerv2.pinata.PinataModule(this, database, rewardLedger);
+            pinata.start();
+        } catch (RuntimeException error) {
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Configuration piñata invalide : vérifier activites/pinata.yml",
+                            error);
+            if (pinata != null) pinata.shutdown();
+            pinata = null;
+            unavailableCommands("pinata");
+        }
+        try {
+            liveAuctions =
+                    new fr.cliker.clikerv2.liveauction.LiveAuctions(
+                            this, database, economy, claims);
+            liveAuctions.start();
+        } catch (RuntimeException error) {
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Configuration enchères invalide : vérifier activites/encheres.yml",
+                            error);
+            if (liveAuctions != null) liveAuctions.shutdown();
+            liveAuctions = null;
+            unavailableCommands("enchere");
+        }
         try {
             socialModule =
                     new fr.cliker.clikerv2.social.SocialModule(
@@ -614,6 +637,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
                             error);
             if (communityExtras != null) communityExtras.shutdown();
             communityExtras = null;
+            unavailableCommands("tag", "chatcouleur", "bvn");
         }
         playerComfort = new fr.cliker.clikerv2.comfort.PlayerComfort(this);
         playerComfort.start();
@@ -651,6 +675,20 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             return;
         }
         getLogger().info("Economie active avec SQLite.");
+    }
+
+    private void unavailableCommands(String... names) {
+        for (String name : names) {
+            var command = getCommand(name);
+            if (command == null) continue;
+            command.setExecutor(
+                    (sender, cmd, label, args) -> {
+                        sender.sendMessage(
+                                "§cCe service est temporairement indisponible. Préviens le staff.");
+                        return true;
+                    });
+            command.setTabCompleter((sender, cmd, label, args) -> java.util.List.of());
+        }
     }
 
     @Override

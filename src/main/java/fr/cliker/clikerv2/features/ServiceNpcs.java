@@ -440,7 +440,9 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
                                                                                 "Achat boutique"
                                                                                     + " impossible",
                                                                                 e);
-                                                            if (player.isOnline()) {
+                                                            if (fr.cliker.clikerv2.runtime
+                                                                    .PlayerSessions.isCurrent(
+                                                                    player)) {
                                                                 player.sendMessage(
                                                                         e != null
                                                                                 ? "Achat"

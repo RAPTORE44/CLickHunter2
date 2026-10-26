@@ -85,6 +85,71 @@ class CommunityExtrasTest {
         drain();
     }
 
+    private Command root(String name) {
+        return new Command(name) {
+            public boolean execute(CommandSender s, String l, String[] a) {
+                return false;
+            }
+        };
+    }
+
+    @Test
+    void delayedMenuLoadDoesNotReplaceThePlayersNewInventory() {
+        module.onCommand(player, root("tag"), "tag", new String[0]);
+        var next = Bukkit.createInventory(null, 27);
+        player.openInventory(next);
+        drain();
+        assertSame(next, player.getOpenInventory().getTopInventory());
+    }
+
+    @Test
+    void savingAColorDoesNotReopenTheMenuAfterPlayerHasMovedOn() {
+        player.addAttachment(plugin, "cliker.chat.couleur.gold", true);
+        command("chatcouleur");
+        server.getPluginManager()
+                .callEvent(
+                        new InventoryClickEvent(
+                                player.getOpenInventory(),
+                                InventoryType.SlotType.CONTAINER,
+                                9,
+                                ClickType.LEFT,
+                                InventoryAction.PICKUP_ALL));
+        server.getScheduler().performOneTick();
+        var next = Bukkit.createInventory(null, 27);
+        player.openInventory(next);
+        drain();
+        assertEquals(
+                "gold",
+                store.profiles(java.util.List.of(player.getUniqueId()))
+                        .join()
+                        .get(player.getUniqueId())
+                        .color());
+        assertSame(next, player.getOpenInventory().getTopInventory());
+    }
+
+    @Test
+    void incompleteWelcomeMessagesUseFrenchFallbacksAfterSuccessfulPayment() throws Exception {
+        var field = CommunityExtras.class.getDeclaredField("welcome");
+        field.setAccessible(true);
+        var config = (fr.cliker.clikerv2.features.Settings) field.get(module);
+        config.yaml.set("messages", null);
+        var candidate =
+                new CommunityStore.Welcome(
+                        java.util.UUID.randomUUID(), "Nouveau", System.currentTimeMillis());
+        store.newcomer(candidate).join();
+        field = CommunityExtras.class.getDeclaredField("newcomer");
+        field.setAccessible(true);
+        field.set(module, candidate);
+        player.addAttachment(plugin, "cliker.bienvenue.use", true);
+        assertDoesNotThrow(() -> command("bvn"));
+        assertEquals(
+                250,
+                new EconomyService(db, java.util.Map.of())
+                        .getBalances(player.getUniqueId())
+                        .join()
+                        .ecus());
+    }
+
     @Test
     void tagNeedsBothProgressionAndPermissionAndShowsValidatedBugCount() {
         player.addAttachment(plugin, "cliker.tag.bugs.1", true);

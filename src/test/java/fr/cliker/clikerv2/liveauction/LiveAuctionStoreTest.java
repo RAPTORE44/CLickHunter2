@@ -104,6 +104,35 @@ class LiveAuctionStoreTest {
     }
 
     @Test
+    void failedAdmissionTeleportCanRefundOnlyItsOwnFeeOnce() {
+        create();
+        economy.set(a, "A", CurrencyType.ECUS, 200_000).join();
+        var admission = store.admit("event", a, 10_000).join();
+        assertTrue(admission.allowed());
+        assertNotNull(admission.receipt());
+        assertEquals(190_000, economy.getBalances(a).join().ecus());
+        assertTrue(store.rejectAdmission("event", a, admission.receipt()).join());
+        assertEquals(200_000, economy.getBalances(a).join().ecus());
+        assertFalse(store.rejectAdmission("event", a, admission.receipt()).join());
+        assertEquals(200_000, economy.getBalances(a).join().ecus());
+        assertEquals(0, store.state("event").join().members());
+    }
+
+    @Test
+    void failedAdmissionCannotRefundAfterThePlayerHasPlacedABid() {
+        create();
+        economy.set(a, "A", CurrencyType.ECUS, 200_000).join();
+        var admission = store.admit("event", a, 10_000).join();
+        assertTrue(admission.allowed());
+        store.advance("event", 30_000, true).join();
+        assertEquals(
+                LiveAuctionStore.Bid.ACCEPTED,
+                store.bid("event", 0, a, "A", 1_000, 30_000).join().result());
+        assertFalse(store.rejectAdmission("event", a, admission.receipt()).join());
+        assertEquals(190_000, economy.getBalances(a).join().ecus());
+    }
+
+    @Test
     void registrationClosesForNewPlayersAndOnlyOneEventCanExist() {
         create();
         assertThrows(

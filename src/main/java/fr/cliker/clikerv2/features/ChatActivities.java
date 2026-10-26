@@ -23,7 +23,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class ChatActivities implements Listener {
     record Question(String text, Set<String> answers, String displayedAnswer) {}
 
-    private record Round(UUID id, Question question, long until) {}
+    record Round(UUID id, Question question, long until) {}
 
     private final JavaPlugin plugin;
     private final Settings settings;
@@ -32,7 +32,7 @@ public final class ChatActivities implements Listener {
     private volatile Round round;
     private long nextGame, nextHelp;
     private int helpIndex, categoryIndex;
-    private boolean stopped;
+    private volatile boolean stopped;
 
     public ChatActivities(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -76,9 +76,9 @@ public final class ChatActivities implements Listener {
                         sender.sendMessage(
                                 active
                                         ? "Jeu interrompu. Les récompenses déjà gagnées sont"
-                                              + " conservées."
+                                                + " conservées."
                                         : "Aucun jeu n'est en cours. Les récompenses déjà gagnées"
-                                              + " sont conservées.");
+                                                + " sont conservées.");
                         return true;
                     }
                     if (args[0].equalsIgnoreCase("lancer")) {
@@ -116,6 +116,14 @@ public final class ChatActivities implements Listener {
 
     Question currentQuestion() {
         return round == null ? null : round.question;
+    }
+
+    Round currentRound() {
+        return round;
+    }
+
+    void clearRound() {
+        round = null;
     }
 
     static String normalize(String answer) {
@@ -218,16 +226,23 @@ public final class ChatActivities implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void chat(AsyncChatEvent event) {
-        if (round == null || stopped) return;
+        Round observedRound = round;
+        if (observedRound == null || stopped) return;
         Player player = event.getPlayer();
         String answer = PlainTextComponentSerializer.plainText().serialize(event.message());
         if (answer.length() > 128) return;
-        fr.cliker.clikerv2.runtime.ServerTasks.run(plugin, () -> answer(player, answer));
+        fr.cliker.clikerv2.runtime.ServerTasks.run(
+                plugin, () -> answer(player, answer, observedRound));
     }
 
     void answer(Player player, String answer) {
+        answer(player, answer, round);
+    }
+
+    void answer(Player player, String answer, Round observedRound) {
         if (stopped
-                || round == null
+                || observedRound == null
+                || round != observedRound
                 || System.nanoTime() >= round.until
                 || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)) return;
         long now = System.nanoTime(), last = attempts.getOrDefault(player.getUniqueId(), 0L);

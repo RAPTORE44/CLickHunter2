@@ -40,6 +40,7 @@ public final class CommunityExtras implements Listener, CommandExecutor, TabComp
     private final RewardLedger ledger;
     private final ClaimService claims;
     private final Menus menus;
+    private final fr.cliker.clikerv2.ui.ViewRequests requests;
     private final Settings tags, welcome, chat;
     private final List<Category> categories = new ArrayList<>();
     private final Map<UUID, CommunityStore.Profile> profiles = new HashMap<>();
@@ -57,6 +58,7 @@ public final class CommunityExtras implements Listener, CommandExecutor, TabComp
         this.claims = claims;
         store = new CommunityStore(db, ledger);
         menus = new Menus(plugin);
+        requests = new fr.cliker.clikerv2.ui.ViewRequests(plugin);
         tags = new Settings(plugin, "communaute/tags.yml");
         welcome = new Settings(plugin, "communaute/bienvenue.yml");
         chat = new Settings(plugin, "communaute/tchat.yml");
@@ -413,6 +415,7 @@ public final class CommunityExtras implements Listener, CommandExecutor, TabComp
 
     private void save(Player p, String tag, String chosen, Runnable done) {
         if (!pending.add(p.getUniqueId())) return;
+        var request = requests.begin(p);
         store.preference(p.getUniqueId(), tag, chosen)
                 .whenComplete(
                         (v, e) ->
@@ -429,7 +432,8 @@ public final class CommunityExtras implements Listener, CommandExecutor, TabComp
                                                         () -> {
                                                             p.sendMessage(
                                                                     color("&aChoix sauvegardé."));
-                                                            done.run();
+                                                            if (requests.complete(p, request))
+                                                                done.run();
                                                         });
                                         }));
     }
@@ -482,7 +486,11 @@ public final class CommunityExtras implements Listener, CommandExecutor, TabComp
                                             Bukkit.broadcast(
                                                     color(
                                                             welcome.yaml
-                                                                    .getString("messages.souhait")
+                                                                    .getString(
+                                                                            "messages.souhait",
+                                                                            "&a{joueur} souhaite la"
+                                                                                + " bienvenue à"
+                                                                                + " {nouveau} !")
                                                                     .replace(
                                                                             "{joueur}", p.getName())
                                                                     .replace(
@@ -493,7 +501,12 @@ public final class CommunityExtras implements Listener, CommandExecutor, TabComp
                                                 online.sendMessage(
                                                         color(
                                                                 welcome.yaml
-                                                                        .getString("messages.gagne")
+                                                                        .getString(
+                                                                                "messages.gagne",
+                                                                                "&aMerci !"
+                                                                                    + " &e+{ecus}"
+                                                                                    + " Écus"
+                                                                                    + " &b+{xp} XP")
                                                                         .replace(
                                                                                 "{ecus}",
                                                                                 Long.toString(
@@ -571,13 +584,16 @@ public final class CommunityExtras implements Listener, CommandExecutor, TabComp
             return true;
         }
         if (root.equals("bvn")) welcome(p);
-        else
+        else {
+            var request = requests.begin(p);
             load(
                     p,
                     () -> {
+                        if (!requests.complete(p, request) || !p.hasPermission(permission)) return;
                         if (root.equals("tag")) categories(p);
                         else colors(p);
                     });
+        }
         return true;
     }
 
@@ -605,7 +621,10 @@ public final class CommunityExtras implements Listener, CommandExecutor, TabComp
                                                     color(
                                                                     welcome.yaml
                                                                             .getString(
-                                                                                    "messages.nouveau")
+                                                                                    "messages.nouveau",
+                                                                                    "&aBienvenue à"
+                                                                                        + " {joueur}"
+                                                                                        + " ! &e/bvn")
                                                                             .replace(
                                                                                     "{joueur}",
                                                                                     p.getName()))
