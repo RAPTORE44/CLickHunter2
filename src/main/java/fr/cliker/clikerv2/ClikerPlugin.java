@@ -87,6 +87,7 @@ import java.util.Map;
 
 public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.Listener {
     private fr.cliker.clikerv2.hunting.RewardLedger rewardLedger;
+    private fr.cliker.clikerv2.hunting.AtmModule atmModule;
     private fr.cliker.clikerv2.hunting.HuntingModule huntingModule;
     private fr.cliker.clikerv2.raid.RaidModule raidModule;
     private fr.cliker.clikerv2.outpost.OutpostModule outpostModule;
@@ -642,6 +643,16 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             communityExtras = null;
             unavailableCommands("tag", "chatcouleur", "bvn");
         }
+        try {
+            atmModule = new fr.cliker.clikerv2.hunting.AtmModule(this, rewardLedger);
+        } catch (RuntimeException error) {
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "ATM indisponible : vérifier boutiques/atm.yml",
+                            error);
+            unavailableCommands("atm");
+        }
         playerComfort = new fr.cliker.clikerv2.comfort.PlayerComfort(this);
         playerComfort.start();
         farmTelemetry = new fr.cliker.clikerv2.comfort.FarmTelemetry(this);
@@ -721,6 +732,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         if (pinata != null) pinata.shutdown();
         if (communityExtras != null) communityExtras.shutdown();
         if (socialModule != null) socialModule.shutdown();
+        if (atmModule != null) atmModule.shutdown();
         if (rewardLedger != null) rewardLedger.shutdown();
         if (referrals != null) referrals.shutdown();
         if (discordModule != null) discordModule.shutdown();

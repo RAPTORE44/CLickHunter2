@@ -335,7 +335,9 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
             mob.setPersistent(false);
             mob.getPersistentDataContainer().set(tag, PersistentDataType.BYTE, (byte) 1);
             mob.customName(DailySettings.color("&cPillard du raid"));
-            mob.setCustomNameVisible(true);
+            mob.setCustomNameVisible(
+                    fr.cliker.clikerv2.hologram.SharedHolograms.service() == null
+                            || !fr.cliker.clikerv2.hologram.SharedHolograms.service().available());
             if (mob.getAttribute(Attribute.ATTACK_DAMAGE) != null)
                 mob.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(normalDamage);
             mob.setTarget(
@@ -360,7 +362,9 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         giant.setRemoveWhenFarAway(false);
         giant.getPersistentDataContainer().set(tag, PersistentDataType.BYTE, (byte) 2);
         giant.customName(DailySettings.color("&4&lGardien colossal"));
-        giant.setCustomNameVisible(true);
+        giant.setCustomNameVisible(
+                fr.cliker.clikerv2.hologram.SharedHolograms.service() == null
+                        || !fr.cliker.clikerv2.hologram.SharedHolograms.service().available());
         giant.setSilent(true);
         boss = giant.getUniqueId();
         bossMax = configuredBossHP;

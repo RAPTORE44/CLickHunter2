@@ -199,6 +199,7 @@ public final class SharedHolograms {
                                                         ? Display.Billboard.FIXED
                                                         : Display.Billboard.CENTER);
                                         entity.setDefaultBackground(false);
+                                        entity.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
                                         entity.setShadowed(true);
                                         entity.setTeleportDuration(1);
                                         if (owner != null) entity.setVisibleByDefault(false);

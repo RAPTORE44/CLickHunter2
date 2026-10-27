@@ -46,6 +46,12 @@ class DamagePopupsTest {
                                         return null;
                                     }
                                     if (name.equals("getBillboard")) return state.get("billboard");
+                                    if (name.equals("getBackgroundColor"))
+                                        return state.get("backgroundColor");
+                                    if (name.equals("setBackgroundColor")) {
+                                        state.put("backgroundColor", args[0]);
+                                        return null;
+                                    }
                                     if (name.equals("setBillboard")) {
                                         state.put("billboard", args[0]);
                                         return null;

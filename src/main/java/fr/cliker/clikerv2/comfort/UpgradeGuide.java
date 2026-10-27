@@ -4,6 +4,8 @@ import fr.cliker.clikerv2.economy.CurrencyType;
 import fr.cliker.clikerv2.upgrade.*;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 import org.bukkit.Bukkit;
@@ -109,7 +111,64 @@ public final class UpgradeGuide implements CommandExecutor {
                                                                     + " ta progression.";
                                             player.sendMessage(
                                                     Component.text(advice, NamedTextColor.GREEN));
+                                            player.sendMessage(
+                                                    Component.text("Tes prochaines pistes : ")
+                                                            .color(NamedTextColor.GRAY)
+                                                            .append(
+                                                                    link(
+                                                                            "/bestiaire",
+                                                                            "Découvrir les"
+                                                                                + " maîtrises",
+                                                                            NamedTextColor.GREEN))
+                                                            .append(
+                                                                    Component.text(" • ")
+                                                                            .color(
+                                                                                    NamedTextColor
+                                                                                            .DARK_GRAY))
+                                                            .append(
+                                                                    link(
+                                                                            "/contrats",
+                                                                            "Contrats de chasse",
+                                                                            NamedTextColor.GOLD))
+                                                            .append(
+                                                                    Component.text(" • ")
+                                                                            .color(
+                                                                                    NamedTextColor
+                                                                                            .DARK_GRAY))
+                                                            .append(
+                                                                    link(
+                                                                            "/warp",
+                                                                            "Explorer les zones",
+                                                                            NamedTextColor.AQUA)));
+                                            player.sendMessage(
+                                                    Component.text(
+                                                                    "Pour revoir tes gains récents"
+                                                                        + " : ")
+                                                            .color(NamedTextColor.GRAY)
+                                                            .append(
+                                                                    link(
+                                                                            "/session",
+                                                                            "Résumé de session",
+                                                                            NamedTextColor.YELLOW))
+                                                            .append(
+                                                                    Component.text(" • ")
+                                                                            .color(
+                                                                                    NamedTextColor
+                                                                                            .DARK_GRAY))
+                                                            .append(
+                                                                    link(
+                                                                            "/raid",
+                                                                            "Raids de groupe",
+                                                                            NamedTextColor
+                                                                                    .LIGHT_PURPLE)));
                                         }));
         return true;
+    }
+
+    private static Component link(String command, String label, NamedTextColor color) {
+        return Component.text(label)
+                .color(color)
+                .clickEvent(ClickEvent.runCommand(command))
+                .hoverEvent(HoverEvent.showText(Component.text("Cliquer pour ouvrir " + command)));
     }
 }

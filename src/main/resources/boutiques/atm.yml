@@ -1,0 +1,8 @@
+# Tarif provisoire modifiable : temps total Minecraft, tranches payées une seule fois.
+minutes-par-tranche: 10
+ecus-par-tranche: 1000
+pnj:
+  actif: false
+  type: villager
+  titre: '&6Marketus &8• &eATM'
+  sous-titre: '&7Convertis ton temps de jeu en Écus'

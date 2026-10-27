@@ -107,7 +107,7 @@ public final class DatabaseManager {
                         + " IN(0,1,2,3)))");
             statement.executeUpdate(
                     "CREATE UNIQUE INDEX IF NOT EXISTS outgoing_owner_pending ON"
-                        + " outgoing_items(owner) WHERE state=0");
+                            + " outgoing_items(owner) WHERE state=0");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS referral_players(uuid TEXT PRIMARY KEY, name TEXT"
                             + " NOT NULL, first_join INTEGER NOT NULL, deadline INTEGER NOT NULL,"
@@ -132,6 +132,9 @@ public final class DatabaseManager {
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS earned_xp(owner TEXT PRIMARY KEY,total INTEGER NOT"
                             + " NULL DEFAULT 0)");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS atm_claimed(owner TEXT PRIMARY KEY,ticks INTEGER"
+                        + " NOT NULL)");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS bestiary_stats(owner TEXT NOT NULL,mob TEXT NOT"
                         + " NULL,boss INTEGER NOT NULL,kills INTEGER NOT NULL,xp INTEGER NOT"

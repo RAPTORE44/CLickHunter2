@@ -5,6 +5,10 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  atm:
+    description: Retirer les Écus gagnés grâce au temps de jeu auprès de Marketus
+    usage: /atm [pnj spawn|remove]
+    permission: cliker.atm.use
   aide:
     description: Aide contextuelle des commandes accessibles
     usage: /aide [commande]
@@ -263,6 +267,10 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.atm.use:
+    default: true
+  cliker.atm.admin:
+    default: op
   cliker.marry.use:
     description: Utiliser les commandes de mariage
     default: true

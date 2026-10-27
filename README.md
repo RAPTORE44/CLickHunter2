@@ -1,11 +1,18 @@
 # ClikerV2
 
+## Dernière mise à jour — 27 octobre 2026
+
+- ATM Marketus : conversion du temps de jeu en Écus, menu `/atm`, PNJ sauvegardé et retrait protégé contre les doubles paiements. Tarif provisoire : 1 000 Écus par tranche de dix minutes, configurable dans `boutiques/atm.yml`.
+- `/guide` propose des accès cliquables aux activités et à la progression.
+- Le secours natif des hologrammes et les textes de dégâts utilisent un fond transparent. Les noms vanilla des créatures de raid sont masqués dès leur apparition lorsque le fournisseur d’hologrammes est actif.
+- [Audit des demandes et écarts encore ouverts](docs/AUDIT-DEMANDES.md).
+
 Le module **BuyZone** crée des portails invisibles d'achat d'accès avec l'économie
 intégrée : [configuration des tarifs, commandes et installation](docs/BUYZONE.md).
 Les prix d'accès manquants sont proposés à partir des prix actuels des armures, sans modifier les tarifs existants.
 
 Le module **NorthBlue de récompenses journalières** est intégré à ce même plugin :
-`/daily`, calendrier de 28 jours et PNJ ZNPCsPlus 2.0.0 optionnel.
+`/daily`, calendrier de 31 jours et PNJ ZNPCsPlus 2.0.0 optionnel.
 Voir [l'installation, la configuration et les règles du calendrier](docs/RECOMPENSES-JOURNALIERES.md).
 
 Plugin unique pour Paper 1.21.4 : économie SQLite et commandes de gestion des monnaies.
@@ -62,6 +69,7 @@ Les couples conservent leurs commandes toute l’année. L’anneau est identifi
 | --- | --- |
 | `/daily` | Ouvrir le calendrier et réclamer la récompense disponible. |
 | `/claim` | Récupérer les récompenses en objets mises en attente. |
+| `/atm` | Ouvrir l’ATM et retirer les tranches de temps de jeu disponibles. Les minutes restantes sont conservées ; le temps déjà payé ne peut pas être payé à nouveau. Le compteur utilise le temps Minecraft total, y compris le temps passé immobile. |
 | `/sac gestion` | Aperçu puis confirmation du tri ou du dépôt des ressources dans le premier sac ; clic droit sur un autre sac pour le gérer. |
 | `/sac` | Ouvrir les sacs personnels accessibles selon le rang du joueur. |
 
@@ -111,7 +119,7 @@ L'autocompresseur s'achète chez le marchand puis s'active par clic droit : l'ob
 
 | Commande | Utilité |
 | --- | --- |
-| `/guide` | Conseiller le prochain palier d’amélioration le moins cher, selon les niveaux et le solde réel. Aussi accessible dans `/menu`. |
+| `/guide` | Conseiller le prochain palier d’amélioration selon les niveaux et le solde réel, puis proposer des accès cliquables au bestiaire, aux contrats, aux zones, aux raids et au résumé de session. Aussi accessible dans `/menu`. |
 | `/zone <numéro>` | Rejoindre une zone déjà débloquée et configurée ; alias `/z`. |
 | `/warp` | Zones débloquées : gauche vers l’entrée, droite devant leur boss ; raccourcis spawn, raids et boss public. |
 | `/boss` | Rejoindre l’arène publique du boss serveur, accessible à tous. |
@@ -180,6 +188,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/buyzone spawn <zone>` | Placer un portail d'achat pour une zone configurée. | `cliker.buyzone.admin` |
 | `/buyzone remove <zone>` | Supprimer ce portail. | `cliker.buyzone.admin` |
 | `/daily pnj spawn` / `/daily pnj remove` | Placer ou supprimer le PNJ des récompenses. | `cliker.daily.admin` |
+| `/atm pnj spawn` / `/atm pnj remove` | Placer ou supprimer Marketus à sa position. | `cliker.atm.admin` |
 | `/discord pnj spawn` / `/discord pnj remove` | Placer ou supprimer le PNJ Discord. | `cliker.discord.admin` |
 | `/contrats pnj spawn` / `/contrats pnj remove` | Placer ou supprimer le PNJ des contrats. | `cliker.contrats.admin` |
 | `/mobspawn setspawn <mob>` | Définir un point d'apparition de mob ; alias `/mob`. | `cliker.mob.admin` |

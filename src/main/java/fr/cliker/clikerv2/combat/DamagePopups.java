@@ -3,6 +3,7 @@ package fr.cliker.clikerv2.combat;
 import fr.cliker.clikerv2.Numbers;
 import fr.cliker.clikerv2.daily.DailySettings;
 
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Display;
@@ -139,6 +140,7 @@ public final class DamagePopups implements Listener {
                                 entity.setBillboard(Display.Billboard.CENTER);
                                 entity.setShadowed(true);
                                 entity.setDefaultBackground(false);
+                                entity.setBackgroundColor(Color.fromARGB(0, 0, 0, 0));
                                 entity.setTeleportDuration(1);
                                 entity.text(
                                         DailySettings.color(
