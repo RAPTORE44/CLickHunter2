@@ -219,7 +219,7 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                 || !target.getWorld().getWorldBorder().isInside(target)) {
             p.sendMessage(
                     "Le point d’arrivée est invalide ou hors des limites du monde. Préviens un"
-                        + " administrateur.");
+                            + " administrateur.");
             return false;
         }
         var floor = target.clone().subtract(0, 1, 0).getBlock();
@@ -258,6 +258,11 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
         try {
             switch (c.getName()) {
                 case "warp" -> {
+                    if (a.length == 2
+                            && a[0].equalsIgnoreCase("set")
+                            && a[1].equalsIgnoreCase("all"))
+                        return onCommand(
+                                p, plugin.getCommand("warpbloc"), "warpbloc", new String[] {"set"});
                     if (a.length == 3
                             && a[0].equalsIgnoreCase("set")
                             && MobTier.parse(a[1]) != null
@@ -522,8 +527,12 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
         List<String> values = List.of();
         if (c.getName().equals("warp") && a.length == 1 && s.hasPermission("cliker.services.admin"))
             values = List.of("set");
-        if (c.getName().equals("warp") && a.length == 2 && s.hasPermission("cliker.services.admin"))
+        if (c.getName().equals("warp")
+                && a.length == 2
+                && s.hasPermission("cliker.services.admin")) {
             values = new ArrayList<>(MobTier.byId().keySet());
+            values.add("all");
+        }
         if (c.getName().equals("warp") && a.length == 3 && s.hasPermission("cliker.services.admin"))
             values = List.of("entree", "boss");
         if ((c.getName().equals("sacbloc")

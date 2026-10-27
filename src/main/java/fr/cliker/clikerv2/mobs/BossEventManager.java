@@ -58,7 +58,7 @@ public final class BossEventManager implements Listener {
                 settings.getLong("prochain-spawn-ms", System.currentTimeMillis() + interval * 1000);
         saveTimer();
         remainingSeconds = Math.max(0, (nextSpawnMillis - System.currentTimeMillis() + 999) / 1000);
-        this.bossBar = Bukkit.createBossBar("Prochain Golem", BarColor.RED, BarStyle.SOLID);
+        this.bossBar = Bukkit.createBossBar("Prochains boss", BarColor.RED, BarStyle.SOLID);
     }
 
     /** Branché après coup car HologramManager est construit plus tard dans onEnable. */
@@ -114,7 +114,7 @@ public final class BossEventManager implements Listener {
             for (Player player : plugin.getServer().getOnlinePlayers()) player.sendMessage(message);
         }
         if (hologramManager != null) {
-            hologramManager.updateBossTimer("⚔ Golem ⚔", List.of("&c&lLES GOLEMS SONT ARRIVÉS !"));
+            hologramManager.updateBossTimer("⚔ Boss ⚔", List.of("&c&lLES BOSS SONT ARRIVÉS !"));
         }
     }
 
@@ -132,7 +132,7 @@ public final class BossEventManager implements Listener {
         long minutes = remainingSeconds / 60;
         long seconds = remainingSeconds % 60;
         hologramManager.updateBossTimer(
-                "⚔ Prochain Golem ⚔",
+                "⚔ Prochains boss ⚔",
                 List.of("&e" + minutes + "m " + String.format("%02d", seconds) + "s"));
     }
 
@@ -140,7 +140,7 @@ public final class BossEventManager implements Listener {
         long minutes = remainingSeconds / 60;
         long seconds = remainingSeconds % 60;
         bossBar.setTitle(
-                "⚔ Prochain Golem dans " + minutes + "m " + String.format("%02d", seconds) + "s");
+                "⚔ Prochains boss dans " + minutes + "m " + String.format("%02d", seconds) + "s");
         bossBar.setProgress(
                 Math.max(0.0, Math.min(1.0, (double) remainingSeconds / Math.max(1, warning))));
         for (Player player : plugin.getServer().getOnlinePlayers()) {

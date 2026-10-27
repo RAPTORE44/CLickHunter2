@@ -2,6 +2,12 @@
 
 ## Dernière mise à jour — 27 octobre 2026
 
+- `/warp set all` lie le bloc visé au menu Warp, avec son hologramme ; alias de `/warpbloc set`.
+- PNJ Wiki avec lien vers `https://wiki.clickhunter.fr` et accès au livre des commandes accessibles.
+- ATM : total retiré et montant disponible affichés, historique conservé après les prochains changements de tarif.
+- Classements et minuteur des boss abaissés de trois blocs ; orientation fixe vers l’est. Ces panneaux utilisent TextDisplay natif car Holographic Displays API 3 ne permet pas de verrouiller cet axe ; les autres hologrammes conservent le fournisseur configuré.
+- Piñata : arrivée face au sud, nom jaune pour les Écus, bleu pour l’XP, violet pour les gemmes, sans PV affichés ; son de note block et particules d’émeraude à chaque coup récompensé. Les particules ne créent aucun objet ramassable.
+
 - Jeux de chat : réponses en un mot (ou un nombre pour les calculs), accents et trémas facultatifs. Les anciennes devinettes par défaut à plusieurs mots sont adaptées automatiquement ; une question personnalisée sans réponse en un mot est écartée.
 - ATM Marketus : conversion du temps de jeu en Écus, menu `/atm`, PNJ sauvegardé et retrait protégé contre les doubles paiements. Tarif provisoire : 1 000 Écus par tranche de dix minutes, configurable dans `boutiques/atm.yml`.
 - `/guide` propose des accès cliquables aux activités et à la progression.
@@ -39,6 +45,7 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | `/tuto` | Consulter le livre-guide. |
 | `/spawn` | Rejoindre le point d'accueil. |
 | `/discord` | Recevoir le lien du Discord. |
+| `/wiki` / `/wiki livre` | Recevoir le lien du Wiki et un bouton ouvrant le livre des commandes accessibles, ou ouvrir ce livre directement. |
 | `/tag` | Collection des tags : Bugs, Chasse, Temps de jeu, Boss, Popularité et Prestige ; 15 grades par catégorie. Permission **et** progression requises. |
 | `/chatcouleur` | Choisir une couleur de parole autorisée ; alias `/chatcolor`. |
 | `/bvn` | Souhaiter la bienvenue au dernier **nouveau** joueur sous cinq minutes : 250 Écus et 50 XP, une seule fois par arrivant ; alias `/bienvenue`. |
@@ -190,6 +197,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/buyzone remove <zone>` | Supprimer ce portail. | `cliker.buyzone.admin` |
 | `/daily pnj spawn` / `/daily pnj remove` | Placer ou supprimer le PNJ des récompenses. | `cliker.daily.admin` |
 | `/atm pnj spawn` / `/atm pnj remove` | Placer ou supprimer Marketus à sa position. | `cliker.atm.admin` |
+| `/wiki pnj spawn` / `/wiki pnj remove` | Placer ou supprimer le PNJ Wiki. Lien et textes dans `wiki.yml`. | `cliker.wiki.admin` |
 | `/discord pnj spawn` / `/discord pnj remove` | Placer ou supprimer le PNJ Discord. | `cliker.discord.admin` |
 | `/contrats pnj spawn` / `/contrats pnj remove` | Placer ou supprimer le PNJ des contrats. | `cliker.contrats.admin` |
 | `/mobspawn setspawn <mob>` | Définir un point d'apparition de mob ; alias `/mob`. | `cliker.mob.admin` |
@@ -204,6 +212,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/pnjservice skin <ah\|shop\|blackmarket> <pseudo\|villager>` | Choisir un skin de joueur ou revenir au villageois. | `cliker.services.admin` |
 | `/upgradebloc set` / `/upgradebloc remove` | Lier ou délier le bloc visé au menu upgrade, avec hologramme. | `cliker.services.admin` |
 | `/sacbloc set` / `/sacbloc remove` | Lier ou délier le bloc visé au sac personnel de chaque joueur, avec hologramme. | `cliker.services.admin` |
+| `/warp set all` | Lier le bloc visé à moins de cinq blocs au menu Warp avec hologramme. | `cliker.services.admin` |
 | `/warp set <zone> <entree\|boss>` | Sauvegarder sa position et son orientation comme destination. | `cliker.services.admin` |
 | `/batonspawn` | Ouvrir le choix des créatures : gauche reçoit un bâton de mob, droite un bâton de boss. | `cliker.services.admin` |
 | `/batonspawn <mobs\|boss> <nom>` | Recevoir un bâton ; clic droit sur un bloc pour créer un spawn persistant au-dessus. | `cliker.services.admin` |
@@ -391,3 +400,5 @@ Le menu Warp masque complètement les destinations non accessibles. Chaque zone 
 Les noms du shop suivent les couleurs des matériaux/potions, sans italique, avec description et prix différenciés. Les tags et couleurs sont sauvegardés dans SQLite. Permissions : `cliker.tag.<categorie>.<grade>` (grade 1 à 15), `cliker.chat.couleur.<couleur>` ; groupes `cliker.tag.*` et `cliker.chat.couleur.*` pour tout accorder. Les tags réclament toujours la progression, même avec la permission. Les compteurs de bugs sont validés par le staff, pas par les joueurs. Configuration et seuils : `communaute/tags.yml`, `communaute/bienvenue.yml` et `communaute/tchat.yml`.
 
 Un nouveau joueur reçoit un message global de bienvenue. `/bvn` ou `/bienvenue` accueille le dernier arrivant dans les cinq minutes ; les reconnexions, répétitions et auto-bienvenues ne versent aucune récompense. [Détails et permissions](docs/COMMUNAUTE.md).
+
+Les positions enregistrées des classements restent les points d’ancrage. `affichage/classements.yml:decalage-vertical` vaut `-3` par défaut ; ce décalage de rendu ne se cumule pas aux redémarrages. Les anciens totaux ATM, dont seul le temps retiré était stocké, sont reconstruits au tarif actuel ; les futurs retraits conservent le montant réellement versé dans SQLite. Le montant disponible est actualisé à l’ouverture du menu et après un retrait.

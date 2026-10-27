@@ -134,7 +134,14 @@ public final class DatabaseManager {
                             + " NULL DEFAULT 0)");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS atm_claimed(owner TEXT PRIMARY KEY,ticks INTEGER"
-                        + " NOT NULL)");
+                            + " NOT NULL)");
+            boolean atmTotal = false;
+            try (var columns = statement.executeQuery("PRAGMA table_info(atm_claimed)")) {
+                while (columns.next())
+                    if ("total".equals(columns.getString("name"))) atmTotal = true;
+            }
+            if (!atmTotal)
+                statement.executeUpdate("ALTER TABLE atm_claimed ADD COLUMN total INTEGER");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS bestiary_stats(owner TEXT NOT NULL,mob TEXT NOT"
                         + " NULL,boss INTEGER NOT NULL,kills INTEGER NOT NULL,xp INTEGER NOT"

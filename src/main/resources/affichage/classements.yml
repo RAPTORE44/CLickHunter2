@@ -1,4 +1,6 @@
-# DecentHolograms reste nécessaire. Toujours 10 places ; orientation est conservée.
+# Holographic Displays API 3 ou secours natif. Toujours 10 places.
+# Décalage relatif aux positions enregistrées, sans déplacement cumulatif aux redémarrages.
+decalage-vertical: -3
 entete: '&d&l{titre}'
 boss-entete: '&d&l{titre}'
 separateur: '&7'

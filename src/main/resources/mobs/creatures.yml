@@ -1,7 +1,7 @@
 # Les valeurs absentes conservent la formule existante.
 hologrammes:
   mob: '&6&l{nom} &c[{pv}/{pv-max}]'
-  boss: '&4&l⚔ Golem {nom} ⚔ &c[{pv}/{pv-max}]'
+  boss: '&4&l⚔ Boss {nom} ⚔ &c[{pv}/{pv-max}]'
 creatures:
   vache:
     nom: 'Vache'

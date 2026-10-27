@@ -131,11 +131,12 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
             shownSecond = seconds;
             String title =
                     settings.yaml
-                            .getString(
-                                    "messages.titre-sans-chrono",
-                                    "&a&lPiñata {type} &7— &c{pv}&7/&c{pv-max} ♥")
-                            .replace("{pv}", Long.toString(health))
-                            .replace("{pv-max}", Long.toString(maxHealth))
+                            .getString("messages.titre", "{couleur}&lPiñata {type}")
+                            .replace(
+                                    "{couleur}",
+                                    "ecus".equals(rewardType)
+                                            ? "&e"
+                                            : "xp".equals(rewardType) ? "&b" : "&5")
                             .replace("{type}", rewardLabel());
             var holos = SharedHolograms.service();
             if (holos != null && holos.available()) {
@@ -328,6 +329,25 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                                 if (Objects.equals(round, hitRound)
                                                         && entity != null
                                                         && entity.isValid()) {
+                                                    var burst = entity.getLocation().add(0, 1, 0);
+                                                    burst.getWorld()
+                                                            .spawnParticle(
+                                                                    Particle.ITEM,
+                                                                    burst,
+                                                                    12,
+                                                                    .35,
+                                                                    .4,
+                                                                    .35,
+                                                                    .15,
+                                                                    new org.bukkit.inventory
+                                                                            .ItemStack(
+                                                                            Material.EMERALD));
+                                                    burst.getWorld()
+                                                            .playSound(
+                                                                    burst,
+                                                                    Sound.BLOCK_NOTE_BLOCK_PLING,
+                                                                    .5f,
+                                                                    1.4f);
                                                     health = Math.max(0, health - damage);
                                                     entity.playHurtAnimation(player.getYaw());
                                                     shownSecond = -1;
@@ -367,11 +387,6 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                                                                                     ? "XP"
                                                                                                     : "Gemmes"
                                                                                                           + " Sombres")));
-                                                    player.playSound(
-                                                            player.getLocation(),
-                                                            Sound.BLOCK_NOTE_BLOCK_PLING,
-                                                            .4f,
-                                                            1.5f);
                                                 }
                                             }
                                         }));
@@ -581,6 +596,9 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
             Location arrival =
                     fr.cliker.clikerv2.config.YamlFiles.location(settings.yaml, "teleportation");
             if (arrival == null) arrival = point.clone().add(0, 0, -3);
+            arrival = arrival.clone();
+            arrival.setYaw(0);
+            arrival.setPitch(0);
             if (!fr.cliker.clikerv2.features.TravelAndTools.safeTeleport(player, arrival))
                 player.sendMessage(
                         "Téléportation refusée. Termine ton action en cours puis réessaie.");

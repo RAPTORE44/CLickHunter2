@@ -43,5 +43,32 @@ class AtmStoreTest {
         assertEquals(100L, store.collect(owner, "Test", 3600, 1200, 100).join());
         assertEquals(0L, store.collect(owner, "Test", 0, 1200, 100).join());
         assertEquals(300, new EconomyService(db, Map.of()).getBalances(owner).join().ecus());
+        assertEquals(new AtmStore.Summary(300, 0), store.summary(owner, 3600, 1200, 100).join());
+        assertEquals(new AtmStore.Summary(300, 200), store.summary(owner, 4800, 1200, 200).join());
+        assertEquals(200L, store.collect(owner, "Test", 4800, 1200, 200).join());
+        assertEquals(new AtmStore.Summary(500, 0), store.summary(owner, 4800, 1200, 200).join());
+    }
+
+    @Test
+    void previousAtmRowsAreIncludedInTheTotal() {
+        var owner = UUID.randomUUID();
+        db.submit(
+                        c -> {
+                            try (var s =
+                                    c.prepareStatement(
+                                            "INSERT INTO atm_claimed(owner,ticks)"
+                                                + " VALUES(?,2400)")) {
+                                s.setString(1, owner.toString());
+                                s.executeUpdate();
+                                return null;
+                            } catch (java.sql.SQLException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+                .join();
+        var store = new AtmStore(ledger);
+        assertEquals(new AtmStore.Summary(200, 100), store.summary(owner, 3600, 1200, 100).join());
+        assertEquals(100L, store.collect(owner, "Test", 3600, 1200, 100).join());
+        assertEquals(new AtmStore.Summary(300, 0), store.summary(owner, 3600, 1200, 100).join());
     }
 }

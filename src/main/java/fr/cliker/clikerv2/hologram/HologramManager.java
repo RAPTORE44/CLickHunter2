@@ -68,6 +68,13 @@ public final class HologramManager {
         this.available = SharedHolograms.service() != null && SharedHolograms.service().available();
     }
 
+    private Location presentation(Location base) {
+        Location result = base.clone().add(0, appearance.getDouble("decalage-vertical", -3), 0);
+        result.setYaw(-90);
+        result.setPitch(0);
+        return result;
+    }
+
     public boolean isAvailable() {
         return available;
     }
@@ -98,7 +105,7 @@ public final class HologramManager {
                                                 SharedHolograms.service()
                                                         .create(
                                                                 name,
-                                                                point.location(),
+                                                                presentation(point.location()),
                                                                 List.of(),
                                                                 null,
                                                                 true);
@@ -116,7 +123,8 @@ public final class HologramManager {
         if (!available) return;
         String id = UUID.randomUUID().toString();
         holograms.put(id, type);
-        SharedHolograms.service().create(hologramName(id), location, List.of(), null, true);
+        SharedHolograms.service()
+                .create(hologramName(id), presentation(location), List.of(), null, true);
         store.save(id, type.name(), location);
         refresh(id, type);
     }
@@ -266,7 +274,7 @@ public final class HologramManager {
     }
 
     private List<String> lastBossTimerLines =
-            List.of("&d&l⚔ Prochain Golem ⚔", "&7", "&8En attente...");
+            List.of("&d&l⚔ Prochains boss ⚔", "&7", "&8En attente...");
 
     /**
      * Appelé par BossEventManager chaque seconde pour garder le compte à rebours précis,

@@ -88,6 +88,7 @@ import java.util.Map;
 public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.Listener {
     private fr.cliker.clikerv2.hunting.RewardLedger rewardLedger;
     private fr.cliker.clikerv2.hunting.AtmModule atmModule;
+    private fr.cliker.clikerv2.wiki.WikiModule wikiModule;
     private fr.cliker.clikerv2.hunting.HuntingModule huntingModule;
     private fr.cliker.clikerv2.raid.RaidModule raidModule;
     private fr.cliker.clikerv2.outpost.OutpostModule outpostModule;
@@ -653,6 +654,14 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
                             error);
             unavailableCommands("atm");
         }
+        try {
+            wikiModule = new fr.cliker.clikerv2.wiki.WikiModule(this);
+            wikiModule.start();
+        } catch (RuntimeException error) {
+            getLogger().log(java.util.logging.Level.SEVERE, "Wiki indisponible", error);
+            if (wikiModule != null) wikiModule.shutdown();
+            unavailableCommands("wiki");
+        }
         playerComfort = new fr.cliker.clikerv2.comfort.PlayerComfort(this);
         playerComfort.start();
         farmTelemetry = new fr.cliker.clikerv2.comfort.FarmTelemetry(this);
@@ -732,6 +741,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         if (pinata != null) pinata.shutdown();
         if (communityExtras != null) communityExtras.shutdown();
         if (socialModule != null) socialModule.shutdown();
+        if (wikiModule != null) wikiModule.shutdown();
         if (atmModule != null) atmModule.shutdown();
         if (rewardLedger != null) rewardLedger.shutdown();
         if (referrals != null) referrals.shutdown();

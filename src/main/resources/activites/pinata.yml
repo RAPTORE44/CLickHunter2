@@ -22,6 +22,7 @@ messages:
   point-manquant: '&cDéfinis le point dans la zone Vache avec /pinata setspawn.'
   deja-active: '&cUne piñata est déjà active ou en cours d’apparition.'
   point-defini: '&aPoint unique de la piñata sauvegardé dans la zone Vache.'
-  titre-sans-chrono: '&a&lPiñata {type} &7— &c{pv}&7/&c{pv-max} ♥'
+  # Nom sans points de vie ; couleur selon la récompense.
+  titre: '{couleur}&lPiñata {type}'
   gain-total: '&a+{montant} {type} &8| &fTotal : &e{total}'
 # Point et prochaine échéance sont sauvegardés automatiquement ; ne pas les supprimer.

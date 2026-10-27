@@ -49,7 +49,6 @@ public final class SharedHolograms {
                         .runTaskTimer(
                                 plugin,
                                 () -> {
-                                    if (api != null || !nativeFallback) return;
                                     for (var handle : new ArrayList<>(handles.values()))
                                         if (!handle.removed
                                                 && handle.display != null
@@ -89,7 +88,9 @@ public final class SharedHolograms {
         remove(id);
         Handle handle = new Handle(id, at, owner, fixed);
         try {
-            if (api != null) {
+            // L'API HD n'expose pas de rotation fixe : les panneaux orientés
+            // utilisent TextDisplay, les autres hologrammes conservent HD.
+            if (api != null && !fixed) {
                 handle.external = call(api, "createHologram", at);
                 if (owner != null) {
                     Object visibility = call(handle.external, "getVisibilitySettings");
@@ -103,7 +104,7 @@ public final class SharedHolograms {
                     call(visibility, "setGlobalVisibility", hidden);
                     call(visibility, "setIndividualVisibility", owner, visible);
                 }
-            } else if (nativeFallback) {
+            } else if (nativeFallback || fixed) {
                 handle.spawnNative();
             }
             handles.put(id, handle);

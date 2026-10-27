@@ -11,7 +11,13 @@ public final class CreatureSettings {
     private CreatureSettings() {}
 
     public static void initialize(JavaPlugin plugin) {
-        var next = new Settings(plugin, "mobs/creatures.yml").yaml;
+        var settings = new Settings(plugin, "mobs/creatures.yml");
+        var next = settings.yaml;
+        String previous = "&4&l⚔ Golem {nom} ⚔ &c[{pv}/{pv-max}]";
+        if (previous.equals(next.getString("hologrammes.boss"))) {
+            next.set("hologrammes.boss", previous.replace("Golem", "Boss"));
+            settings.save();
+        }
         for (var mob : MobTier.values()) {
             for (String field :
                     new String[] {
@@ -49,7 +55,7 @@ public final class CreatureSettings {
     public static String hologram(boolean boss) {
         return config.getString(
                 boss ? "hologrammes.boss" : "hologrammes.mob",
-                boss ? "&4&l⚔ Golem {nom} ⚔ &c[{pv}/{pv-max}]" : "&6&l{nom} &c[{pv}/{pv-max}]");
+                boss ? "&4&l⚔ Boss {nom} ⚔ &c[{pv}/{pv-max}]" : "&6&l{nom} &c[{pv}/{pv-max}]");
     }
 
     public static void reset() {

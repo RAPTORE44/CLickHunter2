@@ -93,6 +93,44 @@ public final class AtmModule {
                         slot -> {
                             if (slot == 13) collect(p);
                         });
+        var inventory = view.getInventory();
+        store.summary(p.getUniqueId(), p.getStatistic(Statistic.PLAY_ONE_MINUTE), interval, reward)
+                .whenComplete(
+                        (summary, error) -> {
+                            if (stopped || !plugin.isEnabled()) return;
+                            ServerTasks.run(
+                                    plugin,
+                                    () -> {
+                                        if (!fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(p)
+                                                || p.getOpenInventory().getTopInventory()
+                                                        != inventory) return;
+                                        inventory.setItem(
+                                                11,
+                                                HuntUI.item(
+                                                        Material.CHEST,
+                                                        "&6Total récolté",
+                                                        List.of(
+                                                                error == null
+                                                                        ? "&e"
+                                                                                + summary.total()
+                                                                                + " Écus"
+                                                                        : "&cChargement"
+                                                                              + " impossible")));
+                                        inventory.setItem(
+                                                15,
+                                                HuntUI.item(
+                                                        Material.EMERALD,
+                                                        "&aÀ récupérer",
+                                                        List.of(
+                                                                error == null
+                                                                        ? "&e"
+                                                                                + summary
+                                                                                        .available()
+                                                                                + " Écus"
+                                                                        : "&cChargement"
+                                                                              + " impossible")));
+                                    });
+                        });
         view.getInventory()
                 .setItem(
                         13,
@@ -110,6 +148,7 @@ public final class AtmModule {
 
     private void collect(Player p) {
         if (stopped || !p.hasPermission("cliker.atm.use") || !pending.add(p.getUniqueId())) return;
+        var requestedInventory = p.getOpenInventory().getTopInventory();
         long ticks = p.getStatistic(Statistic.PLAY_ONE_MINUTE);
         store.collect(p.getUniqueId(), p.getName(), ticks, interval, reward)
                 .whenComplete(
@@ -137,6 +176,8 @@ public final class AtmModule {
                                                                 : "§aATM : §e+"
                                                                         + amount
                                                                         + " Écus §acrédités !");
+                                        if (p.getOpenInventory().getTopInventory()
+                                                == requestedInventory) open(p);
                                     });
                         });
     }
