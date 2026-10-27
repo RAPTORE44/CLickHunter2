@@ -88,6 +88,7 @@ import java.util.Map;
 public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.Listener {
     private fr.cliker.clikerv2.hunting.RewardLedger rewardLedger;
     private fr.cliker.clikerv2.hunting.AtmModule atmModule;
+    private fr.cliker.clikerv2.donors.DonorPodium donorPodium;
     private fr.cliker.clikerv2.wiki.WikiModule wikiModule;
     private fr.cliker.clikerv2.hunting.HuntingModule huntingModule;
     private fr.cliker.clikerv2.raid.RaidModule raidModule;
@@ -659,8 +660,21 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             wikiModule.start();
         } catch (RuntimeException error) {
             getLogger().log(java.util.logging.Level.SEVERE, "Wiki indisponible", error);
+            if (donorPodium != null) donorPodium.shutdown();
             if (wikiModule != null) wikiModule.shutdown();
             unavailableCommands("wiki");
+        }
+        try {
+            donorPodium = new fr.cliker.clikerv2.donors.DonorPodium(this);
+            donorPodium.start();
+        } catch (RuntimeException error) {
+            getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Podium des donateurs indisponible",
+                            error);
+            if (donorPodium != null) donorPodium.shutdown();
+            unavailableCommands("donateurs");
         }
         playerComfort = new fr.cliker.clikerv2.comfort.PlayerComfort(this);
         playerComfort.start();
@@ -741,6 +755,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         if (pinata != null) pinata.shutdown();
         if (communityExtras != null) communityExtras.shutdown();
         if (socialModule != null) socialModule.shutdown();
+        if (donorPodium != null) donorPodium.shutdown();
         if (wikiModule != null) wikiModule.shutdown();
         if (atmModule != null) atmModule.shutdown();
         if (rewardLedger != null) rewardLedger.shutdown();

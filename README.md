@@ -2,6 +2,8 @@
 
 ## Dernière mise à jour — 27 octobre 2026
 
+- Podium manuel de trois PNJ donateurs : rang et pseudo au-dessus du skin, RAPTORE44 par défaut, sans montant affiché. Positions, pseudos et apparences conservés après redémarrage (ZNPCsPlus 2.0.0).
+
 - `/warp set all` lie le bloc visé au menu Warp, avec son hologramme ; alias de `/warpbloc set`.
 - PNJ Wiki avec lien vers `https://wiki.clickhunter.fr` et accès au livre des commandes accessibles.
 - ATM : total retiré et montant disponible affichés, historique conservé après les prochains changements de tarif.
@@ -197,6 +199,10 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/buyzone remove <zone>` | Supprimer ce portail. | `cliker.buyzone.admin` |
 | `/daily pnj spawn` / `/daily pnj remove` | Placer ou supprimer le PNJ des récompenses. | `cliker.daily.admin` |
 | `/atm pnj spawn` / `/atm pnj remove` | Placer ou supprimer Marketus à sa position. | `cliker.atm.admin` |
+| `/donateurs set <1\|2\|3> <pseudo>` | Associer un joueur au rang ; met à jour son nom et son skin, sans déplacer le PNJ. Console et joueurs ; alias `/topdonateurs`. | `cliker.donateurs.admin` |
+| `/donateurs spawn <1\|2\|3>` | Placer le PNJ de ce rang à sa position ; refuse les doublons. | `cliker.donateurs.admin` |
+| `/donateurs remove <1\|2\|3>` | Retirer ce PNJ pour le déplacer ; conserve le joueur associé. | `cliker.donateurs.admin` |
+| `/donateurs list` | Consulter les trois joueurs associés et les PNJ placés ; également affiché par `/donateurs`. | `cliker.donateurs.admin` |
 | `/wiki pnj spawn` / `/wiki pnj remove` | Placer ou supprimer le PNJ Wiki. Lien et textes dans `wiki.yml`. | `cliker.wiki.admin` |
 | `/discord pnj spawn` / `/discord pnj remove` | Placer ou supprimer le PNJ Discord. | `cliker.discord.admin` |
 | `/contrats pnj spawn` / `/contrats pnj remove` | Placer ou supprimer le PNJ des contrats. | `cliker.contrats.admin` |
@@ -402,3 +408,5 @@ Les noms du shop suivent les couleurs des matériaux/potions, sans italique, ave
 Un nouveau joueur reçoit un message global de bienvenue. `/bvn` ou `/bienvenue` accueille le dernier arrivant dans les cinq minutes ; les reconnexions, répétitions et auto-bienvenues ne versent aucune récompense. [Détails et permissions](docs/COMMUNAUTE.md).
 
 Les positions enregistrées des classements restent les points d’ancrage. `affichage/classements.yml:decalage-vertical` vaut `-3` par défaut ; ce décalage de rendu ne se cumule pas aux redémarrages. Les anciens totaux ATM, dont seul le temps retiré était stocké, sont reconstruits au tarif actuel ; les futurs retraits conservent le montant réellement versé dans SQLite. Le montant disponible est actualisé à l’ouverture du menu et après un retrait.
+
+Les PNJ donateurs utilisent `pnj/donateurs-1.yml`, `pnj/donateurs-2.yml` et `pnj/donateurs-3.yml`. `joueur` détermine simultanément le pseudo et le skin Minecraft ; `titre-rang` et `format-pseudo` personnalisent les deux lignes (`{joueur}` dans le format). Le classement est mis à jour manuellement, sans montant ni calcul automatique. Les modifications SFTP sont relues au redémarrage ; `/donateurs set` actualise immédiatement un PNJ déjà placé. Le chargement du skin dépend de ZNPCsPlus et de l’existence du profil Minecraft.

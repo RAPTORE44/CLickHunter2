@@ -65,6 +65,11 @@ public class ZnpcsNpc implements Listener {
         return ready && !stopped;
     }
 
+    /** Actualise le skin et les textes sans retirer la position sauvegardée. */
+    public void refresh() throws Exception {
+        restore();
+    }
+
     public void start() {
         INSTANCES.put(id, this);
         if (!plugin.getServer().getPluginManager().isPluginEnabled("ZNPCsPlus")) {

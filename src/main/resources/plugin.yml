@@ -5,6 +5,11 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  donateurs:
+    description: Podium manuel des trois meilleurs donateurs
+    aliases: [topdonateurs]
+    usage: /donateurs set <1|2|3> <pseudo> ou /donateurs spawn|remove <1|2|3>
+    permission: cliker.donateurs.admin
   wiki:
     description: Wiki ClickHunter et livre des commandes
     usage: /wiki [livre|pnj spawn|remove]
@@ -271,6 +276,8 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.donateurs.admin:
+    default: op
   cliker.wiki.use:
     default: true
   cliker.wiki.admin:
