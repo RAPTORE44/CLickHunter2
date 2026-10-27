@@ -37,6 +37,7 @@ public final class ChatActivities implements Listener {
     public ChatActivities(JavaPlugin plugin) {
         this.plugin = plugin;
         settings = new Settings(plugin, "activites/tchat.yml");
+        simplifyDefaultAnswers();
         nextGame = System.nanoTime() + interval() * 1_000_000_000L;
         nextHelp = System.nanoTime() + 30_000_000_000L;
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -130,9 +131,62 @@ public final class ChatActivities implements Listener {
         return Normalizer.normalize(answer, Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "")
                 .toLowerCase(Locale.ROOT)
+                .replace("œ", "oe")
+                .replace("æ", "ae")
                 .trim()
                 .replaceFirst("^(le|la|les|un|une)\\s+", "")
                 .replaceAll("[^a-z0-9+-]", "");
+    }
+
+    /** Ne jamais proposer une question dont la seule réponse exige une phrase. */
+    static Question configuredQuestion(String wording, List<?> answers) {
+        Set<String> accepted = new HashSet<>();
+        String displayed = null;
+        for (Object answer : answers) {
+            if (!(answer instanceof String value)) continue;
+            value = value.strip();
+            if (!value.matches("[\\p{L}\\p{M}]+|-?[0-9]+")) continue;
+            String normalized = normalize(value);
+            if (normalized.isBlank()) continue;
+            accepted.add(normalized);
+            if (displayed == null) displayed = value;
+        }
+        return accepted.isEmpty() ? null : new Question(wording, Set.copyOf(accepted), displayed);
+    }
+
+    /** Adapter les anciennes questions livrées sans remplacer les questions personnalisées. */
+    private void simplifyDefaultAnswers() {
+        List<Map<?, ?>> updated = new ArrayList<>();
+        boolean changed = false;
+        for (var entry : settings.yaml.getMapList("questions.devinette")) {
+            Map<Object, Object> copy = new LinkedHashMap<>(entry);
+            Object answers = entry.get("reponses");
+            if (Objects.equals(
+                            entry.get("question"),
+                            "Je transporte un coffre et glisse sur des rails. Qui suis-je ?")
+                    && Objects.equals(
+                            answers,
+                            List.of(
+                                    "wagonnet à coffre",
+                                    "wagonnet avec coffre",
+                                    "minecart coffre",
+                                    "chest minecart"))) {
+                copy.put("reponses", List.of("wagonnet", "minecart"));
+                changed = true;
+            } else if (Objects.equals(
+                            entry.get("question"),
+                            "On me fabrique avec neuf lingots de fer. Quel bloc suis-je ?")
+                    && Objects.equals(answers, List.of("bloc de fer", "iron block"))) {
+                copy.put("question", "Quel métal compose le golem qui protège les villages ?");
+                copy.put("reponses", List.of("fer", "iron"));
+                changed = true;
+            }
+            updated.add(copy);
+        }
+        if (changed) {
+            settings.yaml.set("questions.devinette", updated);
+            settings.save();
+        }
     }
 
     private int interval() {
@@ -198,14 +252,8 @@ public final class ChatActivities implements Listener {
             if (!(text instanceof String wording)
                     || !(raw instanceof List<?> answers)
                     || answers.isEmpty()) continue;
-            Set<String> normalized = new HashSet<>();
-            for (Object answer : answers)
-                if (answer instanceof String value && !normalize(value).isBlank())
-                    normalized.add(normalize(value));
-            if (!normalized.isEmpty())
-                questions.add(
-                        new Question(
-                                wording, Set.copyOf(normalized), answers.getFirst().toString()));
+            Question parsed = configuredQuestion(wording, answers);
+            if (parsed != null) questions.add(parsed);
         }
         return questions.isEmpty()
                 ? question("calcul")
@@ -221,7 +269,16 @@ public final class ChatActivities implements Listener {
         attempts.clear();
         nextGame = System.nanoTime() + interval() * 1_000_000_000L;
         announce(
-                "debut", Map.of("question", question.text, "secondes", Integer.toString(duration)));
+                "debut",
+                Map.of(
+                        "question",
+                        question.text
+                                + " "
+                                + settings.yaml.getString(
+                                        "messages.consigne",
+                                        "&7Un mot ou un nombre suffit ; accents facultatifs."),
+                        "secondes",
+                        Integer.toString(duration)));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

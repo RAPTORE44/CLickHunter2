@@ -2,6 +2,7 @@
 
 ## Dernière mise à jour — 27 octobre 2026
 
+- Jeux de chat : réponses en un mot (ou un nombre pour les calculs), accents et trémas facultatifs. Les anciennes devinettes par défaut à plusieurs mots sont adaptées automatiquement ; une question personnalisée sans réponse en un mot est écartée.
 - ATM Marketus : conversion du temps de jeu en Écus, menu `/atm`, PNJ sauvegardé et retrait protégé contre les doubles paiements. Tarif provisoire : 1 000 Écus par tranche de dix minutes, configurable dans `boutiques/atm.yml`.
 - `/guide` propose des accès cliquables aux activités et à la progression.
 - Le secours natif des hologrammes et les textes de dégâts utilisent un fond transparent. Les noms vanilla des créatures de raid sont masqués dès leur apparition lorsque le fournisseur d’hologrammes est actif.
@@ -342,7 +343,7 @@ Les hologrammes de ClikerV2 passent par l’API 3 d’Holographic Displays, avec
 
 Instructions, sauvegardes et limites : [améliorations UX et hologrammes](docs/AMELIORATIONS-UX.md).
 
-Le pied du TAB alterne Site, Boutique, Discord et Vote toutes les dix secondes, avec un indicateur coloré animé (`affichage/tab.yml`, section `animation`). Les aides et jeux de chat sont réglables dans `activites/tchat.yml` : calculs, devinettes Minecraft et langues parlées dans différents pays. Le premier gagnant reçoit une seule lootbox divine via la livraison sécurisée ; inventaire plein ou avant-poste, elle attend dans `/claim`.
+Le pied du TAB alterne Site, Boutique, Discord et Vote toutes les dix secondes, avec un indicateur coloré animé (`affichage/tab.yml`, section `animation`). Les aides et jeux de chat sont réglables dans `activites/tchat.yml` : calculs, devinettes Minecraft et langues parlées dans différents pays. Chaque réponse configurée doit être un seul mot (ou nombre), sans espace ni tiret ; plusieurs synonymes d'un mot sont possibles. Les majuscules, accents et trémas sont ignorés : `francais` accepte `français`, `noel` accepte `Noël`. Les questions sans réponse valide sont écartées, avec un calcul en remplacement si la catégorie devient vide. La consigne est personnalisable avec `messages.consigne`. Le premier gagnant reçoit une seule lootbox divine via la livraison sécurisée ; inventaire plein ou avant-poste, elle attend dans `/claim`.
 
 Les magma cubes utilisent la taille moyenne 2 et les ghasts une échelle 0,5 par défaut, configurables dans `mobs/creatures.yml`. `/spawnboss` concerne les boss de zone ; le boss public du serveur conserve son seuil de kills. Une vague manuelle recale la prochaine vague automatique selon l’intervalle configuré.
 

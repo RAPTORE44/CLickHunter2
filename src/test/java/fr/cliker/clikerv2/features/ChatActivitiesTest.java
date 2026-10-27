@@ -26,6 +26,53 @@ class ChatActivitiesTest {
                 "tabledEnchantement".toLowerCase(),
                 ChatActivities.normalize("Table d’enchantement"));
         assertEquals("-12", ChatActivities.normalize("-12"));
+        assertEquals("noel", ChatActivities.normalize("NOËL"));
+        assertEquals("noel", ChatActivities.normalize("Noe\u0308l"));
+        assertEquals("coeur", ChatActivities.normalize("CŒUR"));
+    }
+
+    @Test
+    void configuredQuestionsKeepOnlySingleWordAnswersAndDisplayAValidAnswer() {
+        var question =
+                ChatActivities.configuredQuestion(
+                        "Langue ?", List.of("le français", "Français", "francais"));
+        assertNotNull(question);
+        assertEquals(Set.of("francais"), question.answers());
+        assertEquals("Français", question.displayedAnswer());
+        assertNull(
+                ChatActivities.configuredQuestion("Bloc ?", List.of("bloc de fer", "iron block")));
+        assertNotNull(ChatActivities.configuredQuestion("Résultat ?", List.of("-12")));
+    }
+
+    @Test
+    void installedDefaultQuestionsAreMigratedAndCustomQuestionsArePreserved() throws Exception {
+        MockBukkit.mock();
+        var plugin = MockBukkit.createMockPlugin();
+        var settings = new Settings(plugin, "activites/tchat.yml");
+        var custom =
+                Map.of("question", "Mon énigme personnelle", "reponses", List.of("ma réponse"));
+        settings.yaml.set(
+                "questions.devinette",
+                List.of(
+                        Map.of(
+                                "question",
+                                "On me fabrique avec neuf lingots de fer. Quel bloc suis-je ?",
+                                "reponses",
+                                List.of("bloc de fer", "iron block")),
+                        custom));
+        settings.save();
+        var activities = new ChatActivities(plugin);
+        try {
+            var saved =
+                    org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(settings.file)
+                            .getMapList("questions.devinette");
+            assertEquals(List.of("fer", "iron"), saved.getFirst().get("reponses"));
+            assertEquals(custom, saved.get(1));
+            activities.start("devinette");
+            assertEquals(Set.of("fer", "iron"), activities.currentQuestion().answers());
+        } finally {
+            activities.shutdown();
+        }
     }
 
     @Test

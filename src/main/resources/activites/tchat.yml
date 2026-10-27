@@ -1,5 +1,7 @@
 # Tous les textes, délais et réponses des devinettes/pays sont modifiables ici.
 # Récompense : une lootbox DIVINE existante par manche, premier gagnant seulement.
+# Chaque réponse doit être un seul mot (ou nombre), sans espace ni tiret.
+# Plusieurs synonymes d'un mot sont possibles ; accents, trémas et casse sont ignorés.
 jeux:
   actifs: true
   intervalle-secondes: 300
@@ -17,6 +19,7 @@ aides:
     - '&a/sell &f: gauche vend une essence, droite vend la pile cliquée.'
     - '&a/jeutchat &f: réponds dans le chat ; le premier gagnant reçoit une lootbox divine !'
 messages:
+  consigne: '&7Un mot ou un nombre suffit ; accents facultatifs.'
   debut: '&d&l[Jeu] &f{question} &7({secondes} s) &ePremier gagnant : 1 lootbox divine !'
   gagnant: '&d[Jeu] &a{joueur} &fa trouvé &e{reponse}&f et remporte &d1 lootbox divine&f !'
   expire: '&d[Jeu] &7Temps écoulé ! Une réponse acceptée était : &f{reponse}&7.'
@@ -25,15 +28,15 @@ questions:
     - question: 'Je suis vert, j’explose et je crains les chats. Qui suis-je ?'
       reponses: [creeper, creepers]
     - question: 'Je transporte un coffre et glisse sur des rails. Qui suis-je ?'
-      reponses: ['wagonnet à coffre', 'wagonnet avec coffre', 'minecart coffre', 'chest minecart']
+      reponses: [wagonnet, minecart]
     - question: 'Je suis une pierre rouge qui alimente les mécanismes. Qui suis-je ?'
-      reponses: [redstone, 'poudre de redstone']
-    - question: 'On me fabrique avec neuf lingots de fer. Quel bloc suis-je ?'
-      reponses: ['bloc de fer', 'iron block']
+      reponses: [redstone]
+    - question: 'Quel métal compose le golem qui protège les villages ?'
+      reponses: [fer, iron]
     - question: 'Je protège des chutes quand on me remplit d’eau et qu’on me pose au bon moment. Quel objet suis-je ?'
-      reponses: ['seau', 'seau d’eau', 'water bucket']
+      reponses: [seau, bucket]
     - question: 'Je suis un minerai bleu utilisé pour enchanter. Qui suis-je ?'
-      reponses: ['lapis lazuli', 'lapis-lazuli', lapis]
+      reponses: [lapis]
   pays:
     - question: 'Quelle langue est principalement parlée au Brésil ?'
       reponses: [portugais, portuguese]
