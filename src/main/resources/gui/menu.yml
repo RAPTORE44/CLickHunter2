@@ -1,18 +1,19 @@
-taille: 36
+taille: 54
+version-disposition: 2
 titre: '&2ClickHunter &8• &2Menu principal'
 fond: BLACK_STAINED_GLASS_PANE
 messages:
   interdit: '&cTu ne peux pas ouvrir ce menu.'
 boutons:
   daily:
-    slot: 10
+    slot: 37
     materiau: CHEST
     nom: '&aRécompenses journalières'
     description: ['&7Récupère ton cadeau du jour.', '', '&eClique pour ouvrir le calendrier.']
     commande: daily
     permission: cliker.daily.use
   sacs:
-    slot: 11
+    slot: 34
     materiau: NETHER_STAR
     nom: '&6Mes sacs'
     description: ['&7Range tes objets et tes talismans.', '', '&eClique pour choisir un sac.']
@@ -26,91 +27,91 @@ boutons:
     commande: stats
     permission: cliker.stats.use
   upgrades:
-    slot: 13
+    slot: 19
     materiau: EXPERIENCE_BOTTLE
     nom: '&dAméliorations'
     description: ['&7Renforce durablement ton personnage.', '', '&eClique pour voir les améliorations.']
     commande: upgrade
     permission: cliker.upgrade.use
   prestige:
-    slot: 14
+    slot: 21
     materiau: BEACON
     nom: '&5Prestige'
     description: ['&7Consulte les conditions du prochain prestige.', '', '&eClique pour consulter les conditions.']
     commande: prestige
     permission: cliker.prestige.use
   ah:
-    slot: 15
+    slot: 32
     materiau: GOLD_INGOT
     nom: '&6Hôtel des ventes'
     description: ['&7Achète et gère tes annonces.', '', '&eClique pour parcourir les offres.']
     commande: ah
     permission: cliker.ah.use
   spawn:
-    slot: 16
+    slot: 3
     materiau: COMPASS
     nom: '&bRetour au spawn'
     description: ['&7Rejoins le point de départ.', '', '&eClique pour te téléporter.']
     commande: spawn
     permission: cliker.spawn.use
   enchant:
-    slot: 20
+    slot: 25
     materiau: ENCHANTING_TABLE
     nom: '&dEnchantements'
     description: ['&7Améliore ton équipement.', '', '&eClique pour ouvrir la table.']
     commande: enchant
     permission: cliker.gear.use
   reforge:
-    slot: 21
+    slot: 28
     materiau: ANVIL
     nom: '&6Reforge'
     description: ['&7Personnalise les bonus de ton équipement.', '', '&eClique pour ouvrir.']
     commande: reforge
     permission: cliker.gear.use
   sell:
-    slot: 23
+    slot: 30
     materiau: EMERALD
     nom: '&aVendre mes essences'
     description: ['&7Consulte les prix de vente.', '', '&eClique pour ouvrir.']
     commande: sell
     permission: cliker.sell.use
   tuto:
-    slot: 24
+    slot: 7
     materiau: WRITABLE_BOOK
     nom: '&bGuide du serveur'
     description: ['&7Retrouve les explications du jeu.', '', '&eClique pour lire le guide.']
     commande: tuto
     permission: cliker.tuto.use
   fermer:
-    slot: 31
+    slot: 49
     materiau: BARRIER
     nom: '&cFermer'
     description: []
     commande: ''
 
   bestiaire:
-    slot: 19
+    slot: 14
     materiau: BOOK
     nom: '&2Bestiaire et maîtrises'
     description: ['&7Découvre les créatures et suis tes gains.', '&eClique pour consulter.']
     commande: bestiaire
     permission: cliker.bestiaire
   contrats:
-    slot: 22
+    slot: 39
     materiau: PAPER
     nom: '&6Contrats de chasse'
     description: ['&7Accepte des objectifs quotidiens.', '&eClique pour consulter.']
     commande: contrats
     permission: cliker.contrats
   raid:
-    slot: 25
+    slot: 41
     materiau: IRON_SWORD
     nom: '&cRaid coopératif'
     description: ['&7Affronte le Gardien colossal avec les autres joueurs.', '&7Sans PvP. Récompenses selon tes dégâts.', '&cÉquipement avancé conseillé pour le boss.', '&eClique pour rejoindre.']
     commande: raid
     permission: cliker.raid
   avantposte:
-    slot: 28
+    slot: 5
     materiau: GRASS_BLOCK
     nom: '&aMon avant-poste'
     description: ['&7Construis, agrandis et invite tes amis.', '&eClique pour ouvrir.']
@@ -118,29 +119,52 @@ boutons:
     permission: cliker.avantposte
 
   session:
-    slot: 30
+    slot: 16
     materiau: CLOCK
     nom: '&bRésumé de session'
     description: ['&7Durée, éliminations et gains de chasse confirmés.']
     commande: session
     permission: cliker.session
   warp:
-    slot: 29
+    slot: 1
     materiau: COMPASS
     nom: '&aVoyager et découvrir'
     description: ['&7Aperçu des zones déjà débloquées.']
     commande: warp
     permission: cliker.navigation.use
   talismans:
-    slot: 32
+    slot: 23
     materiau: NAUTILUS_SHELL
     nom: '&dTalismans et bonus actifs'
     description: ['&7Collection, découvertes et effets de tes sacs.']
     commande: tallisement
   guide:
-    slot: 33
+    slot: 10
     materiau: COMPASS
     nom: '&eConseil de progression'
     description: ['&7Prochain palier selon ton solde réel.', '&7Commande : /guide', '', '&eClique pour voir ton conseil.']
     commande: guide
     permission: cliker.upgrade.use
+
+  atm:
+    slot: 43
+    materiau: GOLD_INGOT
+    nom: '&eATM de Marketus'
+    description: ['&7Clique pour ouvrir.']
+    commande: atm
+    permission: cliker.atm.use
+
+  wiki:
+    slot: 47
+    materiau: BOOK
+    nom: '&bWiki et commandes'
+    description: ['&7Clique pour ouvrir.']
+    commande: wiki
+    permission: cliker.wiki.use
+
+  claim:
+    slot: 51
+    materiau: CHEST
+    nom: '&aRécompenses en attente'
+    description: ['&7Clique pour ouvrir.']
+    commande: claim

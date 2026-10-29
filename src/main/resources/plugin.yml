@@ -5,6 +5,10 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  bestiairebloc:
+    description: Raccourci du bestiaire sur un bloc avec hologramme
+    permission: cliker.services.admin
+    usage: /bestiairebloc set|remove
   donateurs:
     description: Podium manuel des trois meilleurs donateurs
     aliases: [topdonateurs]
@@ -126,6 +130,7 @@ commands:
     aliases: [parametres]
     permission: cliker.comfort.use
   bestiaire:
+    usage: /bestiaire [set block]
     description: Découvertes, gains cumulés et maîtrises par créature
     permission: cliker.bestiaire
   contrats:
@@ -201,7 +206,7 @@ commands:
     permission: cliker.autoclick.use
   upgrade:
     description: Ouvre les améliorations payées en Gemmes Sombres
-    usage: /upgrade
+    usage: /upgrade [set block]
     permission: cliker.upgrade.use
   stats:
     description: Ouvre le menu de statistiques du joueur

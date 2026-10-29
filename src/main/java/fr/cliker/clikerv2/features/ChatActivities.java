@@ -38,6 +38,10 @@ public final class ChatActivities implements Listener {
         this.plugin = plugin;
         settings = new Settings(plugin, "activites/tchat.yml");
         simplifyDefaultAnswers();
+        if (settings.yaml.getInt("jeux.intervalle-secondes", 900) != 900) {
+            settings.yaml.set("jeux.intervalle-secondes", 900);
+            settings.save();
+        }
         nextGame = System.nanoTime() + interval() * 1_000_000_000L;
         nextHelp = System.nanoTime() + 30_000_000_000L;
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -190,7 +194,7 @@ public final class ChatActivities implements Listener {
     }
 
     private int interval() {
-        return Math.max(30, Math.min(86400, settings.yaml.getInt("jeux.intervalle-secondes", 300)));
+        return Math.max(30, Math.min(86400, settings.yaml.getInt("jeux.intervalle-secondes", 900)));
     }
 
     private void announce(String key, Map<String, String> variables) {

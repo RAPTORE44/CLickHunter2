@@ -96,7 +96,7 @@ class MainMenuTest {
                                 plugin, player.getWorld().getName()),
                         plugin,
                         org.bukkit.plugin.ServicePriority.Normal);
-        click(15);
+        click(32);
         server.getScheduler().performOneTick();
         assertEquals(
                 0,
@@ -106,10 +106,10 @@ class MainMenuTest {
 
     @Test
     void readableNavigationAndNoRepeatedCommandOnDoubleClick() {
-        assertEquals(36, player.getOpenInventory().getTopInventory().getSize());
+        assertEquals(54, player.getOpenInventory().getTopInventory().getSize());
         assertEquals(
-                Material.CHEST, player.getOpenInventory().getTopInventory().getItem(10).getType());
-        for (int i = 0; i < 10; i++) assertTrue(click(10).isCancelled());
+                Material.CHEST, player.getOpenInventory().getTopInventory().getItem(37).getType());
+        for (int i = 0; i < 10; i++) assertTrue(click(37).isCancelled());
         server.getScheduler().performOneTick();
         assertEquals(1, commands.get());
     }
@@ -128,7 +128,7 @@ class MainMenuTest {
                                 return true;
                             }
                         });
-        click(33);
+        click(10);
         server.getScheduler().performOneTick();
         assertEquals(1, commands.get());
     }
@@ -139,13 +139,13 @@ class MainMenuTest {
         menu.onCommand(player, entry, "menu", new String[0]);
         assertEquals(
                 Material.BARRIER,
-                player.getOpenInventory().getTopInventory().getItem(10).getType());
-        click(10);
+                player.getOpenInventory().getTopInventory().getItem(37).getType());
+        click(37);
         server.getScheduler().performOneTick();
         assertEquals(0, commands.get());
         player.addAttachment(plugin, "cliker.daily.use", true);
         menu.onCommand(player, entry, "menu", new String[0]);
-        click(10);
+        click(37);
         player.addAttachment(plugin, "cliker.daily.use", false);
         server.getScheduler().performOneTick();
         assertEquals(0, commands.get());
@@ -171,10 +171,10 @@ class MainMenuTest {
                         Map.of(10, new ItemStack(Material.DIAMOND)));
         server.getPluginManager().callEvent(drag);
         assertTrue(drag.isCancelled());
-        click(31);
+        click(49);
         server.getScheduler().performOneTick();
         var top = player.getOpenInventory().getTopInventory();
-        assertTrue(top == null || top.getSize() != 36);
+        assertTrue(top == null || top.getSize() != 54);
         assertEquals(0, commands.get());
     }
 
@@ -182,7 +182,7 @@ class MainMenuTest {
     void shutdownClosesMenuBeforeRemovingItsProtections() {
         menu.shutdown();
         var top = player.getOpenInventory().getTopInventory();
-        assertTrue(top == null || top.getSize() != 36);
+        assertTrue(top == null || top.getSize() != 54);
         assertEquals(0, commands.get());
     }
 
@@ -196,5 +196,29 @@ class MainMenuTest {
         config.set("boutons.sacs.slot", 10);
         config.save(file);
         assertThrows(IllegalArgumentException.class, () -> new MainMenu(plugin));
+    }
+
+    @Test
+    void oldMenuExpandsAndKeepsCustomShortcutsWithoutSlotCollisions() throws Exception {
+        var file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "gui/menu.yml");
+        var config = YamlConfiguration.loadConfiguration(file);
+        config.set("version-disposition", 0);
+        config.set("taille", 36);
+        config.set("boutons.personnalise.slot", 37);
+        config.set("boutons.personnalise.materiau", "BOOK");
+        config.set("boutons.personnalise.nom", "Mon raccourci");
+        config.set("boutons.personnalise.commande", "spawn");
+        config.save(file);
+        var expanded = new MainMenu(plugin);
+        expanded.onCommand(player, entry, "menu", new String[0]);
+        assertEquals(54, player.getOpenInventory().getTopInventory().getSize());
+        var saved = YamlConfiguration.loadConfiguration(file);
+        assertEquals("spawn", saved.getString("boutons.personnalise.commande"));
+        var slots = new java.util.HashSet<Integer>();
+        for (String id : saved.getConfigurationSection("boutons").getKeys(false)) {
+            int slot = saved.getInt("boutons." + id + ".slot");
+            assertTrue(slot >= 0 && slot < 54);
+            assertTrue(slots.add(slot));
+        }
     }
 }

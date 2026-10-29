@@ -4,7 +4,7 @@
 # Plusieurs synonymes d'un mot sont possibles ; accents, trémas et casse sont ignorés.
 jeux:
   actifs: true
-  intervalle-secondes: 300
+  intervalle-secondes: 900
   duree-secondes: 45
 aides:
   actives: true

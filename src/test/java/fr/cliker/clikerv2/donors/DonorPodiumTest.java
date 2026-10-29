@@ -42,6 +42,7 @@ class DonorPodiumTest {
         for (int rank = 1; rank <= 3; rank++) {
             var settings = new Settings(plugin, "pnj/donateurs-" + rank + ".yml");
             assertEquals("RAPTORE44", settings.yaml.getString("pnj.skin"));
+            assertEquals(2.0, settings.yaml.getDouble("pnj.echelle"));
             assertTrue(settings.yaml.getString("pnj.titre").contains("donateur"));
             assertFalse(settings.yaml.getBoolean("pnj.actif"));
         }

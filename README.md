@@ -1,6 +1,14 @@
 # ClikerV2
 
-## Dernière mise à jour — 27 octobre 2026
+## Dernière mise à jour — 29 octobre 2026
+
+- Jeux de chat automatiques toutes les quinze minutes ; les lancements manuels administrateur restent possibles.
+- `/upgrade set block` et `/bestiaire set block` : raccourcis sur le bloc visé, avec hologramme ; la variante `bloc` est aussi acceptée.
+- `/menu` passe à 54 cases, avec les voyages, la progression, l’équipement, le commerce puis les activités. L’ancienne disposition est sauvegardée avant migration et les raccourcis personnalisés sont conservés.
+- Niveau/XP en bleu, Écus en jaune, Gemmes en violet dans le scoreboard et la piñata. Retrait du marqueur `{secondes}s` des textes de piñata.
+- PNJ donateurs à taille ×2 via l’attribut Minecraft `scale`, transmis avec PacketEvents intégré à ZNPCsPlus 2.0.0. Les hologrammes sont relevés au-dessus des têtes ; seul le rendu est agrandi, les zones d’interaction propres à ZNPCsPlus restent gérées par ce fournisseur.
+
+### Mise à jour précédente — 27 octobre 2026
 
 - Podium manuel de trois PNJ donateurs : rang et pseudo au-dessus du skin, RAPTORE44 par défaut, sans montant affiché. Positions, pseudos et apparences conservés après redémarrage (ZNPCsPlus 2.0.0).
 
@@ -216,6 +224,9 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/pnjservice spawn <ah\|shop\|blackmarket>` | Placer un PNJ de service, orienté ouest. | `cliker.services.admin` |
 | `/pnjservice remove <ah\|shop\|blackmarket>` | Retirer un PNJ de service. | `cliker.services.admin` |
 | `/pnjservice skin <ah\|shop\|blackmarket> <pseudo\|villager>` | Choisir un skin de joueur ou revenir au villageois. | `cliker.services.admin` |
+| `/upgrade set block` / `/upgrade set bloc` | Lier le bloc visé au menu upgrade ; alias de `/upgradebloc set`. | `cliker.services.admin` |
+| `/bestiaire set block` / `/bestiaire set bloc` | Lier le bloc visé au bestiaire, avec hologramme. | `cliker.services.admin` |
+| `/bestiairebloc set` / `/bestiairebloc remove` | Placer ou retirer le raccourci du bestiaire sur le bloc visé. | `cliker.services.admin` |
 | `/upgradebloc set` / `/upgradebloc remove` | Lier ou délier le bloc visé au menu upgrade, avec hologramme. | `cliker.services.admin` |
 | `/sacbloc set` / `/sacbloc remove` | Lier ou délier le bloc visé au sac personnel de chaque joueur, avec hologramme. | `cliker.services.admin` |
 | `/warp set all` | Lier le bloc visé à moins de cinq blocs au menu Warp avec hologramme. | `cliker.services.admin` |
@@ -410,3 +421,5 @@ Un nouveau joueur reçoit un message global de bienvenue. `/bvn` ou `/bienvenue`
 Les positions enregistrées des classements restent les points d’ancrage. `affichage/classements.yml:decalage-vertical` vaut `-3` par défaut ; ce décalage de rendu ne se cumule pas aux redémarrages. Les anciens totaux ATM, dont seul le temps retiré était stocké, sont reconstruits au tarif actuel ; les futurs retraits conservent le montant réellement versé dans SQLite. Le montant disponible est actualisé à l’ouverture du menu et après un retrait.
 
 Les PNJ donateurs utilisent `pnj/donateurs-1.yml`, `pnj/donateurs-2.yml` et `pnj/donateurs-3.yml`. `joueur` détermine simultanément le pseudo et le skin Minecraft ; `titre-rang` et `format-pseudo` personnalisent les deux lignes (`{joueur}` dans le format). Le classement est mis à jour manuellement, sans montant ni calcul automatique. Les modifications SFTP sont relues au redémarrage ; `/donateurs set` actualise immédiatement un PNJ déjà placé. Le chargement du skin dépend de ZNPCsPlus et de l’existence du profil Minecraft.
+
+Les Cendres servent à appliquer ou remplacer une rune sur l’équipement dans `/rune` : coût actuel **500 Cendres** par tentative. Les runes donnent des bonus selon l’équipement ; les détails sont accessibles depuis le livre d’information de cette table. Les réglages des raccourcis bestiaire sont sauvegardés dans `navigation/warps.yml` (`bestiaires` et `hologrammes.bestiaires`). Les commandes de placement nécessitent de viser un bloc à moins de cinq blocs. La taille des PNJ donateurs se règle avec `pnj.echelle` dans chacun des fichiers `pnj/donateurs-N.yml` (2 par défaut).

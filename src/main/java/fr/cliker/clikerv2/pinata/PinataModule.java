@@ -137,7 +137,8 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                     "ecus".equals(rewardType)
                                             ? "&e"
                                             : "xp".equals(rewardType) ? "&b" : "&5")
-                            .replace("{type}", rewardLabel());
+                            .replace("{type}", rewardLabel())
+                            .replaceAll("\\{secondes\\}\\s*s?", "");
             var holos = SharedHolograms.service();
             if (holos != null && holos.available()) {
                 var holo = holos.get("pinata");
@@ -251,7 +252,8 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                                                         text("apparition")
                                                                                 .replace(
                                                                                         "{type}",
-                                                                                        rewardLabel()))
+                                                                                        rewardColor()
+                                                                                                + rewardLabel()))
                                                                 .clickEvent(
                                                                         ClickEvent.runCommand(
                                                                                 "/pinata tp")));
@@ -361,32 +363,42 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                                 if (PlayerSessions.isCurrent(player)) {
                                                     player.sendActionBar(
                                                             DailySettings.color(
-                                                                    settings.yaml
-                                                                            .getString(
-                                                                                    "messages.gain-total",
-                                                                                    "&a+{montant}"
-                                                                                        + " {type}"
-                                                                                        + " &8| &fTotal"
-                                                                                        + " : &e{total}")
-                                                                            .replace(
-                                                                                    "{total}",
-                                                                                    Long.toString(
-                                                                                            total))
-                                                                            .replace(
-                                                                                    "{montant}",
-                                                                                    Long.toString(
-                                                                                            amount))
-                                                                            .replace(
-                                                                                    "{type}",
-                                                                                    type.equals(
-                                                                                                    "ecus")
-                                                                                            ? "Écus"
-                                                                                            : type
+                                                                    rewardColor()
+                                                                            + settings.yaml
+                                                                                    .getString(
+                                                                                            "messages.gain-total",
+                                                                                            "&a+{montant}"
+                                                                                                + " {type}"
+                                                                                                + " &8| &fTotal"
+                                                                                                + " : &e{total}")
+                                                                                    .replaceAll(
+                                                                                            "(?i)&[0-9a-f]",
+                                                                                            "")
+                                                                                    .replaceAll(
+                                                                                            "\\{secondes\\}\\s*s?",
+                                                                                            "")
+                                                                                    .replace(
+                                                                                            "{total}",
+                                                                                            Long
+                                                                                                    .toString(
+                                                                                                            total))
+                                                                                    .replace(
+                                                                                            "{montant}",
+                                                                                            Long
+                                                                                                    .toString(
+                                                                                                            amount))
+                                                                                    .replace(
+                                                                                            "{type}",
+                                                                                            type
                                                                                                             .equals(
-                                                                                                                    "xp")
-                                                                                                    ? "XP"
-                                                                                                    : "Gemmes"
-                                                                                                          + " Sombres")));
+                                                                                                                    "ecus")
+                                                                                                    ? "Écus"
+                                                                                                    : type
+                                                                                                                    .equals(
+                                                                                                                            "xp")
+                                                                                                            ? "XP"
+                                                                                                            : "Gemmes"
+                                                                                                                  + " Sombres")));
                                                 }
                                             }
                                         }));
@@ -530,6 +542,10 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
         event.getEntities().forEach(this::clean);
     }
 
+    private String rewardColor() {
+        return "ecus".equals(rewardType) ? "&e" : "xp".equals(rewardType) ? "&b" : "&5";
+    }
+
     private String rewardLabel() {
         return "ecus".equals(rewardType)
                 ? "Écus"
@@ -537,7 +553,9 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
     }
 
     private String text(String key) {
-        return settings.yaml.getString("messages." + key, key);
+        return settings.yaml
+                .getString("messages." + key, key)
+                .replaceAll("\\{secondes\\}\\s*s?", "");
     }
 
     private void message(CommandSender sender, String key) {

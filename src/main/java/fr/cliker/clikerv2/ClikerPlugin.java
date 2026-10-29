@@ -246,7 +246,9 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         getServer().getPluginManager().registerEvents(upgradeManager, this);
         UpgradeMenu upgradeMenu = new UpgradeMenu(this, upgradeManager);
         getServer().getPluginManager().registerEvents(upgradeMenu, this);
-        setExecutor("upgrade", new UpgradeCommand(upgradeMenu));
+        var upgradeCommand = new UpgradeCommand(upgradeMenu);
+        setExecutor("upgrade", upgradeCommand);
+        getCommand("upgrade").setTabCompleter(upgradeCommand);
         upgradeManager.loadOnlinePlayers();
         setExecutor("guide", new fr.cliker.clikerv2.comfort.UpgradeGuide(this, upgradeManager));
         var helpCommand = new fr.cliker.clikerv2.features.HelpCommand();

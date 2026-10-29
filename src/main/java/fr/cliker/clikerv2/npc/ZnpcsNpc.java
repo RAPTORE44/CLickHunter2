@@ -21,6 +21,7 @@ public class ZnpcsNpc implements Listener {
     private static final java.util.Map<String, ZnpcsNpc> INSTANCES = new java.util.HashMap<>();
     private Object api, registry;
     private boolean ready, stopped;
+    private org.bukkit.scheduler.BukkitTask scaleTask;
 
     public ZnpcsNpc(
             JavaPlugin plugin,
@@ -119,6 +120,29 @@ public class ZnpcsNpc implements Listener {
                             true);
             plugin.getServer().getPluginManager().registerEvents(this, plugin);
             ready = true;
+            if (config.getDouble("pnj.echelle", 1) != 1) {
+                scaleTask =
+                        plugin.getServer()
+                                .getScheduler()
+                                .runTaskTimer(
+                                        plugin,
+                                        () -> {
+                                            try {
+                                                sendScale();
+                                            } catch (Exception | LinkageError error) {
+                                                plugin.getLogger()
+                                                        .log(
+                                                                Level.SEVERE,
+                                                                "Échelle ZNPCsPlus indisponible"
+                                                                    + " pour "
+                                                                        + id,
+                                                                error);
+                                                if (scaleTask != null) scaleTask.cancel();
+                                            }
+                                        },
+                                        10,
+                                        20);
+            }
             fr.cliker.clikerv2.runtime.ServerTasks.run(
                     plugin,
                     () -> {
@@ -227,7 +251,7 @@ public class ZnpcsNpc implements Listener {
             if (provider != null)
                 provider.create(
                         "npc:" + id,
-                        at.clone().add(0, 2.5, 0),
+                        at.clone().add(0, 1.8 * config.getDouble("pnj.echelle", 1) + .7, 0),
                         java.util.List.of(
                                 config.getString("pnj.titre", "&aRécompenses journalières"),
                                 config.getString("pnj.sous-titre", "&7Clic droit pour ouvrir")),
@@ -293,9 +317,52 @@ public class ZnpcsNpc implements Listener {
                     });
     }
 
+    /**
+     * Attribut scale envoyé uniquement aux spectateurs du PNJ par PacketEvents de ZNPCsPlus 2.0.0.
+     */
+    private void sendScale() throws Exception {
+        if (!available() || !config.getBoolean("pnj.actif", false)) return;
+        Object entry = call(registry, "getById", id);
+        if (entry == null) return;
+        Object npc = call(entry, "getNpc");
+        Object viewers = call(npc, "getViewers");
+        if (!(viewers instanceof java.util.Set<?> players) || players.isEmpty()) return;
+        String base = "lol.pyr.znpcsplus.libraries.packetevents.api.";
+        Object api = Class.forName(base + "PacketEvents").getMethod("getAPI").invoke(null);
+        Object manager = call(api, "getPlayerManager");
+        Class<?> attributeClass = Class.forName(base + "protocol.attribute.Attribute");
+        Object attribute =
+                Class.forName(base + "protocol.attribute.Attributes").getField("SCALE").get(null);
+        Class<?> packetClass =
+                Class.forName(base + "wrapper.play.server.WrapperPlayServerUpdateAttributes");
+        var propertyConstructor =
+                Class.forName(packetClass.getName() + "$Property")
+                        .getConstructor(attributeClass, double.class, java.util.List.class);
+        var send =
+                Class.forName(base + "manager.player.PlayerManager")
+                        .getMethod(
+                                "sendPacket",
+                                Object.class,
+                                Class.forName(base + "wrapper.PacketWrapper"));
+        double scale = config.getDouble("pnj.echelle", 1);
+        if (!Double.isFinite(scale) || scale < .1 || scale > 4)
+            throw new IllegalArgumentException("Échelle PNJ invalide");
+        for (Object viewer : players) {
+            Object property =
+                    propertyConstructor.newInstance(attribute, scale, java.util.List.of());
+            Object packet =
+                    packetClass
+                            .getConstructor(int.class, java.util.List.class)
+                            .newInstance(
+                                    call(npc, "getPacketEntityId"), java.util.List.of(property));
+            send.invoke(manager, viewer, packet);
+        }
+    }
+
     public void shutdown() {
         INSTANCES.remove(id, this);
         stopped = true;
+        if (scaleTask != null) scaleTask.cancel();
         HandlerList.unregisterAll(this);
         try {
             delete();

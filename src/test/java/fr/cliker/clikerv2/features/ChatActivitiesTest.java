@@ -60,12 +60,17 @@ class ChatActivitiesTest {
                                 "reponses",
                                 List.of("bloc de fer", "iron block")),
                         custom));
+        settings.yaml.set("jeux.intervalle-secondes", 300);
         settings.save();
         var activities = new ChatActivities(plugin);
         try {
             var saved =
                     org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(settings.file)
                             .getMapList("questions.devinette");
+            assertEquals(
+                    900,
+                    org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(settings.file)
+                            .getInt("jeux.intervalle-secondes"));
             assertEquals(List.of("fer", "iron"), saved.getFirst().get("reponses"));
             assertEquals(custom, saved.get(1));
             activities.start("devinette");

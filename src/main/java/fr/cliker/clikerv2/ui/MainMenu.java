@@ -28,7 +28,8 @@ public final class MainMenu implements CommandExecutor, Listener {
         if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "gui/menu.yml");
         config = YamlConfiguration.loadConfiguration(file);
         addActivityButtons(file);
-        size = config.getInt("taille", 36);
+        expandLayout(file);
+        size = config.getInt("taille", 54);
         if (size < 9 || size > 54 || size % 9 != 0)
             throw new IllegalArgumentException("Taille du menu principal invalide");
         background = item(config.getString("fond", "BLACK_STAINED_GLASS_PANE"), " ", List.of());
@@ -78,7 +79,10 @@ public final class MainMenu implements CommandExecutor, Listener {
                             "session",
                             "warp",
                             "talismans",
-                            "guide")) {
+                            "guide",
+                            "atm",
+                            "wiki",
+                            "claim")) {
                 String path = "boutons." + id;
                 if (config.contains(path)) continue;
                 int slot = defaults.getInt(path + ".slot"), size = config.getInt("taille", 36);
@@ -103,6 +107,55 @@ public final class MainMenu implements CommandExecutor, Listener {
             if (changed) config.save(file);
         } catch (java.io.IOException error) {
             throw new IllegalStateException("Mise à jour du menu impossible", error);
+        }
+    }
+
+    private void expandLayout(File file) {
+        if (config.getInt("version-disposition", 0) >= 2) return;
+        try (var input = plugin.getResource("gui/menu.yml")) {
+            var defaults =
+                    YamlConfiguration.loadConfiguration(
+                            new java.io.InputStreamReader(
+                                    Objects.requireNonNull(input),
+                                    java.nio.charset.StandardCharsets.UTF_8));
+            java.nio.file.Files.copy(
+                    file.toPath(),
+                    file.toPath()
+                            .resolveSibling(
+                                    "menu-avant-double-coffre-"
+                                            + System.currentTimeMillis()
+                                            + ".yml"));
+            Set<Integer> used = new HashSet<>();
+            var buttons = config.getConfigurationSection("boutons");
+            var known = defaults.getConfigurationSection("boutons");
+            for (String key : known.getKeys(false))
+                if (config.contains("boutons." + key)) {
+                    int slot = defaults.getInt("boutons." + key + ".slot");
+                    config.set("boutons." + key + ".slot", slot);
+                    used.add(slot);
+                }
+            if (buttons != null)
+                for (String key : buttons.getKeys(false))
+                    if (!known.contains(key)) {
+                        int slot = config.getInt("boutons." + key + ".slot");
+                        if (slot < 0 || slot >= 54 || used.contains(slot)) {
+                            slot = -1;
+                            for (int candidate = 0; candidate < 54; candidate++)
+                                if (!used.contains(candidate)) {
+                                    slot = candidate;
+                                    break;
+                                }
+                        }
+                        if (slot < 0)
+                            throw new IllegalArgumentException("Trop de raccourcis pour 54 cases");
+                        config.set("boutons." + key + ".slot", slot);
+                        used.add(slot);
+                    }
+            config.set("taille", 54);
+            config.set("version-disposition", 2);
+            config.save(file);
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("Migration du menu impossible", e);
         }
     }
 

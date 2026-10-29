@@ -30,6 +30,7 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
     private final NamespacedKey wand, boss, egg;
     private final Map<String, String> bagBlocks = new HashMap<>();
     private final Map<String, String> upgradeBlocks = new HashMap<>();
+    private final Map<String, String> bestiaryBlocks = new HashMap<>();
     private final Map<String, String> warpBlocks = new HashMap<>();
     private final Map<String, fr.cliker.clikerv2.hologram.SharedHolograms.Handle> shortcutHolos =
             new HashMap<>();
@@ -72,8 +73,23 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                     warpBlocks.put(
                             fr.cliker.clikerv2.station.StationStore.idFor(at.getBlock()), key);
             }
+        var bestiary = settings.yaml.getConfigurationSection("bestiaires");
+        if (bestiary != null)
+            for (String key : bestiary.getKeys(false)) {
+                var at = YamlFiles.location(settings.yaml, "bestiaires." + key);
+                if (at != null)
+                    bestiaryBlocks.put(
+                            fr.cliker.clikerv2.station.StationStore.idFor(at.getBlock()), key);
+            }
         holoTask = Bukkit.getScheduler().runTaskTimer(p, this::refreshHolos, 1, 40);
-        for (String cmd : List.of("warp", "warpbloc", "sacbloc", "upgradebloc", "batonspawn")) {
+        for (String cmd :
+                List.of(
+                        "warp",
+                        "warpbloc",
+                        "sacbloc",
+                        "upgradebloc",
+                        "bestiairebloc",
+                        "batonspawn")) {
             p.getCommand(cmd).setExecutor(this);
             p.getCommand(cmd).setTabCompleter(this);
         }
@@ -274,11 +290,18 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                         p.sendMessage("Point de voyage sauvegardé.");
                     } else p.sendMessage("/warp set <zone> <entree|boss>");
                 }
-                case "sacbloc", "upgradebloc", "warpbloc" -> {
+                case "sacbloc", "upgradebloc", "warpbloc", "bestiairebloc" -> {
                     boolean upgrade = c.getName().equals("upgradebloc");
                     boolean warp = c.getName().equals("warpbloc");
-                    var blocks = warp ? warpBlocks : upgrade ? upgradeBlocks : bagBlocks;
-                    String section = warp ? "raccourcis-warp." : upgrade ? "upgrades." : "sacs.";
+                    boolean bestiary = c.getName().equals("bestiairebloc");
+                    var blocks =
+                            bestiary
+                                    ? bestiaryBlocks
+                                    : warp ? warpBlocks : upgrade ? upgradeBlocks : bagBlocks;
+                    String section =
+                            bestiary
+                                    ? "bestiaires."
+                                    : warp ? "raccourcis-warp." : upgrade ? "upgrades." : "sacs.";
                     Block b = p.getTargetBlockExact(5);
                     if (b == null) {
                         p.sendMessage("Vise un bloc à moins de cinq blocs.");
@@ -291,11 +314,13 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                         settings.save();
                         blocks.put(id, key);
                         p.sendMessage(
-                                warp
-                                        ? "Bloc lié au menu /warp."
-                                        : upgrade
-                                                ? "Bloc lié au menu /upgrade."
-                                                : "Bloc lié au /sac de chaque joueur.");
+                                bestiary
+                                        ? "Bloc lié au menu /bestiaire."
+                                        : warp
+                                                ? "Bloc lié au menu /warp."
+                                                : upgrade
+                                                        ? "Bloc lié au menu /upgrade."
+                                                        : "Bloc lié au /sac de chaque joueur.");
                     } else if (a.length == 1 && a[0].equalsIgnoreCase("remove")) {
                         String key = blocks.get(id);
                         if (key != null) {
@@ -395,6 +420,12 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                                         e.getClickedBlock())))) {
             e.setCancelled(true);
             p.sendMessage("Reviens au /spawn pour utiliser ce raccourci clicker.");
+            return;
+        }
+        if (bestiaryBlocks.containsKey(
+                fr.cliker.clikerv2.station.StationStore.idFor(e.getClickedBlock()))) {
+            e.setCancelled(true);
+            p.performCommand("bestiaire");
             return;
         }
         if (warpBlocks.containsKey(
@@ -537,7 +568,8 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
             values = List.of("entree", "boss");
         if ((c.getName().equals("sacbloc")
                         || c.getName().equals("upgradebloc")
-                        || c.getName().equals("warpbloc"))
+                        || c.getName().equals("warpbloc")
+                        || c.getName().equals("bestiairebloc"))
                 && s.hasPermission("cliker.services.admin")) values = List.of("set", "remove");
         if (c.getName().equals("batonspawn") && s.hasPermission("cliker.services.admin"))
             values =
@@ -570,7 +602,7 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
 
     private void refreshHolos() {
         var wanted = new HashSet<String>();
-        for (String section : List.of("sacs", "upgrades", "raccourcis-warp")) {
+        for (String section : List.of("sacs", "upgrades", "raccourcis-warp", "bestiaires")) {
             var entries = settings.yaml.getConfigurationSection(section);
             if (entries == null) continue;
             for (String key : entries.getKeys(false)) {
@@ -592,16 +624,25 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                                         settings.yaml
                                                 .getString(
                                                         "hologrammes." + section,
-                                                        section.equals("sacs")
-                                                                ? "&a&lSacs\n"
-                                                                        + "&fClic droit pour ouvrir"
-                                                                : section.equals("raccourcis-warp")
-                                                                        ? "&a&lVoyager\n"
+                                                        section.equals("bestiaires")
+                                                                ? "&2&lBestiaire\n"
+                                                                      + "&fClic droit pour ouvrir"
+                                                                : section.equals("sacs")
+                                                                        ? "&a&lSacs\n"
                                                                               + "&fClic droit pour"
                                                                               + " ouvrir"
-                                                                        : "&a&lAméliorations\n"
-                                                                              + "&fClic droit pour"
-                                                                              + " ouvrir")
+                                                                        : section.equals(
+                                                                                        "raccourcis-warp")
+                                                                                ? "&a&lVoyager\n"
+                                                                                      + "&fClic"
+                                                                                      + " droit"
+                                                                                      + " pour"
+                                                                                      + " ouvrir"
+                                                                                : "&a&lAméliorations\n"
+                                                                                      + "&fClic"
+                                                                                      + " droit"
+                                                                                      + " pour"
+                                                                                      + " ouvrir")
                                                 .split("\n")),
                                 null,
                                 false);

@@ -453,6 +453,13 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) return true;
+        if (command.getName().equals("bestiaire")
+                && args.length == 2
+                && args[0].equalsIgnoreCase("set")
+                && (args[1].equalsIgnoreCase("block") || args[1].equalsIgnoreCase("bloc"))) {
+            player.performCommand("bestiairebloc set");
+            return true;
+        }
         if (args.length == 0) {
             if (command.getName().equals("bestiaire")) {
                 if (player.hasPermission("cliker.bestiaire")) openBestiary(player);
@@ -487,6 +494,10 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
     @Override
     public List<String> onTabComplete(
             CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equals("bestiaire") && sender.hasPermission("cliker.services.admin"))
+            return args.length == 1
+                    ? List.of("set")
+                    : args.length == 2 ? List.of("block", "bloc") : List.of();
         return sender.hasPermission("cliker.contrats.admin") && command.getName().equals("contrats")
                 ? (args.length == 1
                         ? List.of("pnj")

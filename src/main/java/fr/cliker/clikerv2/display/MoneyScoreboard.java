@@ -97,7 +97,21 @@ public final class MoneyScoreboard implements Listener {
         var config =
                 YamlConfiguration.loadConfiguration(
                         fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "scoreboard.yml"));
-        lines = List.copyOf(config.getStringList("lignes"));
+        lines =
+                config.getStringList("lignes").stream()
+                        .map(
+                                line -> {
+                                    String color =
+                                            line.contains("{niveau}")
+                                                    ? "&b"
+                                                    : line.contains("{ecus}")
+                                                            ? "&e"
+                                                            : line.contains("{gemmes}") ? "&5" : "";
+                                    return color.isEmpty()
+                                            ? line
+                                            : color + line.replaceAll("(?i)&[0-9a-f]", "");
+                                })
+                        .toList();
         if (lines.isEmpty() || lines.size() > 15)
             throw new IllegalArgumentException("Le scoreboard doit contenir entre 1 et 15 lignes");
         title = DailySettings.color(config.getString("titre", "&a&lClickHunter"));

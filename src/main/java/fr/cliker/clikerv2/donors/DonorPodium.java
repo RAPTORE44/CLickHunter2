@@ -27,6 +27,7 @@ public final class DonorPodium implements CommandExecutor, TabCompleter {
             if (!settings.yaml.contains("titre-rang")) settings.yaml.set("titre-rang", title(rank));
             if (!settings.yaml.contains("format-pseudo"))
                 settings.yaml.set("format-pseudo", "&f{joueur}");
+            if (!settings.yaml.contains("pnj.echelle")) settings.yaml.set("pnj.echelle", 2.0);
             appearance(settings);
             settings.save();
             final int position = rank;
@@ -153,7 +154,7 @@ public final class DonorPodium implements CommandExecutor, TabCompleter {
                             e);
             sender.sendMessage(
                     "§cImpossible d’actualiser le PNJ. Consulte les journaux ; la configuration"
-                        + " sauvegardée sera relue au redémarrage.");
+                            + " sauvegardée sera relue au redémarrage.");
         }
         return true;
     }
