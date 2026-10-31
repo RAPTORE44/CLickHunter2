@@ -2,6 +2,10 @@
 
 ## Dernière mise à jour — 31 octobre 2026
 
+- Achats des marchands, du shop et du marché noir : livraison automatique prioritaire de l’objet acheté dans l’inventaire ; seul le surplus sans place reste à récupérer dans `/claim`. Les messages d’achat ne renvoient plus systématiquement vers `/claim`.
+- Raids : acceptation confirmée au chef, liste des membres actualisée sans rouvrir son menu, boutons de lancement reliés au groupe actuel. Une téléportation refusée est signalée et le membre peut réessayer avec `/raid rejoindre`.
+- `/boss spawn` permet aux administrateurs et à la console de faire apparaître le boss serveur, sans doublon et sans consommer le compteur du prochain spawn naturel.
+
 - Correction des ouvertures multiples depuis les PNJ, blocs de raccourci et étoile de menu : les événements d’un même clic sont regroupés et les interactions monde tardives ne rouvrent pas un inventaire déjà affiché.
 - Les boutons des menus partagés ne programment plus plusieurs actions avant le traitement du premier clic. Le bouton Retour au menu passe directement au menu principal, sans fermeture explicite intermédiaire.
 
@@ -120,7 +124,7 @@ Les couples conservent leurs commandes toute l’année. L’anneau est identifi
 | `/pinata` / `/pinata tp` | Voir la piñata active et la rejoindre ; alias `/pignata`. |
 | `/raid` | Ouvrir son groupe de raid (1 à 8 joueurs). Le boss affiche sa jauge de vie ; à la victoire, les participants voient le top 5 des dégâts et leur récapitulatif individuel de gains. |
 | `/raid inviter <pseudo>` | Inviter un joueur en ligne pour 60 secondes. |
-| `/raid accepter <pseudo>` | Accepter l’invitation d’un chef. |
+| `/raid accepter <pseudo>` | Accepter l’invitation d’un chef ; les membres sont ajoutés au même groupe et le menu du chef est actualisé. |
 | `/raid lancer` | Le chef consomme le parchemin tenu et lance un raid privé de sa difficulté. |
 | `/raid rejoindre` | Rejoindre son raid déjà lancé. |
 | `/raid quitter` | Quitter le groupe et son arène ; `sortir` est accepté. |
@@ -214,6 +218,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/pinata spawn` | Forcer une apparition au point sauvegardé, sans doublon. | `cliker.pinata.admin` |
 | `/respawnmobs` | Faire réapparaître tous les mobs placés, sans les boss ni les invocations temporaires ; alias `/mobsrespawn`. | `cliker.mob.admin` |
 | `/spawnboss` | Lancer une vague de tous les boss de zone, avec annonce globale ; alias `/bossrespawn`. | `cliker.mob.admin` |
+| `/boss spawn` | Forcer le boss serveur public depuis le jeu ou la console ; refuse un doublon et conserve le compteur naturel. | `cliker.boss.admin` |
 | `/jeutchat lancer [calcul\|devinette\|pays]` / `/jeutchat stop` | Lancer ou interrompre une manche de jeu de chat. | `cliker.jeutchat.admin` |
 | `/diagnostic` | Vérifier SQLite (durée de la requête), TPS, tâches planifiées, livraisons, mobs manquants, PNJ, hologrammes et destinations absentes ; indique la commande de correction et la commande Spark si Spark manque. Lecture seule, résultats paginés. | `cliker.diagnostic.admin` |
 | `/avantposte vedette <pseudo>` / `/avantposte vedette retirer` | Mettre un terrain public à l’honneur pendant sept jours ou retirer sa mise en avant. | `cliker.services.admin` |
@@ -497,3 +502,9 @@ Les accords et retraits sont sauvegardés dans `buyzone_overrides`, avec les acc
 Hors ligne, les permissions LuckPerms sont consultées sans contexte de monde actif ; le résultat avertit que les permissions contextuelles doivent être confirmées après connexion. `/buyzone portails` liste les positions sauvegardées, y compris les mondes non chargés ou les positions invalides ; cela ne les supprime pas. `/buyzone info <zone>` donne le détail et `/buyzone liste` rappelle les identifiants configurés.
 
 Les ouvertures depuis le monde (PNJ, raccourcis sur bloc, stations et étoile de menu) sont regroupées sur le tick suivant, avec une protection de 250 ms contre les répétitions de paquets. Une autre interface ouverte entre-temps, un changement de monde ou une déconnexion annule la demande en attente. Cette protection ne limite pas la navigation normale entre les pages et boutons des menus. Les événements de main secondaire sont ignorés pour les interactions de menu ; le transfert d’équipement vers une station est effectué une seule fois après validation du clic.
+
+Un achat validé est livré automatiquement dans les cases de stockage disponibles, en complétant aussi les piles compatibles. Pour un lot trop grand, la partie qui tient est livrée et seul le reste attend dans `/claim`. L’objet acheté est traité en priorité même si la boîte contient déjà plus de 45 récompenses. Les achats restent journalisés pour éviter pertes et doubles livraisons ; ce journal interne ne signifie pas que le joueur doit ouvrir `/claim`. Un joueur déconnecté ou dans un inventaire isolé d’avant-poste récupère ses objets automatiquement à son retour dans l’inventaire clicker.
+
+Le menu du chef d’un raid est mis à jour quand un joueur accepte. Un bouton provenant d’un ancien menu vérifie le groupe actuel avant le lancement. Le lancement contrôle les droits et la présence de chaque membre et indique le joueur qui empêche le départ. Si un plugin ou une protection refuse une téléportation, le membre reste dans le groupe : `/raid rejoindre` permet de réessayer. Le test automatique de groupe vérifie les invitations acceptées et les téléportations des participants ; les entités et le combat restent à confirmer sur le serveur Paper réel.
+
+`/boss spawn` cible uniquement le boss public de `/boss`. Il utilise le même mécanisme d’apparition et la même annonce cliquable que le spawn naturel. Son état actif est sauvegardé pour la restauration après redémarrage. Une nouvelle demande pendant que le boss est actif ne crée pas de deuxième boss. Le compteur des éliminations et les cycles naturels ne sont pas augmentés par une apparition forcée. La permission `cliker.boss.admin` est accordée aux OP par défaut.

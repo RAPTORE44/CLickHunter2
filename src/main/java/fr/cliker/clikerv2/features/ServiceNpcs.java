@@ -416,13 +416,15 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
                             return;
                         }
                         view.pending = true;
+                        String source = "shop:" + java.util.UUID.randomUUID();
                         store.buy(
                                         player.getUniqueId(),
                                         player.getName(),
                                         o.key,
                                         o.cap,
                                         o.price,
-                                        ClaimService.serialize(o.item))
+                                        ClaimService.serialize(o.item),
+                                        source)
                                 .whenComplete(
                                         (ok, e) ->
                                                 fr.cliker.clikerv2.runtime.ServerTasks.run(
@@ -455,9 +457,6 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
                                                                                                         ok)
                                                                                         ? "Achat"
                                                                                               + " validé."
-                                                                                              + " Livraison"
-                                                                                              + " ou /claim"
-                                                                                              + " si nécessaire."
                                                                                         : "Fonds"
                                                                                               + " insuffisants"
                                                                                               + " ou stock"
@@ -467,9 +466,10 @@ public final class ServiceNpcs implements CommandExecutor, TabCompleter {
                                                                             .load(
                                                                                     ClaimService
                                                                                             .class)
-                                                                            .notifyAndDeliver(
+                                                                            .deliverPurchase(
                                                                                     player
-                                                                                            .getUniqueId());
+                                                                                            .getUniqueId(),
+                                                                                    source);
                                                                 if (player.getOpenInventory()
                                                                                 .getTopInventory()
                                                                         == view.getInventory())

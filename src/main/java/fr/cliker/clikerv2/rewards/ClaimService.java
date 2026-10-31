@@ -32,6 +32,7 @@ public final class ClaimService implements Listener, CommandExecutor {
     private final java.util.function.BiConsumer<Player, ItemStack[]> writeStorage;
     private final Set<UUID> busy = new HashSet<>();
     private final Map<UUID, CompletableFuture<Void>> acknowledgements = new HashMap<>();
+    private final Map<UUID, String> purchaseSources = new HashMap<>();
     private final Map<UUID, Object> opening = new HashMap<>();
     private volatile boolean stopped;
 
@@ -185,101 +186,103 @@ public final class ClaimService implements Listener, CommandExecutor {
         }
     }
 
+    /** Donner priorité à un achat déjà journalisé, sans contourner le reçu de livraison. */
+    public void deliverPurchase(UUID owner, String source) {
+        Player player = Bukkit.getPlayer(owner);
+        if (player == null
+                || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)
+                || fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
+        purchaseSources.put(owner, source);
+        notifyAndDeliver(owner);
+    }
+
     public void notifyAndDeliver(UUID owner) {
         Player player = Bukkit.getPlayer(owner);
         if (player != null && fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
         if (player == null || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)) return;
-        store.page(owner, 0)
-                .whenComplete(
-                        (page, error) ->
-                                sync(
-                                        () -> {
-                                            if (!fr.cliker.clikerv2.runtime.PlayerSessions
-                                                            .isCurrent(player)
-                                                    || error != null
-                                                    || page.entries().isEmpty()) return;
-                                            if (isDelivering(owner)) return;
-                                            for (var entry : page.entries()) {
-                                                try {
-                                                    if (hasReceipt(player, entry.id())
-                                                            || plan(
-                                                                            player.getInventory()
-                                                                                    .getStorageContents(),
-                                                                            deserialize(
-                                                                                    entry
-                                                                                            .payload()),
-                                                                            entry.id())
-                                                                    != null) {
-                                                        deliver(player, entry.id(), true);
-                                                        return;
-                                                    }
-                                                } catch (RuntimeException invalid) {
-                                                    plugin.getLogger()
-                                                            .log(
-                                                                    Level.WARNING,
-                                                                    "Objet /claim illisible"
-                                                                            + " conservé : "
-                                                                            + entry.id(),
-                                                                    invalid);
-                                                }
-                                            }
-                                            for (var entry : page.entries())
-                                                try {
-                                                    ItemStack item = deserialize(entry.payload());
-                                                    int fits =
-                                                            capacity(
+        String purchase = purchaseSources.get(owner);
+        var priorityFound = new java.util.concurrent.atomic.AtomicBoolean();
+        var pageFuture = store.page(owner, 0);
+        if (purchase != null)
+            pageFuture =
+                    pageFuture.thenCombine(
+                            store.pendingSource(owner, purchase),
+                            (page, entry) -> {
+                                if (entry == null) return page;
+                                priorityFound.set(true);
+                                var prioritized = new ArrayList<MailStore.Entry>();
+                                prioritized.add(entry);
+                                for (var item : page.entries())
+                                    if (!item.id().equals(entry.id())) prioritized.add(item);
+                                return new MailStore.Page(List.copyOf(prioritized), page.total());
+                            });
+        pageFuture.whenComplete(
+                (page, error) ->
+                        sync(
+                                () -> {
+                                    if (!fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)
+                                            || error != null
+                                            || page.entries().isEmpty()) return;
+                                    if (isDelivering(owner)) return;
+                                    if (!Objects.equals(purchase, purchaseSources.get(owner))) {
+                                        notifyAndDeliver(owner);
+                                        return;
+                                    }
+                                    if (purchase != null && !priorityFound.get())
+                                        purchaseSources.remove(owner, purchase);
+                                    for (var entry : page.entries()) {
+                                        try {
+                                            if (hasReceipt(player, entry.id())
+                                                    || plan(
                                                                     player.getInventory()
                                                                             .getStorageContents(),
-                                                                    item);
-                                                    if (fits > 0 && fits < item.getAmount()) {
-                                                        ItemStack part = item.clone(),
-                                                                overflow = item.clone();
-                                                        part.setAmount(fits);
-                                                        overflow.setAmount(item.getAmount() - fits);
-                                                        store.split(
-                                                                        owner,
-                                                                        entry.id(),
-                                                                        entry.payload(),
-                                                                        serialize(part),
-                                                                        serialize(overflow))
-                                                                .whenComplete(
-                                                                        (split, failure) ->
-                                                                                sync(
-                                                                                        () -> {
-                                                                                            if (failure
-                                                                                                    != null) {
-                                                                                                plugin.getLogger()
-                                                                                                        .log(
-                                                                                                                Level
-                                                                                                                        .SEVERE,
-                                                                                                                "Fractionnement"
-                                                                                                                    + " de livraison"
-                                                                                                                    + " impossible",
-                                                                                                                failure);
-                                                                                                if (fr
-                                                                                                        .cliker
-                                                                                                        .clikerv2
-                                                                                                        .runtime
-                                                                                                        .PlayerSessions
-                                                                                                        .isCurrent(
-                                                                                                                player))
-                                                                                                    message(
-                                                                                                            player,
-                                                                                                            "erreur");
-                                                                                            } else if (Boolean
-                                                                                                    .TRUE
-                                                                                                    .equals(
-                                                                                                            split))
-                                                                                                notifyAndDeliver(
-                                                                                                        owner);
-                                                                                        }));
-                                                        return;
-                                                    }
-                                                } catch (RuntimeException invalid) {
-                                                    /* Entrée déjà signalée ci-dessus et conservée. */
-                                                }
-                                            message(player, "attente");
+                                                                    deserialize(entry.payload()),
+                                                                    entry.id())
+                                                            != null) {
+                                                deliver(player, entry.id(), true);
+                                                return;
+                                            }
+                                            if (splitForDelivery(player, entry)) return;
+                                        } catch (RuntimeException invalid) {
+                                            plugin.getLogger()
+                                                    .log(
+                                                            Level.WARNING,
+                                                            "Objet /claim illisible conservé : "
+                                                                    + entry.id(),
+                                                            invalid);
+                                        }
+                                    }
+                                    message(player, "attente");
+                                }));
+    }
+
+    private boolean splitForDelivery(Player player, MailStore.Entry entry) {
+        ItemStack item = deserialize(entry.payload());
+        int fits = capacity(player.getInventory().getStorageContents(), item);
+        if (fits <= 0 || fits >= item.getAmount()) return false;
+        ItemStack part = item.clone(), overflow = item.clone();
+        part.setAmount(fits);
+        overflow.setAmount(item.getAmount() - fits);
+        UUID owner = player.getUniqueId();
+        store.split(owner, entry.id(), entry.payload(), serialize(part), serialize(overflow))
+                .whenComplete(
+                        (split, error) ->
+                                sync(
+                                        () -> {
+                                            if (error != null) {
+                                                plugin.getLogger()
+                                                        .log(
+                                                                Level.SEVERE,
+                                                                "Fractionnement de livraison"
+                                                                        + " impossible",
+                                                                error);
+                                                if (fr.cliker.clikerv2.runtime.PlayerSessions
+                                                        .isCurrent(player))
+                                                    message(player, "erreur");
+                                            } else if (Boolean.TRUE.equals(split))
+                                                notifyAndDeliver(owner);
                                         }));
+        return true;
     }
 
     public void open(Player player, int page) {
@@ -624,7 +627,7 @@ public final class ClaimService implements Listener, CommandExecutor {
         message(current, "recupere");
         Inventory top = current.getOpenInventory().getTopInventory();
         if (top != null && top.getHolder() instanceof Holder holder) open(current, holder.page);
-        else if (automatic) notifyAndDeliver(owner);
+        if (automatic || purchaseSources.containsKey(owner)) notifyAndDeliver(owner);
     }
 
     private void releaseAndReconcile(UUID owner, String id, String lease) {
@@ -757,6 +760,7 @@ public final class ClaimService implements Listener, CommandExecutor {
 
     @EventHandler
     public void quit(PlayerQuitEvent event) {
+        purchaseSources.remove(event.getPlayer().getUniqueId());
         opening.remove(event.getPlayer().getUniqueId());
     }
 
@@ -849,6 +853,7 @@ public final class ClaimService implements Listener, CommandExecutor {
     }
 
     public void shutdown() {
+        purchaseSources.clear();
         stopped = true;
         for (Player p : Bukkit.getOnlinePlayers()) {
             Inventory top = p.getOpenInventory().getTopInventory();

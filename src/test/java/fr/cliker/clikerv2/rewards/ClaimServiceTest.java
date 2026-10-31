@@ -481,4 +481,61 @@ class ClaimServiceTest {
             profiles.shutdown();
         }
     }
+
+    @Test
+    void aPurchasedItemBeyondTheFirstClaimPageUsesAvailableStackSpace() throws Exception {
+        fillInventory();
+        player.getInventory().setItem(0, new ItemStack(Material.DIAMOND, 60));
+        for (int i = 0; i < 46; i++)
+            enqueue(player.getUniqueId(), "old-unstackable-" + i, new ItemStack(Material.DIRT, 64));
+        var economy = new fr.cliker.clikerv2.EconomyService(database, java.util.Map.of());
+        economy.set(
+                        player.getUniqueId(),
+                        player.getName(),
+                        fr.cliker.clikerv2.economy.CurrencyType.ECUS,
+                        100)
+                .join();
+        assertTrue(
+                economy.purchaseItem(
+                                player.getUniqueId(),
+                                player.getName(),
+                                "purchase-new",
+                                fr.cliker.clikerv2.economy.CurrencyType.ECUS,
+                                10,
+                                ClaimService.serialize(new ItemStack(Material.DIAMOND, 2)))
+                        .join());
+        claims.deliverPurchase(player.getUniqueId(), "purchase-new");
+        await(
+                () ->
+                        player.getInventory().getItem(0).getAmount() == 62
+                                && claims.store().page(player.getUniqueId(), 0).join().total()
+                                        == 46);
+        assertEquals(62, player.getInventory().getItem(0).getAmount());
+    }
+
+    @Test
+    void purchaseOverflowAloneWaitsInClaimAndFreeSpaceIsFilledFirst() throws Exception {
+        fillInventory();
+        player.getInventory().setItem(0, new ItemStack(Material.DIAMOND, 60));
+        enqueue(player.getUniqueId(), "purchase-overflow", new ItemStack(Material.DIAMOND, 10));
+        claims.deliverPurchase(player.getUniqueId(), "purchase-overflow");
+        await(
+                () ->
+                        player.getInventory().getItem(0).getAmount() == 64
+                                && claims.store().page(player.getUniqueId(), 0).join().total()
+                                        == 1);
+        var rows = claims.store().page(player.getUniqueId(), 0).join();
+        assertEquals(6, ClaimService.deserialize(rows.entries().getFirst().payload()).getAmount());
+    }
+
+    @Test
+    void anEmptyInventoryReceivesThePurchaseWithoutLeavingItInClaim() throws Exception {
+        enqueue(player.getUniqueId(), "purchase-empty", new ItemStack(Material.DIAMOND_SWORD));
+        claims.deliverPurchase(player.getUniqueId(), "purchase-empty");
+        await(
+                () ->
+                        player.getInventory().contains(Material.DIAMOND_SWORD)
+                                && claims.store().page(player.getUniqueId(), 0).join().total()
+                                        == 0);
+    }
 }

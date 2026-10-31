@@ -116,7 +116,7 @@ commands:
     permission: cliker.navigation.use
   boss:
     description: Arène publique du boss serveur après un milliard de kills
-    usage: /boss [quitter]
+    usage: /boss [quitter|spawn]
     permission: cliker.navigation.use
   progression:
     description: Afficher la progression des zones pendant dix secondes
@@ -286,6 +286,8 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.boss.admin:
+    default: op
   cliker.classement.use:
     default: true
   cliker.classement.admin:

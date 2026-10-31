@@ -34,7 +34,11 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
     private final Map<UUID, Long> inviteTimes = new HashMap<>();
     private final Map<Integer, Party> active = new HashMap<>();
     private final Set<UUID> scrollPending = new HashSet<>();
-    private RaidModule serverBoss;
+    private RaidSession serverBoss;
+    private final RaidFactory raidFactory;
+    private final java.util.function.Consumer<Player> savePlayer;
+    private final Map<UUID, Inventory> lobbies = new HashMap<>();
+    private boolean forcing;
     private BukkitTask task;
     private boolean poll, stopped, serverActive;
     private long totalKills, cycles;
@@ -43,7 +47,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
     private static class Party {
         final UUID leader;
         final LinkedHashSet<UUID> members = new LinkedHashSet<>();
-        RaidModule raid;
+        RaidSession raid;
         int slot;
         long emptySince;
 
@@ -55,12 +59,94 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
 
     private record Invite(UUID leader, long expires) {}
 
+    interface RaidSession {
+        World world();
+
+        void start();
+
+        void enter(Player p);
+
+        void exit(Player p);
+
+        void evacuate();
+
+        void shutdown();
+
+        void beginPublicBoss();
+    }
+
+    @FunctionalInterface
+    interface RaidFactory {
+        RaidSession create(String world, int difficulty, boolean publicBoss, Runnable finished);
+    }
+
+    private static RaidSession session(RaidModule raid) {
+        return new RaidSession() {
+            public World world() {
+                return raid.world();
+            }
+
+            public void start() {
+                raid.start();
+            }
+
+            public void enter(Player p) {
+                raid.enter(p);
+            }
+
+            public void exit(Player p) {
+                raid.exit(p);
+            }
+
+            public void evacuate() {
+                raid.evacuate();
+            }
+
+            public void shutdown() {
+                raid.shutdown();
+            }
+
+            public void beginPublicBoss() {
+                raid.beginPublicBoss();
+            }
+        };
+    }
+
     public PartyRaids(
             JavaPlugin p,
             DatabaseManager db,
             CustomMobManager mobs,
             BuyZoneModule zones,
             Menus menus) {
+        this(
+                p,
+                db,
+                mobs,
+                zones,
+                menus,
+                (world, difficulty, publicBoss, finished) ->
+                        session(
+                                RaidModule.managed(
+                                        p,
+                                        Bukkit.getServicesManager().load(RewardLedger.class),
+                                        mobs,
+                                        world,
+                                        difficulty,
+                                        publicBoss,
+                                        finished)),
+                Player::saveData);
+    }
+
+    PartyRaids(
+            JavaPlugin p,
+            DatabaseManager db,
+            CustomMobManager mobs,
+            BuyZoneModule zones,
+            Menus menus,
+            RaidFactory raidFactory,
+            java.util.function.Consumer<Player> savePlayer) {
+        this.savePlayer = savePlayer;
+        this.raidFactory = raidFactory;
         plugin = p;
         this.db = db;
         this.mobs = mobs;
@@ -77,10 +163,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
             fr.cliker.clikerv2.world.ActivityWorlds.create("clickhunter_raid_groupe_" + slot, true);
         scroll = new NamespacedKey(p, "raid_scroll");
         serverBoss =
-                RaidModule.managed(
-                        p,
-                        ledger,
-                        mobs,
+                raidFactory.create(
                         "clickhunter_boss_serveur",
                         Math.max(
                                 1,
@@ -89,8 +172,11 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                         this::serverVictory);
         serverBoss.start();
         for (String command : List.of("raid", "boss")) {
-            p.getCommand(command).setExecutor(this);
-            p.getCommand(command).setTabCompleter(this);
+            var registered = p.getCommand(command);
+            if (registered != null) {
+                registered.setExecutor(this);
+                registered.setTabCompleter(this);
+            }
         }
         Bukkit.getPluginManager().registerEvents(this, p);
         task = Bukkit.getScheduler().runTaskTimer(p, this::tick, 20, 100);
@@ -160,8 +246,10 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                         group.raid == null ? "Lancer le raid" : "Rejoindre le raid",
                         "Chef : tiens un parchemin de zone en main."),
                 (player, r) -> {
-                    if (group.raid == null) launch(player, group);
-                    else if (group.members.contains(player.getUniqueId())) group.raid.enter(player);
+                    var current = party(player);
+                    if (current.raid == null) launch(player, current);
+                    else if (current.members.contains(player.getUniqueId()))
+                        current.raid.enter(player);
                 });
         v.put(
                 26,
@@ -171,6 +259,32 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                     player.closeInventory();
                 });
         v.show(p);
+        lobbies.put(p.getUniqueId(), v.getInventory());
+    }
+
+    private void refreshLobby(Party group) {
+        for (UUID id : group.members) {
+            Player player = Bukkit.getPlayer(id);
+            Inventory inventory = lobbies.get(id);
+            if (player == null
+                    || inventory == null
+                    || player.getOpenInventory().getTopInventory() != inventory) continue;
+            for (int slot = 0; slot < 8; slot++)
+                inventory.setItem(slot, Menus.item(Material.BLACK_STAINED_GLASS_PANE, " "));
+            int slot = 0;
+            for (UUID member : group.members)
+                inventory.setItem(
+                        slot++,
+                        Menus.item(
+                                Material.PLAYER_HEAD,
+                                (member.equals(group.leader) ? "Chef : " : "Membre : ")
+                                        + Bukkit.getOfflinePlayer(member).getName()));
+        }
+    }
+
+    @EventHandler
+    public void closeLobby(org.bukkit.event.inventory.InventoryCloseEvent event) {
+        lobbies.remove(event.getPlayer().getUniqueId(), event.getInventory());
     }
 
     private void inviteMenu(Player p, int requested) {
@@ -231,6 +345,16 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
     private void accept(Player p, String name) {
         var inv = invites.get(p.getUniqueId());
         var leader = Bukkit.getPlayerExact(name);
+        var joined = memberships.get(p.getUniqueId());
+        if (leader != null
+                && joined != null
+                && joined.leader.equals(leader.getUniqueId())
+                && joined.members.contains(p.getUniqueId())) {
+            p.sendMessage("Tu es déjà dans ce groupe de raid.");
+            refreshLobby(joined);
+            if (p.getOpenInventory().getTopInventory() != lobbies.get(p.getUniqueId())) lobby(p);
+            return;
+        }
         if (inv == null
                 || leader == null
                 || !leader.getUniqueId().equals(inv.leader)
@@ -254,12 +378,22 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         memberships.put(p.getUniqueId(), group);
         group.members.add(p.getUniqueId());
         invites.remove(p.getUniqueId());
-        p.sendMessage("Invitation acceptée.");
-        lobby(p);
+        p.sendMessage("Invitation acceptée : tu as rejoint le groupe de " + leader.getName() + ".");
+        leader.sendMessage(
+                p.getName() + " a rejoint ton groupe de raid (" + group.members.size() + "/8).");
+        refreshLobby(group);
+        if (p.getOpenInventory().getTopInventory() != lobbies.get(p.getUniqueId())) lobby(p);
     }
 
     private void launch(Player p, Party group) {
-        if (!group.leader.equals(p.getUniqueId()) || group.raid != null) return;
+        if (!group.leader.equals(p.getUniqueId())) {
+            p.sendMessage("Seul le chef du groupe peut lancer le raid.");
+            return;
+        }
+        if (group.raid != null) {
+            p.sendMessage("Ce raid est déjà lancé. /raid rejoindre pour y aller.");
+            return;
+        }
         var item = p.getInventory().getItemInMainHand();
         String id =
                 item.hasItemMeta()
@@ -286,8 +420,10 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                     || !zones.canTravel(player, tier.id())
                     || !player.hasPermission("cliker.raid")) {
                 p.sendMessage(
-                        "Chaque membre doit être en ligne, hors avant-poste et avoir débloqué la"
-                                + " zone.");
+                        "Impossible de lancer : "
+                                + (player == null ? member : player.getName())
+                                + " doit être en ligne, hors avant-poste, autorisé au raid et avoir"
+                                + " débloqué la zone.");
                 return;
             }
         }
@@ -302,10 +438,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         int chosen = slot;
         try {
             var raid =
-                    RaidModule.managed(
-                            plugin,
-                            ledger,
-                            mobs,
+                    raidFactory.create(
                             "clickhunter_raid_groupe_" + slot,
                             tier.ordinal() + 1,
                             false,
@@ -316,15 +449,27 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
             raid.start();
             item.setAmount(item.getAmount() - 1);
             p.getInventory().setItemInMainHand(item.getAmount() == 0 ? null : item);
-            p.saveData();
+            savePlayer.accept(p);
             for (UUID member : group.members) {
                 var player = Bukkit.getPlayer(member);
-                if (player != null) raid.enter(player);
+                if (player != null) {
+                    player.closeInventory();
+                    raid.enter(player);
+                    if (player.getWorld() != raid.world()) {
+                        player.sendMessage(
+                                "Téléportation refusée. Tu restes dans le groupe ; /raid rejoindre"
+                                        + " pour réessayer.");
+                        p.sendMessage(
+                                "Téléportation refusée pour "
+                                        + player.getName()
+                                        + " ; il reste membre du raid.");
+                    }
+                }
             }
             if (raid.world().getPlayers().isEmpty()) {
                 finish(group);
                 p.getInventory().setItemInMainHand(copy);
-                p.saveData();
+                savePlayer.accept(p);
                 p.sendMessage("Téléportations refusées : parchemin conservé.");
             } else
                 p.sendMessage(
@@ -366,6 +511,8 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
             if (group.members.isEmpty()) finish(group);
         }
         p.sendMessage("Tu as quitté le groupe.");
+        lobbies.remove(p.getUniqueId());
+        if (!group.leader.equals(p.getUniqueId())) refreshLobby(group);
     }
 
     private void tick() {
@@ -426,22 +573,98 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                             }
                                             totalKills = state[0];
                                             cycles = state[1];
-                                            if (state[2] == 1 && !serverActive) {
-                                                serverActive = true;
-                                                serverBoss.beginPublicBoss();
-                                                Bukkit.broadcast(
-                                                        net.kyori.adventure.text.Component.text(
-                                                                        "⚔ Le boss du serveur est"
-                                                                            + " apparu ! Tout le"
-                                                                            + " monde peut"
-                                                                            + " rejoindre avec"
-                                                                            + " /boss.")
-                                                                .clickEvent(
-                                                                        net.kyori.adventure.text
-                                                                                .event.ClickEvent
-                                                                                .runCommand(
-                                                                                        "/boss")));
+                                            if (state[2] == 1) activateServerBoss();
+                                        }));
+    }
+
+    private boolean activateServerBoss() {
+        if (serverActive) return true;
+        try {
+            serverBoss.beginPublicBoss();
+            serverActive = true;
+            Bukkit.broadcast(
+                    net.kyori.adventure.text.Component.text(
+                                    "⚔ Le boss du serveur est apparu ! Tout le monde peut rejoindre"
+                                            + " avec /boss.")
+                            .clickEvent(
+                                    net.kyori.adventure.text.event.ClickEvent.runCommand("/boss")));
+            return true;
+        } catch (RuntimeException error) {
+            plugin.getLogger()
+                    .log(
+                            java.util.logging.Level.SEVERE,
+                            "Apparition du boss serveur à réessayer",
+                            error);
+            return false;
+        }
+    }
+
+    private void forceServerBoss(CommandSender sender) {
+        if (!sender.hasPermission("cliker.boss.admin")) {
+            sender.sendMessage("Permission administrateur requise.");
+            return;
+        }
+        if (forcing) {
+            sender.sendMessage("Une apparition forcée est déjà en cours.");
+            return;
+        }
+        forcing = true;
+        db.submit(
+                        c -> {
+                            try {
+                                c.setAutoCommit(false);
+                                try (var s = c.createStatement()) {
+                                    s.executeUpdate(
+                                            "INSERT OR IGNORE INTO server_counters(id,value)"
+                                                    + " VALUES('boss_active',0)");
+                                }
+                                boolean created = value(c, "boss_active") == 0;
+                                try (var s = c.createStatement()) {
+                                    s.executeUpdate(
+                                            "UPDATE server_counters SET value=1 WHERE"
+                                                    + " id='boss_active'");
+                                }
+                                c.commit();
+                                return created;
+                            } catch (SQLException error) {
+                                try {
+                                    c.rollback();
+                                } catch (SQLException ignored) {
+                                }
+                                throw new DatabaseManager.DatabaseException(error);
+                            }
+                        })
+                .whenComplete(
+                        (created, error) ->
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            forcing = false;
+                                            if (stopped) return;
+                                            if (error != null) {
+                                                plugin.getLogger()
+                                                        .log(
+                                                                java.util.logging.Level.SEVERE,
+                                                                "Commande boss serveur impossible",
+                                                                error);
+                                                sender.sendMessage(
+                                                        "Apparition non confirmée. Consulte les"
+                                                                + " journaux.");
+                                                return;
                                             }
+                                            if (!activateServerBoss()) {
+                                                sender.sendMessage(
+                                                        "Apparition en attente : vérifie les"
+                                                                + " journaux puis réessaie.");
+                                                return;
+                                            }
+                                            sender.sendMessage(
+                                                    Boolean.TRUE.equals(created)
+                                                            ? "Boss serveur apparu. Le compteur du"
+                                                                    + " prochain boss naturel est"
+                                                                    + " conservé."
+                                                            : "Le boss serveur est déjà actif :"
+                                                                    + " aucun doublon créé.");
                                         }));
     }
 
@@ -523,6 +746,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
 
     @EventHandler
     public void quit(PlayerQuitEvent e) {
+        lobbies.remove(e.getPlayer().getUniqueId());
         invites.remove(e.getPlayer().getUniqueId());
         inviteTimes.remove(e.getPlayer().getUniqueId());
         var group = memberships.get(e.getPlayer().getUniqueId());
@@ -531,8 +755,21 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
 
     @Override
     public boolean onCommand(CommandSender s, Command command, String label, String[] a) {
-        if (!(s instanceof Player p)) return true;
+        if (command.getName().equals("boss") && a.length == 1 && a[0].equalsIgnoreCase("spawn")) {
+            forceServerBoss(s);
+            return true;
+        }
+        if (!(s instanceof Player p)) {
+            s.sendMessage("Commande réservée aux joueurs, sauf /boss spawn pour la console.");
+            return true;
+        }
         if (command.getName().equals("boss")) {
+            if (a.length > 1 || a.length == 1 && !a[0].equalsIgnoreCase("quitter")) {
+                p.sendMessage(
+                        "/boss ou /boss quitter"
+                                + (p.hasPermission("cliker.boss.admin") ? " · /boss spawn" : ""));
+                return true;
+            }
             if (a.length == 1 && a[0].equalsIgnoreCase("quitter")) {
                 serverBoss.exit(p);
                 return true;
@@ -590,7 +827,9 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         List<String> choices =
                 a.length == 1
                         ? (c.getName().equals("boss")
-                                ? List.of("quitter")
+                                ? (s.hasPermission("cliker.boss.admin")
+                                        ? List.of("quitter", "spawn")
+                                        : List.of("quitter"))
                                 : s.hasPermission("cliker.services.admin")
                                         ? List.of(
                                                 "inviter",
@@ -614,16 +853,13 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                                 .map(Player::getName)
                                                 .toList()
                                         : List.of();
-        return choices.stream()
-                .filter(
-                        v ->
-                                v.toLowerCase(Locale.ROOT)
-                                        .startsWith(a[a.length - 1].toLowerCase(Locale.ROOT)))
-                .toList();
+        String prefix = a.length == 0 ? "" : a[a.length - 1].toLowerCase(Locale.ROOT);
+        return choices.stream().filter(v -> v.toLowerCase(Locale.ROOT).startsWith(prefix)).toList();
     }
 
     public void shutdown() {
         stopped = true;
+        lobbies.clear();
         if (task != null) task.cancel();
         for (var g : new ArrayList<>(active.values())) finish(g);
         if (serverBoss != null) {

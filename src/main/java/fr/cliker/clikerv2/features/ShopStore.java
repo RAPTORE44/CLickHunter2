@@ -56,13 +56,25 @@ public final class ShopStore {
 
     public CompletableFuture<Boolean> buy(
             UUID owner, String name, String offer, int cap, long price, String payload) {
+        return buy(owner, name, offer, cap, price, payload, "shop:" + UUID.randomUUID());
+    }
+
+    public CompletableFuture<Boolean> buy(
+            UUID owner,
+            String name,
+            String offer,
+            int cap,
+            long price,
+            String payload,
+            String source) {
         if (owner == null
                 || cap < 0
                 || cap > 5
                 || price < 1
                 || price > 1_000_000_000_000_000L
                 || payload == null
-                || offer == null)
+                || offer == null
+                || source == null)
             return CompletableFuture.failedFuture(new IllegalArgumentException("Achat invalide"));
         return ready.thenCompose(
                 v ->
@@ -70,6 +82,20 @@ public final class ShopStore {
                                 c -> {
                                     try {
                                         c.setAutoCommit(false);
+                                        try (var prior =
+                                                c.prepareStatement(
+                                                        "SELECT payload FROM claim_items WHERE"
+                                                            + " owner=? AND source=?")) {
+                                            prior.setString(1, owner.toString());
+                                            prior.setString(2, source);
+                                            try (var row = prior.executeQuery()) {
+                                                if (row.next()) {
+                                                    boolean same = payload.equals(row.getString(1));
+                                                    c.rollback();
+                                                    return same;
+                                                }
+                                            }
+                                        }
                                         if (cap > 0) {
                                             try (var s =
                                                     c.prepareStatement(
@@ -103,11 +129,7 @@ public final class ShopStore {
                                                 return false;
                                             }
                                         }
-                                        MailStore.insert(
-                                                c,
-                                                owner,
-                                                "service-shop:" + UUID.randomUUID(),
-                                                payload);
+                                        MailStore.insert(c, owner, source, payload);
                                         c.commit();
                                         return true;
                                     } catch (SQLException e) {

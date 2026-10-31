@@ -433,7 +433,9 @@ public final class MerchantMenu implements Listener {
                                 plugin,
                                 () -> {
                                     pending.remove(owner);
-                                    if (error == null) delivery.notifyAndDeliver(owner);
+                                    if (error == null && Boolean.TRUE.equals(paid))
+                                        delivery.deliverPurchase(owner, source);
+                                    else if (error == null) delivery.notifyAndDeliver(owner);
                                     if (error != null || !Boolean.TRUE.equals(paid)) {
                                         if (essenceCost > 0 && error != null)
                                             delivery.give(
@@ -464,11 +466,7 @@ public final class MerchantMenu implements Listener {
                                         if (player.isOnline())
                                             player.sendMessage(
                                                     Component.text(
-                                                            "✦ Achat effectué !"
-                                                                    + " L’objet est"
-                                                                    + " livré ou"
-                                                                    + " disponible dans"
-                                                                    + " /claim.",
+                                                            "✦ Achat confirmé !",
                                                             NamedTextColor.GREEN));
                                     }
                                 }));

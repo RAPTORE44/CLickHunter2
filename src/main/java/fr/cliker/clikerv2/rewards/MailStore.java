@@ -87,6 +87,24 @@ public final class MailStore {
                 });
     }
 
+    public CompletableFuture<Entry> pendingSource(UUID owner, String source) {
+        return database.submit(
+                c -> {
+                    try (var s =
+                            c.prepareStatement(
+                                    "SELECT id,payload FROM claim_items WHERE owner=? AND source=?"
+                                        + " AND state<>2")) {
+                        s.setString(1, owner.toString());
+                        s.setString(2, source);
+                        try (var r = s.executeQuery()) {
+                            return r.next() ? new Entry(r.getString(1), r.getString(2)) : null;
+                        }
+                    } catch (SQLException e) {
+                        throw new DatabaseManager.DatabaseException(e);
+                    }
+                });
+    }
+
     public CompletableFuture<Entry> reserve(UUID owner, String id, String lease, long now) {
         return database.submit(
                 c -> {
