@@ -173,6 +173,11 @@ public final class StationManager implements Listener {
         event.setCancelled(true);
 
         Player player = event.getPlayer();
+        fr.cliker.clikerv2.ui.MenuOpenGuard.request(
+                plugin, player, () -> openStation(player, type));
+    }
+
+    private void openStation(Player player, StationType type) {
         if (!player.hasPermission("cliker.gear.use")) {
             player.sendMessage(
                     Component.text("Tu ne peux pas utiliser cette station.", NamedTextColor.RED));

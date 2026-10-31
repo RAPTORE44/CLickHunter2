@@ -83,14 +83,17 @@ public final class Menus implements Listener {
                 || e.getClickedInventory() != v.inventory
                 || (e.getClick() != ClickType.LEFT && e.getClick() != ClickType.RIGHT)) return;
         var action = v.actions.get(e.getRawSlot());
-        if (action != null)
+        if (action != null) {
+            v.pending = true;
             fr.cliker.clikerv2.runtime.ServerTasks.run(
                     plugin,
                     () -> {
-                        if (p.isOnline()
-                                && p.getOpenInventory().getTopInventory() == v.inventory
-                                && !v.pending) action.accept(p, e.getClick() == ClickType.RIGHT);
+                        v.pending = false;
+                        if (fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(p)
+                                && p.getOpenInventory().getTopInventory() == v.inventory)
+                            action.accept(p, e.getClick() == ClickType.RIGHT);
                     });
+        }
     }
 
     @EventHandler

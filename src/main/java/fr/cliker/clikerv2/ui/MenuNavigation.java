@@ -60,7 +60,6 @@ public final class MenuNavigation implements Listener {
                     pending.remove(player.getUniqueId());
                     if (!player.isOnline()
                             || player.getOpenInventory().getTopInventory() != inventory) return;
-                    player.closeInventory();
                     player.performCommand("menu");
                 });
     }

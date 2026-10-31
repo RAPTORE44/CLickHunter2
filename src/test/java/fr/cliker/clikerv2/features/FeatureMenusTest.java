@@ -226,4 +226,52 @@ class FeatureMenusTest {
             assertEquals(1, files.count());
         }
     }
+
+    @Test
+    void repeatedClicksExecuteOnlyOnceAndKeepAnAsynchronousActionLocked() {
+        var menus = new Menus(plugin);
+        var view = menus.create(player, 27, "Test");
+        var count = new AtomicInteger();
+        view.put(
+                0,
+                Menus.item(Material.PAPER, "Action"),
+                (p, r) -> {
+                    count.incrementAndGet();
+                    view.pending = true;
+                });
+        view.show(player);
+        for (int i = 0; i < 4; i++)
+            server.getPluginManager()
+                    .callEvent(
+                            new InventoryClickEvent(
+                                    player.getOpenInventory(),
+                                    InventoryType.SlotType.CONTAINER,
+                                    0,
+                                    ClickType.LEFT,
+                                    InventoryAction.PICKUP_ALL));
+        server.getScheduler().performOneTick();
+        assertEquals(1, count.get());
+        assertTrue(view.pending);
+        server.getPluginManager()
+                .callEvent(
+                        new InventoryClickEvent(
+                                player.getOpenInventory(),
+                                InventoryType.SlotType.CONTAINER,
+                                0,
+                                ClickType.LEFT,
+                                InventoryAction.PICKUP_ALL));
+        server.getScheduler().performOneTick();
+        assertEquals(1, count.get());
+        view.pending = false;
+        server.getPluginManager()
+                .callEvent(
+                        new InventoryClickEvent(
+                                player.getOpenInventory(),
+                                InventoryType.SlotType.CONTAINER,
+                                0,
+                                ClickType.LEFT,
+                                InventoryAction.PICKUP_ALL));
+        server.getScheduler().performOneTick();
+        assertEquals(2, count.get());
+    }
 }

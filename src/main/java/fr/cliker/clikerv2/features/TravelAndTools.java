@@ -426,25 +426,27 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
         if (bestiaryBlocks.containsKey(
                 fr.cliker.clikerv2.station.StationStore.idFor(e.getClickedBlock()))) {
             e.setCancelled(true);
-            p.performCommand("bestiaire");
+            fr.cliker.clikerv2.ui.MenuOpenGuard.request(
+                    plugin, p, () -> p.performCommand("bestiaire"));
             return;
         }
         if (warpBlocks.containsKey(
                 fr.cliker.clikerv2.station.StationStore.idFor(e.getClickedBlock()))) {
             e.setCancelled(true);
-            open(p);
+            fr.cliker.clikerv2.ui.MenuOpenGuard.request(plugin, p, () -> open(p));
             return;
         }
         if (upgradeBlocks.containsKey(
                 fr.cliker.clikerv2.station.StationStore.idFor(e.getClickedBlock()))) {
             e.setCancelled(true);
-            p.performCommand("upgrade");
+            fr.cliker.clikerv2.ui.MenuOpenGuard.request(
+                    plugin, p, () -> p.performCommand("upgrade"));
             return;
         }
         if (bagBlocks.containsKey(
                 fr.cliker.clikerv2.station.StationStore.idFor(e.getClickedBlock()))) {
             e.setCancelled(true);
-            p.performCommand("sac");
+            fr.cliker.clikerv2.ui.MenuOpenGuard.request(plugin, p, () -> p.performCommand("sac"));
         }
     }
 

@@ -2,6 +2,9 @@
 
 ## Dernière mise à jour — 31 octobre 2026
 
+- Correction des ouvertures multiples depuis les PNJ, blocs de raccourci et étoile de menu : les événements d’un même clic sont regroupés et les interactions monde tardives ne rouvrent pas un inventaire déjà affiché.
+- Les boutons des menus partagés ne programment plus plusieurs actions avant le traitement du premier clic. Le bouton Retour au menu passe directement au menu principal, sans fermeture explicite intermédiaire.
+
 - Administration BuyZone : consulter les zones d’un joueur, débloquer ou retirer un accès, et afficher les coordonnées des portails placés. Fonctionne aussi pour les joueurs hors ligne déjà connus, avec droits sauvegardés par UUID.
 
 - `/top` et `/classement` : menu des classements Écus, Gemmes, Cendres, éliminations, niveaux et donateurs. Sélection Jour, Semaine, Mois, Année ou Depuis toujours, avec navigation vers les périodes précédentes/suivantes et retour à la période actuelle.
@@ -492,3 +495,5 @@ Le PNJ utilise ZNPCsPlus 2.0.0 et `pnj/classements.yml` pour sa position, son ty
 Les accords et retraits sont sauvegardés dans `buyzone_overrides`, avec les accès dans `buyzone_unlocks`, et rechargés sur le joueur connecté. Un retrait explicite prime sur une permission LuckPerms pour les portails et déplacements gérés par ClickHunter ; il ne modifie ni les groupes ni les nœuds LuckPerms. Un nouvel achat normal ou un nouveau déblocage administrateur rétablit l’accès. Le créatif et `cliker.buyzone.bypass` gardent leur contournement, signalé lors de la consultation. La zone Vache reste accessible gratuitement comme zone de départ.
 
 Hors ligne, les permissions LuckPerms sont consultées sans contexte de monde actif ; le résultat avertit que les permissions contextuelles doivent être confirmées après connexion. `/buyzone portails` liste les positions sauvegardées, y compris les mondes non chargés ou les positions invalides ; cela ne les supprime pas. `/buyzone info <zone>` donne le détail et `/buyzone liste` rappelle les identifiants configurés.
+
+Les ouvertures depuis le monde (PNJ, raccourcis sur bloc, stations et étoile de menu) sont regroupées sur le tick suivant, avec une protection de 250 ms contre les répétitions de paquets. Une autre interface ouverte entre-temps, un changement de monde ou une déconnexion annule la demande en attente. Cette protection ne limite pas la navigation normale entre les pages et boutons des menus. Les événements de main secondaire sont ignorés pour les interactions de menu ; le transfert d’équipement vers une station est effectué une seule fois après validation du clic.

@@ -68,6 +68,7 @@ class StationPermissionTest {
     void physicalStationCannotBypassCommandPermission() {
         player.addAttachment(plugin, "cliker.gear.use", false);
         station.onInteract(click(EquipmentSlot.HAND));
+        server.getScheduler().performOneTick();
         assertNotNull(player.getInventory().getItemInMainHand());
         assertTrue(player.nextMessage().contains("station"));
     }
@@ -85,5 +86,21 @@ class StationPermissionTest {
         event.setCancelled(true);
         server.getPluginManager().callEvent(event);
         assertFalse(player.getInventory().getItemInMainHand().getType().isAir());
+    }
+
+    @Test
+    void repeatedStationClicksOpenOnceAndOnlyTransferOneEquipmentItem() {
+        player.addAttachment(plugin, "cliker.gear.use", true);
+        var equipment = player.getInventory().getItemInMainHand().clone();
+        for (int i = 0; i < 4; i++) station.onInteract(click(EquipmentSlot.HAND));
+        assertTrue(player.getInventory().getItemInMainHand().isSimilar(equipment));
+        server.getScheduler().performOneTick();
+        var inventory = player.getOpenInventory().getTopInventory();
+        assertTrue(player.getInventory().getItemInMainHand().getType().isAir());
+        assertTrue(inventory.getItem(4).isSimilar(equipment));
+        for (int i = 0; i < 4; i++) station.onInteract(click(EquipmentSlot.HAND));
+        server.getScheduler().performOneTick();
+        assertSame(inventory, player.getOpenInventory().getTopInventory());
+        assertEquals(1, inventory.getItem(4).getAmount());
     }
 }

@@ -102,8 +102,9 @@ public class ZnpcsNpc implements Listener {
                                             .equals(call(event, "getClickType").toString())) return;
                                     if (event instanceof Cancellable c) c.setCancelled(true);
                                     Player player = (Player) call(event, "getPlayer");
-                                    fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                    fr.cliker.clikerv2.ui.MenuOpenGuard.request(
                                             plugin,
+                                            player,
                                             () -> {
                                                 if (available()
                                                         && config.getBoolean("pnj.actif", false)
@@ -134,7 +135,7 @@ public class ZnpcsNpc implements Listener {
                                                         .log(
                                                                 Level.SEVERE,
                                                                 "Échelle ZNPCsPlus indisponible"
-                                                                    + " pour "
+                                                                        + " pour "
                                                                         + id,
                                                                 error);
                                                 if (scaleTask != null) scaleTask.cancel();

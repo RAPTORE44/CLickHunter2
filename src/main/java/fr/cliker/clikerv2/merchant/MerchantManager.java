@@ -206,13 +206,15 @@ public final class MerchantManager implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEntityEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         if (!(event.getRightClicked() instanceof LivingEntity entity)) return;
         String mobId = entity.getPersistentDataContainer().get(mobIdKey, PersistentDataType.STRING);
         if (mobId == null) return;
         MobTier tier = MobTier.parse(mobId);
         if (tier == null) return;
         event.setCancelled(true);
-        menu.open(event.getPlayer(), tier);
+        fr.cliker.clikerv2.ui.MenuOpenGuard.request(
+                plugin, event.getPlayer(), () -> menu.open(event.getPlayer(), tier));
     }
 
     @EventHandler

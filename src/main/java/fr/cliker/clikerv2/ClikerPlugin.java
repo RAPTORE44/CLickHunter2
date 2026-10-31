@@ -740,6 +740,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
 
     @Override
     public void onDisable() {
+        fr.cliker.clikerv2.ui.MenuOpenGuard.shutdown(this);
         if (tabListManager != null && getConfig().getBoolean("displays.tab.enabled", false))
             tabListManager.shutdown();
         if (expansion != null) expansion.shutdown();

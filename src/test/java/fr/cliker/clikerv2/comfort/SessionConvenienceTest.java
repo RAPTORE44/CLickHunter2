@@ -14,11 +14,12 @@ class SessionConvenienceTest {
     private ServerMock server;
     private PlayerMock player;
     private SessionConvenience service;
+    private org.bukkit.plugin.java.JavaPlugin plugin;
 
     @BeforeEach
     void setup() {
         server = MockBukkit.mock();
-        var plugin = MockBukkit.createMockPlugin();
+        plugin = MockBukkit.createMockPlugin();
         player = server.addPlayer();
         service = new SessionConvenience(plugin);
         service.start();
@@ -95,5 +96,45 @@ class SessionConvenienceTest {
         assertEquals(GameMode.SURVIVAL, player.getGameMode());
         service.onCommand(player, cmd, "gm", new String[] {"invalide"});
         assertEquals(GameMode.SURVIVAL, player.getGameMode());
+    }
+
+    @Test
+    void hotbarMainHandRepeatsOpenOnceAndOffhandIsIgnored() {
+        var opens = new java.util.concurrent.atomic.AtomicInteger();
+        server.getCommandMap()
+                .register(
+                        "test",
+                        new Command("menu") {
+                            @Override
+                            public boolean execute(
+                                    CommandSender sender, String label, String[] args) {
+                                opens.incrementAndGet();
+                                player.openInventory(Bukkit.createInventory(null, 54));
+                                return true;
+                            }
+                        });
+        service.ensureMenu(player);
+        var star = player.getInventory().getItem(8);
+        service.use(
+                new PlayerInteractEvent(
+                        player,
+                        org.bukkit.event.block.Action.RIGHT_CLICK_AIR,
+                        star,
+                        null,
+                        null,
+                        org.bukkit.inventory.EquipmentSlot.OFF_HAND));
+        server.getScheduler().performOneTick();
+        assertEquals(0, opens.get());
+        for (int i = 0; i < 4; i++)
+            service.use(
+                    new PlayerInteractEvent(
+                            player,
+                            org.bukkit.event.block.Action.RIGHT_CLICK_AIR,
+                            star,
+                            null,
+                            null,
+                            org.bukkit.inventory.EquipmentSlot.HAND));
+        server.getScheduler().performOneTick();
+        assertEquals(1, opens.get());
     }
 }

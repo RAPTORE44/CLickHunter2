@@ -165,12 +165,14 @@ public final class SessionConvenience implements Listener, CommandExecutor, TabC
 
     @EventHandler(priority = EventPriority.HIGH)
     public void use(PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND) return;
         if (!event.getAction().isRightClick() || !isMenu(event.getItem())) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
         event.setCancelled(true);
         var player = event.getPlayer();
-        fr.cliker.clikerv2.runtime.ServerTasks.run(
+        fr.cliker.clikerv2.ui.MenuOpenGuard.request(
                 plugin,
+                player,
                 () -> {
                     if (fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player))
                         player.performCommand("menu");
