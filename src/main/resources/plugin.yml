@@ -116,7 +116,7 @@ commands:
     permission: cliker.navigation.use
   boss:
     description: Arène publique du boss serveur après un milliard de kills
-    usage: /boss [quitter|spawn]
+    usage: /boss [quitter|spawn|observer|admin]
     permission: cliker.navigation.use
   progression:
     description: Afficher la progression des zones pendant dix secondes
@@ -143,7 +143,7 @@ commands:
     usage: /contrats [pnj spawn|remove]
   raid:
     description: Groupes de raids privés avec invitations et parchemin
-    usage: /raid [inviter <joueur>|accepter <chef>|lancer|rejoindre|quitter]
+    usage: /raid [inviter <joueur>|accepter <chef>|lancer|rejoindre|quitter|observer [joueur]|admin]
     permission: cliker.raid
   avantposte:
     description: Terrain personnel, inventaire séparé, boutique de blocs, extensions et visites
@@ -286,6 +286,9 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.raid.admin:
+    description: Configuration des raids, observation et accès staff aux instances privées
+    default: op
   cliker.boss.admin:
     default: op
   cliker.classement.use:

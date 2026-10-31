@@ -14,6 +14,8 @@ boss:
   tous-les-mobs: 100
   pv: 10000000000 # boss de fin de progression, PV virtuels non limités par Minecraft
   degats: 12 # dégâts infligés toutes les 2 secondes aux joueurs à portée
+  echelle: 4 # boss géant du même type que la zone
+  vitesse: 1 # multiplicateur de déplacement
   portee: 6
   recompenses: # cagnotte globale partagée selon les dégâts, même après déconnexion
     ecus: 100000
@@ -25,6 +27,6 @@ messages:
   absent: '&7Tu n’es pas dans l’arène de raid.'
   interdit: '&cTu ne peux pas rejoindre le raid.'
   entree: '&aBienvenue dans le raid ! &7/raid quitter pour repartir. Inventaire conservé à la mort.'
-  boss: '&4⚔ Le Gardien colossal arrive ! &cFrappez-le ensemble et évitez ses attaques.'
+  boss: '&4⚔ Le boss de la zone arrive ! &cFrappez-le ensemble et évitez ses attaques.'
   arme: '&eUtilise ton épée de clicker pour infliger des dégâts.'
   victoire: '&aGardien vaincu ! Voici ta part selon tes dégâts :'

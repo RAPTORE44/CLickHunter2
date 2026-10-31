@@ -71,7 +71,7 @@ class MasterRulesTest {
             assertEquals("Récompense test — Jour 31", settings.reward(31));
             assertTrue(settings.config().contains("recompenses.29"));
             try (var backups = java.nio.file.Files.list(file.getParent().resolve("backups"))) {
-                assertEquals(1, backups.count());
+                assertEquals(2, backups.count());
             }
         } finally {
             MockBukkit.unmock();

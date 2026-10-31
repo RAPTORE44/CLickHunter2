@@ -98,6 +98,8 @@ public final class CustomMobManager implements Listener {
     private final Set<String> oneShotSpawns = new HashSet<>();
 
     private final Set<String> bossSpawnIds = new HashSet<>();
+    private final Map<String, UUID> bossTargets = new HashMap<>();
+    private long bossTick;
 
     public CustomMobManager(
             JavaPlugin plugin,
@@ -114,7 +116,16 @@ public final class CustomMobManager implements Listener {
         if (!bossFile.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "boss.yml");
         var bossConfig =
                 org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(bossFile);
-        bossHpMultiplier = bossConfig.getDouble("multiplicateur-pv", 100);
+        if (bossConfig.getInt("equilibrage-version", 0) < 1) {
+            bossConfig.set("multiplicateur-pv", 1000);
+            bossConfig.set("equilibrage-version", 1);
+            try {
+                bossConfig.save(bossFile);
+            } catch (java.io.IOException error) {
+                throw new IllegalStateException("Sauvegarde boss impossible", error);
+            }
+        }
+        bossHpMultiplier = bossConfig.getDouble("multiplicateur-pv", 1000);
         bossAnnouncements = bossConfig.getBoolean("annonces.actives", true);
         bossDeathMessage =
                 bossConfig.getString(
@@ -186,11 +197,17 @@ public final class CustomMobManager implements Listener {
     }
 
     private void anchorAll() {
+        bossTick++;
+        if (bossTick % 40 == 0) fr.cliker.clikerv2.combat.BossMusic.sweep();
         for (Map.Entry<String, UUID> entry : aliveBySpawnId.entrySet()) {
             Location spawn = spawnLocation.get(entry.getKey());
             Entity entity = plugin.getServer().getEntity(entry.getValue());
             if (spawn == null || !(entity instanceof LivingEntity living) || !living.isValid())
                 continue;
+            if (bossSpawnIds.contains(entry.getKey())) {
+                if (bossTick % 2 == 0) moveBoss(entry.getKey(), living, spawn);
+                continue;
+            }
             if (living.getVelocity().lengthSquared() != 0) living.setVelocity(new Vector(0, 0, 0));
             float orientation = bossSpawnIds.contains(entry.getKey()) ? 270 : 0;
             if (living.getYaw() != orientation || living.getPitch() != 0)
@@ -204,6 +221,82 @@ public final class CustomMobManager implements Listener {
                 living.teleport(target);
             }
         }
+    }
+
+    private void moveBoss(String id, LivingEntity boss, Location origin) {
+        Player target =
+                bossTargets.containsKey(id)
+                        ? plugin.getServer().getPlayer(bossTargets.get(id))
+                        : null;
+        if (!boss.getWorld().equals(origin.getWorld())
+                || boss.getLocation().distanceSquared(origin) > 20 * 20) {
+            boss.teleport(origin);
+            bossTargets.remove(id);
+            return;
+        }
+        if (target == null
+                || !target.isOnline()
+                || target.isDead()
+                || target.getWorld() != origin.getWorld()
+                || target.getGameMode() == org.bukkit.GameMode.CREATIVE
+                || target.getGameMode() == org.bukkit.GameMode.SPECTATOR
+                || target.getLocation().distanceSquared(origin) > 20 * 20) {
+            bossTargets.remove(id);
+            var back = origin.toVector().subtract(boss.getLocation().toVector()).setY(0);
+            if (back.lengthSquared() > .25)
+                boss.setVelocity(back.normalize().multiply(.12).setY(boss.getVelocity().getY()));
+            else {
+                boss.setVelocity(new Vector(0, boss.getVelocity().getY(), 0));
+                boss.setRotation(270, 0);
+            }
+        } else {
+            var vector =
+                    target.getLocation().toVector().subtract(boss.getLocation().toVector()).setY(0);
+            if (vector.lengthSquared() > 2.25)
+                boss.setVelocity(vector.normalize().multiply(.14).setY(boss.getVelocity().getY()));
+            else boss.setVelocity(new Vector(0, boss.getVelocity().getY(), 0));
+            var facing =
+                    boss.getLocation()
+                            .setDirection(
+                                    target.getLocation()
+                                            .toVector()
+                                            .subtract(boss.getLocation().toVector()));
+            boss.setRotation(facing.getYaw(), 0);
+            fr.cliker.clikerv2.combat.BossMusic.play(target);
+            if (bossTick % 40 == 0
+                    && target.getLocation().distanceSquared(boss.getLocation()) <= 16)
+                target.damage(6, boss);
+        }
+        if (bossTick % 10 == 0) {
+            var tier = MobTier.parse(spawnMobId.get(id));
+            if (tier != null)
+                updateNameplate(
+                        boss,
+                        tier,
+                        currentHealth.getOrDefault(id, bossHealth(tier)),
+                        bossHealth(tier),
+                        true);
+        }
+    }
+
+    public Map<String, Location> bossPoints() {
+        var points = new java.util.LinkedHashMap<String, Location>();
+        for (String id : new java.util.TreeSet<>(bossSpawnIds)) {
+            var at = spawnLocation.get(id);
+            if (at != null && !oneShotSpawns.contains(id)) points.put(id, at.clone());
+        }
+        return points;
+    }
+
+    public String bossLabel(String id) {
+        var tier = MobTier.parse(spawnMobId.get(id));
+        return tier == null ? "Boss" : "Boss " + tier.label();
+    }
+
+    public boolean bossAlive(String id) {
+        var uuid = aliveBySpawnId.get(id);
+        var entity = uuid == null ? null : plugin.getServer().getEntity(uuid);
+        return entity != null && entity.isValid() && !entity.isDead();
     }
 
     /**
@@ -343,6 +436,9 @@ public final class CustomMobManager implements Listener {
     public void shutdown() {
         if (recoveryTask != null) recoveryTask.cancel();
         damagePopups.shutdown();
+        bossTargets.clear();
+        for (var player : plugin.getServer().getOnlinePlayers())
+            fr.cliker.clikerv2.combat.BossMusic.stop(player);
         for (String spawnId : new ArrayList<>(aliveBySpawnId.keySet())) despawn(spawnId);
         for (BukkitTask task : pendingRespawns.values()) task.cancel();
         pendingRespawns.clear();
@@ -493,6 +589,7 @@ public final class CustomMobManager implements Listener {
     private void despawn(String spawnId) {
         var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
         if (provider != null) provider.remove("mob:" + spawnId);
+        bossTargets.remove(spawnId);
         UUID uuid = aliveBySpawnId.remove(spawnId);
         currentHealth.remove(spawnId);
         if (uuid == null) return;
@@ -534,7 +631,7 @@ public final class CustomMobManager implements Listener {
         }
         entity.setPersistent(!oneShotSpawns.contains(spawnId));
         entity.setRemoveWhenFarAway(false);
-        entity.setGravity(false);
+        entity.setGravity(boss);
         entity.setCollidable(false);
         entity.setAI(false);
         entity.setSilent(true);
@@ -619,6 +716,20 @@ public final class CustomMobManager implements Listener {
                         .load(fr.cliker.clikerv2.comfort.FarmTelemetry.class);
         if (telemetry != null) telemetry.hit(player, victim.getUniqueId());
         boolean boss = bossSpawnIds.contains(spawnId);
+        if (boss && applied > 0) {
+            bossTargets.put(spawnId, player.getUniqueId());
+            victim.playHurtAnimation(player.getYaw());
+            victim.getWorld()
+                    .spawnParticle(
+                            org.bukkit.Particle.DAMAGE_INDICATOR,
+                            victim.getLocation().add(0, victim.getHeight() * .6, 0),
+                            6,
+                            .4,
+                            .4,
+                            .4,
+                            .05);
+            fr.cliker.clikerv2.combat.BossMusic.play(player);
+        }
         long maxHp = boss ? bossHealth(tier) : Math.round(tier.maxHealth());
         long hpBefore = currentHealth.getOrDefault(spawnId, maxHp);
         long hpAfter = Math.max(0, hpBefore - applied);

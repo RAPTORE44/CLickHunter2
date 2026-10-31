@@ -43,7 +43,17 @@ public final class ChatActivities implements Listener {
             settings.save();
         }
         nextGame = System.nanoTime() + interval() * 1_000_000_000L;
-        nextHelp = System.nanoTime() + 30_000_000_000L;
+        if (settings.yaml.getInt("aides.frequence-version", 0) < 1) {
+            settings.yaml.set(
+                    "aides.intervalle-secondes",
+                    Math.max(1200, settings.yaml.getInt("aides.intervalle-secondes", 1200)));
+            settings.yaml.set("aides.frequence-version", 1);
+            settings.save();
+        }
+        nextHelp =
+                System.nanoTime()
+                        + Math.max(60, settings.yaml.getInt("aides.intervalle-secondes", 1200))
+                                * 1_000_000_000L;
         Bukkit.getPluginManager().registerEvents(this, plugin);
         bindCommands();
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20, 20);
@@ -229,7 +239,7 @@ public final class ChatActivities implements Listener {
             }
             nextHelp =
                     now
-                            + Math.max(60, settings.yaml.getInt("aides.intervalle-secondes", 180))
+                            + Math.max(60, settings.yaml.getInt("aides.intervalle-secondes", 1200))
                                     * 1_000_000_000L;
         }
         if (round == null && settings.yaml.getBoolean("jeux.actifs", true) && now >= nextGame) {

@@ -22,6 +22,36 @@ class DailySettingsTest {
     }
 
     @Test
+    void earlyDefaultChestsAreReducedOnceWithoutResettingCustomRewards() throws Exception {
+        var plugin = MockBukkit.createMockPlugin();
+        var file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "daily.yml");
+        try (var in = getClass().getResourceAsStream("/daily.yml")) {
+            Files.copy(in, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+        var old = YamlConfiguration.loadConfiguration(file);
+        old.set("equilibrage-debut-version", 0);
+        for (int day = 1; day <= 10; day++)
+            old.set(
+                    "recompenses." + day + ".commandes",
+                    List.of(
+                            "coffre {joueur} "
+                                    + (day <= 7 ? "epique " + day : "legendaire " + (day - 7))));
+        old.set("recompenses.5.commandes", List.of("give {joueur} apple"));
+        old.save(file);
+        var settings = new DailySettings(plugin);
+        assertEquals(List.of("ecus give {joueur} 100"), settings.commands(1));
+        assertEquals(List.of("ecus give {joueur} 1000"), settings.commands(10));
+        assertEquals(List.of("give {joueur} apple"), settings.commands(5));
+        assertTrue(settings.commands(11).getFirst().startsWith("coffre"));
+        settings.config().set("recompenses.1.commandes", List.of("ecus give {joueur} 125"));
+        settings.save();
+        assertEquals(List.of("ecus give {joueur} 125"), new DailySettings(plugin).commands(1));
+        try (var backups = Files.list(file.toPath().getParent().resolve("backups"))) {
+            assertEquals(1, backups.count());
+        }
+    }
+
+    @Test
     void calendarMigrationAddsMissingDaysWithoutReplacingCustomRewardsOrExisting31DayData()
             throws Exception {
         var plugin = MockBukkit.createMockPlugin();

@@ -27,7 +27,38 @@ public final class DailySettings {
         if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "daily.yml");
         config = fr.cliker.clikerv2.config.YamlFiles.load(file);
         migrateCalendar();
+        balanceEarlyRewards();
         zone = ZoneId.of(config.getString("fuseau-horaire", "Europe/Paris"));
+    }
+
+    private void balanceEarlyRewards() {
+        if (config.getInt("equilibrage-debut-version", 0) >= 1) return;
+        try {
+            var backup =
+                    file.toPath()
+                            .getParent()
+                            .resolve(
+                                    "backups/daily-equilibrage-"
+                                            + System.currentTimeMillis()
+                                            + ".yml");
+            java.nio.file.Files.createDirectories(backup.getParent());
+            java.nio.file.Files.copy(file.toPath(), backup);
+            long[] amounts = {100, 150, 200, 250, 300, 400, 500, 600, 750, 1000};
+            for (int day = 1; day <= 10; day++) {
+                var commands = config.getStringList("recompenses." + day + ".commandes");
+                String rarity = day <= 7 ? "epique" : "legendaire";
+                int count = day <= 7 ? day : day - 7;
+                if (!commands.equals(List.of("coffre {joueur} " + rarity + " " + count))) continue;
+                config.set("recompenses." + day + ".description", amounts[day - 1] + " Écus");
+                config.set(
+                        "recompenses." + day + ".commandes",
+                        List.of("ecus give {joueur} " + amounts[day - 1]));
+            }
+            config.set("equilibrage-debut-version", 1);
+            save();
+        } catch (java.io.IOException error) {
+            throw new IllegalStateException("Rééquilibrage du daily impossible", error);
+        }
     }
 
     private void migrateCalendar() {

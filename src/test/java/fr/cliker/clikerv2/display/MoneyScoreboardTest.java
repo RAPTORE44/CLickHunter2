@@ -52,6 +52,9 @@ class MoneyScoreboardTest {
         assertEquals("IV", values.get("prestige"));
         assertEquals("25", values.get("niveau"));
         assertEquals("3", values.get("connectes"));
+        assertEquals(
+                String.format(java.util.Locale.FRANCE, "%,d", PrestigeType.requiredKills(5)),
+                values.get("objectif-prestige"));
     }
 
     @Test

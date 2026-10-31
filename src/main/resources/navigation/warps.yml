@@ -6,8 +6,9 @@ sacs: {}
 
 upgrades: {}
 hologrammes:
-  raccourcis-warp: "&a&lVoyager\n&fClic droit pour ouvrir"
-  sacs: "&a&lSacs\n&fClic droit pour ouvrir"
-  upgrades: "&a&lAméliorations\n&fClic droit pour ouvrir"
+  style-version: 1
+  raccourcis-warp: "&b&l◆ Voyager ◆\n&7Clic droit pour ouvrir"
+  sacs: "&a&l✦ Sacs ✦\n&7Clic droit pour ouvrir"
+  upgrades: "&6&l⚒ Améliorations ⚒\n&7Clic droit pour ouvrir"
 
 raccourcis-warp: {}

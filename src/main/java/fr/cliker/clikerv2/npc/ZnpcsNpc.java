@@ -236,8 +236,16 @@ public class ZnpcsNpc implements Listener {
                     Enum.valueOf(
                             (Class<? extends Enum>)
                                     Class.forName("lol.pyr.znpcsplus.util.LookType"),
-                            config.getString("pnj.regard", "CLOSEST_PLAYER"));
+                            "PER_PLAYER");
             property(npc, "look", fixed);
+            property(
+                    npc,
+                    "look_distance",
+                    Math.max(8.0, Math.min(128.0, config.getDouble("pnj.distance-regard", 48))));
+            property(
+                    npc,
+                    "view_distance",
+                    Math.max(16, Math.min(128, config.getInt("pnj.distance-affichage", 96))));
             if (config.getString("pnj.type", "player").equals("player")) {
                 Object skin =
                         call(

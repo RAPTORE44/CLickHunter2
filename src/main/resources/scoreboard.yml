@@ -12,7 +12,7 @@ lignes:
   - ''
   - '&6PROGRESSION'
   - '&f▏ &ePrestige : &f{prestige}'
-  - '&f▏ &eMobs tués : &f{kills}'
+  - '&f▏ &eMobs tués : &f{kills} &7/ &f{objectif-prestige}'
   - ''
   - '&6SERVEUR'
   - '&f▏ &eEn ligne : &f{connectes}'

@@ -28,6 +28,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
     private final BuyZoneModule zones;
     private final Menus menus;
     private final Settings settings;
+    private final fr.cliker.clikerv2.raid.RaidSetup setup;
     private final NamespacedKey scroll;
     private final Map<UUID, Party> memberships = new HashMap<>();
     private final Map<UUID, Invite> invites = new HashMap<>();
@@ -73,6 +74,8 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         void shutdown();
 
         void beginPublicBoss();
+
+        default void observe(Player player) {}
     }
 
     @FunctionalInterface
@@ -104,6 +107,10 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
 
             public void shutdown() {
                 raid.shutdown();
+            }
+
+            public void observe(Player player) {
+                raid.observe(player);
             }
 
             public void beginPublicBoss() {
@@ -155,19 +162,24 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         ledger = Bukkit.getServicesManager().load(RewardLedger.class);
         if (ledger == null) throw new IllegalStateException("Journal des récompenses absent");
         settings = new Settings(p, "activites/raids-groupes.yml");
-        threshold = settings.yaml.getLong("boss-serveur.seuil", 1_000_000_000L);
+        setup = new fr.cliker.clikerv2.raid.RaidSetup(p, this::observe);
+        threshold = setup.threshold(settings.yaml.getLong("boss-serveur.seuil", 1_000_000_000L));
         if (threshold < 1 || threshold > 1_000_000_000_000_000L)
             throw new IllegalArgumentException("Seuil de boss invalide");
         int pool = Math.max(1, Math.min(4, settings.yaml.getInt("groupes.maximum-simultanes", 4)));
         for (int slot = 0; slot < pool; slot++)
-            fr.cliker.clikerv2.world.ActivityWorlds.create("clickhunter_raid_groupe_" + slot, true);
+            fr.cliker.clikerv2.world.ActivityWorlds.create(setup.world(false, slot), true);
         scroll = new NamespacedKey(p, "raid_scroll");
         serverBoss =
                 raidFactory.create(
-                        "clickhunter_boss_serveur",
+                        setup.world(true, 0),
                         Math.max(
                                 1,
-                                Math.min(19, settings.yaml.getInt("boss-serveur.difficulte", 19))),
+                                Math.min(
+                                        19,
+                                        setup.difficulty(
+                                                settings.yaml.getInt(
+                                                        "boss-serveur.difficulte", 19)))),
                         true,
                         this::serverVictory);
         serverBoss.start();
@@ -439,7 +451,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         try {
             var raid =
                     raidFactory.create(
-                            "clickhunter_raid_groupe_" + slot,
+                            setup.world(false, slot),
                             tier.ordinal() + 1,
                             false,
                             () -> finish(group));
@@ -501,7 +513,14 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
 
     private void leave(Player p) {
         var group = memberships.get(p.getUniqueId());
-        if (group == null) return;
+        if (group == null) {
+            for (var activity : active.values())
+                if (activity.raid != null && activity.raid.world() == p.getWorld()) {
+                    activity.raid.exit(p);
+                    return;
+                }
+            return;
+        }
         if (group.raid != null) group.raid.exit(p);
         if (group.leader.equals(p.getUniqueId()) && group.raid == null) {
             for (UUID id : group.members) memberships.remove(id, group);
@@ -715,11 +734,36 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                         }));
     }
 
+    private boolean privateWorld(World world) {
+        for (int i = 0; i < 4; i++) if (world.getName().equals(setup.world(false, i))) return true;
+        return false;
+    }
+
+    private void observe(Player player, boolean publicBoss) {
+        if (!player.hasPermission(publicBoss ? "cliker.boss.admin" : "cliker.raid.admin")) {
+            player.sendMessage("§cObservation réservée au staff.");
+            return;
+        }
+        if (publicBoss) {
+            serverBoss.observe(player);
+            return;
+        }
+        var own = memberships.get(player.getUniqueId());
+        var group =
+                own != null && own.raid != null
+                        ? own
+                        : active.values().stream()
+                                .filter(v -> v.raid != null)
+                                .findFirst()
+                                .orElse(null);
+        if (group == null) player.sendMessage("§7Aucun raid actif à observer.");
+        else group.raid.observe(player);
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void teleport(PlayerTeleportEvent e) {
-        if (e.getTo() == null) return;
-        String world = e.getTo().getWorld().getName();
-        if (!world.startsWith("clickhunter_raid_groupe_")) return;
+        if (e.getTo() == null || e.getPlayer().hasPermission("cliker.raid.admin")) return;
+        if (!privateWorld(e.getTo().getWorld())) return;
         Party group = memberships.get(e.getPlayer().getUniqueId());
         if (group == null || group.raid == null || group.raid.world() != e.getTo().getWorld())
             e.setCancelled(true);
@@ -733,7 +777,8 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
     @EventHandler
     public void join(PlayerJoinEvent e) {
         var p = e.getPlayer();
-        if (p.getWorld().getName().startsWith("clickhunter_raid_groupe_")
+        if (privateWorld(p.getWorld())
+                && !p.hasPermission("cliker.raid.admin")
                 && !memberships.containsKey(p.getUniqueId()))
             Bukkit.getScheduler()
                     .runTask(
@@ -763,6 +808,19 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
             s.sendMessage("Commande réservée aux joueurs, sauf /boss spawn pour la console.");
             return true;
         }
+        if (a.length > 0 && a[0].equalsIgnoreCase("admin"))
+            return setup.command(p, command.getName().equals("boss"), a);
+        if (a.length > 0 && a[0].equalsIgnoreCase("observer")) {
+            if (command.getName().equals("boss")) observe(p, true);
+            else if (p.hasPermission("cliker.raid.admin") && a.length == 2) {
+                var leader = Bukkit.getPlayerExact(a[1]);
+                var group = leader == null ? null : memberships.get(leader.getUniqueId());
+                if (group == null || group.raid == null)
+                    p.sendMessage("§7Ce joueur n’est pas dans un raid actif.");
+                else group.raid.observe(p);
+            } else observe(p, false);
+            return true;
+        }
         if (command.getName().equals("boss")) {
             if (a.length > 1 || a.length == 1 && !a[0].equalsIgnoreCase("quitter")) {
                 p.sendMessage(
@@ -785,7 +843,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                 + " créatures éliminées. Aucun boss actif pour le moment.");
             return true;
         }
-        if (!p.hasPermission("cliker.raid")) return true;
+        if (!p.hasPermission("cliker.raid") && !p.hasPermission("cliker.raid.admin")) return true;
         if (a.length == 0) {
             lobby(p);
             return true;
@@ -853,6 +911,49 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                                 .map(Player::getName)
                                                 .toList()
                                         : List.of();
+        if (a.length == 1
+                && s.hasPermission(
+                        c.getName().equals("boss") ? "cliker.boss.admin" : "cliker.raid.admin")) {
+            choices = new ArrayList<>(choices);
+            choices.addAll(List.of("admin", "observer"));
+        }
+        if (a.length >= 2 && a[0].equalsIgnoreCase("admin")) {
+            if (!s.hasPermission(
+                    c.getName().equals("boss") ? "cliker.boss.admin" : "cliker.raid.admin"))
+                return List.of();
+            choices =
+                    a.length == 2
+                            ? (c.getName().equals("boss")
+                                    ? List.of(
+                                            "info", "map", "set", "rayon", "pnj", "param", "seuil",
+                                            "zone")
+                                    : List.of("info", "map", "set", "rayon", "pnj", "param"))
+                            : a[1].equalsIgnoreCase("param") && a.length == 3
+                                    ? new ArrayList<>(
+                                            fr.cliker.clikerv2.raid.RaidSetup.parameters().keySet())
+                                    : a[1].equalsIgnoreCase("pnj")
+                                            ? (a.length == 3
+                                                    ? List.of("entree", "sortie", "observation")
+                                                    : List.of("spawn", "remove"))
+                                            : a.length == 3 && a[1].equalsIgnoreCase("zone")
+                                                    ? new ArrayList<>(MobTier.byId().keySet())
+                                                    : a.length == 3 && !c.getName().equals("boss")
+                                                            ? List.of("1", "2", "3", "4")
+                                                            : a[1].equalsIgnoreCase("set")
+                                                                    ? List.of(
+                                                                            "entree",
+                                                                            "centre",
+                                                                            "observation",
+                                                                            "sortie")
+                                                                    : a[1].equalsIgnoreCase("map")
+                                                                            ? Bukkit.getWorlds()
+                                                                                    .stream()
+                                                                                    .map(
+                                                                                            World
+                                                                                                    ::getName)
+                                                                                    .toList()
+                                                                            : List.of();
+        }
         String prefix = a.length == 0 ? "" : a[a.length - 1].toLowerCase(Locale.ROOT);
         return choices.stream().filter(v -> v.toLowerCase(Locale.ROOT).startsWith(prefix)).toList();
     }
@@ -866,6 +967,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
             serverBoss.evacuate();
             serverBoss.shutdown();
         }
+        setup.shutdown();
         HandlerList.unregisterAll(this);
     }
 }

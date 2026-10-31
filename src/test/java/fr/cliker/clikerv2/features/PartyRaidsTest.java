@@ -141,6 +141,27 @@ class PartyRaidsTest {
         drain();
     }
 
+    @Test
+    void staffCanTeleportToActiveRaidWhileOutsidersRemainBlocked() {
+        command(leader);
+        command(leader, "parchemin", "vache");
+        command(leader, "lancer");
+        var arena = leader.getWorld();
+        assertNotEquals(lobby, arena);
+        var outsider = server.addPlayer("Visitor");
+        outsider.teleport(lobby.getSpawnLocation());
+        assertFalse(outsider.teleport(leader.getLocation()));
+        assertEquals(lobby, outsider.getWorld());
+        var staff = server.addPlayer("Staff");
+        staff.teleport(lobby.getSpawnLocation());
+        staff.addAttachment(plugin, "cliker.raid.admin", true);
+        assertTrue(staff.teleport(leader.getLocation()));
+        assertEquals(arena, staff.getWorld());
+        command(staff, "quitter");
+        assertEquals(lobby, staff.getWorld());
+        assertEquals(arena, leader.getWorld());
+    }
+
     private void clickLaunch() {
         var e =
                 new InventoryClickEvent(

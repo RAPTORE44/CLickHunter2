@@ -116,7 +116,13 @@ class DailyMenuTest {
                             .toList();
             assertFalse(lore.isEmpty());
             assertFalse(module.settings().commands(currentDay).isEmpty());
-            if (currentDay <= 28)
+            if (currentDay <= 10)
+                assertTrue(
+                        module.settings()
+                                .commands(currentDay)
+                                .getFirst()
+                                .startsWith("ecus give {joueur} "));
+            else if (currentDay <= 28)
                 assertTrue(
                         module.settings()
                                 .commands(currentDay)

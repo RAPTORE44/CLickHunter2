@@ -130,15 +130,15 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
         if (seconds != shownSecond) {
             shownSecond = seconds;
             String title =
-                    settings.yaml
-                            .getString("messages.titre", "{couleur}&lPiñata {type}")
+                    withoutTimer(
+                                    settings.yaml.getString(
+                                            "messages.titre", "{couleur}&lPiñata {type}"))
                             .replace(
                                     "{couleur}",
                                     "ecus".equals(rewardType)
                                             ? "&e"
                                             : "xp".equals(rewardType) ? "&b" : "&5")
-                            .replace("{type}", rewardLabel())
-                            .replaceAll("\\{secondes\\}\\s*s?", "");
+                            .replace("{type}", rewardLabel());
             var holos = SharedHolograms.service();
             if (holos != null && holos.available()) {
                 var holo = holos.get("pinata");
@@ -364,18 +364,17 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                                     player.sendActionBar(
                                                             DailySettings.color(
                                                                     rewardColor()
-                                                                            + settings.yaml
-                                                                                    .getString(
-                                                                                            "messages.gain-total",
-                                                                                            "&a+{montant}"
-                                                                                                + " {type}"
-                                                                                                + " &8| &fTotal"
-                                                                                                + " : &e{total}")
+                                                                            + withoutTimer(
+                                                                                            settings
+                                                                                                    .yaml
+                                                                                                    .getString(
+                                                                                                            "messages.gain-total",
+                                                                                                            "&a+{montant}"
+                                                                                                                + " {type}"
+                                                                                                                + " &8| &fTotal"
+                                                                                                                + " : &e{total}"))
                                                                                     .replaceAll(
                                                                                             "(?i)&[0-9a-f]",
-                                                                                            "")
-                                                                                    .replaceAll(
-                                                                                            "\\{secondes\\}\\s*s?",
                                                                                             "")
                                                                                     .replace(
                                                                                             "{total}",
@@ -552,10 +551,16 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                 : "xp".equals(rewardType) ? "XP" : "Gemmes Sombres";
     }
 
+    public static String withoutTimer(String input) {
+        return input.replaceAll(
+                        "(?i)\\{(?:secondes?|seconds?|temps)\\}\\s*(?:secondes?|seconds?|s)?", "")
+                .replaceAll("(?i)\\b\\d+\\s*(?:secondes?|seconds?|s)\\b", "")
+                .replaceAll("(?i)\\b(?:secondes?|seconds?)\\b", "")
+                .strip();
+    }
+
     private String text(String key) {
-        return settings.yaml
-                .getString("messages." + key, key)
-                .replaceAll("\\{secondes\\}\\s*s?", "");
+        return withoutTimer(settings.yaml.getString("messages." + key, key));
     }
 
     private void message(CommandSender sender, String key) {

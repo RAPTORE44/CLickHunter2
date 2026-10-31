@@ -38,7 +38,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     private final Map<UUID, Location> returns = new HashMap<>();
     private final NamespacedKey tag;
     private long normalHP, configuredBossHP;
-    private final int threshold, cap;
+    private int threshold, cap;
     private double normalDamage, bossDamage, bossRange;
     private Gains normalReward, bossReward;
     private boolean managed, publicBoss, completed;
@@ -47,9 +47,29 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     private UUID boss;
     private long bossMax;
     private int kills;
-    private BukkitTask task;
+    private BukkitTask task, movementTask;
+    private MobTier tier = MobTier.VACHE;
+    private final Set<UUID> observers = new HashSet<>();
     private BossBar bar;
     private boolean stopped;
+    private final Set<Chunk> heldChunks = new HashSet<>();
+    private int heldX = Integer.MIN_VALUE, heldZ = Integer.MIN_VALUE;
+
+    private void holdArena() {
+        if (!publicBoss) return;
+        int cx = centre().getBlockX() >> 4, cz = centre().getBlockZ() >> 4;
+        if (cx == heldX && cz == heldZ) return;
+        heldChunks.forEach(chunk -> chunk.removePluginChunkTicket(plugin));
+        heldChunks.clear();
+        for (int x = cx - 1; x <= cx + 1; x++)
+            for (int z = cz - 1; z <= cz + 1; z++) {
+                var chunk = world.getChunkAt(x, z);
+                chunk.addPluginChunkTicket(plugin);
+                heldChunks.add(chunk);
+            }
+        heldX = cx;
+        heldZ = cz;
+    }
 
     public RaidModule(JavaPlugin plugin, RewardLedger ledger, CustomMobManager combat) {
         this.plugin = plugin;
@@ -59,6 +79,10 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         File file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "raid.yml");
         if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "raid.yml");
         config = YamlConfiguration.loadConfiguration(file);
+        readRules();
+    }
+
+    private void readRules() {
         normalHP = config.getLong("mobs.pv", 500);
         configuredBossHP = config.getLong("boss.pv", 10000000000L);
         threshold = config.getInt("boss.tous-les-mobs", 100);
@@ -82,6 +106,15 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                 || bossRange < 1
                 || bossRange > 30)
             throw new IllegalArgumentException("Valeurs de raid hors limites");
+        double scale = config.getDouble("boss.echelle", 4),
+                speed = config.getDouble("boss.vitesse", 1);
+        if (!Double.isFinite(scale)
+                || scale < 1
+                || scale > 8
+                || !Double.isFinite(speed)
+                || speed < .1
+                || speed > 3)
+            throw new IllegalArgumentException("Échelle ou vitesse du boss invalide");
         normalReward = rewards("mobs.recompenses");
         bossReward = rewards("boss.recompenses");
     }
@@ -94,9 +127,19 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
             int difficulty,
             boolean publicBoss,
             Runnable finished) {
+        if (difficulty < 1 || difficulty > MobTier.values().length)
+            throw new IllegalArgumentException("Difficulté de raid invalide");
         var raid = new RaidModule(plugin, ledger, combat);
         raid.managed = true;
         raid.publicBoss = publicBoss;
+        var setup = Bukkit.getServicesManager().load(RaidSetup.class);
+        if (publicBoss && setup != null) {
+            setup.applyBossParameters(raid.config);
+            raid.readRules();
+        }
+        raid.tier =
+                MobTier.values()[
+                        Math.max(0, Math.min(MobTier.values().length - 1, difficulty - 1))];
         raid.finished = finished;
         raid.config.set("monde", name);
         long scale = Math.multiplyExact((long) difficulty, difficulty);
@@ -116,6 +159,10 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                         g.amount(fr.cliker.clikerv2.economy.CurrencyType.GEMMES_SOMBRES), n),
                 Math.multiplyExact(g.amount(fr.cliker.clikerv2.economy.CurrencyType.CENDRES), n),
                 Math.multiplyExact(g.xp(), n));
+    }
+
+    EntityType creatureType() {
+        return tier.entityType();
     }
 
     public World world() {
@@ -144,9 +191,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     public void start() {
         world = ActivityWorlds.create(config.getString("monde", "clickhunter_raid"), true);
         world.setGameRule(GameRule.KEEP_INVENTORY, true);
-        if (publicBoss)
-            for (int x = -2; x < 2; x++)
-                for (int z = -2; z < 2; z++) world.addPluginChunkTicket(x, z, plugin);
+        holdArena();
         bar =
                 Bukkit.createBossBar(
                         publicBoss ? "Boss serveur : en attente" : "Raid",
@@ -159,11 +204,92 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         }
         Bukkit.getPluginManager().registerEvents(this, plugin);
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20, 40);
+        movementTask = Bukkit.getScheduler().runTaskTimer(plugin, this::moveCreatures, 2, 2);
         hologramTask = Bukkit.getScheduler().runTaskTimer(plugin, this::syncHolograms, 4, 4);
     }
 
+    private RaidSetup setup() {
+        return Bukkit.getServicesManager().load(RaidSetup.class);
+    }
+
+    private Location point(String kind, Location fallback) {
+        return setup() == null ? fallback : setup().point(world, kind, fallback);
+    }
+
+    private Location centre() {
+        return point("centre", new Location(world, .5, 65, .5));
+    }
+
     private Location spawn() {
-        return new Location(world, 0.5, 65, 24.5, 180, 0);
+        return point("entree", new Location(world, .5, 65, 24.5, 180, 0));
+    }
+
+    public void observe(Player player) {
+        if (!player.hasPermission(publicBoss ? "cliker.boss.admin" : "cliker.raid.admin")) return;
+        var previous = player.getLocation().clone();
+        if (player.teleport(point("observation", spawn()))) {
+            returns.putIfAbsent(player.getUniqueId(), previous);
+            observers.add(player.getUniqueId());
+            player.sendMessage(
+                    "§bObservation • /"
+                            + (publicBoss ? "boss" : "raid")
+                            + " quitter pour repartir. Les observateurs ne participent pas au"
+                            + " combat.");
+        }
+    }
+
+    private List<Player> fighters() {
+        return world.getPlayers().stream()
+                .filter(
+                        p ->
+                                !observers.contains(p.getUniqueId())
+                                        && p.getGameMode() != GameMode.SPECTATOR
+                                        && p.getGameMode() != GameMode.CREATIVE
+                                        && p.isOnline()
+                                        && !p.isDead())
+                .toList();
+    }
+
+    private void moveCreatures() {
+        if (stopped || completed) return;
+        var players = fighters();
+        if (players.isEmpty()) return;
+        var origin = centre();
+        double limit = (setup() == null ? 31 : setup().radius(world)) + 3;
+        for (UUID id : health.keySet()) {
+            if (!(Bukkit.getEntity(id) instanceof LivingEntity mob) || mob.isDead()) continue;
+            if (mob.getLocation().distanceSquared(origin) > limit * limit) {
+                mob.teleport(origin);
+                continue;
+            }
+            var nearest =
+                    players.stream()
+                            .min(
+                                    Comparator.comparingDouble(
+                                            p ->
+                                                    p.getLocation()
+                                                            .distanceSquared(mob.getLocation())))
+                            .orElseThrow();
+            var direction =
+                    nearest.getLocation().toVector().subtract(mob.getLocation().toVector()).setY(0);
+            if (direction.lengthSquared() > 2.25) {
+                double speed =
+                        id.equals(boss)
+                                ? Math.max(.1, Math.min(3, config.getDouble("boss.vitesse", 1)))
+                                        * .12
+                                : .16;
+                direction.normalize().multiply(speed);
+                direction.setY(mob.getVelocity().getY());
+                mob.setVelocity(direction);
+                var face =
+                        mob.getLocation()
+                                .setDirection(
+                                        nearest.getLocation()
+                                                .toVector()
+                                                .subtract(mob.getLocation().toVector()));
+                mob.setRotation(face.getYaw(), 0);
+            } else mob.setVelocity(new org.bukkit.util.Vector(0, mob.getVelocity().getY(), 0));
+        }
     }
 
     private void message(Player p, String key) {
@@ -203,7 +329,11 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     }
 
     private void leave(Player p) {
-        Location target = returns.remove(p.getUniqueId());
+        observers.remove(p.getUniqueId());
+        fr.cliker.clikerv2.combat.BossMusic.stop(p);
+        Location target = setup() == null ? null : setup().exit(world);
+        Location previous = returns.remove(p.getUniqueId());
+        if (target == null) target = previous;
         if (target == null || target.getWorld() == null || target.getWorld() == world)
             target =
                     Bukkit.getWorlds().stream()
@@ -233,7 +363,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                 continue;
             var at = entity.getLocation().add(0, entity.getHeight() + .5, 0);
             String label =
-                    (entry.getKey().equals(boss) ? "&4&lGardien colossal" : "&cPillard du raid")
+                    (entry.getKey().equals(boss) ? "&4&lBoss " + tier.label() : "&c" + tier.label())
                             + " &7— &c"
                             + fr.cliker.clikerv2.Numbers.compact(entry.getValue())
                             + " PV";
@@ -252,21 +382,22 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
 
     private void tick() {
         if (stopped || completed) return;
-        List<Player> players =
-                world.getPlayers().stream()
-                        .filter(
-                                p ->
-                                        p.getGameMode() != GameMode.SPECTATOR
-                                                && p.isOnline()
-                                                && !p.isDead())
-                        .toList();
+        holdArena();
+        List<Player> players = fighters();
         for (Player p : world.getPlayers()) {
             bar.addPlayer(p);
-            if (p.getY() < 50 || Math.abs(p.getX()) > 31 || Math.abs(p.getZ()) > 31)
-                p.teleport(spawn());
+            var center = centre();
+            double radius = setup() == null ? 31 : setup().radius(world);
+            if (!observers.contains(p.getUniqueId())
+                    && (p.getY() < center.getY() - 15
+                            || Math.abs(p.getX() - center.getX()) > radius
+                            || Math.abs(p.getZ() - center.getZ()) > radius)) p.teleport(spawn());
         }
         for (Player p : new ArrayList<>(bar.getPlayers()))
-            if (p.getWorld() != world) bar.removePlayer(p);
+            if (p.getWorld() != world) {
+                bar.removePlayer(p);
+                fr.cliker.clikerv2.combat.BossMusic.stop(p);
+            }
         normals.removeIf(
                 id -> {
                     var e = Bukkit.getEntity(id);
@@ -286,26 +417,9 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                 return;
             }
             long hp = health.getOrDefault(boss, bossMax);
-            bar.setTitle("Gardien colossal • " + Numbers.compact(hp) + " PV");
+            bar.setTitle("Boss " + tier.label() + " • " + Numbers.compact(hp) + " PV");
             bar.setProgress(Math.max(0, Math.min(1, (double) hp / bossMax)));
-            Player nearest =
-                    players.stream()
-                            .min(
-                                    Comparator.comparingDouble(
-                                            p ->
-                                                    p.getLocation()
-                                                            .distanceSquared(entity.getLocation())))
-                            .orElseThrow();
-            var direction =
-                    nearest.getLocation()
-                            .toVector()
-                            .subtract(entity.getLocation().toVector())
-                            .setY(0);
-            double distance = direction.length();
-            if (distance > 2) {
-                direction.normalize().multiply(Math.min(2, distance - 2));
-                entity.teleport(entity.getLocation().add(direction));
-            }
+            for (Player player : players) fr.cliker.clikerv2.combat.BossMusic.play(player);
             double radius = bossRange;
             for (Player p : players)
                 if (p.getLocation().distanceSquared(entity.getLocation()) <= radius * radius) {
@@ -324,26 +438,39 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
             return;
         }
 
+        for (UUID id : normals) {
+            var mob = Bukkit.getEntity(id);
+            if (mob == null) continue;
+            for (Player player : players)
+                if (player.getLocation().distanceSquared(mob.getLocation()) <= 4)
+                    player.damage(normalDamage, mob);
+        }
         while (normals.size() < cap) {
-            double x = java.util.concurrent.ThreadLocalRandom.current().nextDouble(-22, 22),
-                    z = java.util.concurrent.ThreadLocalRandom.current().nextDouble(-20, 12);
-            var mob = world.spawn(new Location(world, x, 65, z, 0, 0), Zombie.class);
+            double extent = Math.min(22, (setup() == null ? 31 : setup().radius(world)) - 3);
+            double x = java.util.concurrent.ThreadLocalRandom.current().nextDouble(-extent, extent),
+                    z =
+                            java.util.concurrent.ThreadLocalRandom.current()
+                                    .nextDouble(-extent, extent * .55);
+            var mob = (LivingEntity) world.spawnEntity(centre().add(x, 0, z), creatureType());
             mob.setSilent(true);
-            mob.setAdult();
-            mob.setShouldBurnInDay(false);
+            if (mob instanceof Ageable ageable) ageable.setAdult();
+            if (mob instanceof Zombie zombie) zombie.setShouldBurnInDay(false);
+            if (mob instanceof Slime slime) slime.setSize(2);
+            mob.setAI(false);
+            if (mob instanceof PiglinAbstract piglin) piglin.setImmuneToZombification(true);
+            if (mob instanceof Hoglin hoglin) hoglin.setImmuneToZombification(true);
+            if (mob instanceof Wither wither) wither.setInvulnerabilityTicks(0);
+            if (mob instanceof Ghast && mob.getAttribute(Attribute.SCALE) != null)
+                mob.getAttribute(Attribute.SCALE).setBaseValue(.5);
             mob.setRemoveWhenFarAway(false);
             mob.setPersistent(false);
             mob.getPersistentDataContainer().set(tag, PersistentDataType.BYTE, (byte) 1);
-            mob.customName(DailySettings.color("&cPillard du raid"));
+            mob.customName(DailySettings.color("&c" + tier.label()));
             mob.setCustomNameVisible(
                     fr.cliker.clikerv2.hologram.SharedHolograms.service() == null
                             || !fr.cliker.clikerv2.hologram.SharedHolograms.service().available());
             if (mob.getAttribute(Attribute.ATTACK_DAMAGE) != null)
                 mob.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(normalDamage);
-            mob.setTarget(
-                    players.get(
-                            java.util.concurrent.ThreadLocalRandom.current()
-                                    .nextInt(players.size())));
             normals.add(mob.getUniqueId());
             health.put(mob.getUniqueId(), normalHP);
         }
@@ -356,12 +483,20 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
             health.remove(id);
         }
         normals.clear();
-        var giant = world.spawn(new Location(world, 0.5, 65, 0.5, 270, 0), Giant.class);
+        var giant = (LivingEntity) world.spawnEntity(centre(), creatureType());
+        if (giant instanceof Ageable ageable) ageable.setAdult();
+        if (giant instanceof Slime slime) slime.setSize(2);
+        var scale = giant.getAttribute(Attribute.SCALE);
+        if (scale != null)
+            scale.setBaseValue(Math.max(1, Math.min(8, config.getDouble("boss.echelle", 4))));
         giant.setAI(false);
+        if (giant instanceof PiglinAbstract piglin) piglin.setImmuneToZombification(true);
+        if (giant instanceof Hoglin hoglin) hoglin.setImmuneToZombification(true);
+        if (giant instanceof Wither wither) wither.setInvulnerabilityTicks(0);
         giant.setPersistent(false);
         giant.setRemoveWhenFarAway(false);
         giant.getPersistentDataContainer().set(tag, PersistentDataType.BYTE, (byte) 2);
-        giant.customName(DailySettings.color("&4&lGardien colossal"));
+        giant.customName(DailySettings.color("&4&lBoss " + tier.label()));
         giant.setCustomNameVisible(
                 fr.cliker.clikerv2.hologram.SharedHolograms.service() == null
                         || !fr.cliker.clikerv2.hologram.SharedHolograms.service().available());
@@ -392,7 +527,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                 || p.getWorld() != world
                 || !(e.getEntity() instanceof LivingEntity target)
                 || !fr.cliker.clikerv2.combat.CombatReach.canHit(p, target)) return;
-        Long power = combat.calculateDamage(p, MobTier.VACHE);
+        if (observers.contains(p.getUniqueId())) return;
+        Long power = combat.calculateDamage(p, tier, id.equals(boss));
         if (power == null) {
             message(p, "arme");
             return;
@@ -400,7 +536,20 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         long before = health.get(id), actual = Math.min(before, Math.max(0, power));
         long after = before - actual;
         health.put(id, after);
-        if (e.getEntity() instanceof LivingEntity living) combat.showDamage(p, living, actual);
+        if (e.getEntity() instanceof LivingEntity living) {
+            combat.showDamage(p, living, actual);
+            if (actual > 0) {
+                living.playHurtAnimation(p.getYaw());
+                world.spawnParticle(
+                        Particle.DAMAGE_INDICATOR,
+                        living.getLocation().add(0, living.getHeight() * .6, 0),
+                        6,
+                        .4,
+                        .4,
+                        .4,
+                        .05);
+            }
+        }
         if (id.equals(boss)) {
             damage.merge(p.getUniqueId(), actual, Math::addExact);
             names.put(p.getUniqueId(), p.getName());
@@ -411,6 +560,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         if (removedHolo != null) removedHolo.remove();
         e.getEntity().remove();
         if (id.equals(boss)) {
+            world.getPlayers().forEach(fr.cliker.clikerv2.combat.BossMusic::stop);
             UUID source = boss;
             boss = null;
             if (managed) {
@@ -539,6 +689,12 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void damage(EntityDamageEvent e) {
+        if (e.getEntity() instanceof Player player
+                && player.getWorld() == world
+                && observers.contains(player.getUniqueId())) {
+            e.setCancelled(true);
+            return;
+        }
         if (e.getEntity().getWorld() == world
                 && e.getEntity().getPersistentDataContainer().has(tag)
                 && !(e instanceof EntityDamageByEntityEvent)) e.setCancelled(true);
@@ -562,6 +718,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     @EventHandler
     public void changed(PlayerChangedWorldEvent e) {
         if (e.getFrom() == world) {
+            observers.remove(e.getPlayer().getUniqueId());
+            fr.cliker.clikerv2.combat.BossMusic.stop(e.getPlayer());
             bar.removePlayer(e.getPlayer());
             returns.remove(e.getPlayer().getUniqueId());
         }
@@ -569,6 +727,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
 
     @EventHandler
     public void quit(PlayerQuitEvent e) {
+        observers.remove(e.getPlayer().getUniqueId());
+        fr.cliker.clikerv2.combat.BossMusic.stop(e.getPlayer());
         bar.removePlayer(e.getPlayer());
         returns.remove(e.getPlayer().getUniqueId());
     }
@@ -621,12 +781,14 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     }
 
     public void shutdown() {
+        if (movementTask != null) movementTask.cancel();
+        if (world != null) world.getPlayers().forEach(fr.cliker.clikerv2.combat.BossMusic::stop);
+        observers.clear();
         if (hologramTask != null) hologramTask.cancel();
         raidHolos.values().forEach(fr.cliker.clikerv2.hologram.SharedHolograms.Handle::remove);
         raidHolos.clear();
-        if (publicBoss && world != null)
-            for (int x = -2; x < 2; x++)
-                for (int z = -2; z < 2; z++) world.removePluginChunkTicket(x, z, plugin);
+        heldChunks.forEach(chunk -> chunk.removePluginChunkTicket(plugin));
+        heldChunks.clear();
         stopped = true;
         if (task != null) task.cancel();
         if (bar != null) bar.removeAll();

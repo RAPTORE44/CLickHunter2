@@ -125,6 +125,6 @@ La case 46 de l’AH accueille la page précédente ; la case 45 (indices à par
 
 Le shop propose Épées, Armures, Potions, Lait et Tous. Tous les visuels de ses menus et du marché noir restent vanilla. Les offres du marché noir occupent les cases 12, 14, 16, 30, 32 et 34 (numérotation à partir de 1).
 
-Les PNJ utilisent par défaut `pnj.regard: CLOSEST_PLAYER` de ZNPCsPlus ; `FIXED` reste configurable. `/settings` propose Masquer les autres joueurs. Ce choix personnel persiste dans les données du joueur, s’applique aux nouveaux arrivants et ne masque ni les PNJ ni les mobs. Il agit sur l’affichage, sans désactiver les collisions de combat ou protéger des dégâts.
+Les PNJ utilisent désormais `PER_PLAYER` de ZNPCsPlus : chaque joueur les voit le regarder. Portée de regard : 48 blocs, visibilité : 96 blocs par défaut. `/settings` propose Masquer les autres joueurs. Ce choix personnel persiste dans les données du joueur, s’applique aux nouveaux arrivants et ne masque ni les PNJ ni les mobs. Il agit sur l’affichage, sans désactiver les collisions de combat ou protéger des dégâts.
 
 Les fonctionnalités plus récentes (gestion des sacs, favoris AH, visites, session, diagnostic, potions et migration des hologrammes) sont décrites dans [le guide UX actuel](AMELIORATIONS-UX.md). Les vérifications datées ci-dessus correspondent à leur livraison historique.

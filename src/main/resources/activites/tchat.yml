@@ -7,8 +7,9 @@ jeux:
   intervalle-secondes: 900
   duree-secondes: 45
 aides:
+  frequence-version: 1
   actives: true
-  intervalle-secondes: 180
+  intervalle-secondes: 1200
   messages:
     - '&a/daily &f: réclame chaque jour ta récompense pour conserver ta série !'
     - '&a/warp &f: gauche vers l’entrée, droite devant le boss d’une zone débloquée.'

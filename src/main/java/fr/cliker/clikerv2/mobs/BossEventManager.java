@@ -36,6 +36,7 @@ public final class BossEventManager implements Listener {
     private final long interval;
     private final long warning;
     private org.bukkit.scheduler.BukkitTask task;
+    private final java.util.Set<String> zoneHolos = new java.util.HashSet<>();
 
     public BossEventManager(JavaPlugin plugin, CustomMobManager mobManager) {
         this.plugin = plugin;
@@ -73,6 +74,7 @@ public final class BossEventManager implements Listener {
     private void tick() {
         if (mobManager.bossSpawnIds().isEmpty()) {
             hideBossBar();
+            clearZoneHolograms();
             return;
         }
 
@@ -128,12 +130,54 @@ public final class BossEventManager implements Listener {
     }
 
     private void updateHologram() {
+        updateZoneHolograms();
         if (hologramManager == null) return;
         long minutes = remainingSeconds / 60;
         long seconds = remainingSeconds % 60;
         hologramManager.updateBossTimer(
                 "⚔ Prochains boss ⚔",
                 List.of("&e" + minutes + "m " + String.format("%02d", seconds) + "s"));
+    }
+
+    private void updateZoneHolograms() {
+        var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
+        if (provider == null || !provider.available()) return;
+        var wanted = new java.util.HashSet<String>();
+        for (var entry : mobManager.bossPoints().entrySet()) {
+            var at = entry.getValue();
+            if (!at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4)) continue;
+            String id = "zone-boss-timer:" + entry.getKey();
+            wanted.add(id);
+            // Les boss de zone sont placés vers l’est : six blocs devant, trois au-dessus.
+            at.add(6, 3, 0);
+            var lines =
+                    List.of(
+                            "&c&l⚔ " + mobManager.bossLabel(entry.getKey()) + " ⚔",
+                            mobManager.bossAlive(entry.getKey())
+                                    ? "&aDisponible • Prêt au combat"
+                                    : "&7Boss vaincu",
+                            "&7Prochaine réapparition : &e"
+                                    + (remainingSeconds / 60)
+                                    + "m "
+                                    + String.format("%02d", remainingSeconds % 60)
+                                    + "s");
+            var holo = provider.get(id);
+            if (holo == null || !holo.isValid()) provider.create(id, at, lines, null, false);
+            else {
+                holo.setLocation(at);
+                holo.setLines(lines);
+            }
+        }
+        for (String id : new java.util.HashSet<>(zoneHolos))
+            if (!wanted.contains(id)) provider.remove(id);
+        zoneHolos.clear();
+        zoneHolos.addAll(wanted);
+    }
+
+    private void clearZoneHolograms() {
+        var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
+        if (provider != null) zoneHolos.forEach(provider::remove);
+        zoneHolos.clear();
     }
 
     private void updateBossBar() {
@@ -165,6 +209,7 @@ public final class BossEventManager implements Listener {
     }
 
     public void shutdown() {
+        clearZoneHolograms();
         if (task != null) task.cancel();
         hideBossBar();
         org.bukkit.event.HandlerList.unregisterAll(this);

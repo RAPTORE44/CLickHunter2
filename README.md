@@ -2,6 +2,17 @@
 
 ## Dernière mise à jour — 31 octobre 2026
 
+- Piñatas : suppression des compteurs de secondes, y compris les anciens textes configurés ; couleurs Écus/XP/Gemmes conservées.
+- Tchat moins chargé : aides espacées de vingt minutes (migration de l’ancien intervalle de trois minutes). Les jeux restent à quinze minutes, comme demandé.
+- Scoreboard : éliminations actuelles / objectif réel du prochain prestige.
+- Daily : jours 1 à 10 ramenés à 100, 150, 200, 250, 300, 400, 500, 600, 750 et 1 000 Écus. Les anciennes récompenses par défaut sont migrées avec sauvegarde ; les commandes personnalisées et la progression restent conservées.
+- PNJ : regard individuel `PER_PLAYER`, portée de regard 48 blocs et visibilité 96 blocs par défaut, dont les marchands de zone.
+- Boss de zone : 1 000 fois les PV du mob ; déplacement vers l’attaquant dans un rayon de 20 blocs, retour au point d’origine, dégâts de contact, animation des coups et musique Minecraft. Minuteur automatique six blocs à l’est du point du boss, trois blocs plus haut ; état et prochaine vague affichés sans placement manuel.
+- Raids : créatures de la zone du parchemin, boss géant du même type, attaques des animaux passifs comprises ; déplacement, retour dans l’arène et effets de dégâts. Les administrateurs peuvent se téléporter vers un joueur en raid et observer sans rejoindre son groupe.
+- Configuration des arènes : cartes dédiées, points d’entrée/centre/observation/sortie, rayon, PNJ d’accès et paramètres de combat/récompenses par commandes. [Guide et exemples](docs/CONFIGURATION-RAIDS-BOSS.md).
+- Hologrammes Warp, Sacs et Améliorations : titres et indications harmonisés avec les stations, à 2,3 blocs au-dessus du bloc et sans fond.
+- Validation : 400 tests automatisés réussis, aucun ignoré. Le rendu, la physique, la musique et les interactions ZNPCsPlus restent à vérifier en jeu sur Paper 1.21.4 avec les plugins du serveur.
+
 - Achats des marchands, du shop et du marché noir : livraison automatique prioritaire de l’objet acheté dans l’inventaire ; seul le surplus sans place reste à récupérer dans `/claim`. Les messages d’achat ne renvoient plus systématiquement vers `/claim`.
 - Raids : acceptation confirmée au chef, liste des membres actualisée sans rouvrir son menu, boutons de lancement reliés au groupe actuel. Une téléportation refusée est signalée et le membre peut réessayer avec `/raid rejoindre`.
 - `/boss spawn` permet aux administrateurs et à la console de faire apparaître le boss serveur, sans doublon et sans consommer le compteur du prochain spawn naturel.
@@ -219,6 +230,14 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/respawnmobs` | Faire réapparaître tous les mobs placés, sans les boss ni les invocations temporaires ; alias `/mobsrespawn`. | `cliker.mob.admin` |
 | `/spawnboss` | Lancer une vague de tous les boss de zone, avec annonce globale ; alias `/bossrespawn`. | `cliker.mob.admin` |
 | `/boss spawn` | Forcer le boss serveur public depuis le jeu ou la console ; refuse un doublon et conserve le compteur naturel. | `cliker.boss.admin` |
+| `/raid admin info` / `/boss admin info` | Aide de configuration et cartes actuellement utilisées. | `cliker.raid.admin` / `cliker.boss.admin` |
+| `/raid admin map <1-4> <monde>` / `/boss admin map <monde>` | Affecter une carte dédiée chargée et vide ; application au redémarrage. Refuse le spawn et les cartes partagées entre instances. | `cliker.raid.admin` / `cliker.boss.admin` |
+| `/raid admin set <1-4> <entree\|centre\|observation\|sortie>` / `/boss admin set <point>` | Sauvegarder position et orientation ; entrée, centre et observation dans l’arène, sortie dans un autre monde. Effet immédiat. | `cliker.raid.admin` / `cliker.boss.admin` |
+| `/raid admin rayon <1-4> <8-256>` / `/boss admin rayon <8-256>` | Définir la limite horizontale de l’arène autour de son centre. | `cliker.raid.admin` / `cliker.boss.admin` |
+| `/raid admin pnj <entree\|sortie\|observation> <spawn\|remove>` / `/boss admin pnj ...` | Gérer les PNJ ZNPCsPlus d’accès, de sortie et d’observation staff. Positions persistantes, doublons refusés. | `cliker.raid.admin` / `cliker.boss.admin` |
+| `/raid admin param [cle] [valeur]` / `/boss admin param [cle] [valeur]` | Lister puis régler PV, dégâts, nombre de mobs, seuil du boss de raid, taille, vitesse, portée et récompenses. Les réglages `/boss` sont propres au boss public. Prochains raids ; boss serveur après redémarrage. | `cliker.raid.admin` / `cliker.boss.admin` |
+| `/boss admin seuil <kills>` / `/boss admin zone <zone>` | Régler le cycle naturel et le type/difficulté du boss public ; application au redémarrage. | `cliker.boss.admin` |
+| `/raid observer [pseudo]` / `/boss observer` | Rejoindre le point d’observation d’un raid actif ou du boss public. Observation protégée, sans dégâts infligés/reçus ; quitter avec `/raid quitter` ou `/boss quitter`. | `cliker.raid.admin` / `cliker.boss.admin` |
 | `/jeutchat lancer [calcul\|devinette\|pays]` / `/jeutchat stop` | Lancer ou interrompre une manche de jeu de chat. | `cliker.jeutchat.admin` |
 | `/diagnostic` | Vérifier SQLite (durée de la requête), TPS, tâches planifiées, livraisons, mobs manquants, PNJ, hologrammes et destinations absentes ; indique la commande de correction et la commande Spark si Spark manque. Lecture seule, résultats paginés. | `cliker.diagnostic.admin` |
 | `/avantposte vedette <pseudo>` / `/avantposte vedette retirer` | Mettre un terrain public à l’honneur pendant sept jours ou retirer sa mise en avant. | `cliker.services.admin` |
@@ -253,7 +272,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/mobspawn list` | Lister les points d'apparition. | `cliker.mob.admin` |
 | `/pnj spawn <mob>` / `/pnj remove` / `/pnj list` | Gérer les marchands de progression. | `cliker.mob.admin` |
 | `/pnj skin <mob> <pseudo\|villager>` | Modifier l’apparence des marchands d’une créature. | `cliker.mob.admin` |
-| `/pnjservice spawn <ah\|shop\|blackmarket>` | Placer un PNJ de service, orienté ouest. | `cliker.services.admin` |
+| `/pnjservice spawn <ah\|shop\|blackmarket>` | Placer un PNJ de service au regard individuel. | `cliker.services.admin` |
 | `/pnjservice remove <ah\|shop\|blackmarket>` | Retirer un PNJ de service. | `cliker.services.admin` |
 | `/pnjservice skin <ah\|shop\|blackmarket> <pseudo\|villager>` | Choisir un skin de joueur ou revenir au villageois. | `cliker.services.admin` |
 | `/upgrade set block` / `/upgrade set bloc` | Lier le bloc visé au menu upgrade ; alias de `/upgradebloc set`. | `cliker.services.admin` |
@@ -385,7 +404,7 @@ Les marchands affichent les vrais objets proposés (épées, armures, compresseu
 Le marchand de blocs propose des catégories avec pagination. `/tallisement` affiche les découvertes ; le bouton « Non débloqués » ouvre les catégories créatures, boss et cinq familles générales, en préservant le mystère des créatures.
 
 Dans `/ah`, le bouton en bas à gauche ouvre les tris par prix, date, nom et rareté, dans les deux sens ; la page précédente est désormais sur la deuxième case. Le PNJ shop propose Épées, Armures, Potions, Lait et Tous. Shop et marché noir conservent leurs visuels vanilla sur tous les boutons. Le marché noir place ses six offres aux cases 12, 14, 16, 30, 32 et 34 (comptage à partir de 1, avec une ligne vide entre les rangées).
-Les PNJ suivent par défaut le joueur le plus proche ; `pnj.regard: FIXED` conserve une orientation fixe si souhaité. `/settings` permet de masquer les autres joueurs, préférence conservée après reconnexion.
+Les PNJ suivent chaque joueur indépendamment (`PER_PLAYER`) ; portée de regard de 48 blocs et visibilité de 96 blocs par défaut, ajustables avec `pnj.distance-regard` et `pnj.distance-affichage`. `/settings` permet de masquer les autres joueurs, préférence conservée après reconnexion.
 
 ### TAB ClickHunter
 

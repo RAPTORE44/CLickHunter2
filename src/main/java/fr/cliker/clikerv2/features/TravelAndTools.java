@@ -43,6 +43,15 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
         this.zones = zones;
         this.mobs = mobs;
         settings = new Settings(p, "navigation/warps.yml");
+        if (settings.yaml.getInt("hologrammes.style-version", 0) < 1) {
+            settings.yaml.set("hologrammes.sacs", "&a&l✦ Sacs ✦\n&7Clic droit pour ouvrir");
+            settings.yaml.set(
+                    "hologrammes.upgrades", "&6&l⚒ Améliorations ⚒\n&7Clic droit pour ouvrir");
+            settings.yaml.set(
+                    "hologrammes.raccourcis-warp", "&b&l◆ Voyager ◆\n&7Clic droit pour ouvrir");
+            settings.yaml.set("hologrammes.style-version", 1);
+            settings.save();
+        }
         builderWorld =
                 new Settings(p, "activites/avantpostes.yml")
                         .yaml.getString("monde", "clickhunter_avantpostes");
@@ -603,6 +612,20 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
         view.show(player);
     }
 
+    private List<String> shortcutLines(String section) {
+        String title =
+                switch (section) {
+                    case "sacs" -> "&a&l✦ Sacs ✦";
+                    case "upgrades" -> "&6&l⚒ Améliorations ⚒";
+                    case "raccourcis-warp" -> "&b&l◆ Voyager ◆";
+                    default -> "&2&l✦ Bestiaire ✦";
+                };
+        return Arrays.asList(
+                settings.yaml
+                        .getString("hologrammes." + section, title + "\n&7Clic droit pour ouvrir")
+                        .split("\n"));
+    }
+
     private void refreshHolos() {
         var wanted = new HashSet<String>();
         for (String section : List.of("sacs", "upgrades", "raccourcis-warp", "bestiaires")) {
@@ -622,31 +645,8 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                 var display =
                         provider.create(
                                 "shortcut:" + id,
-                                at.clone().add(.5, 1.6, .5),
-                                java.util.Arrays.asList(
-                                        settings.yaml
-                                                .getString(
-                                                        "hologrammes." + section,
-                                                        section.equals("bestiaires")
-                                                                ? "&2&lBestiaire\n"
-                                                                        + "&fClic droit pour ouvrir"
-                                                                : section.equals("sacs")
-                                                                        ? "&a&lSacs\n"
-                                                                              + "&fClic droit pour"
-                                                                              + " ouvrir"
-                                                                        : section.equals(
-                                                                                        "raccourcis-warp")
-                                                                                ? "&a&lVoyager\n"
-                                                                                        + "&fClic"
-                                                                                        + " droit"
-                                                                                        + " pour"
-                                                                                        + " ouvrir"
-                                                                                : "&a&lAméliorations\n"
-                                                                                      + "&fClic"
-                                                                                      + " droit"
-                                                                                      + " pour"
-                                                                                      + " ouvrir")
-                                                .split("\n")),
+                                at.clone().add(.5, 2.3, .5),
+                                shortcutLines(section),
                                 null,
                                 false);
                 shortcutHolos.put(id, display);

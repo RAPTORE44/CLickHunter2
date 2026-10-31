@@ -1,4 +1,5 @@
 schema-version: 3
+equilibrage-debut-version: 1
 # Module de récompenses journalières NorthBlue intégré à ClikerV2.
 # Les journées changent à MINUIT dans ce fuseau : aucun délai de 24 heures.
 fuseau-horaire: Europe/Paris
@@ -108,48 +109,48 @@ interface:
 
 # Commandes exécutées par la CONSOLE, sans slash initial.
 # Variables : {joueur}, {uuid}, {jour}. Conserver au moins une commande par jour.
-# Cycle de 31 jours. Les récompenses 1–28 existantes sont conservées.
+# Cycle de 31 jours. Jours 1–10 modérés ; anciennes valeurs par défaut migrées avec sauvegarde.
 recompenses:
   1:
-    description: 'Coffre épique ×1'
+    description: '100 Écus'
     commandes:
-      - 'coffre {joueur} epique 1'
+      - 'ecus give {joueur} 100'
   2:
-    description: 'Coffre épique ×2'
+    description: '150 Écus'
     commandes:
-      - 'coffre {joueur} epique 2'
+      - 'ecus give {joueur} 150'
   3:
-    description: 'Coffre épique ×3'
+    description: '200 Écus'
     commandes:
-      - 'coffre {joueur} epique 3'
+      - 'ecus give {joueur} 200'
   4:
-    description: 'Coffre épique ×4'
+    description: '250 Écus'
     commandes:
-      - 'coffre {joueur} epique 4'
+      - 'ecus give {joueur} 250'
   5:
-    description: 'Coffre épique ×5'
+    description: '300 Écus'
     commandes:
-      - 'coffre {joueur} epique 5'
+      - 'ecus give {joueur} 300'
   6:
-    description: 'Coffre épique ×6'
+    description: '400 Écus'
     commandes:
-      - 'coffre {joueur} epique 6'
+      - 'ecus give {joueur} 400'
   7:
-    description: 'Coffre épique ×7'
+    description: '500 Écus'
     commandes:
-      - 'coffre {joueur} epique 7'
+      - 'ecus give {joueur} 500'
   8:
-    description: 'Coffre légendaire ×1'
+    description: '600 Écus'
     commandes:
-      - 'coffre {joueur} legendaire 1'
+      - 'ecus give {joueur} 600'
   9:
-    description: 'Coffre légendaire ×2'
+    description: '750 Écus'
     commandes:
-      - 'coffre {joueur} legendaire 2'
+      - 'ecus give {joueur} 750'
   10:
-    description: 'Coffre légendaire ×3'
+    description: '1000 Écus'
     commandes:
-      - 'coffre {joueur} legendaire 3'
+      - 'ecus give {joueur} 1000'
   11:
     description: 'Coffre légendaire ×4'
     commandes:

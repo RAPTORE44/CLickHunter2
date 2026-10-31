@@ -101,6 +101,9 @@ public final class MoneyScoreboard implements Listener {
                 config.getStringList("lignes").stream()
                         .map(
                                 line -> {
+                                    if (line.contains("{kills}")
+                                            && !line.contains("{objectif-prestige}"))
+                                        line += " &7/ &f{objectif-prestige}";
                                     String color =
                                             line.contains("{niveau}")
                                                     ? "&b"
@@ -229,6 +232,12 @@ public final class MoneyScoreboard implements Listener {
                 "cendres",
                 balances == null ? "…" : CurrencyType.CENDRES.format(balances.cendres()));
         values.put("kills", kills == null ? "…" : String.format(Locale.FRANCE, "%,d", kills));
+        values.put(
+                "objectif-prestige",
+                prestige >= 100
+                        ? "MAX"
+                        : String.format(
+                                Locale.FRANCE, "%,d", PrestigeType.requiredKills(prestige + 1)));
         values.put("connectes", Integer.toString(online));
         return values;
     }

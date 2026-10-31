@@ -24,7 +24,7 @@ Le propriétaire demande désormais les raids privés avec invitations et parche
 
 ## Préférences récentes de présentation
 
-Les PNJ regardent désormais le joueur le plus proche par défaut (ZNPCsPlus `CLOSEST_PLAYER`), ce qui remplace l’orientation fixe demandée auparavant. Le shop et le marché noir conservent tous leurs visuels vanilla, y compris les boutons ; les autres menus gardent les icônes ItemsAdder. Le marché noir utilise les cases 12, 14, 16 et 30, 32, 34, comptées à partir de 1.
+Les PNJ regardent chaque joueur indépendamment (ZNPCsPlus `PER_PLAYER`), selon la nouvelle demande qui remplace `CLOSEST_PLAYER` et l’orientation fixe. Distance de regard par défaut : 48 blocs ; visibilité : 96 blocs, réglables via `pnj.distance-regard` et `pnj.distance-affichage`. Le shop et le marché noir conservent tous leurs visuels vanilla, y compris les boutons ; les autres menus gardent les icônes ItemsAdder. Le marché noir utilise les cases 12, 14, 16 et 30, 32, 34, comptées à partir de 1.
 
 ## Livraison et hologrammes — demande actuelle
 

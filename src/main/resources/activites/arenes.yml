@@ -1,0 +1,13 @@
+# Mondes DÉDIÉS : ne jamais utiliser le spawn ou un monde de joueurs.
+# Les changements de monde nécessitent un redémarrage. Les points et rayons sont immédiats.
+raid:
+  mondes:
+    1: clickhunter_raid_groupe_0
+    2: clickhunter_raid_groupe_1
+    3: clickhunter_raid_groupe_2
+    4: clickhunter_raid_groupe_3
+boss:
+  monde: clickhunter_boss_serveur
+# /raid admin set <1-4> entree|centre|observation|sortie ; /boss admin set <point>
+# /raid admin pnj entree|sortie|observation spawn|remove (idem /boss)
+arenes: {}
