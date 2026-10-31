@@ -81,7 +81,7 @@ class ChatActivitiesTest {
     }
 
     @Test
-    void twoCorrectAnswersOnlyPersistOneDivineRewardForFirstPlayer() throws Exception {
+    void twoCorrectAnswersOnlyPersistOneBasePrestigeRewardForFirstPlayer() throws Exception {
         var server = MockBukkit.mock();
         var plugin = MockBukkit.createMockPlugin();
         ConfigurationSerialization.registerClass(ItemStackMock.class);
@@ -128,7 +128,7 @@ class ChatActivitiesTest {
                             .join();
             assertEquals(1, rows.size());
             assertTrue(rows.getFirst().startsWith(winner.getUniqueId().toString()));
-            assertTrue(rows.getFirst().contains("divin"));
+            assertTrue(rows.getFirst().contains("commun"));
             assertNull(activities.currentQuestion());
         } finally {
             activities.shutdown();

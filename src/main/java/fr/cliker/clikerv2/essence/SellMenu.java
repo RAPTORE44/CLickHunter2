@@ -167,6 +167,10 @@ public final class SellMenu implements Listener {
                                                 return;
                                             }
                                             if (!player.isOnline()) return;
+                                            fr.cliker.clikerv2.tutorial.OnboardingGuide.record(
+                                                    player,
+                                                    fr.cliker.clikerv2.tutorial.OnboardingGuide
+                                                            .Action.SELL);
                                             player.sendMessage(
                                                     Component.text("✦ Vendu ", NamedTextColor.GREEN)
                                                             .append(

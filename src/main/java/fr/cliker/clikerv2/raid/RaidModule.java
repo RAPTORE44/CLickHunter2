@@ -48,6 +48,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     private long bossMax;
     private int kills;
     private BukkitTask task, movementTask;
+    private int rangedCycle;
+    private final java.util.Set<BukkitTask> rangedTasks = new java.util.HashSet<>();
     private MobTier tier = MobTier.VACHE;
     private final Set<UUID> observers = new HashSet<>();
     private BossBar bar;
@@ -79,6 +81,33 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         File file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "raid.yml");
         if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "raid.yml");
         config = YamlConfiguration.loadConfiguration(file);
+        boolean changed = false;
+        var additions =
+                java.util.Map.<String, Object>of(
+                        "boss.multiplicateur-pv",
+                        1000,
+                        "boss-serveur.pv",
+                        1000000000L,
+                        "boss-serveur.attaques-distance.actives",
+                        true,
+                        "boss-serveur.attaques-distance.intervalle-secondes",
+                        8,
+                        "boss-serveur.attaques-distance.rayon",
+                        3,
+                        "boss-serveur.attaques-distance.degats",
+                        8);
+        for (var entry : additions.entrySet())
+            if (!config.contains(entry.getKey())) {
+                config.set(entry.getKey(), entry.getValue());
+                changed = true;
+            }
+        if (changed)
+            try {
+                config.save(file);
+            } catch (java.io.IOException e) {
+                throw new IllegalStateException(
+                        "Sauvegarde des paramètres de combat impossible", e);
+            }
         readRules();
     }
 
@@ -132,6 +161,10 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         var raid = new RaidModule(plugin, ledger, combat);
         raid.managed = true;
         raid.publicBoss = publicBoss;
+        if (publicBoss) {
+            raid.config.set("boss.pv", raid.config.getLong("boss-serveur.pv", 1000000000L));
+            raid.readRules();
+        }
         var setup = Bukkit.getServicesManager().load(RaidSetup.class);
         if (publicBoss && setup != null) {
             setup.applyBossParameters(raid.config);
@@ -144,9 +177,17 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         raid.config.set("monde", name);
         long scale = Math.multiplyExact((long) difficulty, difficulty);
         raid.normalHP = Math.multiplyExact(raid.normalHP, scale);
-        raid.configuredBossHP = Math.multiplyExact(raid.configuredBossHP, scale);
+        if (!publicBoss)
+            raid.configuredBossHP =
+                    Math.multiplyExact(
+                            raid.normalHP,
+                            Math.max(
+                                    1,
+                                    Math.min(
+                                            1000000,
+                                            raid.config.getLong("boss.multiplicateur-pv", 1000))));
         raid.normalDamage = Math.min(2048, raid.normalDamage * difficulty);
-        raid.bossDamage = Math.min(2048, raid.bossDamage * difficulty);
+        if (!publicBoss) raid.bossDamage = Math.min(2048, raid.bossDamage * difficulty);
         raid.normalReward = scaled(raid.normalReward, difficulty);
         raid.bossReward = scaled(raid.bossReward, difficulty);
         return raid;
@@ -204,7 +245,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         }
         Bukkit.getPluginManager().registerEvents(this, plugin);
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20, 40);
-        movementTask = Bukkit.getScheduler().runTaskTimer(plugin, this::moveCreatures, 2, 2);
+        movementTask = Bukkit.getScheduler().runTaskTimer(plugin, this::moveCreatures, 10, 10);
         hologramTask = Bukkit.getScheduler().runTaskTimer(plugin, this::syncHolograms, 4, 4);
     }
 
@@ -280,6 +321,17 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                                 : .16;
                 direction.normalize().multiply(speed);
                 direction.setY(mob.getVelocity().getY());
+                if (mob instanceof org.bukkit.entity.Mob pathMob) {
+                    pathMob.getPathfinder()
+                            .moveTo(
+                                    nearest,
+                                    id.equals(boss)
+                                            ? Math.max(
+                                                    .1,
+                                                    Math.min(
+                                                            3, config.getDouble("boss.vitesse", 1)))
+                                            : 1.1);
+                }
                 mob.setVelocity(direction);
                 var face =
                         mob.getLocation()
@@ -290,6 +342,83 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                 mob.setRotation(face.getYaw(), 0);
             } else mob.setVelocity(new org.bukkit.util.Vector(0, mob.getVelocity().getY(), 0));
         }
+    }
+
+    /**
+     * Trajectoire visible et zone annoncée une seconde avant l’impact, sans entités persistantes.
+     */
+    private void rangedAttack(org.bukkit.entity.Entity source, List<Player> players) {
+        if (players.isEmpty()) return;
+        Player target =
+                players.get(
+                        java.util.concurrent.ThreadLocalRandom.current().nextInt(players.size()));
+        Location aim = target.getLocation().clone(),
+                start = source.getLocation().add(0, Math.min(6, source.getHeight()), 0);
+        double radius =
+                Math.max(
+                        1,
+                        Math.min(8, config.getDouble("boss-serveur.attaques-distance.rayon", 3)));
+        double power =
+                Math.max(
+                        0,
+                        Math.min(
+                                2048,
+                                config.getDouble("boss-serveur.attaques-distance.degats", 8)));
+        UUID attacker = source.getUniqueId();
+        target.sendActionBar(
+                fr.cliker.clikerv2.daily.DailySettings.color(
+                        "&c☄ Attaque du boss : esquive la zone rouge !"));
+        var timer =
+                new org.bukkit.scheduler.BukkitRunnable() {
+                    int frame;
+
+                    public void run() {
+                        if (stopped || completed || !attacker.equals(boss) || !source.isValid()) {
+                            rangedTasks.remove(getTask());
+                            cancel();
+                            return;
+                        }
+                        for (int i = 0; i < 24; i++) {
+                            double angle = i * Math.PI / 12;
+                            world.spawnParticle(
+                                    Particle.DUST,
+                                    aim.clone()
+                                            .add(
+                                                    Math.cos(angle) * radius,
+                                                    .15,
+                                                    Math.sin(angle) * radius),
+                                    1,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    new Particle.DustOptions(org.bukkit.Color.RED, 1.4f));
+                        }
+                        var point =
+                                start.clone()
+                                        .add(
+                                                aim.toVector()
+                                                        .subtract(start.toVector())
+                                                        .multiply(Math.min(1, frame / 10.0)));
+                        world.spawnParticle(Particle.FLAME, point, 8, .12, .12, .12, .01);
+                        if (++frame > 10) {
+                            world.spawnParticle(Particle.EXPLOSION, aim.clone().add(0, .5, 0), 1);
+                            for (Player p : fighters())
+                                if (p.getLocation().distanceSquared(aim) <= radius * radius)
+                                    p.damage(power, source);
+                            rangedTasks.remove(getTask());
+                            cancel();
+                        }
+                    }
+
+                    private BukkitTask getTask() {
+                        return rangedTasks.stream()
+                                .filter(t -> t.getTaskId() == getTaskId())
+                                .findFirst()
+                                .orElse(null);
+                    }
+                };
+        rangedTasks.add(timer.runTaskTimer(plugin, 0, 2));
     }
 
     private void message(Player p, String key) {
@@ -427,6 +556,16 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
             bar.setTitle("Boss " + tier.label() + " • " + Numbers.compact(hp) + " PV");
             bar.setProgress(Math.max(0, Math.min(1, (double) hp / bossMax)));
             for (Player player : players) fr.cliker.clikerv2.combat.BossMusic.play(player);
+            if (publicBoss
+                    && config.getBoolean("boss-serveur.attaques-distance.actives", true)
+                    && ++rangedCycle
+                                    % Math.max(
+                                            2,
+                                            config.getInt(
+                                                            "boss-serveur.attaques-distance.intervalle-secondes",
+                                                            8)
+                                                    / 2)
+                            == 0) rangedAttack(entity, players);
             double radius = bossRange;
             for (Player p : players)
                 if (p.getLocation().distanceSquared(entity.getLocation()) <= radius * radius) {
@@ -463,7 +602,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
             if (mob instanceof Ageable ageable) ageable.setAdult();
             if (mob instanceof Zombie zombie) zombie.setShouldBurnInDay(false);
             if (mob instanceof Slime slime) slime.setSize(2);
-            mob.setAI(false);
+            mob.setAI(true);
+            if (mob instanceof Mob creature) Bukkit.getMobGoals().removeAllGoals(creature);
             if (mob instanceof PiglinAbstract piglin) piglin.setImmuneToZombification(true);
             if (mob instanceof Hoglin hoglin) hoglin.setImmuneToZombification(true);
             if (mob instanceof Wither wither) wither.setInvulnerabilityTicks(0);
@@ -496,7 +636,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         var scale = giant.getAttribute(Attribute.SCALE);
         if (scale != null)
             scale.setBaseValue(Math.max(1, Math.min(8, config.getDouble("boss.echelle", 4))));
-        giant.setAI(false);
+        giant.setAI(true);
+        if (giant instanceof Mob creature) Bukkit.getMobGoals().removeAllGoals(creature);
         if (giant instanceof PiglinAbstract piglin) piglin.setImmuneToZombification(true);
         if (giant instanceof Hoglin hoglin) hoglin.setImmuneToZombification(true);
         if (giant instanceof Wither wither) wither.setInvulnerabilityTicks(0);
@@ -789,6 +930,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
 
     public void shutdown() {
         if (movementTask != null) movementTask.cancel();
+        rangedTasks.forEach(BukkitTask::cancel);
+        rangedTasks.clear();
         if (world != null) world.getPlayers().forEach(fr.cliker.clikerv2.combat.BossMusic::stop);
         observers.clear();
         if (hologramTask != null) hologramTask.cancel();

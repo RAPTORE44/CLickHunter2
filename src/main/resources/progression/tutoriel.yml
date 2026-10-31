@@ -1,0 +1,7 @@
+# Le guide valide les actions réellement effectuées, même dans un autre ordre.
+etapes:
+  menu: 'Ouvre /menu pour découvrir les raccourcis'
+  hunt: 'Élimine 5 mobs pour récupérer leurs ressources'
+  sell: 'Vends une ressource dans /sell'
+  upgrade: 'Achète une amélioration dans /upgrade'
+  daily: 'Réclame ta récompense dans /daily'

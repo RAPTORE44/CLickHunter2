@@ -12,7 +12,8 @@ mobs:
     xp: 5
 boss:
   tous-les-mobs: 100
-  pv: 10000000000 # boss de fin de progression, PV virtuels non limités par Minecraft
+  pv: 10000000000 # ancien champ, remplacé dans les raids par le multiplicateur ci-dessous
+  multiplicateur-pv: 1000 # × les PV du mob du raid
   degats: 12 # dégâts infligés toutes les 2 secondes aux joueurs à portée
   echelle: 4 # boss géant du même type que la zone
   vitesse: 1 # multiplicateur de déplacement
@@ -30,3 +31,11 @@ messages:
   boss: '&4⚔ Le boss de la zone arrive ! &cFrappez-le ensemble et évitez ses attaques.'
   arme: '&eUtilise ton épée de clicker pour infliger des dégâts.'
   victoire: '&aGardien vaincu ! Voici ta part selon tes dégâts :'
+# PV absolus du boss public, sans multiplication par le numéro de zone.
+boss-serveur:
+  pv: 1000000000
+  attaques-distance:
+    actives: true
+    intervalle-secondes: 8
+    rayon: 3
+    degats: 8

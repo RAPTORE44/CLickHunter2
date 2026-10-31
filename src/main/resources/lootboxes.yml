@@ -14,4 +14,4 @@ mythique:
   ecus: 7000000
 divin:
   ecus: 10000000
-# Chaque entrée accepte aussi cendres, xp et gemmes-dixiemes.
+# Chaque entrée accepte aussi xp. Les anciens champs cendres et gemmes-dixiemes sont ignorés (gains supprimés).

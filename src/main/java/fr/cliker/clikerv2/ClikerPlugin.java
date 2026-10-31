@@ -115,6 +115,11 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private MoneyScoreboard scoreboard;
     private TabListManager tabListManager;
     private fr.cliker.clikerv2.hologram.SharedHolograms sharedHolograms;
+    private fr.cliker.clikerv2.combat.PersonalCombatAudio personalCombatAudio;
+    private fr.cliker.clikerv2.staff.StaffTools staffTools;
+    private fr.cliker.clikerv2.trash.TrashMenu trashMenu;
+    private fr.cliker.clikerv2.tutorial.OnboardingGuide guide;
+    private fr.cliker.clikerv2.lootbox.PrestigeLootboxes prestigeLootboxes;
     private fr.cliker.clikerv2.ui.MainMenu mainMenu;
     private fr.cliker.clikerv2.daily.DailyModule dailyModule;
     private fr.cliker.clikerv2.buyzone.BuyZoneModule buyZoneModule;
@@ -428,6 +433,16 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         }
 
         fr.cliker.clikerv2.lootbox.LootboxTier.load(this);
+        prestigeLootboxes = new fr.cliker.clikerv2.lootbox.PrestigeLootboxes(this, database);
+        new fr.cliker.clikerv2.mobs.VanillaRewardsListener(this);
+        trashMenu = new fr.cliker.clikerv2.trash.TrashMenu(this);
+        trashMenu.start();
+        staffTools = new fr.cliker.clikerv2.staff.StaffTools(this);
+        staffTools.start();
+        personalCombatAudio = new fr.cliker.clikerv2.combat.PersonalCombatAudio(this);
+        personalCombatAudio.start();
+        guide = new fr.cliker.clikerv2.tutorial.OnboardingGuide(this);
+        guide.start();
         LootboxItem.init(this);
         getServer()
                 .getPluginManager()
@@ -740,6 +755,11 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
 
     @Override
     public void onDisable() {
+        stop("audio de combat", personalCombatAudio, value -> value.shutdown());
+        stop("outils staff", staffTools, value -> value.shutdown());
+        stop("poubelle", trashMenu, value -> value.shutdown());
+        stop("tutoriel", guide, value -> value.shutdown());
+        stop("caisses prestige", prestigeLootboxes, value -> value.shutdown());
         stop("ouverture des menus", () -> fr.cliker.clikerv2.ui.MenuOpenGuard.shutdown(this));
         stop(
                 "TAB",

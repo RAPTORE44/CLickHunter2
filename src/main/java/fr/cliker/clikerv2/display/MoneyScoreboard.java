@@ -1,6 +1,7 @@
 package fr.cliker.clikerv2.display;
 
 import fr.cliker.clikerv2.EconomyService;
+import fr.cliker.clikerv2.Numbers;
 import fr.cliker.clikerv2.daily.DailySettings;
 import fr.cliker.clikerv2.economy.CurrencyType;
 import fr.cliker.clikerv2.mobs.MobKillStore;
@@ -98,6 +99,21 @@ public final class MoneyScoreboard implements Listener {
                 YamlConfiguration.loadConfiguration(
                         fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "scoreboard.yml"));
         migrateAppearance(config);
+        config.set(
+                "lignes",
+                config.getStringList("lignes").stream()
+                        .filter(
+                                line ->
+                                        !line.replaceAll("(?i)[&§][0-9a-fk-or]", "")
+                                                .trim()
+                                                .equalsIgnoreCase("CLICKER"))
+                        .toList());
+        config.set("titre", RgbText.gradient("ClickHunter", 0x35FF75, 0x25BBFF, true));
+        try {
+            config.save(fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "scoreboard.yml"));
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException(e);
+        }
         lines =
                 config.getStringList("lignes").stream()
                         .map(
@@ -105,7 +121,13 @@ public final class MoneyScoreboard implements Listener {
                                     if (line.contains("{kills}")
                                             && !line.contains("{objectif-prestige}"))
                                         line += " &7/ &f{objectif-prestige}";
-                                    return line;
+                                    return line.replace(
+                                            "&a&lplay.clickhunter.fr",
+                                            RgbText.gradient(
+                                                    "play.clickhunter.fr",
+                                                    0x35FF75,
+                                                    0x25BBFF,
+                                                    true));
                                 })
                         .toList();
         if (lines.isEmpty() || lines.size() > 15)
@@ -281,13 +303,18 @@ public final class MoneyScoreboard implements Listener {
         values.put(
                 "cendres",
                 balances == null ? "…" : CurrencyType.CENDRES.format(balances.cendres()));
-        values.put("kills", kills == null ? "…" : String.format(Locale.FRANCE, "%,d", kills));
+        values.put(
+                "kills",
+                kills == null
+                        ? "…"
+                        : Numbers.compact(kills).toLowerCase(Locale.ROOT).replace('.', ','));
         values.put(
                 "objectif-prestige",
                 prestige >= 100
                         ? "MAX"
-                        : String.format(
-                                Locale.FRANCE, "%,d", PrestigeType.requiredKills(prestige + 1)));
+                        : Numbers.compact(PrestigeType.requiredKills(prestige + 1))
+                                .toLowerCase(Locale.ROOT)
+                                .replace('.', ','));
         values.put("connectes", Integer.toString(online));
         return values;
     }

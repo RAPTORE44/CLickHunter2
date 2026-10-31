@@ -16,6 +16,26 @@ public final class HelpCommand implements CommandExecutor, TabCompleter {
     private final Map<String, String> aliases = new HashMap<>();
 
     public HelpCommand() {
+        add(
+                "trash",
+                "Poubelle : gauche 1, droite pile, destruction à la fermeture.",
+                "cliker.trash",
+                "Inventaire");
+        add(
+                "tutoriel",
+                "Guide en bossbar : /tutoriel reprendre|masquer|recommencer.",
+                "cliker.tutoriel",
+                "Progression");
+        add(
+                "flyspeed",
+                "Régler le vol : /flyspeed <0-10> [joueur].",
+                "cliker.staff.flyspeed",
+                "Staff");
+        add("god", "Basculer l’invulnérabilité : /god [joueur].", "cliker.staff.god", "Staff");
+        add("heal", "Restaurer la vie : /heal [joueur].", "cliker.staff.heal", "Staff");
+        add("feed", "Restaurer la faim : /feed [joueur].", "cliker.staff.feed", "Staff");
+        aliases.put("pouvelle", "trash");
+        aliases.put("poubelle", "trash");
         add("menu", "Ouvrir le menu principal.", "", "Navigation");
         add("warp", "Voyager vers les zones débloquées.", "cliker.navigation.use", "Navigation");
         add("spawn", "Revenir au spawn.", "cliker.spawn.use", "Navigation");
@@ -64,7 +84,7 @@ public final class HelpCommand implements CommandExecutor, TabCompleter {
         add(
                 "top",
                 "Classements : catégories et navigation par jour, semaine, mois, année ou depuis"
-                    + " toujours ; alias /classement.",
+                        + " toujours ; alias /classement.",
                 "cliker.classement.use",
                 "Progression");
         add("daily", "Ouvrir le calendrier journalier.", "cliker.daily.use", "Activités");

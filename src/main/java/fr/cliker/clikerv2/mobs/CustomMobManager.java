@@ -116,16 +116,26 @@ public final class CustomMobManager implements Listener {
         if (!bossFile.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "boss.yml");
         var bossConfig =
                 org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(bossFile);
-        if (bossConfig.getInt("equilibrage-version", 0) < 1) {
-            bossConfig.set("multiplicateur-pv", 1000);
-            bossConfig.set("equilibrage-version", 1);
+        if (bossConfig.getInt("equilibrage-version", 0) < 2) {
+            try {
+                var backup =
+                        bossFile.toPath()
+                                .getParent()
+                                .resolve("backups/boss-pv-" + System.currentTimeMillis() + ".yml");
+                java.nio.file.Files.createDirectories(backup.getParent());
+                java.nio.file.Files.copy(bossFile.toPath(), backup);
+            } catch (java.io.IOException e) {
+                throw new IllegalStateException("Sauvegarde des PV de boss impossible", e);
+            }
+            bossConfig.set("multiplicateur-pv", 100);
+            bossConfig.set("equilibrage-version", 2);
             try {
                 bossConfig.save(bossFile);
             } catch (java.io.IOException error) {
                 throw new IllegalStateException("Sauvegarde boss impossible", error);
             }
         }
-        bossHpMultiplier = bossConfig.getDouble("multiplicateur-pv", 1000);
+        bossHpMultiplier = bossConfig.getDouble("multiplicateur-pv", 100);
         bossAnnouncements = bossConfig.getBoolean("annonces.actives", true);
         bossDeathMessage =
                 bossConfig.getString(
@@ -226,6 +236,17 @@ public final class CustomMobManager implements Listener {
         }
     }
 
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGHEST, ignoreCancelled = true)
+    public void harmlessZoneBoss(org.bukkit.event.entity.EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player)) return;
+        org.bukkit.entity.Entity source = event.getDamager();
+        if (source instanceof org.bukkit.entity.Projectile projectile
+                && projectile.getShooter() instanceof org.bukkit.entity.Entity shooter)
+            source = shooter;
+        String id = source.getPersistentDataContainer().get(spawnIdKey, PersistentDataType.STRING);
+        if (id != null && bossSpawnIds.contains(id)) event.setCancelled(true);
+    }
+
     private void moveBoss(String id, LivingEntity boss, Location origin) {
         Player target =
                 bossTargets.containsKey(id)
@@ -266,9 +287,6 @@ public final class CustomMobManager implements Listener {
                                             .subtract(boss.getLocation().toVector()));
             boss.setRotation(facing.getYaw(), 0);
             fr.cliker.clikerv2.combat.BossMusic.play(target);
-            if (bossTick % 40 == 0
-                    && target.getLocation().distanceSquared(boss.getLocation()) <= 16)
-                target.damage(6, boss);
         }
         if (bossTick % 10 == 0) {
             var tier = MobTier.parse(spawnMobId.get(id));
@@ -761,6 +779,7 @@ public final class CustomMobManager implements Listener {
     }
 
     public void showDamage(Player player, LivingEntity victim, long amount) {
+        fr.cliker.clikerv2.combat.PersonalCombatAudio.mark(player);
         if (amount > 0)
             player.playSound(
                     player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_HAT, 0.5f, 1.2f);
@@ -1013,6 +1032,12 @@ public final class CustomMobManager implements Listener {
             // (BossEventManager, toutes les 30 min).
         } else if (spawnLocation.containsKey(spawnId)) {
             scheduleRespawn(spawnId);
+            fr.cliker.clikerv2.gear.DoubleRespawn.trigger(
+                    killer,
+                    tier,
+                    spawnLocation.get(spawnId),
+                    ThreadLocalRandom.current().nextDouble(100),
+                    this::spawnOnce);
         }
     }
 
@@ -1261,6 +1286,9 @@ public final class CustomMobManager implements Listener {
         int altAmount = Math.max(1, (random.nextInt(1, 11) * index) / gainDivisor);
         drops.add(EssenceItem.create(tier, EssenceRarity.COMMUNE, communeAmount));
         drops.add(EssenceItem.create(tier, altRarity, altAmount));
+        drops.add(
+                fr.cliker.clikerv2.features.MobEggs.create(
+                        plugin, tier, random.nextInt(4) == 0 ? "epique" : "rare"));
 
         long ecusReward = ((long) random.nextInt(1000, 5001) * index) / gainDivisor;
         long gemmesReward = ((long) random.nextInt(10, 21) * index) / gainDivisor;

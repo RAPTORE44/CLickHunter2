@@ -184,9 +184,9 @@ public final class UpgradeManager implements Listener {
                                                                         ? "Gemmes Sombres"
                                                                                 + " insuffisantes."
                                                                         : "Cette amélioration :"
-                                                                              + " quantité"
-                                                                              + " indisponible ou"
-                                                                              + " au maximum.",
+                                                                                + " quantité"
+                                                                                + " indisponible ou"
+                                                                                + " au maximum.",
                                                                 NamedTextColor.RED));
                                         } else if (player.isOnline()) {
                                             cache.computeIfAbsent(
@@ -194,6 +194,10 @@ public final class UpgradeManager implements Listener {
                                                             key -> new EnumMap<>(UpgradeType.class))
                                                     .put(type, level);
                                             applyAttributes(player, cache.get(owner));
+                                            fr.cliker.clikerv2.tutorial.OnboardingGuide.record(
+                                                    player,
+                                                    fr.cliker.clikerv2.tutorial.OnboardingGuide
+                                                            .Action.UPGRADE);
                                             player.sendMessage(
                                                     Component.text(
                                                             type.label()

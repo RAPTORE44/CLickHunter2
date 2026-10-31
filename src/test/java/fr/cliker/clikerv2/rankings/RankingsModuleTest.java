@@ -77,7 +77,7 @@ class RankingsModuleTest {
     }
 
     private String info() {
-        return player.getOpenInventory().getTopInventory().getItem(15).getItemMeta().lore().stream()
+        return player.getOpenInventory().getTopInventory().getItem(4).getItemMeta().lore().stream()
                 .map(
                         net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
                                         .plainText()
@@ -91,7 +91,7 @@ class RankingsModuleTest {
         module.onCommand(player, command, "classement", new String[] {"donateurs"});
         drain();
         assertEquals(54, player.getOpenInventory().getTopInventory().getSize());
-        var meta = player.getOpenInventory().getTopInventory().getItem(19).getItemMeta();
+        var meta = player.getOpenInventory().getTopInventory().getItem(20).getItemMeta();
         var plain =
                 net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText();
         assertTrue(plain.serialize(meta.displayName()).contains("Alice"));
@@ -101,7 +101,7 @@ class RankingsModuleTest {
                         .collect(java.util.stream.Collectors.joining(" "));
         assertFalse(lore.contains("12.34"));
         assertFalse(lore.contains("1234"));
-        for (int slot : new int[] {20, 21, 22, 23, 24, 25, 28, 29, 30})
+        for (int slot : new int[] {22, 24, 28, 29, 30, 31, 32, 33, 34})
             assertNotNull(player.getOpenInventory().getTopInventory().getItem(slot));
     }
 
@@ -121,8 +121,9 @@ class RankingsModuleTest {
                         })
                 .join();
         module.open(player);
+        click(20);
         drain();
-        click(9);
+        click(10);
         assertTrue(info().contains(today.format(format)));
         assertEquals(
                 Material.GRAY_DYE,
@@ -131,15 +132,15 @@ class RankingsModuleTest {
         assertTrue(info().contains(today.minusDays(1).format(format)));
         click(53);
         assertTrue(info().contains(today.format(format)));
-        click(11);
+        click(13);
         click(45);
         assertTrue(info().contains(today.withDayOfMonth(1).minusMonths(1).format(format)));
         click(49);
         assertTrue(info().contains(today.withDayOfMonth(1).format(format)));
-        click(12);
+        click(14);
         click(45);
         assertTrue(info().contains(today.withDayOfYear(1).minusYears(1).format(format)));
-        click(13);
+        click(16);
         assertTrue(info().contains("Depuis toujours"));
         assertEquals(
                 Material.GRAY_DYE,
@@ -149,8 +150,9 @@ class RankingsModuleTest {
     @Test
     void firstUntrackedPeriodsAndPermissionChangesCannotOpenInvalidMenus() {
         module.open(player);
+        click(20);
         drain();
-        click(9);
+        click(10);
         assertEquals(
                 Material.GRAY_DYE,
                 player.getOpenInventory().getTopInventory().getItem(45).getType());

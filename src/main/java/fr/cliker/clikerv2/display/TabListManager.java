@@ -57,6 +57,13 @@ public final class TabListManager implements Listener {
             settings.yaml.set("animation.secondes-par-lien", 10);
             settings.save();
         }
+        if (!settings.yaml.getStringList("pied").contains("{animation}")) {
+            var footer = new ArrayList<>(settings.yaml.getStringList("pied"));
+            footer.add(1, "{animation}");
+            settings.yaml.set("pied", footer);
+            settings.yaml.set("actualisation-ticks", 10);
+            settings.save();
+        }
         groups = List.copyOf(settings.yaml.getStringList("ordre-grades"));
     }
 
@@ -68,7 +75,7 @@ public final class TabListManager implements Listener {
                                 plugin,
                                 this::refresh,
                                 1,
-                                Math.max(20, settings.yaml.getLong("actualisation-ticks", 40)));
+                                Math.max(10, settings.yaml.getLong("actualisation-ticks", 10)));
     }
 
     private String group(Player p) {
@@ -126,6 +133,24 @@ public final class TabListManager implements Listener {
         return DailySettings.color(
                 String.join("\n", settings.yaml.getStringList(key))
                         .replace("{annonce}", rotatingLink())
+                        .replace(
+                                "{animation}",
+                                "&b"
+                                        + RgbText.marquee(
+                                                "✦ Joue • Progresse • Découvre • Vote pour"
+                                                        + " ClickHunter !",
+                                                (System.currentTimeMillis() - animationStarted)
+                                                        / 400,
+                                                44))
+                        .replace(
+                                "&a&lClickHunter",
+                                RgbText.gradient("ClickHunter", 0x35FF75, 0x25BBFF, true))
+                        .replace(
+                                "&fplay.clickhunter.fr",
+                                RgbText.gradient("play.clickhunter.fr", 0x35FF75, 0x25BBFF, true))
+                        .replace(
+                                "&aplay.clickhunter.fr",
+                                RgbText.gradient("play.clickhunter.fr", 0x35FF75, 0x25BBFF, true))
                         .replace("{connectes}", Integer.toString(Bukkit.getOnlinePlayers().size()))
                         .replace("{maximum}", Integer.toString(Bukkit.getMaxPlayers()))
                         .replace(

@@ -24,6 +24,41 @@ class MobAnchorTest {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
+    void zoneBossDamageIsCancelledWithoutAffectingOtherEntities() throws Exception {
+        var server = MockBukkit.mock();
+        var plugin = MockBukkit.createMockPlugin();
+        var world = server.addSimpleWorld("world");
+        var player = server.addPlayer();
+        var boss = world.spawnEntity(new Location(world, 0, 65, 0), EntityType.COW);
+        var manager = new CustomMobManager(plugin, null, null, null, null, null, null, null);
+        Set<String> ids = field(manager, "bossSpawnIds");
+        ids.add("zone-boss");
+        boss.getPersistentDataContainer()
+                .set(
+                        new NamespacedKey(plugin, "cliker_spawn_id"),
+                        org.bukkit.persistence.PersistentDataType.STRING,
+                        "zone-boss");
+        var hit =
+                new org.bukkit.event.entity.EntityDamageByEntityEvent(
+                        boss,
+                        player,
+                        org.bukkit.event.entity.EntityDamageEvent.DamageCause.ENTITY_ATTACK,
+                        6);
+        manager.harmlessZoneBoss(hit);
+        assertTrue(hit.isCancelled());
+        boss.getPersistentDataContainer().remove(new NamespacedKey(plugin, "cliker_spawn_id"));
+        var other =
+                new org.bukkit.event.entity.EntityDamageByEntityEvent(
+                        boss,
+                        player,
+                        org.bukkit.event.entity.EntityDamageEvent.DamageCause.ENTITY_ATTACK,
+                        6);
+        manager.harmlessZoneBoss(other);
+        assertFalse(other.isCancelled());
+    }
+
+    @Test
     void externallyTeleportedMobReturnsToItsOwnWorldWithoutBreakingTheAnchorLoop()
             throws Exception {
         var server = MockBukkit.mock();

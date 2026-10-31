@@ -265,6 +265,27 @@ public class ZnpcsNpc implements Listener {
                                 config.getString("pnj.skin", "Nati144378"));
                 property(npc, "skin", skin);
             }
+            if (config.getString("pnj.type", "player").equals("villager")) {
+                String biome =
+                        config.getString("pnj.villageois.biome", VillagerAppearance.biome(id));
+                String job =
+                        config.getString(
+                                "pnj.villageois.profession", VillagerAppearance.profession(id));
+                property(
+                        npc,
+                        "villager_type",
+                        Enum.valueOf(
+                                (Class<? extends Enum>)
+                                        Class.forName("lol.pyr.znpcsplus.util.VillagerType"),
+                                biome));
+                property(
+                        npc,
+                        "villager_profession",
+                        Enum.valueOf(
+                                (Class<? extends Enum>)
+                                        Class.forName("lol.pyr.znpcsplus.util.VillagerProfession"),
+                                job));
+            }
             Object hologram = call(npc, "getHologram");
             call(hologram, "clearLines");
             var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();

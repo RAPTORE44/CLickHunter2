@@ -3,7 +3,6 @@ style-version: 2
 titre: '&a&lClickHunter'
 actualisation-ticks: 40
 lignes:
-  - '&7CLICKER'
   - ''
   - '&6{joueur}'
   - '&b┃ ✦ &fNiveau : &b{niveau}'

@@ -1,0 +1,9 @@
+# Chaque seuil s'applique jusqu'au suivant. Niveau de prestige, pas niveau XP.
+paliers:
+  '0': commun
+  '1': peu-commun
+  '2': rare
+  '3': epique
+  '4': legendaire
+  '5': mythique
+  '6': divin

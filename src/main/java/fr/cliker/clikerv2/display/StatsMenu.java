@@ -56,10 +56,26 @@ public final class StatsMenu implements Listener {
     }
 
     public void open(Player player) {
+        open(player, player);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void interact(org.bukkit.event.player.PlayerInteractEntityEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND
+                || !(event.getRightClicked() instanceof Player subject)) return;
+        var viewer = event.getPlayer();
+        if (!viewer.hasPermission("cliker.stats.use")
+                || !viewer.canSee(subject)
+                || viewer.getLocation().distanceSquared(subject.getLocation()) > 36) return;
+        event.setCancelled(true);
+        fr.cliker.clikerv2.ui.MenuOpenGuard.request(plugin, viewer, () -> open(viewer, subject));
+    }
+
+    public void open(Player player, Player subject) {
         var request = requests.begin(player);
-        economy.getBalances(player.getUniqueId())
+        economy.getBalances(subject.getUniqueId())
                 .thenCombine(
-                        killStore.getTotal(player.getUniqueId()),
+                        killStore.getTotal(subject.getUniqueId()),
                         (balances, kills) -> new Object[] {balances, kills})
                 .whenComplete(
                         (result, error) ->
@@ -67,8 +83,10 @@ public final class StatsMenu implements Listener {
                                         plugin,
                                         () -> {
                                             if (!requests.complete(player, request)
-                                                    || !player.hasPermission("cliker.stats.use"))
-                                                return;
+                                                    || !player.hasPermission("cliker.stats.use")
+                                                    || !fr.cliker.clikerv2.runtime.PlayerSessions
+                                                            .isCurrent(subject)
+                                                    || !player.canSee(subject)) return;
                                             if (error != null) {
                                                 plugin.getLogger()
                                                         .log(
@@ -92,13 +110,14 @@ public final class StatsMenu implements Listener {
                                                             holder,
                                                             54,
                                                             Component.text(
-                                                                    "Statistiques",
+                                                                    "Statistiques — "
+                                                                            + subject.getName(),
                                                                     NamedTextColor.GREEN,
                                                                     TextDecoration.BOLD));
                                             holder.inventory = inventory;
 
                                             ItemStack[] armorContents =
-                                                    player.getInventory()
+                                                    subject.getInventory()
                                                             .getArmorContents(); // [boots,
                                             // leggings, chest,
                                             // helmet]
@@ -121,11 +140,12 @@ public final class StatsMenu implements Listener {
                                             inventory.setItem(
                                                     SWORD_SLOT,
                                                     displayOrPlaceholder(
-                                                            player.getInventory()
+                                                            subject.getInventory()
                                                                     .getItemInMainHand(),
                                                             "Épée"));
                                             inventory.setItem(
-                                                    RECAP_SLOT, recapItem(player, balances, kills));
+                                                    RECAP_SLOT,
+                                                    recapItem(subject, balances, kills));
 
                                             fr.cliker.clikerv2.ui.MenuNavigation.back(
                                                     plugin, inventory, 49);

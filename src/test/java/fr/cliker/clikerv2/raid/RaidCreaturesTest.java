@@ -23,6 +23,19 @@ class RaidCreaturesTest {
     }
 
     @Test
+    void privateBossHasOneThousandTimesMobHealthAndPublicHealthDoesNotScaleByZone()
+            throws Exception {
+        var normal = RaidModule.class.getDeclaredField("normalHP");
+        normal.setAccessible(true);
+        var hp = RaidModule.class.getDeclaredField("configuredBossHP");
+        hp.setAccessible(true);
+        var raid = RaidModule.managed(plugin, null, null, "arena", 19, false, () -> {});
+        assertEquals(Math.multiplyExact(normal.getLong(raid), 1000), hp.getLong(raid));
+        var publicBoss = RaidModule.managed(plugin, null, null, "public", 19, true, () -> {});
+        assertEquals(1000000000L, hp.getLong(publicBoss));
+    }
+
+    @Test
     void cowAndPigRaidsUseTheirOwnSpecies() {
         assertEquals(
                 EntityType.COW,

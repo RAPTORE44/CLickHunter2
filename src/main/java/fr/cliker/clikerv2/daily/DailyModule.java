@@ -174,9 +174,12 @@ public final class DailyModule implements CommandExecutor, TabCompleter, Listene
                                                                         + " les doublons.");
                                                 if (player.isOnline())
                                                     send(player, "erreur-commande");
-                                            } else if (player.isOnline())
-                                                player.sendMessage(
-                                                        settings.message("recupere", values));
+                                            } else if (player.isOnline()) {
+                                                fr.cliker.clikerv2.tutorial.OnboardingGuide.record(
+                                                        player,
+                                                        fr.cliker.clikerv2.tutorial.OnboardingGuide
+                                                                .Action.DAILY);
+                                            }
                                         } else if (player.isOnline()) send(player, "indisponible");
                                         if (player.isOnline())
                                             menu.update(player, claim.progress());

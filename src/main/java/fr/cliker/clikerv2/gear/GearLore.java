@@ -7,6 +7,7 @@ import fr.cliker.clikerv2.prestige.PrestigeType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -14,7 +15,10 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Reconstruit la lore complète d'une épée/armure tier après modification des enchants/reforge/runes. */
+/**
+ * Reconstruit la lore complète d'une épée/armure tier après modification des
+ * enchants/reforge/runes.
+ */
 public final class GearLore {
     private GearLore() {}
 
@@ -58,32 +62,67 @@ public final class GearLore {
         item.setItemMeta(meta);
     }
 
-    private static void insertModsSections(List<Component> lore, int insertAt, ItemStack item, EnchantType.Category category, MobTier tier) {
+    private static void insertModsSections(
+            List<Component> lore,
+            int insertAt,
+            ItemStack item,
+            EnchantType.Category category,
+            MobTier tier) {
         List<Component> section = new ArrayList<>();
 
         for (EnchantType type : EnchantType.of(category)) {
             int level = ItemMods.getEnchantLevel(item, type);
             if (level <= 0) continue;
-            section.add(Component.text("✦ " + type.label() + " ", type.color())
-                    .append(Component.text(PrestigeType.toRoman(level), NamedTextColor.YELLOW))
-                    .append(Component.text(" (+" + Numbers.compact(type.magnitudeAt(tier, level)) + (isPercent(type) ? "%" : "") + ")", NamedTextColor.GRAY)));
-            section.add(Component.text("  " + type.description(), NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
+            section.add(
+                    Component.text("✦ " + type.label() + " ", type.color())
+                            .append(
+                                    Component.text(
+                                            PrestigeType.toRoman(level), NamedTextColor.YELLOW))
+                            .append(
+                                    Component.text(
+                                            " (+"
+                                                    + Numbers.compact(type.magnitudeAt(tier, level))
+                                                    + (isPercent(type) ? "%" : "")
+                                                    + ")",
+                                            NamedTextColor.GRAY)));
+            section.add(
+                    Component.text("  " + type.description(), NamedTextColor.DARK_GRAY)
+                            .decoration(TextDecoration.ITALIC, false));
         }
 
         ReforgeType reforge = ItemMods.getReforge(item);
         if (reforge != null) {
-            section.add(Component.text("⚒ Reforge : ", NamedTextColor.GRAY).decoration(TextDecoration.ITALIC, false)
-                    .append(Component.text(reforge.label(), reforge.color(), TextDecoration.BOLD)));
-            section.add(Component.text("  " + reforge.description(), NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
+            section.add(
+                    Component.text("⚒ Reforge : ", NamedTextColor.GRAY)
+                            .decoration(TextDecoration.ITALIC, false)
+                            .append(
+                                    Component.text(
+                                            reforge.label(),
+                                            reforge.color(),
+                                            TextDecoration.BOLD)));
+            section.add(
+                    Component.text("  " + reforge.description(), NamedTextColor.DARK_GRAY)
+                            .decoration(TextDecoration.ITALIC, false));
         }
 
         for (RuneType type : RuneType.of(category)) {
             int level = ItemMods.getRuneLevel(item, type);
             if (level <= 0) continue;
-            section.add(Component.text("◆ Rune " + type.label() + " ", type.color())
-                    .append(Component.text(PrestigeType.toRoman(level), NamedTextColor.AQUA))
-                    .append(Component.text(" (+" + Numbers.compact(type.magnitudeAt(tier, level)) + (isPercent(type) ? "%" : "") + ")", NamedTextColor.GRAY)));
-            section.add(Component.text("  " + type.description(), NamedTextColor.DARK_GRAY).decoration(TextDecoration.ITALIC, false));
+            section.add(
+                    Component.text("◆ Rune " + type.label() + " ", type.color())
+                            .append(
+                                    Component.text(
+                                            PrestigeType.toRoman(level), NamedTextColor.AQUA))
+                            .append(
+                                    Component.text(
+                                            " (+"
+                                                    + Numbers.compact(type.magnitudeAt(tier, level))
+                                                    + (isPercent(type) ? "%" : "")
+                                                    + ")",
+                                            NamedTextColor.GRAY)));
+            section.add(
+                    Component.text("  " + type.description(), NamedTextColor.DARK_GRAY)
+                            .decoration(TextDecoration.ITALIC, false));
         }
 
         if (section.isEmpty()) return;
@@ -92,7 +131,10 @@ public final class GearLore {
     }
 
     private static boolean isPercent(EnchantType type) {
-        return type == EnchantType.DEFENCE || type == EnchantType.LOOT_FINDER || type == EnchantType.CRITICAL;
+        return type == EnchantType.DEFENCE
+                || type == EnchantType.LOOT_FINDER
+                || type == EnchantType.DOUBLE_RESPAWN
+                || type == EnchantType.CRITICAL;
     }
 
     private static boolean isPercent(RuneType type) {

@@ -7,7 +7,6 @@ import fr.cliker.clikerv2.economy.CurrencyType;
 import fr.cliker.clikerv2.mobs.MobKillStore;
 import fr.cliker.clikerv2.prestige.*;
 
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 import org.junit.jupiter.api.*;
@@ -53,8 +52,15 @@ class MoneyScoreboardTest {
         assertEquals("25", values.get("niveau"));
         assertEquals("3", values.get("connectes"));
         assertEquals(
-                String.format(java.util.Locale.FRANCE, "%,d", PrestigeType.requiredKills(5)),
+                fr.cliker.clikerv2.Numbers.compact(PrestigeType.requiredKills(5))
+                        .toLowerCase(java.util.Locale.ROOT)
+                        .replace('.', ','),
                 values.get("objectif-prestige"));
+    }
+
+    @Test
+    void killsUseShortFrenchUnits() {
+        assertEquals("2,5k", MoneyScoreboard.values("Joueur", 1, 0, null, 2500L, 1).get("kills"));
     }
 
     @Test
@@ -123,22 +129,28 @@ class MoneyScoreboardTest {
         assertEquals(
                 "ClickHunter",
                 PlainTextComponentSerializer.plainText().serialize(objective.displayName()));
-        assertEquals(NamedTextColor.GREEN, objective.displayName().color());
+        assertTrue(
+                objective.displayName().children().stream()
+                                .map(net.kyori.adventure.text.Component::color)
+                                .filter(java.util.Objects::nonNull)
+                                .distinct()
+                                .count()
+                        > 1);
         assertTrue(
                 PlainTextComponentSerializer.plainText()
-                        .serialize(board.getTeam("cliker_line_5").prefix())
+                        .serialize(board.getTeam("cliker_line_4").prefix())
                         .contains("18.5"));
         assertEquals(
                 "play.clickhunter.fr",
                 PlainTextComponentSerializer.plainText()
-                        .serialize(board.getTeam("cliker_line_14").prefix()));
-        assertEquals(16, board.getTeams().size());
+                        .serialize(board.getTeam("cliker_line_13").prefix()));
+        assertEquals(15, board.getTeams().size());
         assertEquals(
                 org.bukkit.scoreboard.Team.OptionStatus.NEVER,
                 board.getTeam("cliker_no_push")
                         .getOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE));
         assertTrue(board.getTeam("cliker_no_push").hasEntry(player.getName()));
-        assertEquals(15, formats.get());
+        assertEquals(14, formats.get());
         scoreboard.shutdown();
         assertSame(previous, player.getScoreboard());
     }

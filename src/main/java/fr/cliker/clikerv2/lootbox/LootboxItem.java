@@ -1,7 +1,6 @@
 package fr.cliker.clikerv2.lootbox;
 
 import fr.cliker.clikerv2.Numbers;
-import fr.cliker.clikerv2.economy.CurrencyType;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -25,7 +24,7 @@ public final class LootboxItem {
     }
 
     public static ItemStack create(LootboxTier tier) {
-        ItemStack item = new ItemStack(Material.CHEST);
+        ItemStack item = new ItemStack(Material.ENDER_CHEST);
         var meta = item.getItemMeta();
         meta.displayName(
                 Component.text(tier.boxName(), tier.color(), TextDecoration.BOLD)
@@ -35,12 +34,7 @@ public final class LootboxItem {
                         Component.text("Contient :", NamedTextColor.GRAY)
                                 .decoration(TextDecoration.ITALIC, false),
                         line(Numbers.compact(tier.ecus()) + " Écus", NamedTextColor.GOLD),
-                        line(
-                                CurrencyType.GEMMES_SOMBRES.format(tier.gemmesSombresTenths())
-                                        + " Gemmes Sombres",
-                                NamedTextColor.DARK_PURPLE),
                         line(Numbers.compact(tier.xp()) + " XP", NamedTextColor.AQUA),
-                        line(Numbers.compact(tier.cendres()) + " Cendres", NamedTextColor.GRAY),
                         Component.text(""),
                         Component.text("Clic-droit pour ouvrir !", NamedTextColor.YELLOW)
                                 .decoration(TextDecoration.ITALIC, false),

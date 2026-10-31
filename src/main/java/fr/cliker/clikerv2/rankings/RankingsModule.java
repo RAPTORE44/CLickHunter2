@@ -58,7 +58,47 @@ public final class RankingsModule implements CommandExecutor, TabCompleter, List
     }
 
     public void open(Player player) {
-        open(player, RankingMetric.ECUS, RankingPeriod.ALL, LocalDate.now(zone));
+        if (stopped || !player.hasPermission(USE)) return;
+        int[] slots = {20, 22, 24, 29, 31, 33};
+        var view =
+                HuntUI.view(
+                        player,
+                        "&6🏆 Classements",
+                        54,
+                        slot -> {
+                            if (!player.hasPermission(USE)) return;
+                            for (int i = 0; i < slots.length; i++)
+                                if (slot == slots[i]) {
+                                    open(
+                                            player,
+                                            RankingMetric.values()[i],
+                                            RankingPeriod.ALL,
+                                            LocalDate.now(zone));
+                                    return;
+                                }
+                            if (slot == 49) player.performCommand("menu");
+                        });
+        view.getInventory()
+                .setItem(
+                        4,
+                        HuntUI.item(
+                                Material.BOOK,
+                                "&6🏆 Choisis un classement",
+                                List.of(
+                                        "&7Une catégorie, puis une période.",
+                                        "&7Top 10 • Jour • Semaine • Mois • Année")));
+        for (var metric : RankingMetric.values())
+            view.getInventory()
+                    .setItem(
+                            slots[metric.ordinal()],
+                            HuntUI.item(
+                                    metric.icon,
+                                    metric.title,
+                                    List.of(
+                                            "&7Consulte les dix premiers joueurs.",
+                                            "&eClique pour ouvrir.")));
+        view.getInventory().setItem(49, HuntUI.item(Material.ARROW, "&eRetour au menu", List.of()));
+        player.openInventory(view.getInventory());
     }
 
     private void open(Player player, RankingMetric metric, RankingPeriod period, LocalDate date) {
@@ -109,7 +149,8 @@ public final class RankingsModule implements CommandExecutor, TabCompleter, List
                 next = all ? date : period.shift(date, 1);
         boolean hasPrevious = !all && period.available(previous, board.since(), today);
         boolean hasNext = !all && !next.isAfter(period.start(today));
-        int[] ranks = {19, 20, 21, 22, 23, 24, 25, 28, 29, 30};
+        int[] ranks = {20, 22, 24, 28, 29, 30, 31, 32, 33, 34};
+        int[] periods = {10, 12, 13, 14, 16};
         var view =
                 HuntUI.view(
                         player,
@@ -117,35 +158,28 @@ public final class RankingsModule implements CommandExecutor, TabCompleter, List
                         54,
                         slot -> {
                             if (!player.hasPermission(USE)) return;
-                            if (slot >= 0 && slot < RankingMetric.values().length)
-                                open(player, RankingMetric.values()[slot], period, date);
-                            else if (slot >= 9 && slot < 9 + RankingPeriod.values().length) {
-                                var selected = RankingPeriod.values()[slot - 9];
-                                open(player, metric, selected, selected.start(date));
-                            } else if (slot == 45 && hasPrevious)
-                                open(player, metric, period, previous);
+                            if (slot == 48) {
+                                open(player);
+                                return;
+                            }
+                            for (int i = 0; i < periods.length; i++)
+                                if (slot == periods[i]) {
+                                    var selected = RankingPeriod.values()[i];
+                                    open(player, metric, selected, selected.start(date));
+                                    return;
+                                }
+                            if (slot == 45 && hasPrevious) open(player, metric, period, previous);
                             else if (slot == 53 && hasNext) open(player, metric, period, next);
                             else if (slot == 49) open(player, metric, period, period.start(today));
                             else if (slot == 50) open(player, metric, period, date);
                         });
-        for (var category : RankingMetric.values())
-            view.getInventory()
-                    .setItem(
-                            category.ordinal(),
-                            HuntUI.item(
-                                    category.icon,
-                                    category.title,
-                                    List.of(
-                                            category == metric
-                                                    ? "&aCatégorie sélectionnée"
-                                                    : "&eClique pour sélectionner.")));
         Material[] periodIcons = {
             Material.SUNFLOWER, Material.PAPER, Material.MAP, Material.BOOK, Material.NETHER_STAR
         };
         for (var selected : RankingPeriod.values())
             view.getInventory()
                     .setItem(
-                            9 + selected.ordinal(),
+                            periods[selected.ordinal()],
                             HuntUI.item(
                                     periodIcons[selected.ordinal()],
                                     "&e" + selected.label,
@@ -165,7 +199,7 @@ public final class RankingsModule implements CommandExecutor, TabCompleter, List
             info.add("&eLa première période peut être partielle.");
         if (!tracked) info.add("&cHistorique indisponible pour cette période.");
         if (metric == RankingMetric.DONORS) info.add("&7Les points de dons restent privés.");
-        view.getInventory().setItem(15, HuntUI.item(Material.CLOCK, metric.title, info));
+        view.getInventory().setItem(4, HuntUI.item(Material.CLOCK, metric.title, info));
         var entries = tracked ? board.entries() : List.<RankingStore.Entry>of();
         for (int rank = 0; rank < 10; rank++) {
             if (rank >= entries.size()) {
@@ -223,6 +257,13 @@ public final class RankingsModule implements CommandExecutor, TabCompleter, List
                                         hasNext
                                                 ? "&7" + period.range(next)
                                                 : "&7Tu es à la période actuelle.")));
+        view.getInventory()
+                .setItem(
+                        48,
+                        HuntUI.item(
+                                Material.COMPASS,
+                                "&6Changer de catégorie",
+                                List.of("&7Revenir aux six classements.")));
         player.openInventory(view.getInventory());
     }
 

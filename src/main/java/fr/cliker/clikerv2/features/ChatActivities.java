@@ -37,6 +37,26 @@ public final class ChatActivities implements Listener {
     public ChatActivities(JavaPlugin plugin) {
         this.plugin = plugin;
         settings = new Settings(plugin, "activites/tchat.yml");
+        for (String key : List.of("debut", "gagnant")) {
+            String path = "messages." + key;
+            if (settings.yaml.contains(path))
+                settings.yaml.set(
+                        path,
+                        settings.yaml
+                                .getString(path)
+                                .replaceAll(
+                                        "(?i)1 lootbox divine", "une caisse selon le prestige"));
+        }
+        settings.yaml.set(
+                "aides.messages",
+                settings.yaml.getStringList("aides.messages").stream()
+                        .map(
+                                message ->
+                                        message.replace(
+                                                "une lootbox divine",
+                                                "une caisse selon son prestige"))
+                        .toList());
+        settings.save();
         simplifyDefaultAnswers();
         if (settings.yaml.getInt("jeux.intervalle-secondes", 900) != 900) {
             settings.yaml.set("jeux.intervalle-secondes", 900);
@@ -323,14 +343,43 @@ public final class ChatActivities implements Listener {
         Round won = round;
         round = null;
         attempts.clear();
-        var prize = LootboxItem.create(LootboxTier.DIVIN);
-        String payload = ClaimService.serialize(prize);
-        reward(
-                won.id,
-                player.getUniqueId(),
-                player.getName(),
-                payload,
-                won.question.displayedAnswer);
+        rewardForPrestige(
+                won.id, player.getUniqueId(), player.getName(), won.question.displayedAnswer);
+    }
+
+    private void rewardForPrestige(UUID source, UUID owner, String name, String answer) {
+        fr.cliker.clikerv2.lootbox.PrestigeLootboxes.resolve(owner)
+                .whenComplete(
+                        (tier, error) ->
+                                fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                        plugin,
+                                        () -> {
+                                            if (stopped) return;
+                                            if (error != null) {
+                                                plugin.getLogger()
+                                                        .log(
+                                                                java.util.logging.Level.WARNING,
+                                                                "Rareté de la récompense à"
+                                                                        + " réessayer",
+                                                                error);
+                                                Bukkit.getScheduler()
+                                                        .runTaskLater(
+                                                                plugin,
+                                                                () ->
+                                                                        rewardForPrestige(
+                                                                                source, owner, name,
+                                                                                answer),
+                                                                100);
+                                                return;
+                                            }
+                                            reward(
+                                                    source,
+                                                    owner,
+                                                    name,
+                                                    ClaimService.serialize(
+                                                            LootboxItem.create(tier)),
+                                                    answer);
+                                        }));
     }
 
     private void reward(UUID source, UUID owner, String name, String payload, String answer) {
@@ -365,7 +414,13 @@ public final class ChatActivities implements Listener {
                                             }
                                             announce(
                                                     "gagnant",
-                                                    Map.of("joueur", name, "reponse", answer));
+                                                    Map.of(
+                                                            "joueur",
+                                                            name,
+                                                            "reponse",
+                                                            answer,
+                                                            "recompense",
+                                                            "une caisse liée à son prestige"));
                                             claims.notifyAndDeliver(owner);
                                         }));
     }

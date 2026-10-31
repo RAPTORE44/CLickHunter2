@@ -127,20 +127,6 @@ public final class LootboxManager implements Listener {
                                                                                         CurrencyType
                                                                                                 .ECUS))
                                                                         + " Écus · +"
-                                                                        + CurrencyType
-                                                                                .GEMMES_SOMBRES
-                                                                                .format(
-                                                                                        gains
-                                                                                                .amount(
-                                                                                                        CurrencyType
-                                                                                                                .GEMMES_SOMBRES))
-                                                                        + " Gemmes"
-                                                                        + " Sombres · +"
-                                                                        + Numbers.compact(
-                                                                                gains.amount(
-                                                                                        CurrencyType
-                                                                                                .CENDRES))
-                                                                        + " Cendres · +"
                                                                         + Numbers.compact(
                                                                                 gains.xp())
                                                                         + " XP",

@@ -136,18 +136,18 @@ public enum LootboxTier {
         return configured("ecus", ecus);
     }
 
-    /** Cendres = récompense la plus rare des 4 (plus petits montants). */
+    /** Ces monnaies sont exclues des caisses, y compris les anciennes caisses. */
     public long cendres() {
-        return configured("cendres", ecus() / 250);
+        return 0;
     }
 
     public long xp() {
         return configured("xp", Math.round(ecus() * 0.4));
     }
 
-    /** Gemmes Sombres stockées en dixièmes en BDD. Valeur affichée = ecus/10. */
+    /** Les caisses ne distribuent plus de Gemmes Sombres. */
     public long gemmesSombresTenths() {
-        return configured("gemmes-dixiemes", ecus());
+        return 0;
     }
 
     public static LootboxTier parse(String input) {

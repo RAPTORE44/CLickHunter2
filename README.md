@@ -2,7 +2,26 @@
 
 ## Dernière mise à jour — 31 octobre 2026
 
-- Version **1.0.1**, identifiable avec `/version ClikerV2` ; les versions précédentes utilisaient toutes 1.0.0.
+- Version **1.0.2**, identifiable avec `/version ClikerV2`.
+- Classements réorganisés : accueil avec six catégories, puis podium et top 10, périodes sur une ligne et navigation séparée.
+- Commandes staff `/flyspeed`, `/god`, `/heal`, `/feed`, chacune avec sa permission ; ciblage d’un autre joueur réservé à `cliker.staff.others`.
+- Clic droit sur un joueur : ses statistiques et son équipement, en lecture seule. `/menu` ne propose plus Enchantement, Reforge ni Runes ; ces stations et commandes restent disponibles.
+- ClickHunter et adresse en dégradé RGB ; ligne CLICKER retirée du scoreboard, étoile de menu en gras et bandeau TAB défilant. Les liens continuent de changer toutes les dix secondes.
+- Boss de zone : **100 ×** les PV du mob, sans dégâts. Boss final de raid : **1 000 ×** les PV du mob du raid, déplacement et attaques actifs. Boss public : **1 milliard de PV** par défaut, sans multiplication par le numéro de zone, avec projectiles visuels et zone d’impact annoncée.
+- Enchantement d’épée **Double respawn I–V** : 2/4/6/8/10 % de chance d’ajouter un mob après une élimination ordinaire. Aucun déclenchement sur boss ou mob temporaire, plafond de 30 invocations par monde.
+- Sons de coups personnels : le noteblock reste audible par l’attaquant ; filtre des attaques vanilla partagé par ZNPCsPlus 2.0.0 dans les mondes de combat. Pas de nouveau plugin requis.
+- Messages de succès de récupération retirés du Daily et des livraisons `/claim`, y compris les drops automatiques. Les messages d’erreur et les états du menu restent visibles.
+- Poubelle `/trash` (alias `/poubelle`, `/pouvelle`) : double coffre, gauche pour un objet, droite pour la pile ; récupération possible dans le menu, destruction à la fermeture volontaire. Déconnexion, mort et arrêt conservent les objets en attente dans le playerdata.
+- Guide de démarrage en bossbar : menu, cinq mobs, vente, amélioration et Daily. `/tutoriel masquer|reprendre|recommencer`, progression conservée après reconnexion.
+- Caisses en Ender Chest : Écus et XP uniquement, aucun gain de Gemmes Sombres ni de Cendres, même avec les anciennes caisses. Daily et jeux de chat : rareté selon le prestige ; Commune au prestige 0. Daily : une caisse par jour, deux les jours 7, 14, 21, 28 et 31. Migration des anciennes récompenses par défaut avec sauvegarde, progression et commandes personnalisées conservées.
+- Boss de zone sans dégâts et une ponte d’œuf rare (75 %) ou épique (25 %) par élimination. Les boss de raid et le boss serveur conservent leurs attaques.
+- Ponte d’œufs vanilla des poules désactivée ; nouvelles réussites vanilla et annonces désactivées, recettes et notifications propres au plugin conservées.
+- PNJ marchands villageois avec biomes et métiers variés, stables au redémarrage. Compteurs de kills et objectif de prestige en format court français (`2,5k`).
+
+- Validation : **436 tests automatisés réussis**, aucun ignoré. Parcours à deux clients sous Paper 1.21.4 + ZNPCsPlus 2.0.0 : classements, statistiques ciblées, commandes staff, audio personnel, TAB, déplacement et attaques visuelles du boss public ; poubelle vérifiée après déconnexion. [Détails et limites](docs/MISE-A-JOUR-1.0.2.md).
+
+## Historique des évolutions précédentes
+
 - PNJ donateurs agrandis : correction de l’appel à l’API publique PacketEvents de ZNPCsPlus 2.0.0, qui échouait sur son implémentation interne.
 - Raccourcis sur blocs : restauration lors du chargement tardif d’un monde et après déchargement/rechargement, pour Warp, Sacs, Upgrade et Bestiaire. Les positions sauvegardées sont conservées.
 - `/diagnostic modules` affiche dans le tchat ou la console la version active, l’état des modules Warp/Donateurs, leurs positions sauvegardées et un éventuel conflit de commandes. [Dépannage sans effacer les données](docs/DEPANNAGE-MODULES.md).
@@ -143,7 +162,7 @@ Les couples conservent leurs commandes toute l’année. L’anneau est identifi
 | --- | --- |
 | `/autoclick` | Activer ou désactiver l'attaque automatique. |
 | `/upgrade` | Acheter des améliorations en Gemmes Sombres. |
-| `/stats` | Consulter ses statistiques. |
+| `/stats` | Consulter ses statistiques ; clic droit sur un joueur pour consulter les siennes en lecture seule. |
 | `/prestige` | Consulter les conditions et effectuer un prestige si les conditions sont remplies. |
 | `/bestiaire` | Consulter les créatures découvertes et les maîtrises. |
 | `/contrats` | Clic gauche pour accepter/réclamer ; clic droit sur une créature découverte pour épingler sa progression dans la barre d'action. |
@@ -189,7 +208,9 @@ L'autocompresseur s'achète chez le marchand puis s'active par clic droit : l'ob
 | `/boss` | Rejoindre l’arène publique du boss serveur, accessible à tous. |
 | `/boss quitter` | Revenir de l’arène publique. |
 | `/progression` | Afficher pendant dix secondes la progression dans les zones configurées. |
-| `/jeutchat` | Voir le jeu de chat en cours et son délai ; répondre dans le chat pour gagner une lootbox divine. |
+| `/trash`, `/poubelle`, `/pouvelle` | Poubelle de 54 cases ; gauche 1, droite la pile, objets détruits à la fermeture. Permission `cliker.trash` (tous). |
+| `/tutoriel [reprendre\|masquer\|recommencer]` | Afficher, masquer ou recommencer le guide en bossbar. Permission `cliker.tutoriel` (tous). |
+| `/jeutchat` | Voir le jeu de chat en cours et son délai ; répondre dans le chat pour gagner une caisse selon son prestige. |
 | `/session` | Consulter la durée, les éliminations et les gains de chasse confirmés, avec rendement par minute. |
 | `/settings` | Régler les textes de dégâts, les effets doux, le son de compression et les messages de farm ; alias `/parametres`. |
 | `/antidrop` | Basculer directement entre autoriser et bloquer le jet d’objets et la vente AH des équipements protégés, jusqu’à la déconnexion. |
@@ -304,6 +325,17 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/station spawn <enchant\|reforge\|rune>` / `/station remove` | Placer ou supprimer une station. | `cliker.mob.admin` |
 | `/holotop spawn <level\|kills\|ecus\|gemmes\|cendres\|bosstimer>` / `/holotop remove` | Gérer les hologrammes de classement et le minuteur des boss. | `cliker.mob.admin` |
 
+### Outils staff
+
+| Commande | Utilité | Permission |
+| --- | --- | --- |
+| `/flyspeed <0-10> [joueur]` | Régler la vitesse de vol, sans activer le vol. | `cliker.staff.flyspeed` |
+| `/god [joueur]` | Basculer l’invulnérabilité jusqu’à désactivation. | `cliker.staff.god` |
+| `/heal [joueur]` | Restaurer la vie et éteindre le feu. | `cliker.staff.heal` |
+| `/feed [joueur]` | Restaurer la faim et la saturation. | `cliker.staff.feed` |
+
+Ces permissions sont réservées aux OP par défaut et peuvent être accordées via LuckPerms. Cibler un autre joueur nécessite aussi `cliker.staff.others`. La console doit préciser un joueur en ligne.
+
 ### Administration : monnaies et distribution
 
 | Commande | Utilité | Permission |
@@ -315,7 +347,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/mobkills give <joueur> <montant>` | Ajouter des éliminations pour les tests. | `cliker.mob.admin` |
 | `/epee` | Recevoir l'épée du dresseur. | `cliker.mob.admin` |
 | `/stuff <mob>` | Recevoir l'épée et l'armure du mob. | `cliker.mob.admin` |
-| `/coffre <joueur> <rareté> [quantité]` | Donner des coffres de récompenses. | `cliker.mob.admin` |
+| `/coffre <joueur> <rareté\|prestige> [quantité]` | Donner des coffres de récompenses. | `cliker.mob.admin` |
 | `/compresseur <mob>` | Recevoir l'objet autocompresseur à activer. | `cliker.mob.admin` |
 | `/charm <mob>` | Recevoir une amulette de dégâts. | `cliker.mob.admin` |
 | `/talisman treasure <joueur>` | Donner un talisman de trésor. | `cliker.mob.admin` |
@@ -330,7 +362,7 @@ La base est créée dans `plugins/ClikerV2/data/economy.db`. Les opérations SQL
 mvn clean package
 ```
 
-Le fichier JAR compilé est dans `target/clikerv2-1.0.1.jar`.
+Le fichier JAR compilé est dans `target/clikerv2-1.0.2.jar`.
 
 ## Sacs personnels
 
@@ -436,7 +468,7 @@ Les hologrammes de ClikerV2 passent par l’API 3 d’Holographic Displays, avec
 
 Instructions, sauvegardes et limites : [améliorations UX et hologrammes](docs/AMELIORATIONS-UX.md).
 
-Le pied du TAB alterne Site, Boutique, Discord et Vote toutes les dix secondes, avec un indicateur coloré animé (`affichage/tab.yml`, section `animation`). Les aides et jeux de chat sont réglables dans `activites/tchat.yml` : calculs, devinettes Minecraft et langues parlées dans différents pays. Chaque réponse configurée doit être un seul mot (ou nombre), sans espace ni tiret ; plusieurs synonymes d'un mot sont possibles. Les majuscules, accents et trémas sont ignorés : `francais` accepte `français`, `noel` accepte `Noël`. Les questions sans réponse valide sont écartées, avec un calcul en remplacement si la catégorie devient vide. La consigne est personnalisable avec `messages.consigne`. Le premier gagnant reçoit une seule lootbox divine via la livraison sécurisée ; inventaire plein ou avant-poste, elle attend dans `/claim`.
+Le pied du TAB alterne Site, Boutique, Discord et Vote toutes les dix secondes, avec un indicateur coloré animé (`affichage/tab.yml`, section `animation`). Les aides et jeux de chat sont réglables dans `activites/tchat.yml` : calculs, devinettes Minecraft et langues parlées dans différents pays. Chaque réponse configurée doit être un seul mot (ou nombre), sans espace ni tiret ; plusieurs synonymes d'un mot sont possibles. Les majuscules, accents et trémas sont ignorés : `francais` accepte `français`, `noel` accepte `Noël`. Les questions sans réponse valide sont écartées, avec un calcul en remplacement si la catégorie devient vide. La consigne est personnalisable avec `messages.consigne`. Le premier gagnant reçoit une seule caisse selon son prestige via la livraison sécurisée ; inventaire plein ou avant-poste, elle attend dans `/claim`.
 
 Les magma cubes utilisent la taille moyenne 2 et les ghasts une échelle 0,5 par défaut, configurables dans `mobs/creatures.yml`. `/spawnboss` concerne les boss de zone ; le boss public du serveur conserve son seuil de kills. Une vague manuelle recale la prochaine vague automatique selon l’intervalle configuré.
 
@@ -543,3 +575,13 @@ Un achat validé est livré automatiquement dans les cases de stockage disponibl
 Le menu du chef d’un raid est mis à jour quand un joueur accepte. Un bouton provenant d’un ancien menu vérifie le groupe actuel avant le lancement. Le lancement contrôle les droits et la présence de chaque membre et indique le joueur qui empêche le départ. Si un plugin ou une protection refuse une téléportation, le membre reste dans le groupe : `/raid rejoindre` permet de réessayer. Le test automatique de groupe vérifie les invitations acceptées et les téléportations des participants ; les entités et le combat restent à confirmer sur le serveur Paper réel.
 
 `/boss spawn` cible uniquement le boss public de `/boss`. Il utilise le même mécanisme d’apparition et la même annonce cliquable que le spawn naturel. Son état actif est sauvegardé pour la restauration après redémarrage. Une nouvelle demande pendant que le boss est actif ne crée pas de deuxième boss. Le compteur des éliminations et les cycles naturels ne sont pas augmentés par une apparition forcée. La permission `cliker.boss.admin` est accordée aux OP par défaut.
+
+### Réglages de la mise à jour 1.0.2
+
+`recompenses/caisses-prestige.yml` définit les seuils : 0 Commune, 1 Peu commune, 2 Rare, 3 Épique, 4 Légendaire, 5 Mythique et 6+ Divine. Le Daily utilise la commande console `coffre {joueur} prestige 1` (ou 2) ; la rareté est calculée lors de l’attribution. `recompenses/daily.yml` conserve la progression calendaire Europe/Paris. `progression/tutoriel.yml` contient les textes du guide. `lootboxes.yml` configure les Écus et XP ; les anciens champs Gemmes/Cendres sont ignorés.
+
+Les villageois utilisent les propriétés de ZNPCsPlus 2.0.0. Dans les configurations de PNJ, `pnj.villageois.biome` et `pnj.villageois.profession` permettent d’imposer une apparence ; sans ces clés, le choix varie selon l’identité du PNJ et reste stable. Les skins personnalisés de PNJ joueurs sont conservés.
+
+Les progrès vanilla déjà enregistrés ne sont pas effacés : le plugin bloque les nouveaux critères hors recettes. Les succès de notification ClickHunter restent actifs.
+
+Les réglages de combat ajoutés sont visibles dans `raid.yml` (chemin migré `activites/raid.yml`) : `boss.multiplicateur-pv` = 1000 pour les raids, `boss-serveur.pv` = 1000000000 pour le boss public, et `boss-serveur.attaques-distance` pour le délai, le rayon et les dégâts. Le boss public peut aussi conserver un réglage administrateur explicite de `boss.pv` dans `activites/arenes.yml`. Le changement des PV s’applique au prochain combat. Les boss de zone utilisent `activites/boss-zones.yml`, multiplicateur 100 ; l’ancien réglage est sauvegardé lors de la migration.

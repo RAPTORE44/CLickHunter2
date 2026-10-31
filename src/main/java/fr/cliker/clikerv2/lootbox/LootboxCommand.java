@@ -9,7 +9,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +31,8 @@ public final class LootboxCommand implements CommandExecutor, TabCompleter {
         if (args.length < 2 || args.length > 3) {
             sender.sendMessage(
                     Component.text(
-                            "/" + label + " <joueur> <rareté> [quantité]", NamedTextColor.YELLOW));
+                            "/" + label + " <joueur> <rareté|prestige> [quantité]",
+                            NamedTextColor.YELLOW));
             return true;
         }
 
@@ -45,7 +45,8 @@ public final class LootboxCommand implements CommandExecutor, TabCompleter {
         }
 
         LootboxTier tier = LootboxTier.parse(args[1]);
-        if (tier == null) {
+        boolean byPrestige = args[1].equalsIgnoreCase("prestige");
+        if (tier == null && !byPrestige) {
             sender.sendMessage(
                     Component.text(
                             "Rareté inconnue : " + String.join(", ", LootboxTier.byId().keySet()),
@@ -68,38 +69,56 @@ public final class LootboxCommand implements CommandExecutor, TabCompleter {
                     Component.text("Quantité autorisée : 1 à 4096.", NamedTextColor.RED));
             return true;
         }
-        ItemStack box = LootboxItem.create(tier);
-        box.setAmount(amount);
         String name = args[0];
         int quantity = amount;
         delivery.resolve(name)
+                .thenCompose(
+                        uuid -> {
+                            if (uuid == null)
+                                return java.util.concurrent.CompletableFuture.failedFuture(
+                                        new IllegalArgumentException("Joueur inconnu"));
+                            return (byPrestige
+                                            ? PrestigeLootboxes.resolve(uuid)
+                                            : java.util.concurrent.CompletableFuture
+                                                    .completedFuture(tier))
+                                    .thenApply(selected -> new Prize(uuid, selected));
+                        })
                 .whenComplete(
-                        (uuid, error) ->
+                        (prize, error) ->
                                 fr.cliker.clikerv2.runtime.ServerTasks.run(
                                         plugin,
                                         () -> {
-                                            if (error != null || uuid == null) {
+                                            if (error != null || prize == null) {
                                                 sender.sendMessage(
                                                         Component.text(
-                                                                "Joueur inconnu : il doit avoir"
-                                                                    + " déjà rejoint le serveur.",
+                                                                "Attribution impossible : vérifie"
+                                                                    + " le joueur et le chargement"
+                                                                    + " des données.",
                                                                 NamedTextColor.RED));
+                                                plugin.getLogger()
+                                                        .log(
+                                                                java.util.logging.Level.WARNING,
+                                                                "Attribution de caisse impossible",
+                                                                error);
                                                 return;
                                             }
-                                            delivery.give(uuid, name, box);
+                                            var box = LootboxItem.create(prize.tier());
+                                            box.setAmount(quantity);
+                                            delivery.give(prize.owner(), name, box);
                                             sender.sendMessage(
                                                     Component.text(
                                                             quantity
                                                                     + "x "
-                                                                    + tier.boxName()
+                                                                    + prize.tier().boxName()
                                                                     + " attribué(s) à "
                                                                     + name
-                                                                    + " (ou conservé(s) dans"
-                                                                    + " /claim).",
+                                                                    + ".",
                                                             NamedTextColor.GREEN));
                                         }));
         return true;
     }
+
+    private record Prize(java.util.UUID owner, LootboxTier tier) {}
 
     @Override
     public List<String> onTabComplete(
@@ -108,8 +127,10 @@ public final class LootboxCommand implements CommandExecutor, TabCompleter {
         List<String> options = new ArrayList<>();
         if (args.length == 1)
             for (Player online : Bukkit.getOnlinePlayers()) options.add(online.getName());
-        else if (args.length == 2) options.addAll(LootboxTier.byId().keySet());
-        else if (args.length == 3) options.add("1");
+        else if (args.length == 2) {
+            options.addAll(LootboxTier.byId().keySet());
+            options.add("prestige");
+        } else if (args.length == 3) options.add("1");
         String current = args[args.length - 1].toLowerCase(Locale.ROOT);
         options.removeIf(option -> !option.toLowerCase(Locale.ROOT).startsWith(current));
         return options;

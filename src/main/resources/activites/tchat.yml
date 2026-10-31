@@ -1,5 +1,5 @@
 # Tous les textes, délais et réponses des devinettes/pays sont modifiables ici.
-# Récompense : une lootbox DIVINE existante par manche, premier gagnant seulement.
+# Récompense : une caisse selon le prestige par manche, premier gagnant seulement.
 # Chaque réponse doit être un seul mot (ou nombre), sans espace ni tiret.
 # Plusieurs synonymes d'un mot sont possibles ; accents, trémas et casse sont ignorés.
 jeux:
@@ -18,11 +18,11 @@ aides:
     - '&a/session &f: consulte ta durée de jeu et tes gains de chasse confirmés.'
     - '&a/avantposte visites &f: découvre les terrains publics et ajoute tes favoris.'
     - '&a/sell &f: gauche vend une essence, droite vend la pile cliquée.'
-    - '&a/jeutchat &f: réponds dans le chat ; le premier gagnant reçoit une lootbox divine !'
+    - '&a/jeutchat &f: réponds dans le chat ; le premier gagnant reçoit une caisse selon son prestige !'
 messages:
   consigne: '&7Un mot ou un nombre suffit ; accents facultatifs.'
-  debut: '&d&l[Jeu] &f{question} &7({secondes} s) &ePremier gagnant : 1 lootbox divine !'
-  gagnant: '&d[Jeu] &a{joueur} &fa trouvé &e{reponse}&f et remporte &d1 lootbox divine&f !'
+  debut: '&d&l[Jeu] &f{question} &7({secondes} s) &ePremier gagnant : une caisse selon le prestige !'
+  gagnant: '&d[Jeu] &a{joueur} &fa trouvé &e{reponse}&f et remporte &dune caisse selon le prestige&f !'
   expire: '&d[Jeu] &7Temps écoulé ! Une réponse acceptée était : &f{reponse}&7.'
 questions:
   devinette:

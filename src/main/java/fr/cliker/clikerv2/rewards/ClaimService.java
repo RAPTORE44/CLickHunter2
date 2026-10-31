@@ -624,7 +624,7 @@ public final class ClaimService implements Listener, CommandExecutor {
             return;
         }
         busy.remove(owner);
-        message(current, "recupere");
+        // Livraison visible dans l’inventaire : pas de message de succès à chaque drop.
         Inventory top = current.getOpenInventory().getTopInventory();
         if (top != null && top.getHolder() instanceof Holder holder) open(current, holder.page);
         if (automatic || purchaseSources.containsKey(owner)) notifyAndDeliver(owner);

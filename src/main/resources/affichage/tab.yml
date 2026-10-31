@@ -1,5 +1,5 @@
 # TAB natif Paper 1.21.4. Actualisation du niveau, prestige et des grades sans SQL.
-actualisation-ticks: 40
+actualisation-ticks: 10
 liens:
   boutique: 'https://clickhunter.fr'
   discord: 'https://discord.gg/WSwBwpnQTa'
@@ -13,6 +13,7 @@ entete:
   - ''
 pied:
   - ''
+  - '{animation}'
   - '{annonce}'
   - '&aplay.clickhunter.fr'
   - ''

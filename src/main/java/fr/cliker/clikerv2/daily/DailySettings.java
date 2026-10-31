@@ -28,7 +28,53 @@ public final class DailySettings {
         config = fr.cliker.clikerv2.config.YamlFiles.load(file);
         migrateCalendar();
         balanceEarlyRewards();
+        migratePrestigeRewards();
         zone = ZoneId.of(config.getString("fuseau-horaire", "Europe/Paris"));
+    }
+
+    private void migratePrestigeRewards() {
+        if (config.getInt("caisses-prestige-version", 0) >= 1) return;
+        try {
+            var backup =
+                    file.toPath()
+                            .getParent()
+                            .resolve(
+                                    "backups/daily-prestige-"
+                                            + System.currentTimeMillis()
+                                            + ".yml");
+            java.nio.file.Files.createDirectories(backup.getParent());
+            java.nio.file.Files.copy(file.toPath(), backup);
+            for (int day = 1; day <= 31; day++) {
+                var commands = config.getStringList("recompenses." + day + ".commandes");
+                if (commands.size() != 1) continue;
+                String raw = commands.getFirst();
+                boolean standard =
+                        raw.matches(
+                                        "coffre "
+                                                + java.util.regex.Pattern.quote("{joueur}")
+                                                + " (epique|legendaire|mythique|divin) [1-7]")
+                                || (day <= 10
+                                        && raw.matches(
+                                                "ecus give "
+                                                        + java.util.regex.Pattern.quote("{joueur}")
+                                                        + " (100|150|200|250|300|400|500|600|750|1000)"))
+                                || (raw.startsWith("tellraw {joueur}")
+                                        && raw.contains(
+                                                "Récompense test — Jour " + day + " récupérée"));
+                if (!standard) continue;
+                int count = (day % 7 == 0 || day == 31) ? 2 : 1;
+                config.set(
+                        "recompenses." + day + ".description",
+                        "Caisse selon ton prestige ×" + count);
+                config.set(
+                        "recompenses." + day + ".commandes",
+                        List.of("coffre {joueur} prestige " + count));
+            }
+            config.set("caisses-prestige-version", 1);
+            save();
+        } catch (java.io.IOException error) {
+            throw new IllegalStateException("Migration des caisses Daily impossible", error);
+        }
     }
 
     private void balanceEarlyRewards() {

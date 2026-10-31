@@ -5,6 +5,31 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  flyspeed:
+    description: Régler sa vitesse de vol entre 0 et 10
+    permission: cliker.staff.flyspeed
+    usage: /flyspeed <0-10> [joueur]
+  god:
+    description: Activer ou désactiver son invulnérabilité
+    permission: cliker.staff.god
+    usage: /god [joueur]
+  heal:
+    description: Restaurer les points de vie
+    permission: cliker.staff.heal
+    usage: /heal [joueur]
+  feed:
+    description: Restaurer la faim
+    permission: cliker.staff.feed
+    usage: /feed [joueur]
+  trash:
+    aliases: [poubelle, pouvelle]
+    description: Déposer des objets à détruire à la fermeture, gauche 1 et droite toute la pile
+    permission: cliker.trash
+    usage: /trash
+  tutoriel:
+    description: Guide de démarrage en bossbar
+    permission: cliker.tutoriel
+    usage: /tutoriel [reprendre|masquer|recommencer]
   top:
     aliases: [classement]
     description: Classements par jour, semaine, mois, année et depuis toujours
@@ -204,7 +229,7 @@ commands:
     permission: cliker.mob.admin
   coffre:
     description: Donne un coffre du Nether (récompenses selon la rareté)
-    usage: /coffre <joueur> <rareté> [quantité]
+    usage: /coffre <joueur> <rareté|prestige> [quantité]
     permission: cliker.mob.admin
   autoclick:
     description: Active/désactive l'attaque automatique sur la cible visée (cadence selon ton équipement)
@@ -287,6 +312,20 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.staff.flyspeed:
+    default: op
+  cliker.staff.god:
+    default: op
+  cliker.staff.heal:
+    default: op
+  cliker.staff.feed:
+    default: op
+  cliker.staff.others:
+    default: op
+  cliker.trash:
+    default: true
+  cliker.tutoriel:
+    default: true
   cliker.raid.admin:
     description: Configuration des raids, observation et accès staff aux instances privées
     default: op

@@ -20,17 +20,18 @@ class ZoneBossBalanceTest {
     }
 
     @Test
-    void legacyMultiplierMigratesToOneThousandAndLaterCustomValueIsKept() throws Exception {
+    void legacyMultiplierMigratesToOneHundredAndLaterCustomValueIsKept() throws Exception {
         var plugin = MockBukkit.createMockPlugin();
         var file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "boss.yml");
         var old = new YamlConfiguration();
-        old.set("multiplicateur-pv", 100);
+        old.set("multiplicateur-pv", 1000);
+        old.set("equilibrage-version", 1);
         old.save(file);
         var manager = new CustomMobManager(plugin, null, null, null, null, null, null, null);
         assertEquals(
-                Math.round(MobTier.VACHE.maxHealth() * 1000), manager.bossHealth(MobTier.VACHE));
+                Math.round(MobTier.VACHE.maxHealth() * 100), manager.bossHealth(MobTier.VACHE));
         assertEquals(
-                Math.round(MobTier.WARDEN.maxHealth() * 1000), manager.bossHealth(MobTier.WARDEN));
+                Math.round(MobTier.WARDEN.maxHealth() * 100), manager.bossHealth(MobTier.WARDEN));
         manager.shutdown();
         var custom = YamlConfiguration.loadConfiguration(file);
         custom.set("multiplicateur-pv", 1500);

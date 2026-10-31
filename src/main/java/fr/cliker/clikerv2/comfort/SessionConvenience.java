@@ -117,7 +117,17 @@ public final class SessionConvenience implements Listener, CommandExecutor, TabC
         var inventory = player.getInventory();
         for (int slot = 0; slot < 36; slot++)
             if (slot != 8 && isMenu(inventory.getItem(slot))) inventory.setItem(slot, null);
-        if (isMenu(inventory.getItem(8))) return;
+        if (isMenu(inventory.getItem(8))) {
+            var existing = inventory.getItem(8);
+            var meta = existing.getItemMeta();
+            meta.displayName(
+                    Component.text("Menu ClickHunter", NamedTextColor.GREEN)
+                            .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD)
+                            .decoration(
+                                    net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
+            existing.setItemMeta(meta);
+            return;
+        }
         var previous = inventory.getItem(8);
         if (previous != null && !previous.getType().isAir()) {
             int empty = -1;
@@ -139,7 +149,10 @@ public final class SessionConvenience implements Listener, CommandExecutor, TabC
         }
         var star = new ItemStack(Material.NETHER_STAR);
         var meta = star.getItemMeta();
-        meta.displayName(Component.text("Menu ClickHunter", NamedTextColor.GREEN));
+        meta.displayName(
+                Component.text("Menu ClickHunter", NamedTextColor.GREEN)
+                        .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD)
+                        .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
         meta.lore(
                 List.of(Component.text("Clic droit pour ouvrir le menu.", NamedTextColor.YELLOW)));
         meta.getPersistentDataContainer().set(menuKey, PersistentDataType.BYTE, (byte) 1);

@@ -138,7 +138,7 @@ public final class RaidSetup {
                 if (boss)
                     player.sendMessage(
                             "§7/boss admin seuil <kills> §8• §7/boss admin zone <zone> §8• après"
-                                + " redémarrage");
+                                    + " redémarrage");
                 player.sendMessage("§bArènes dédiées :");
                 for (int i = 0; i < (boss ? 1 : 4); i++)
                     player.sendMessage("§7" + (i + 1) + " §f" + world(boss, i));
@@ -320,6 +320,10 @@ public final class RaidSetup {
         map.put("mobs.maximum", new double[] {1, 60, 1});
         map.put("mobs.pv", new double[] {1, 1e15, 1});
         map.put("boss.pv", new double[] {1, 1e15, 1});
+        map.put("boss.multiplicateur-pv", new double[] {1, 1e6, 1});
+        map.put("boss-serveur.attaques-distance.intervalle-secondes", new double[] {4, 120, 1});
+        map.put("boss-serveur.attaques-distance.rayon", new double[] {1, 8, 0});
+        map.put("boss-serveur.attaques-distance.degats", new double[] {0, 2048, 0});
         map.put("boss.tous-les-mobs", new double[] {1, 1e6, 1});
         map.put("mobs.degats", new double[] {0, 2048, 0});
         map.put("boss.degats", new double[] {0, 2048, 0});

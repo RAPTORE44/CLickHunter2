@@ -29,6 +29,23 @@ public final class MainMenu implements CommandExecutor, Listener {
         config = YamlConfiguration.loadConfiguration(file);
         addActivityButtons(file);
         expandLayout(file);
+        var buttons = config.getConfigurationSection("boutons");
+        if (buttons != null)
+            for (String key : new ArrayList<>(buttons.getKeys(false))) {
+                String cmd =
+                        config.getString("boutons." + key + ".commande", "")
+                                .trim()
+                                .toLowerCase(Locale.ROOT)
+                                .replaceFirst("^/", "")
+                                .split(" ")[0];
+                if (Set.of("enchant", "enchantement", "reforge", "rune", "runes").contains(cmd))
+                    config.set("boutons." + key, null);
+            }
+        try {
+            config.save(file);
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("Sauvegarde menu impossible", e);
+        }
         size = config.getInt("taille", 54);
         if (size < 9 || size > 54 || size % 9 != 0)
             throw new IllegalArgumentException("Taille du menu principal invalide");
@@ -215,6 +232,8 @@ public final class MainMenu implements CommandExecutor, Listener {
             } else holder.inventory.setItem(entry.getKey(), action.icon);
         }
         player.openInventory(holder.inventory);
+        fr.cliker.clikerv2.tutorial.OnboardingGuide.record(
+                player, fr.cliker.clikerv2.tutorial.OnboardingGuide.Action.MENU);
         return true;
     }
 

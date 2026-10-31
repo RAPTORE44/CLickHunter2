@@ -83,7 +83,11 @@ public final class GearGuide implements Listener {
                                     + weights.get(level - 1)
                                     + " % (après tirage du type)");
                 lore.add("Remplace l’enchantement précédent.");
-                lore.add("Le bonus dépend du tier de l’équipement.");
+                if (type == EnchantType.DOUBLE_RESPAWN) {
+                    lore.add("Chance par niveau : 2 %, 4 %, 6 %, 8 %, 10 %.");
+                    lore.add("Mobs ordinaires persistants uniquement, pas les boss.");
+                    lore.add("Les mobs bonus ne déclenchent pas cet effet.");
+                } else lore.add("Le bonus dépend du tier de l’équipement.");
                 view.inventory.setItem(
                         slot++,
                         item(

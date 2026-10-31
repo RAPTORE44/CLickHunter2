@@ -147,13 +147,28 @@ class LootboxManagerTest {
     }
 
     @Test
-    void failedCurrencyCreditRollsBackAllGainsAndRestoresBox() {
+    void oldChestGivesOnlyEcusAndXpEvenWhenAshBalanceIsFull() {
         economy.set(player.getUniqueId(), player.getName(), CurrencyType.CENDRES, Long.MAX_VALUE)
+                .join();
+        var old = LootboxItem.create(LootboxTier.COMMUN);
+        old.setType(Material.CHEST);
+        player.getInventory().setItemInMainHand(old);
+        open();
+        drain();
+        var balance = economy.getBalances(player.getUniqueId()).join();
+        assertEquals(LootboxTier.COMMUN.ecus(), balance.ecus());
+        assertEquals(Long.MAX_VALUE, balance.cendres());
+        assertEquals(0, balance.gemmesSombres());
+    }
+
+    @Test
+    void failedCurrencyCreditRollsBackAllGainsAndRestoresBox() {
+        economy.set(player.getUniqueId(), player.getName(), CurrencyType.ECUS, Long.MAX_VALUE)
                 .join();
         player.getInventory().setItemInMainHand(LootboxItem.create(LootboxTier.COMMUN));
         open();
         drain();
-        assertEquals(0, economy.getBalances(player.getUniqueId()).join().ecus());
+        assertEquals(Long.MAX_VALUE, economy.getBalances(player.getUniqueId()).join().ecus());
         assertEquals(0, economy.getBalances(player.getUniqueId()).join().gemmesSombres());
         assertTrue(
                 LootboxItem.tierOf(player.getInventory().getItemInMainHand()) == LootboxTier.COMMUN

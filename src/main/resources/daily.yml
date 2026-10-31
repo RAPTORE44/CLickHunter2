@@ -1,4 +1,5 @@
 schema-version: 3
+caisses-prestige-version: 1
 equilibrage-debut-version: 1
 # Module de récompenses journalières NorthBlue intégré à ClikerV2.
 # Les journées changent à MINUIT dans ce fuseau : aucun délai de 24 heures.
@@ -17,7 +18,7 @@ messages:
   usage: '&e/daily &7ou &e/daily pnj <spawn|remove>'
   chargement: '&7Chargement de tes récompenses...'
   traitement: '&eTa récupération est déjà en cours.'
-  recupere: '&aRécompense du jour {jour} récupérée !'
+  recupere: '' # récupération signalée par l’état du menu, sans message de succès
   deja-recupere: '&7Tu as déjà récupéré cette récompense dans ce cycle.'
   indisponible: '&eCette récompense n’est plus disponible. Le calendrier a été actualisé.'
   verrouille: '&7Cette récompense sera disponible dans &f{temps}&7, si tu poursuis ta série.'
@@ -112,126 +113,126 @@ interface:
 # Cycle de 31 jours. Jours 1–10 modérés ; anciennes valeurs par défaut migrées avec sauvegarde.
 recompenses:
   1:
-    description: '100 Écus'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'ecus give {joueur} 100'
+      - 'coffre {joueur} prestige 1'
   2:
-    description: '150 Écus'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'ecus give {joueur} 150'
+      - 'coffre {joueur} prestige 1'
   3:
-    description: '200 Écus'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'ecus give {joueur} 200'
+      - 'coffre {joueur} prestige 1'
   4:
-    description: '250 Écus'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'ecus give {joueur} 250'
+      - 'coffre {joueur} prestige 1'
   5:
-    description: '300 Écus'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'ecus give {joueur} 300'
+      - 'coffre {joueur} prestige 1'
   6:
-    description: '400 Écus'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'ecus give {joueur} 400'
+      - 'coffre {joueur} prestige 1'
   7:
-    description: '500 Écus'
+    description: 'Caisse selon ton prestige ×2'
     commandes:
-      - 'ecus give {joueur} 500'
+      - 'coffre {joueur} prestige 2'
   8:
-    description: '600 Écus'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'ecus give {joueur} 600'
+      - 'coffre {joueur} prestige 1'
   9:
-    description: '750 Écus'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'ecus give {joueur} 750'
+      - 'coffre {joueur} prestige 1'
   10:
-    description: '1000 Écus'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'ecus give {joueur} 1000'
+      - 'coffre {joueur} prestige 1'
   11:
-    description: 'Coffre légendaire ×4'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} legendaire 4'
+      - 'coffre {joueur} prestige 1'
   12:
-    description: 'Coffre légendaire ×5'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} legendaire 5'
+      - 'coffre {joueur} prestige 1'
   13:
-    description: 'Coffre légendaire ×6'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} legendaire 6'
+      - 'coffre {joueur} prestige 1'
   14:
-    description: 'Coffre légendaire ×7'
+    description: 'Caisse selon ton prestige ×2'
     commandes:
-      - 'coffre {joueur} legendaire 7'
+      - 'coffre {joueur} prestige 2'
   15:
-    description: 'Coffre mythique ×1'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} mythique 1'
+      - 'coffre {joueur} prestige 1'
   16:
-    description: 'Coffre mythique ×2'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} mythique 2'
+      - 'coffre {joueur} prestige 1'
   17:
-    description: 'Coffre mythique ×3'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} mythique 3'
+      - 'coffre {joueur} prestige 1'
   18:
-    description: 'Coffre mythique ×4'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} mythique 4'
+      - 'coffre {joueur} prestige 1'
   19:
-    description: 'Coffre mythique ×5'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} mythique 5'
+      - 'coffre {joueur} prestige 1'
   20:
-    description: 'Coffre mythique ×6'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} mythique 6'
+      - 'coffre {joueur} prestige 1'
   21:
-    description: 'Coffre mythique ×7'
+    description: 'Caisse selon ton prestige ×2'
     commandes:
-      - 'coffre {joueur} mythique 7'
+      - 'coffre {joueur} prestige 2'
   22:
-    description: 'Coffre divin ×1'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} divin 1'
+      - 'coffre {joueur} prestige 1'
   23:
-    description: 'Coffre divin ×2'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} divin 2'
+      - 'coffre {joueur} prestige 1'
   24:
-    description: 'Coffre divin ×3'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} divin 3'
+      - 'coffre {joueur} prestige 1'
   25:
-    description: 'Coffre divin ×4'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} divin 4'
+      - 'coffre {joueur} prestige 1'
   26:
-    description: 'Coffre divin ×5'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} divin 5'
+      - 'coffre {joueur} prestige 1'
   27:
-    description: 'Coffre divin ×6'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'coffre {joueur} divin 6'
+      - 'coffre {joueur} prestige 1'
   28:
-    description: 'Coffre divin ×7'
+    description: 'Caisse selon ton prestige ×2'
     commandes:
-      - 'coffre {joueur} divin 7'
+      - 'coffre {joueur} prestige 2'
   29:
-    description: 'Récompense test — Jour 29'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'tellraw {joueur} {"text":"Récompense test — Jour 29 récupérée !","color":"green"}'
+      - 'coffre {joueur} prestige 1'
   30:
-    description: 'Récompense test — Jour 30'
+    description: 'Caisse selon ton prestige ×1'
     commandes:
-      - 'tellraw {joueur} {"text":"Récompense test — Jour 30 récupérée !","color":"green"}'
+      - 'coffre {joueur} prestige 1'
   31:
-    description: 'Récompense test — Jour 31'
+    description: 'Caisse selon ton prestige ×2'
     commandes:
-      - 'tellraw {joueur} {"text":"Récompense test — Jour 31 récupérée !","color":"green"}'
+      - 'coffre {joueur} prestige 2'
