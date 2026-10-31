@@ -58,38 +58,7 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
         wand = new NamespacedKey(p, "spawn_wand");
         boss = new NamespacedKey(p, "spawn_wand_boss");
         egg = new NamespacedKey(p, "market_egg");
-        var sec = settings.yaml.getConfigurationSection("sacs");
-        if (sec != null)
-            for (String key : sec.getKeys(false)) {
-                var at = YamlFiles.location(settings.yaml, "sacs." + key);
-                if (at != null)
-                    bagBlocks.put(
-                            fr.cliker.clikerv2.station.StationStore.idFor(at.getBlock()), key);
-            }
-        var upgrades = settings.yaml.getConfigurationSection("upgrades");
-        if (upgrades != null)
-            for (String key : upgrades.getKeys(false)) {
-                var at = YamlFiles.location(settings.yaml, "upgrades." + key);
-                if (at != null)
-                    upgradeBlocks.put(
-                            fr.cliker.clikerv2.station.StationStore.idFor(at.getBlock()), key);
-            }
-        var warps = settings.yaml.getConfigurationSection("raccourcis-warp");
-        if (warps != null)
-            for (String key : warps.getKeys(false)) {
-                var at = YamlFiles.location(settings.yaml, "raccourcis-warp." + key);
-                if (at != null)
-                    warpBlocks.put(
-                            fr.cliker.clikerv2.station.StationStore.idFor(at.getBlock()), key);
-            }
-        var bestiary = settings.yaml.getConfigurationSection("bestiaires");
-        if (bestiary != null)
-            for (String key : bestiary.getKeys(false)) {
-                var at = YamlFiles.location(settings.yaml, "bestiaires." + key);
-                if (at != null)
-                    bestiaryBlocks.put(
-                            fr.cliker.clikerv2.station.StationStore.idFor(at.getBlock()), key);
-            }
+        restoreShortcuts();
         holoTask = Bukkit.getScheduler().runTaskTimer(p, this::refreshHolos, 1, 40);
         for (String cmd :
                 List.of(
@@ -103,6 +72,84 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
             p.getCommand(cmd).setTabCompleter(this);
         }
         Bukkit.getPluginManager().registerEvents(this, p);
+        Bukkit.getServicesManager()
+                .register(TravelAndTools.class, this, p, org.bukkit.plugin.ServicePriority.Normal);
+    }
+
+    private Map<String, String> shortcutMap(String section) {
+        return switch (section) {
+            case "sacs" -> bagBlocks;
+            case "upgrades" -> upgradeBlocks;
+            case "bestiaires" -> bestiaryBlocks;
+            default -> warpBlocks;
+        };
+    }
+
+    private void restoreShortcuts() {
+        for (String section : List.of("sacs", "upgrades", "bestiaires", "raccourcis-warp")) {
+            var index = shortcutMap(section);
+            index.clear();
+            var entries = settings.yaml.getConfigurationSection(section);
+            if (entries == null) continue;
+            for (String key : entries.getKeys(false)) {
+                var at = YamlFiles.location(settings.yaml, section + "." + key);
+                if (at != null)
+                    index.put(
+                            at.getWorld().getName()
+                                    + ":"
+                                    + at.getBlockX()
+                                    + ":"
+                                    + at.getBlockY()
+                                    + ":"
+                                    + at.getBlockZ(),
+                            key);
+            }
+        }
+    }
+
+    @EventHandler
+    public void shortcutWorldLoaded(org.bukkit.event.world.WorldLoadEvent event) {
+        restoreShortcuts();
+        refreshHolos();
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void shortcutWorldUnloaded(org.bukkit.event.world.WorldUnloadEvent event) {
+        String prefix = event.getWorld().getName() + ":";
+        for (String section : List.of("sacs", "upgrades", "bestiaires", "raccourcis-warp"))
+            shortcutMap(section).keySet().removeIf(key -> key.startsWith(prefix));
+        shortcutHolos
+                .entrySet()
+                .removeIf(
+                        entry -> {
+                            if (!entry.getValue().getLocation().getWorld().equals(event.getWorld()))
+                                return false;
+                            entry.getValue().remove();
+                            return true;
+                        });
+    }
+
+    public List<String> diagnostics() {
+        var result = new ArrayList<String>();
+        result.add("Raccourcis sur blocs : module actif");
+        for (String section : List.of("raccourcis-warp", "sacs", "upgrades", "bestiaires")) {
+            var saved = settings.yaml.getConfigurationSection(section);
+            int total = saved == null ? 0 : saved.getKeys(false).size();
+            result.add(
+                    section
+                            + " : "
+                            + shortcutMap(section).size()
+                            + " actifs / "
+                            + total
+                            + " sauvegardés");
+            if (saved != null)
+                for (String key : saved.getKeys(false)) {
+                    String world = settings.yaml.getString(section + "." + key + ".world", "");
+                    if (!world.isBlank() && Bukkit.getWorld(world) == null)
+                        result.add("Monde en attente pour " + section + " : " + world);
+                }
+        }
+        return result;
     }
 
     private boolean access(Player p, MobTier t) {
@@ -663,6 +710,7 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
     }
 
     public void shutdown() {
+        Bukkit.getServicesManager().unregister(TravelAndTools.class, this);
         if (holoTask != null) holoTask.cancel();
         shortcutHolos.values().forEach(fr.cliker.clikerv2.hologram.SharedHolograms.Handle::remove);
         shortcutHolos.clear();

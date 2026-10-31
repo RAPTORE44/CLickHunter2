@@ -29,6 +29,10 @@ public final class AdminDiagnostic {
                                 sender.sendMessage("Permission administrateur requise.");
                                 return true;
                             }
+                            if (args.length == 1 && args[0].equalsIgnoreCase("modules")) {
+                                runtimeLines(plugin).forEach(sender::sendMessage);
+                                return true;
+                            }
                             sender.sendMessage("Diagnostic en cours…");
                             db.submit(AdminDiagnostic::readDatabase)
                                     .whenComplete(
@@ -38,6 +42,49 @@ public final class AdminDiagnostic {
                                                             () -> complete(sender, lines, error)));
                             return true;
                         });
+        plugin.getCommand("diagnostic")
+                .setTabCompleter(
+                        (sender, cmd, label, args) ->
+                                sender.hasPermission("cliker.diagnostic.admin")
+                                                && args.length == 1
+                                                && "modules"
+                                                        .startsWith(
+                                                                args[0].toLowerCase(Locale.ROOT))
+                                        ? List.of("modules")
+                                        : List.of());
+    }
+
+    public static List<String> runtimeLines(JavaPlugin plugin) {
+        var lines = new ArrayList<String>();
+        lines.add("ClikerV2 : version " + plugin.getDescription().getVersion());
+        lines.add("Plugin : " + (plugin.isEnabled() ? "actif" : "désactivé"));
+        for (String name : List.of("warp", "donateurs")) {
+            var command = Bukkit.getPluginCommand(name);
+            lines.add(
+                    "/"
+                            + name
+                            + " : "
+                            + (command == null
+                                    ? "commande absente"
+                                    : command.getPlugin().getName()));
+            if (command != null && command.getPlugin() != plugin)
+                lines.add(
+                        "Commande ClickHunter directe : /"
+                                + plugin.getName().toLowerCase(Locale.ROOT)
+                                + ":"
+                                + name);
+        }
+        var travel = Bukkit.getServicesManager().load(TravelAndTools.class);
+        if (travel == null)
+            lines.add(
+                    "Raccourcis sur blocs : module non chargé ; consulter le démarrage de"
+                        + " ClikerV2");
+        else lines.addAll(travel.diagnostics());
+        var donors = Bukkit.getServicesManager().load(fr.cliker.clikerv2.donors.DonorPodium.class);
+        if (donors == null)
+            lines.add("Donateurs : module non chargé ; consulter le démarrage de ClikerV2");
+        else lines.addAll(donors.diagnostics());
+        return lines;
     }
 
     private static List<String> readDatabase(Connection connection) {
@@ -71,7 +118,8 @@ public final class AdminDiagnostic {
             plugin.getLogger().log(java.util.logging.Level.SEVERE, "Diagnostic SQL", error);
             return;
         }
-        List<String> results = new ArrayList<>(lines);
+        List<String> results = new ArrayList<>(runtimeLines(plugin));
+        results.addAll(lines);
         results.addAll(mobs.diagnostic());
         results.addAll(fr.cliker.clikerv2.npc.ZnpcsNpc.diagnostics());
         long pluginTasks =

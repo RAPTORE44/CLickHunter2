@@ -69,7 +69,19 @@ public final class DonorPodium implements CommandExecutor, TabCompleter {
             command.setExecutor(this);
             command.setTabCompleter(this);
         }
+        org.bukkit.Bukkit.getServicesManager()
+                .register(
+                        DonorPodium.class, this, plugin, org.bukkit.plugin.ServicePriority.Normal);
         refreshRanking();
+    }
+
+    public List<String> diagnostics() {
+        long placed =
+                configs.values().stream()
+                        .filter(c -> c.yaml.getBoolean("pnj.actif", false))
+                        .count();
+        return List.of(
+                "Donateurs : module actif", "Podium : " + placed + "/3 positions PNJ sauvegardées");
     }
 
     private static String title(int rank) {
@@ -515,6 +527,7 @@ public final class DonorPodium implements CommandExecutor, TabCompleter {
     }
 
     public void shutdown() {
+        org.bukkit.Bukkit.getServicesManager().unregister(DonorPodium.class, this);
         stopped = true;
         org.bukkit.event.HandlerList.unregisterAll(requests);
         busy.clear();

@@ -2,6 +2,12 @@
 
 ## Dernière mise à jour — 31 octobre 2026
 
+- Version **1.0.1**, identifiable avec `/version ClikerV2` ; les versions précédentes utilisaient toutes 1.0.0.
+- PNJ donateurs agrandis : correction de l’appel à l’API publique PacketEvents de ZNPCsPlus 2.0.0, qui échouait sur son implémentation interne.
+- Raccourcis sur blocs : restauration lors du chargement tardif d’un monde et après déchargement/rechargement, pour Warp, Sacs, Upgrade et Bestiaire. Les positions sauvegardées sont conservées.
+- `/diagnostic modules` affiche dans le tchat ou la console la version active, l’état des modules Warp/Donateurs, leurs positions sauvegardées et un éventuel conflit de commandes. [Dépannage sans effacer les données](docs/DEPANNAGE-MODULES.md).
+- Validation 1.0.1 : 418 tests réussis ; bloc Warp, hologramme, points et menu Donateurs conservés sur Paper après redémarrage ; attribut d’échelle 2 du PNJ reçu par le client.
+
 - Audit de stabilité : BuyZone charge ses événements même sans LuckPerms et bloque les téléportations qui franchissent le portail vers le côté verrouillé ; le retour au nord reste possible. Les skins PNJ sont récupérés sans attente réseau sur le thread serveur.
 - Raids : une sortie refusée conserve le groupe, l’état d’observation et le retour ; `/raid rejoindre` revérifie l’accès à la zone. Les rappels de connexion vérifient la session actuelle.
 - Boutons remplacés : une icône inactive ne garde plus l’action du bouton précédent.
@@ -249,6 +255,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/raid observer [pseudo]` / `/boss observer` | Rejoindre le point d’observation d’un raid actif ou du boss public. Observation protégée, sans dégâts infligés/reçus ; quitter avec `/raid quitter` ou `/boss quitter`. | `cliker.raid.admin` / `cliker.boss.admin` |
 | `/jeutchat lancer [calcul\|devinette\|pays]` / `/jeutchat stop` | Lancer ou interrompre une manche de jeu de chat. | `cliker.jeutchat.admin` |
 | `/diagnostic` | Vérifier SQLite (durée de la requête), TPS, tâches planifiées, livraisons, mobs manquants, PNJ, hologrammes et destinations absentes ; indique la commande de correction et la commande Spark si Spark manque. Lecture seule, résultats paginés. | `cliker.diagnostic.admin` |
+| `/diagnostic modules` | Afficher en texte la version, les modules Warp/Donateurs, les positions actives/sauvegardées et le propriétaire des commandes. | `cliker.diagnostic.admin` |
 | `/avantposte vedette <pseudo>` / `/avantposte vedette retirer` | Mettre un terrain public à l’honneur pendant sept jours ou retirer sa mise en avant. | `cliker.services.admin` |
 | `/gm [0\|1\|2\|3] [joueur]` | Changer de mode ; sans argument, basculer entre survie et créatif. Modes : 0 survie, 1 créatif, 2 aventure, 3 spectateur. | `cliker.gamemode.admin` |
 | `/setspawn` | Définir le point d'accueil à la position actuelle. | `cliker.spawn.admin` |
@@ -323,7 +330,7 @@ La base est créée dans `plugins/ClikerV2/data/economy.db`. Les opérations SQL
 mvn clean package
 ```
 
-Le fichier JAR compilé est dans `target/clikerv2-1.0.0.jar`.
+Le fichier JAR compilé est dans `target/clikerv2-1.0.1.jar`.
 
 ## Sacs personnels
 

@@ -1,0 +1,25 @@
+{
+  "version": "1.0.1",
+  "date": "2026-10-31",
+  "tests": {
+    "total": 418,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "paper": "1.21.4",
+  "znpcsplus": "2.0.0",
+  "restart_checks": [
+    "Version serveur : 1.0.1",
+    "Diagnostic : Warp et Donateurs actifs, positions conservées",
+    "Clic sur le bloc ouvre le menu Warp",
+    "Menu Donateurs affiche RAPTORE44 et 12,5 points",
+    "Hologramme Warp présent dans les paquets client",
+    "Attribut échelle 2 du PNJ donateur reçu"
+  ],
+  "notes": [
+    "Restauration des quatre raccourcis lors du chargement tardif d’un monde vérifiée par tests automatisés.",
+    "Le JAR GitHub antérieur comparé était identique au JAR testé ; la version réellement chargée sur le serveur du propriétaire reste à identifier avec ses journaux.",
+    "La réception de l’attribut d’échelle utilise l’identifiant protocolaire 24 (SCALE dans PacketEvents 1.21.4) ; pas de certification graphique du skin."
+  ]
+}

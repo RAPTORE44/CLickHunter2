@@ -194,6 +194,12 @@ public class ZnpcsNpc implements Listener {
         if (!owned.isEmpty()) call(old, "saveToStore");
     }
 
+    static Object publicApiCall(Class<?> apiType, Object target, String method) throws Exception {
+        // L'implémentation PacketEvents peut être anonyme : invoquer la méthode de son API
+        // publique.
+        return apiType.getMethod(method).invoke(target);
+    }
+
     static Object skinDescriptor(Object factory, String name) throws Exception {
         // Le descripteur statique de ZNPCsPlus 2.0.0 fait un join() réseau : ne jamais le créer sur
         // le thread serveur.
@@ -343,7 +349,8 @@ public class ZnpcsNpc implements Listener {
         if (!(viewers instanceof java.util.Set<?> players) || players.isEmpty()) return;
         String base = "lol.pyr.znpcsplus.libraries.packetevents.api.";
         Object api = Class.forName(base + "PacketEvents").getMethod("getAPI").invoke(null);
-        Object manager = call(api, "getPlayerManager");
+        Object manager =
+                publicApiCall(Class.forName(base + "PacketEventsAPI"), api, "getPlayerManager");
         Class<?> attributeClass = Class.forName(base + "protocol.attribute.Attribute");
         Object attribute =
                 Class.forName(base + "protocol.attribute.Attributes").getField("SCALE").get(null);

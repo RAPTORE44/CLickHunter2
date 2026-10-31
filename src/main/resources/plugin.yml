@@ -73,6 +73,7 @@ commands:
     permission: cliker.jeutchat
   diagnostic:
     description: Diagnostic administrateur des données, destinations et services
+    usage: /diagnostic [modules]
     permission: cliker.diagnostic.admin
   session:
     description: Résumé de la session de chasse et gains confirmés
