@@ -662,12 +662,11 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             wikiModule.start();
         } catch (RuntimeException error) {
             getLogger().log(java.util.logging.Level.SEVERE, "Wiki indisponible", error);
-            if (donorPodium != null) donorPodium.shutdown();
             if (wikiModule != null) wikiModule.shutdown();
             unavailableCommands("wiki");
         }
         try {
-            donorPodium = new fr.cliker.clikerv2.donors.DonorPodium(this);
+            donorPodium = new fr.cliker.clikerv2.donors.DonorPodium(this, database);
             donorPodium.start();
         } catch (RuntimeException error) {
             getLogger()

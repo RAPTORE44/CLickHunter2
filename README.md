@@ -1,6 +1,12 @@
 # ClikerV2
 
-## Dernière mise à jour — 29 octobre 2026
+## Dernière mise à jour — 31 octobre 2026
+
+- Classement automatique des donateurs par points : **1 € = 1 point**, avec deux décimales. Ajouts et retraits possibles depuis la console de la boutique, même si le joueur est hors ligne ou n’a encore jamais rejoint le serveur.
+- `/donateurs` ouvre un menu administrateur paginé ; clic sur un joueur pour ajouter ou retirer 1, 10 ou 100 points. Une commande permet tout autre montant. Les trois premiers mettent à jour les noms et skins des PNJ existants, sans déplacer les PNJ et sans y afficher les points.
+- Les opérations sont sauvegardées avec leur historique SQL ; une référence de transaction facultative empêche de traiter deux fois un même paiement.
+
+### Mise à jour précédente — 29 octobre 2026
 
 - Jeux de chat automatiques toutes les quinze minutes ; les lancements manuels administrateur restent possibles.
 - `/upgrade set block` et `/bestiaire set block` : raccourcis sur le bloc visé, avec hologramme ; la variante `bloc` est aussi acceptée.
@@ -207,10 +213,14 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/buyzone remove <zone>` | Supprimer ce portail. | `cliker.buyzone.admin` |
 | `/daily pnj spawn` / `/daily pnj remove` | Placer ou supprimer le PNJ des récompenses. | `cliker.daily.admin` |
 | `/atm pnj spawn` / `/atm pnj remove` | Placer ou supprimer Marketus à sa position. | `cliker.atm.admin` |
-| `/donateurs set <1\|2\|3> <pseudo>` | Associer un joueur au rang ; met à jour son nom et son skin, sans déplacer le PNJ. Console et joueurs ; alias `/topdonateurs`. | `cliker.donateurs.admin` |
+| `/donateurs` / `/donateurs menu` | Ouvrir le menu paginé des donateurs ; clic sur un joueur pour gérer ses points. Depuis la console : afficher les dix premiers. Alias `/topdonateurs`. | `cliker.donateurs.admin` |
+| `/donateurs add <pseudo> <points> [référence]` | Ajouter des points ; alias de sous-commande `ajouter`. Deux décimales au maximum, point ou virgule ; console boutique et joueurs, sans connexion obligatoire du bénéficiaire. | `cliker.donateurs.admin` |
+| `/donateurs retirer <pseudo> <points> [référence]` | Retirer des points sans passer sous zéro ; alias `take` et `remove` avec pseudo et montant. | `cliker.donateurs.admin` |
+| `/donateurs points <pseudo>` | Consulter le total d’un joueur. | `cliker.donateurs.admin` |
+| `/donateurs refresh` | Relire le classement SQL et réappliquer les noms et skins sur les PNJ. | `cliker.donateurs.admin` |
 | `/donateurs spawn <1\|2\|3>` | Placer le PNJ de ce rang à sa position ; refuse les doublons. | `cliker.donateurs.admin` |
-| `/donateurs remove <1\|2\|3>` | Retirer ce PNJ pour le déplacer ; conserve le joueur associé. | `cliker.donateurs.admin` |
-| `/donateurs list` | Consulter les trois joueurs associés et les PNJ placés ; également affiché par `/donateurs`. | `cliker.donateurs.admin` |
+| `/donateurs remove <1\|2\|3>` | Retirer ce PNJ pour le déplacer ; les points restent sauvegardés. | `cliker.donateurs.admin` |
+| `/donateurs list` | Afficher les dix premiers donateurs et leurs points dans le chat administrateur ou la console. | `cliker.donateurs.admin` |
 | `/wiki pnj spawn` / `/wiki pnj remove` | Placer ou supprimer le PNJ Wiki. Lien et textes dans `wiki.yml`. | `cliker.wiki.admin` |
 | `/discord pnj spawn` / `/discord pnj remove` | Placer ou supprimer le PNJ Discord. | `cliker.discord.admin` |
 | `/contrats pnj spawn` / `/contrats pnj remove` | Placer ou supprimer le PNJ des contrats. | `cliker.contrats.admin` |
@@ -420,6 +430,24 @@ Un nouveau joueur reçoit un message global de bienvenue. `/bvn` ou `/bienvenue`
 
 Les positions enregistrées des classements restent les points d’ancrage. `affichage/classements.yml:decalage-vertical` vaut `-3` par défaut ; ce décalage de rendu ne se cumule pas aux redémarrages. Les anciens totaux ATM, dont seul le temps retiré était stocké, sont reconstruits au tarif actuel ; les futurs retraits conservent le montant réellement versé dans SQLite. Le montant disponible est actualisé à l’ouverture du menu et après un retrait.
 
-Les PNJ donateurs utilisent `pnj/donateurs-1.yml`, `pnj/donateurs-2.yml` et `pnj/donateurs-3.yml`. `joueur` détermine simultanément le pseudo et le skin Minecraft ; `titre-rang` et `format-pseudo` personnalisent les deux lignes (`{joueur}` dans le format). Le classement est mis à jour manuellement, sans montant ni calcul automatique. Les modifications SFTP sont relues au redémarrage ; `/donateurs set` actualise immédiatement un PNJ déjà placé. Le chargement du skin dépend de ZNPCsPlus et de l’existence du profil Minecraft.
+Les PNJ donateurs utilisent `pnj/donateurs-1.yml`, `pnj/donateurs-2.yml` et `pnj/donateurs-3.yml`. Le nom et le skin (`joueur`, `pnj.skin`, `pnj.sous-titre`) sont désormais remplis par le classement SQL : modifier ces noms par SFTP ne change pas les points. `titre-rang`, `format-pseudo` et `pnj.echelle` restent personnalisables ; les positions et l’échelle ×2 sont conservées. L’ancien `/donateurs set <rang> <pseudo>` est remplacé par les commandes de points et affiche maintenant une aide sans modifier le podium. Le chargement des skins dépend de ZNPCsPlus et de l’existence du profil Minecraft. Les trois places sont attribuées aux totaux strictement positifs ; en cas d’égalité, les pseudos sont triés par ordre alphabétique, sans distinction de casse. Les places sans donateur gardent RAPTORE44. Les anciens classements manuels ne sont pas convertis en points inventés : renseigner les vrais totaux avec `/donateurs add`.
 
 Les Cendres servent à appliquer ou remplacer une rune sur l’équipement dans `/rune` : coût actuel **500 Cendres** par tentative. Les runes donnent des bonus selon l’équipement ; les détails sont accessibles depuis le livre d’information de cette table. Les réglages des raccourcis bestiaire sont sauvegardés dans `navigation/warps.yml` (`bestiaires` et `hologrammes.bestiaires`). Les commandes de placement nécessitent de viser un bloc à moins de cinq blocs. La taille des PNJ donateurs se règle avec `pnj.echelle` dans chacun des fichiers `pnj/donateurs-N.yml` (2 par défaut).
+
+## Brancher la boutique sur les points donateurs
+
+La boutique peut exécuter cette commande **console**, en plus de sa commande habituelle d’attribution du grade :
+
+```text
+donateurs add RAPTORE44 9.99 achat-123-ligne-1
+```
+
+Cet exemple crédite exactement **9,99 points** pour un achat de **9,99 €**. Remplacer le pseudo, le montant payé et la référence par les variables disponibles dans la boutique. Le plugin ne prélève aucun paiement et ne modifie pas les grades ; l’attribution du grade reste la commande de la boutique. La référence est facultative pour les corrections manuelles ; pour la boutique, utiliser une référence unique par opération (transaction et ligne d’achat). Rejouer la même opération avec cette référence ne crédite pas une seconde fois. Réutiliser une référence pour un autre joueur ou un autre montant est refusé. Sans référence, chaque commande est volontairement une nouvelle opération.
+
+Pour rembourser les points associés à cet achat :
+
+```text
+donateurs retirer RAPTORE44 9.99 remboursement-123-ligne-1
+```
+
+Les points utilisent des centièmes entiers en SQLite pour éviter les arrondis flottants ; ils sont indépendants des Écus, Gemmes et Cendres. Les comptes sont identifiés par pseudo sans distinction de majuscules : utiliser le pseudo fourni par la boutique et corriger les totaux avec les commandes en cas de changement de pseudo. Les modifications sont journalisées avec l’auteur et la référence dans `donor_point_events`, avec le total dans `donor_points`, dans `data/economy.db`. Sauvegarder cette base avec les fichiers des PNJ. Seuls les OP ou titulaires de `cliker.donateurs.admin` (OP par défaut) peuvent consulter les points et les modifier. Les PNJ publics n’affichent jamais les points.

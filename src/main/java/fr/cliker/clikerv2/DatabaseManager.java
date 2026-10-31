@@ -42,6 +42,16 @@ public final class DatabaseManager {
             statement.executeUpdate("PRAGMA journal_mode=WAL");
             statement.executeUpdate("PRAGMA busy_timeout=5000");
             statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS donor_points(name_key TEXT PRIMARY KEY,name TEXT"
+                        + " NOT NULL,units INTEGER NOT NULL CHECK(units>=0))");
+            statement.executeUpdate(
+                    "CREATE INDEX IF NOT EXISTS donor_ranking ON donor_points(units DESC,name_key"
+                        + " ASC)");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS donor_point_events(receipt TEXT PRIMARY"
+                        + " KEY,name_key TEXT NOT NULL,delta INTEGER NOT NULL,actor TEXT NOT"
+                        + " NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+            statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS player_balances (uuid TEXT PRIMARY KEY NOT NULL,"
                             + " player_name TEXT NOT NULL, ecus INTEGER NOT NULL DEFAULT 0,"
                             + " gemmes_sombres INTEGER NOT NULL DEFAULT 0, cendres INTEGER NOT NULL"

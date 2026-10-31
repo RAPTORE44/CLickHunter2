@@ -115,7 +115,8 @@ public final class HuntUI implements Listener {
 
     public void shutdown() {
         for (var player : Bukkit.getOnlinePlayers())
-            if (player.getOpenInventory().getTopInventory().getHolder() instanceof View)
+            if (player.getOpenInventory().getTopInventory() != null
+                    && player.getOpenInventory().getTopInventory().getHolder() instanceof View)
                 player.closeInventory();
         HandlerList.unregisterAll(this);
     }

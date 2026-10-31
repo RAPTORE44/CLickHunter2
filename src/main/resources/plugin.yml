@@ -10,9 +10,9 @@ commands:
     permission: cliker.services.admin
     usage: /bestiairebloc set|remove
   donateurs:
-    description: Podium manuel des trois meilleurs donateurs
+    description: Points de dons, menu administrateur et podium automatique
     aliases: [topdonateurs]
-    usage: /donateurs set <1|2|3> <pseudo> ou /donateurs spawn|remove <1|2|3>
+    usage: /donateurs [menu|list|add|retirer|points|spawn|remove|refresh]
     permission: cliker.donateurs.admin
   wiki:
     description: Wiki ClickHunter et livre des commandes
