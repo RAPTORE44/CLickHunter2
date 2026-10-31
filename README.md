@@ -2,6 +2,8 @@
 
 ## Dernière mise à jour — 31 octobre 2026
 
+- Scoreboard : symboles et bordures colorées par information : niveau bleu, Écus jaunes, gemmes violettes, cendres orange, prestige rose, éliminations rouges et joueurs en ligne verts. Libellés blancs pour la lisibilité ; nom ClickHunter et adresse conservés en vert. Migration automatique du style existant avec sauvegarde dans `backups/`, puis personnalisation dans `affichage/scoreboard.yml`. Commandes et permissions inchangées.
+
 - Piñatas : suppression des compteurs de secondes, y compris les anciens textes configurés ; couleurs Écus/XP/Gemmes conservées.
 - Tchat moins chargé : aides espacées de vingt minutes (migration de l’ancien intervalle de trois minutes). Les jeux restent à quinze minutes, comme demandé.
 - Scoreboard : éliminations actuelles / objectif réel du prochain prestige.

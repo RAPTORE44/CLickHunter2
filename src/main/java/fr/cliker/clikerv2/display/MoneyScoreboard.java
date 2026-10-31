@@ -97,6 +97,7 @@ public final class MoneyScoreboard implements Listener {
         var config =
                 YamlConfiguration.loadConfiguration(
                         fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "scoreboard.yml"));
+        migrateAppearance(config);
         lines =
                 config.getStringList("lignes").stream()
                         .map(
@@ -104,21 +105,54 @@ public final class MoneyScoreboard implements Listener {
                                     if (line.contains("{kills}")
                                             && !line.contains("{objectif-prestige}"))
                                         line += " &7/ &f{objectif-prestige}";
-                                    String color =
-                                            line.contains("{niveau}")
-                                                    ? "&b"
-                                                    : line.contains("{ecus}")
-                                                            ? "&e"
-                                                            : line.contains("{gemmes}") ? "&5" : "";
-                                    return color.isEmpty()
-                                            ? line
-                                            : color + line.replaceAll("(?i)&[0-9a-f]", "");
+                                    return line;
                                 })
                         .toList();
         if (lines.isEmpty() || lines.size() > 15)
             throw new IllegalArgumentException("Le scoreboard doit contenir entre 1 et 15 lignes");
         title = DailySettings.color(config.getString("titre", "&a&lClickHunter"));
         interval = Math.max(20L, config.getLong("actualisation-ticks", 40));
+    }
+
+    private void migrateAppearance(YamlConfiguration config) {
+        if (config.getInt("style-version", 0) >= 2) return;
+        var styles =
+                Map.of(
+                        "niveau", "&b┃ ✦ &fNiveau : &b{niveau}",
+                        "ecus", "&e┃ ☀ &fÉcus : &e{ecus}",
+                        "gemmes", "&5┃ ♦ &fGemmes : &5{gemmes}",
+                        "cendres", "&6┃ ✹ &fCendres : &6{cendres}",
+                        "prestige", "&d┃ ★ &fPrestige : &d{prestige}",
+                        "kills", "&c┃ ⚔ &fMobs tués : &c{kills} &7/ &c{objectif-prestige}",
+                        "connectes", "&a┃ ☻ &fEn ligne : &a{connectes}");
+        var updated =
+                config.getStringList("lignes").stream()
+                        .map(
+                                line -> {
+                                    for (var entry : styles.entrySet())
+                                        if (line.contains("{" + entry.getKey() + "}"))
+                                            return entry.getValue();
+                                    return line.replace("&6PROGRESSION", "&d★ PROGRESSION")
+                                            .replace("&6SERVEUR", "&a☰ SERVEUR");
+                                })
+                        .toList();
+        var file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "scoreboard.yml");
+        try {
+            var backup =
+                    plugin.getDataFolder()
+                            .toPath()
+                            .resolve(
+                                    "backups/scoreboard-style-"
+                                            + System.currentTimeMillis()
+                                            + ".yml");
+            Files.createDirectories(backup.getParent());
+            Files.copy(file.toPath(), backup);
+            config.set("lignes", updated);
+            config.set("style-version", 2);
+            config.save(file);
+        } catch (java.io.IOException error) {
+            throw new IllegalStateException("Mise à jour du style du scoreboard impossible", error);
+        }
     }
 
     public void start() {
