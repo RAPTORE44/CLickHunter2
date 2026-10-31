@@ -5,6 +5,10 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  inv:
+    description: Ouvrir et modifier l’inventaire d’un joueur en ligne
+    usage: /inv <joueur>
+    permission: cliker.staff.inv
   flyspeed:
     description: Régler sa vitesse de vol entre 0 et 10
     permission: cliker.staff.flyspeed
@@ -148,13 +152,9 @@ commands:
     description: Afficher la progression des zones pendant dix secondes
     usage: /progression
     permission: cliker.navigation.use
-  antidrop:
-    description: Protéger ou autoriser le jet d’objets jusqu’à la déconnexion
-    usage: /antidrop
-    permission: cliker.comfort.use
-  ramassage:
-    description: Autoriser ou bloquer le ramassage au sol jusqu’à la déconnexion
-    usage: /ramassage <autoriser|bloquer>
+  drop:
+    description: Basculer ensemble le jet d’objets et le ramassage au sol
+    usage: /drop
     permission: cliker.comfort.use
   settings:
     description: Régler les textes de dégâts, les sons et le confort visuel
@@ -281,7 +281,7 @@ commands:
     permission: cliker.mob.admin
   holotop:
     description: Gestion des hologrammes de classement
-    usage: /holotop <spawn <level|kills|ecus|gemmes|cendres|bosstimer>|remove>
+    usage: /holotop <spawn <level|kills|ecus|gemmes|cendres>|remove>
     permission: cliker.mob.admin
   ah:
     description: Hôtel des ventes, frais non remboursables et annonces chat optionnelles
@@ -312,6 +312,8 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.staff.inv:
+    default: op
   cliker.staff.flyspeed:
     default: op
   cliker.staff.god:

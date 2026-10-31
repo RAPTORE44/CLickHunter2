@@ -168,8 +168,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         if (threshold < 1 || threshold > 1_000_000_000_000_000L)
             throw new IllegalArgumentException("Seuil de boss invalide");
         int pool = Math.max(1, Math.min(4, settings.yaml.getInt("groupes.maximum-simultanes", 4)));
-        for (int slot = 0; slot < pool; slot++)
-            fr.cliker.clikerv2.world.ActivityWorlds.create(setup.world(false, slot), true);
+        // Les mondes de raid sont créés uniquement au lancement d’un groupe.
         scroll = new NamespacedKey(p, "raid_scroll");
         serverBoss =
                 raidFactory.create(

@@ -20,6 +20,60 @@ public final class PersonalCombatAudio implements Listener {
     private final Set<UUID> combatWorlds = ConcurrentHashMap.newKeySet();
     private final Map<UUID, UUID> worlds = new ConcurrentHashMap<>();
     private final Set<Integer> attacks = new HashSet<>();
+
+    private record Hit(UUID owner, UUID world, long until) {}
+
+    private final Map<Integer, Hit> hits = new ConcurrentHashMap<>();
+    private org.bukkit.scheduler.BukkitTask hitCleanup;
+
+    private void scheduleHitCleanup() {
+        if (hitCleanup != null) return;
+        hitCleanup =
+                Bukkit.getScheduler()
+                        .runTaskLater(
+                                plugin,
+                                () -> {
+                                    hitCleanup = null;
+                                    long now = System.nanoTime();
+                                    hits.entrySet().removeIf(e -> e.getValue().until < now);
+                                    if (!hits.isEmpty() && enabled) scheduleHitCleanup();
+                                },
+                                40);
+    }
+
+    private Constructor<?> hurtPacket;
+    private Method playerHandle, sendPacket;
+    private Field connection;
+
+    public static void hit(Player player, org.bukkit.entity.LivingEntity entity) {
+        mark(player);
+        var audio = current;
+        if (audio != null)
+            audio.hits.put(
+                    entity.getEntityId(),
+                    new Hit(
+                            player.getUniqueId(),
+                            entity.getWorld().getUID(),
+                            System.nanoTime() + 2_000_000_000L));
+        if (audio != null) audio.scheduleHitCleanup();
+    }
+
+    public static void hurt(Player player, org.bukkit.entity.LivingEntity entity) {
+        hit(player, entity);
+        var audio = current;
+        if (audio == null) return;
+        try {
+            Object handle = audio.playerHandle.invoke(player);
+            audio.sendPacket.invoke(
+                    audio.connection.get(handle),
+                    audio.hurtPacket.newInstance(entity.getEntityId(), player.getYaw()));
+        } catch (ReflectiveOperationException e) {
+            audio.plugin
+                    .getLogger()
+                    .fine("Animation personnelle non envoyée : " + e.getClass().getSimpleName());
+        }
+    }
+
     private Method packetName,
             userMethod,
             bufferMethod,
@@ -68,6 +122,19 @@ public final class PersonalCombatAudio implements Listener {
                                                 craft.getMethod("bukkitToMinecraft", Sound.class)
                                                         .invoke(null, sound))
                                 + 1);
+            hurtPacket =
+                    Class.forName(
+                                    "net.minecraft.network.protocol.game.ClientboundHurtAnimationPacket")
+                            .getConstructor(int.class, float.class);
+            playerHandle =
+                    Class.forName("org.bukkit.craftbukkit.entity.CraftPlayer")
+                            .getMethod("getHandle");
+            connection =
+                    Class.forName("net.minecraft.server.level.ServerPlayer").getField("connection");
+            sendPacket =
+                    Class.forName("net.minecraft.server.network.ServerCommonPacketListenerImpl")
+                            .getMethod(
+                                    "send", Class.forName("net.minecraft.network.protocol.Packet"));
             Class<?> protocol = Class.forName(BASE + "event.ProtocolPacketEvent");
             packetName = protocol.getMethod("getPacketName");
             userMethod = protocol.getMethod("getUser");
@@ -127,7 +194,9 @@ public final class PersonalCombatAudio implements Listener {
     private void filter(Object event) {
         if (!enabled) return;
         try {
-            if (!"SOUND_EFFECT".equals(packetName.invoke(event))) return;
+            String name = (String) packetName.invoke(event);
+            boolean damage = name.equals("HURT_ANIMATION") || name.equals("DAMAGE_EVENT");
+            if (!damage && !name.equals("SOUND_EFFECT")) return;
             Object user = userMethod.invoke(event);
             UUID id = (UUID) uuidMethod.invoke(user);
             UUID world = worlds.get(id);
@@ -139,7 +208,14 @@ public final class PersonalCombatAudio implements Listener {
                 int part = ((Number) byteMethod.invoke(buffer, at + i)).intValue();
                 value |= (part & 127) << (7 * i);
                 if ((part & 128) == 0) {
-                    if (attacks.contains(value)) cancelMethod.invoke(event, true);
+                    if (damage) {
+                        var hit = hits.get(value);
+                        if (hit != null) {
+                            if (hit.until < System.nanoTime()) hits.remove(value, hit);
+                            else if (hit.world.equals(world) && !hit.owner.equals(id))
+                                cancelMethod.invoke(event, true);
+                        }
+                    } else if (attacks.contains(value)) cancelMethod.invoke(event, true);
                     return;
                 }
             }
@@ -174,6 +250,10 @@ public final class PersonalCombatAudio implements Listener {
 
     public void shutdown() {
         enabled = false;
+        if (hitCleanup != null) {
+            hitCleanup.cancel();
+            hitCleanup = null;
+        }
         if (current == this) current = null;
         if (manager != null && handle != null)
             try {
@@ -185,6 +265,7 @@ public final class PersonalCombatAudio implements Listener {
                                         + e.getClass().getSimpleName());
             }
         worlds.clear();
+        hits.clear();
         combatWorlds.clear();
         HandlerList.unregisterAll(this);
     }

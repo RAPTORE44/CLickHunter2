@@ -54,7 +54,7 @@ public final class PlayerComfort implements Listener, CommandExecutor {
                         this,
                         plugin,
                         org.bukkit.plugin.ServicePriority.Normal);
-        for (String name : List.of("antidrop", "ramassage", "settings", "lock")) {
+        for (String name : List.of("drop", "settings", "lock")) {
             var command = plugin.getCommand(name);
             if (command != null) command.setExecutor(this);
         }
@@ -149,7 +149,7 @@ public final class PlayerComfort implements Listener, CommandExecutor {
                     locked(event.getItemDrop().getItemStack())
                             ? "Cet équipement est verrouillé. /lock avec l’objet en main pour le"
                                     + " déverrouiller."
-                            : "Jet d’objets protégé. /antidrop pour jeter jusqu’à ta"
+                            : "Jet d’objets protégé. /drop pour jeter jusqu’à ta"
                                     + " déconnexion.");
         }
     }
@@ -162,9 +162,9 @@ public final class PlayerComfort implements Listener, CommandExecutor {
             remind(
                     player,
                     "pickup",
-                    "Ramassage au sol protégé. /ramassage autoriser pour ramasser jusqu’à ta"
-                        + " déconnexion. Les récompenses du plugin arrivent directement dans ton"
-                        + " inventaire ou /claim.");
+                    "Ramassage au sol protégé. /drop pour ramasser jusqu’à ta déconnexion. Les"
+                            + " récompenses du plugin arrivent directement dans ton inventaire ou"
+                            + " /claim.");
         }
     }
 
@@ -242,33 +242,26 @@ public final class PlayerComfort implements Listener, CommandExecutor {
             open(player);
             return true;
         }
-        boolean antidrop = command.getName().equals("antidrop");
-        var allowed = antidrop ? dropsAllowed : pickupAllowed;
-        if (antidrop
-                ? args.length != 0
-                : args.length != 1
-                        || !(args[0].equalsIgnoreCase("autoriser")
-                                || args[0].equalsIgnoreCase("bloquer"))) {
+        if (args.length != 0) {
             player.sendMessage(
-                    Component.text(
-                            antidrop
-                                    ? "Usage : /antidrop pour inverser la protection."
-                                    : "Usage : /ramassage <autoriser|bloquer>.",
-                            NamedTextColor.YELLOW));
+                    "§e/drop pour activer ou désactiver le jet d’objets et le ramassage.");
             return true;
         }
         boolean allow =
-                antidrop
-                        ? !allowed.contains(player.getUniqueId())
-                        : args[0].equalsIgnoreCase("autoriser");
-        if (allow) allowed.add(player.getUniqueId());
-        else allowed.remove(player.getUniqueId());
+                !dropsAllowed.contains(player.getUniqueId())
+                        || !pickupAllowed.contains(player.getUniqueId());
+        if (allow) {
+            dropsAllowed.add(player.getUniqueId());
+            pickupAllowed.add(player.getUniqueId());
+        } else {
+            dropsAllowed.remove(player.getUniqueId());
+            pickupAllowed.remove(player.getUniqueId());
+        }
         player.sendMessage(
                 Component.text(
-                        (command.getName().equals("antidrop")
-                                        ? "Jet d’objets "
-                                        : "Ramassage au sol ")
-                                + (allow ? "autorisé jusqu’à ta déconnexion." : "bloqué."),
+                        allow
+                                ? "Jet d’objets et ramassage activés jusqu’à ta déconnexion."
+                                : "Jet d’objets et ramassage désactivés.",
                         NamedTextColor.GREEN));
         return true;
     }

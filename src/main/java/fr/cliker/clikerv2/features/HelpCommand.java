@@ -36,6 +36,16 @@ public final class HelpCommand implements CommandExecutor, TabCompleter {
         add("feed", "Restaurer la faim : /feed [joueur].", "cliker.staff.feed", "Staff");
         aliases.put("pouvelle", "trash");
         aliases.put("poubelle", "trash");
+        add(
+                "inv",
+                "Ouvrir et modifier l’inventaire d’un joueur : /inv <joueur>.",
+                "cliker.staff.inv",
+                "Staff");
+        add(
+                "drop",
+                "Basculer ensemble le jet d’objets et le ramassage.",
+                "cliker.comfort.use",
+                "Inventaire");
         add("menu", "Ouvrir le menu principal.", "", "Navigation");
         add("warp", "Voyager vers les zones débloquées.", "cliker.navigation.use", "Navigation");
         add("spawn", "Revenir au spawn.", "cliker.spawn.use", "Navigation");

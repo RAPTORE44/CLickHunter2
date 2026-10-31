@@ -156,6 +156,8 @@ public final class CustomMobManager implements Listener {
 
     private BukkitTask recoveryTask, anchorTask, resetTask;
     private boolean stopped;
+    private boolean pointsLoaded;
+    private final Set<String> sleepingSpawns = new HashSet<>();
 
     public void startAnchor() {
         if (stopped || anchorTask != null) return;
@@ -164,16 +166,22 @@ public final class CustomMobManager implements Listener {
                         .getScheduler()
                         .runTaskTimer(plugin, this::recoverMissingMobs, 40L, 40L);
         anchorTask =
-                plugin.getServer().getScheduler().runTaskTimer(plugin, this::anchorAll, 1L, 1L);
+                plugin.getServer().getScheduler().runTaskTimer(plugin, this::anchorAll, 2L, 2L);
     }
 
     /** Répare les retraits externes et retrouve les entités après rechargement du chunk. */
     private void recoverMissingMobs() {
         for (String id : new ArrayList<>(spawnLocation.keySet())) {
-            if (oneShotSpawns.contains(id) || pendingRespawns.containsKey(id)) continue;
-            // Un boss réellement tué attend sa prochaine vague.
-            if (bossSpawnIds.contains(id) && !aliveBySpawnId.containsKey(id)) continue;
+            if (pendingRespawns.containsKey(id)) continue;
             Location at = spawnLocation.get(id);
+            if (!fr.cliker.clikerv2.performance.ZoneActivity.active(at)) {
+                hibernate(id);
+                continue;
+            }
+            // Un boss tué attend la vague ; un boss seulement endormi reste disponible.
+            if (bossSpawnIds.contains(id)
+                    && !aliveBySpawnId.containsKey(id)
+                    && !sleepingSpawns.contains(id)) continue;
             if (!at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4)) continue;
             UUID tracked = aliveBySpawnId.get(id);
             Entity current = tracked == null ? null : plugin.getServer().getEntity(tracked);
@@ -211,14 +219,14 @@ public final class CustomMobManager implements Listener {
 
     private void anchorAll() {
         bossTick++;
-        if (bossTick % 40 == 0) fr.cliker.clikerv2.combat.BossMusic.sweep();
+        if (bossTick % 20 == 0) fr.cliker.clikerv2.combat.BossMusic.sweep();
         for (Map.Entry<String, UUID> entry : aliveBySpawnId.entrySet()) {
             Location spawn = spawnLocation.get(entry.getKey());
             Entity entity = plugin.getServer().getEntity(entry.getValue());
             if (spawn == null || !(entity instanceof LivingEntity living) || !living.isValid())
                 continue;
             if (bossSpawnIds.contains(entry.getKey())) {
-                if (bossTick % 2 == 0) moveBoss(entry.getKey(), living, spawn);
+                moveBoss(entry.getKey(), living, spawn);
                 continue;
             }
             if (living.getVelocity().lengthSquared() != 0) living.setVelocity(new Vector(0, 0, 0));
@@ -315,16 +323,14 @@ public final class CustomMobManager implements Listener {
     }
 
     public boolean bossAlive(String id) {
+        if (sleepingSpawns.contains(id)) return true;
         var uuid = aliveBySpawnId.get(id);
         var entity = uuid == null ? null : plugin.getServer().getEntity(uuid);
         return entity != null && entity.isValid() && !entity.isDead();
     }
 
     /**
-     * Force le chargement des chunks des zones de spawn AVANT de scanner/supprimer les anciens
-     * mobs. Sans ça, un reload à chaud (PlugMan) sur un chunk non chargé (zone sans joueur à
-     * proximité) ne voit pas les mobs existants via world.getEntities(), donc ne les supprime pas
-     * -> nouveaux mobs spawnés en double.
+     * Charge les points sans forcer les chunks ; les entités sont retrouvées ou créées à proximité.
      */
     public void load() {
         if (stopped) return;
@@ -343,21 +349,8 @@ public final class CustomMobManager implements Listener {
                                                                         + error.getMessage());
                                                 return;
                                             }
-                                            for (MobSpawnStore.SpawnPoint point : points) {
-                                                point.location()
-                                                        .getWorld()
-                                                        .getChunkAt(point.location())
-                                                        .load();
-                                            }
-                                            // 1 tick de délai après le chargement des
-                                            // chunks : sur Paper les entités d'un chunk qui
-                                            // vient d'être
-                                            // chargé ne sont pas toujours visibles via
-                                            // world.getEntities() dans le même tick, ce qui
-                                            // laissait
-                                            // passer des mobs existants au scan et en
-                                            // spawnait des doublons par-dessus lors d'un
-                                            // reload à chaud.
+                                            // Les points sont chargés en mémoire ; seuls les spawns
+                                            // proches d’un joueur créent une entité.
                                             fr.cliker.clikerv2.runtime.ServerTasks.run(
                                                     plugin,
                                                     () -> {
@@ -390,6 +383,7 @@ public final class CustomMobManager implements Listener {
                                                                 bossSpawnIds.add(point.id());
                                                             spawn(point.id());
                                                         }
+                                                        pointsLoaded = true;
                                                     });
                                         }));
     }
@@ -403,11 +397,7 @@ public final class CustomMobManager implements Listener {
     }
 
     /**
-     * Ignore les zones boss (gérées par BossEventManager). Force le chargement des chunks AVANT le
-     * scan de suppression, sinon une zone sans joueur à proximité n'est pas vue par
-     * world.getEntities() : l'ancien mob n'est pas supprimé mais spawn() en recrée un quand même
-     * par-dessus -> doublons qui s'accumulent à chaque cycle de 15 min (observé : ~96 zones ->
-     * plusieurs milliers de mobs après quelques heures).
+     * Réinitialise les mobs placés, en laissant les zones vides en veille et les boss inchangés.
      */
     public int respawnAllMobs() {
         resetAll();
@@ -419,8 +409,6 @@ public final class CustomMobManager implements Listener {
 
     private void resetAll() {
         if (stopped) return;
-        for (Location location : spawnLocation.values())
-            location.getWorld().getChunkAt(location).load();
 
         fr.cliker.clikerv2.runtime.ServerTasks.run(
                 plugin,
@@ -452,6 +440,7 @@ public final class CustomMobManager implements Listener {
                     for (String spawnId : spawnLocation.keySet()) {
                         if (bossSpawnIds.contains(spawnId) || oneShotSpawns.contains(spawnId))
                             continue;
+                        currentHealth.remove(spawnId);
                         spawn(spawnId);
                         resetCount++;
                     }
@@ -475,6 +464,8 @@ public final class CustomMobManager implements Listener {
         for (String spawnId : new ArrayList<>(aliveBySpawnId.keySet())) despawn(spawnId);
         for (BukkitTask task : pendingRespawns.values()) task.cancel();
         pendingRespawns.clear();
+        sleepingSpawns.clear();
+        currentHealth.clear();
     }
 
     public void addSpawn(String mobId, Location location) {
@@ -549,10 +540,14 @@ public final class CustomMobManager implements Listener {
     }
 
     public List<String> diagnostic() {
-        int waiting = 0, missing = 0, active = 0;
+        int waiting = 0, missing = 0, active = 0, asleep = 0;
         for (var entry : spawnLocation.entrySet()) {
             if (oneShotSpawns.contains(entry.getKey())) continue;
             var at = entry.getValue();
+            if (sleepingSpawns.contains(entry.getKey())) {
+                asleep++;
+                continue;
+            }
             if (!at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4)) {
                 waiting++;
                 continue;
@@ -565,6 +560,7 @@ public final class CustomMobManager implements Listener {
         }
         return List.of(
                 "Mobs actifs dans les chunks chargés : " + active,
+                "Zones en veille (spawns conservés) : " + asleep,
                 "Points dans les chunks non chargés : " + waiting,
                 "Mobs manquants à rétablir : " + missing,
                 "Réapparitions en attente : " + pendingRespawns.size());
@@ -619,7 +615,54 @@ public final class CustomMobManager implements Listener {
         store.removeById(id);
     }
 
+    /**
+     * Nettoyage différé des anciens corps : aucun chargement forcé pour supprimer un point éloigné.
+     */
+    @EventHandler
+    public void entitiesLoaded(org.bukkit.event.world.EntitiesLoadEvent event) {
+        if (stopped || !pointsLoaded) return;
+        for (var entity : event.getEntities()) {
+            String id =
+                    entity.getPersistentDataContainer().get(spawnIdKey, PersistentDataType.STRING);
+            if (id == null
+                    || !entity.getPersistentDataContainer()
+                            .has(mobIdKey, PersistentDataType.STRING)) continue;
+            var point = spawnLocation.get(id);
+            if (point == null) {
+                entity.remove();
+                continue;
+            }
+            if (!fr.cliker.clikerv2.performance.ZoneActivity.active(point)) {
+                sleepingSpawns.add(id);
+                aliveBySpawnId.remove(id, entity.getUniqueId());
+                entity.remove();
+                continue;
+            }
+            UUID tracked = aliveBySpawnId.get(id);
+            var existing = tracked == null ? null : plugin.getServer().getEntity(tracked);
+            if (existing != null
+                    && existing.isValid()
+                    && !existing.getUniqueId().equals(entity.getUniqueId())) entity.remove();
+            else {
+                aliveBySpawnId.put(id, entity.getUniqueId());
+                sleepingSpawns.remove(id);
+            }
+        }
+    }
+
+    private void hibernate(String spawnId) {
+        UUID uuid = aliveBySpawnId.remove(spawnId);
+        if (uuid == null) return;
+        sleepingSpawns.add(spawnId);
+        bossTargets.remove(spawnId);
+        var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
+        if (provider != null) provider.remove("mob:" + spawnId);
+        var entity = plugin.getServer().getEntity(uuid);
+        if (entity != null) entity.remove();
+    }
+
     private void despawn(String spawnId) {
+        sleepingSpawns.remove(spawnId);
         var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
         if (provider != null) provider.remove("mob:" + spawnId);
         bossTargets.remove(spawnId);
@@ -636,6 +679,30 @@ public final class CustomMobManager implements Listener {
         String mobId = spawnMobId.get(spawnId);
         MobTier tier = mobId == null ? null : MobTier.parse(mobId);
         if (location == null || tier == null) return;
+        if (!fr.cliker.clikerv2.performance.ZoneActivity.active(location)) {
+            sleepingSpawns.add(spawnId);
+            return;
+        }
+        // Réutiliser l’entité chargée du même point avant d’en créer une nouvelle.
+        if (location.getWorld()
+                .isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
+            LivingEntity existing = null;
+            for (Entity candidate : location.getChunk().getEntities())
+                if (candidate instanceof LivingEntity living
+                        && !living.isDead()
+                        && spawnId.equals(
+                                candidate
+                                        .getPersistentDataContainer()
+                                        .get(spawnIdKey, PersistentDataType.STRING))) {
+                    if (existing == null) existing = living;
+                    else living.remove();
+                }
+            if (existing != null) {
+                aliveBySpawnId.put(spawnId, existing.getUniqueId());
+                sleepingSpawns.remove(spawnId);
+                return;
+            }
+        }
         boolean boss = bossSpawnIds.contains(spawnId);
         org.bukkit.entity.EntityType entityType =
                 boss ? org.bukkit.entity.EntityType.IRON_GOLEM : tier.entityType();
@@ -668,6 +735,8 @@ public final class CustomMobManager implements Listener {
         entity.setGravity(boss);
         entity.setCollidable(false);
         entity.setAI(false);
+        if (boss && entity.getAttribute(Attribute.ATTACK_DAMAGE) != null)
+            entity.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(0);
         entity.setSilent(true);
         if (entity instanceof Mob mob) mob.setAware(false);
         entity.getPersistentDataContainer().set(mobIdKey, PersistentDataType.STRING, mobId);
@@ -679,8 +748,10 @@ public final class CustomMobManager implements Listener {
             entity.setHealth(maxHealthAttribute.getValue());
         }
         entity.setCustomNameVisible(true);
-        currentHealth.put(spawnId, maxHp);
-        updateNameplate(entity, tier, maxHp, maxHp, boss);
+        long hp = Math.max(1, Math.min(maxHp, currentHealth.getOrDefault(spawnId, maxHp)));
+        currentHealth.put(spawnId, hp);
+        sleepingSpawns.remove(spawnId);
+        updateNameplate(entity, tier, hp, maxHp, boss);
         aliveBySpawnId.put(spawnId, entity.getUniqueId());
     }
 
@@ -752,25 +823,35 @@ public final class CustomMobManager implements Listener {
         boolean boss = bossSpawnIds.contains(spawnId);
         if (boss && applied > 0) {
             bossTargets.put(spawnId, player.getUniqueId());
-            victim.playHurtAnimation(player.getYaw());
-            victim.getWorld()
-                    .spawnParticle(
-                            org.bukkit.Particle.DAMAGE_INDICATOR,
-                            victim.getLocation().add(0, victim.getHeight() * .6, 0),
-                            6,
-                            .4,
-                            .4,
-                            .4,
-                            .05);
+            fr.cliker.clikerv2.combat.PersonalCombatAudio.hurt(player, victim);
+            player.spawnParticle(
+                    org.bukkit.Particle.DAMAGE_INDICATOR,
+                    victim.getLocation().add(0, victim.getHeight() * .6, 0),
+                    6,
+                    .4,
+                    .4,
+                    .4,
+                    .05);
             fr.cliker.clikerv2.combat.BossMusic.play(player);
         }
         long maxHp = boss ? bossHealth(tier) : Math.round(tier.maxHealth());
         long hpBefore = currentHealth.getOrDefault(spawnId, maxHp);
         long hpAfter = Math.max(0, hpBefore - applied);
         currentHealth.put(spawnId, hpAfter);
+        if (applied > 0) {
+            fr.cliker.clikerv2.combat.PersonalCombatAudio.hit(player, victim);
+            if (!boss && hpAfter > 0)
+                fr.cliker.clikerv2.combat.PersonalCombatAudio.hurt(player, victim);
+        }
 
         if (hpAfter <= 0) {
-            event.setDamage(victim.getHealth());
+            // Les PV virtuels sont l’autorité : armure/résistance vanilla ne doivent pas laisser
+            // un mob vivant à 0 PV. Le vrai décès conserve l’animation commune et le tueur.
+            event.setCancelled(true);
+            showDamage(player, victim, applied);
+            victim.setKiller(player);
+            victim.setHealth(0);
+            return;
         } else {
             event.setDamage(0.0);
         }
@@ -806,7 +887,7 @@ public final class CustomMobManager implements Listener {
                     && weapon.getItemMeta()
                             .getPersistentDataContainer()
                             .has(SwordCommand.SWORD_KEY, PersistentDataType.BYTE)) {
-                applied = 25L + armorDamage(player);
+                applied = SwordCommand.BASE_DAMAGE + armorDamage(player);
             }
         }
         if (applied == null) return null;
@@ -971,7 +1052,7 @@ public final class CustomMobManager implements Listener {
                 item.getItemMeta()
                         .getPersistentDataContainer()
                         .get(TierGear.ARMOR_KEY, PersistentDataType.STRING);
-        return gearMobId.equals(tag);
+        return tag != null && MobTier.parse(gearMobId) == MobTier.parse(tag);
     }
 
     @EventHandler

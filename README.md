@@ -2,6 +2,18 @@
 
 ## Dernière mise à jour — 31 octobre 2026
 
+- **Version 1.0.4** : mise en veille des mobs et hologrammes sans joueur à proximité (64 blocs par défaut), conservation des spawns et PV au réveil. Plus de chargement forcé de tous les chunks au démarrage/reset, plus de neuf chunks de boss maintenus à vide. Mondes de raids privés chargés seulement au lancement ; tâches de combat et d’hologrammes suspendues dans les arènes vides.
+- Effets de coup, particules de dégâts, animations de blessure et sons réservés à l’attaquant. La mort des mobs reste visible par tous ; les attaques dangereuses des boss restent annoncées aux participants.
+- Épée du Dresseur : **5 dégâts de base**, anciens objets et comparaison marchand mis à jour. Compression limitée à la rareté demandée par l’épée et les armures de chaque mob : Commun en Vache, pas de compression inutile au-delà du coût. Le marchand ne vend plus de compresseur inutile dans ces premières zones. Décompression des anciennes ressources conservée.
+- `/drop` remplace `/antidrop` et `/ramassage` : une bascule unique pour le jet d’objets et le ramassage, jusqu’à la déconnexion. `/lock` continue de protéger les objets verrouillés.
+- `/inv <joueur>` : inventaire réel d’un joueur en ligne, modifiable par le staff ; permission `cliker.staff.inv`. Accès bloqué pendant les livraisons et l’isolation des avant-postes.
+- Ancien hologramme global « Prochains boss » retiré automatiquement ; compteurs par zone conservés. Secondes restantes rétablies sur toutes les piñatas. TAB et scoreboard RGB réactivés une fois lors de la migration.
+- Les 19 ensembles ont été comparés avec et sans OP : mêmes dégâts à équipement/bonus identiques. Le décès à zéro PV virtuels contourne désormais l’armure vanilla du mob, avec attribution du bon tueur.
+- Validation : **449 tests automatisés réussis**, aucun ignoré ; vérifications à deux clients sur Paper 1.21.4, dont un joueur non OP. Comparaison à vide : 26 mobs chargés auparavant, 0 avec les mêmes points en veille. [Mesures, fonctionnement et limites](docs/OPTIMISATION-1.0.4.md).
+- Réglages : `performance/zones.yml`. `/diagnostic` indique les zones en veille et actives ; `/diagnostic modules` affiche aussi les chunks/entités chargés, la mémoire JVM et l’état du TAB/scoreboard.
+
+## Mise à jour 1.0.3 — 31 octobre 2026
+
 - Version **1.0.3** : jour permanent à midi (6 000 ticks) dans tous les mondes, y compris ceux chargés après le démarrage. Cycle jour/nuit désactivé ; les sauts d’heure vers la nuit sont bloqués, sans tâche répétitive.
 - Aucune nouvelle commande. Liste des commandes par catégorie vérifiée. Validation : **438 tests réussis**, aucun échec ni test ignoré.
 
@@ -218,8 +230,7 @@ L'autocompresseur s'achète chez le marchand puis s'active par clic droit : l'ob
 | `/jeutchat` | Voir le jeu de chat en cours et son délai ; répondre dans le chat pour gagner une caisse selon son prestige. |
 | `/session` | Consulter la durée, les éliminations et les gains de chasse confirmés, avec rendement par minute. |
 | `/settings` | Régler les textes de dégâts, les effets doux, le son de compression et les messages de farm ; alias `/parametres`. |
-| `/antidrop` | Basculer directement entre autoriser et bloquer le jet d’objets et la vente AH des équipements protégés, jusqu’à la déconnexion. |
-| `/ramassage <autoriser\|bloquer>` | Autoriser ou bloquer le ramassage au sol jusqu’à la déconnexion. Les récompenses directes du plugin restent livrées. |
+| `/drop` | Basculer ensemble le jet d’objets et le ramassage jusqu’à la déconnexion ; objets verrouillés toujours protégés. |
 | `/lock` | Verrouiller ou déverrouiller une épée, une armure ClickHunter ou un compresseur tenu, contre le jet et la vente AH. |
 
 Les protections de jet et de ramassage sont actives à chaque connexion. Les réglages visuels et les filtres de messages persistent. Les téléportations vérifient l’accès BuyZone et refusent une arrivée dangereuse. Permissions : `cliker.navigation.use` pour la navigation, `cliker.comfort.use` pour les protections et paramètres, `cliker.upgrade.use` pour le guide.
@@ -328,13 +339,14 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/batonspawn <mobs\|boss> <nom>` | Recevoir un bâton ; clic droit sur un bloc pour créer un spawn persistant au-dessus. | `cliker.services.admin` |
 | `/raid parchemin <zone> [joueur]` | Attribuer un parchemin de raid. | `cliker.services.admin` |
 | `/station spawn <enchant\|reforge\|rune>` / `/station remove` | Placer ou supprimer une station. | `cliker.mob.admin` |
-| `/holotop spawn <level\|kills\|ecus\|gemmes\|cendres\|bosstimer>` / `/holotop remove` | Gérer les hologrammes de classement et le minuteur des boss. | `cliker.mob.admin` |
+| `/holotop spawn <level\|kills\|ecus\|gemmes\|cendres>` / `/holotop remove` | Gérer les hologrammes de classement (ancien hologramme global des boss retiré). | `cliker.mob.admin` |
 
 ### Outils staff
 
 | Commande | Utilité | Permission |
 | --- | --- | --- |
 | `/flyspeed <0-10> [joueur]` | Régler la vitesse de vol, sans activer le vol. | `cliker.staff.flyspeed` |
+| `/inv <joueur>` | Ouvrir et modifier l’inventaire réel d’un joueur en ligne. | `cliker.staff.inv` |
 | `/god [joueur]` | Basculer l’invulnérabilité jusqu’à désactivation. | `cliker.staff.god` |
 | `/heal [joueur]` | Restaurer la vie et éteindre le feu. | `cliker.staff.heal` |
 | `/feed [joueur]` | Restaurer la faim et la saturation. | `cliker.staff.feed` |
@@ -367,7 +379,7 @@ La base est créée dans `plugins/ClikerV2/data/economy.db`. Les opérations SQL
 mvn clean package
 ```
 
-Le fichier JAR compilé est dans `target/clikerv2-1.0.3.jar`.
+Le fichier JAR compilé est dans `target/clikerv2-1.0.4.jar`.
 
 ## Sacs personnels
 

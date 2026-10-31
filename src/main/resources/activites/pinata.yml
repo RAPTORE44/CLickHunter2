@@ -23,6 +23,6 @@ messages:
   deja-active: '&cUne piñata est déjà active ou en cours d’apparition.'
   point-defini: '&aPoint unique de la piñata sauvegardé dans la zone Vache.'
   # Nom sans points de vie ; couleur selon la récompense.
-  titre: '{couleur}&lPiñata {type}'
+  titre: '{couleur}&lPiñata {type} &7— &f{secondes}s'
   gain-total: '&a+{montant} {type} &8| &fTotal : &e{total}'
 # Point et prochaine échéance sont sauvegardés automatiquement ; ne pas les supprimer.

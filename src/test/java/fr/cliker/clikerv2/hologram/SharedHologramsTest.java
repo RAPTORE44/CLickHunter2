@@ -66,6 +66,48 @@ class SharedHologramsTest {
     }
 
     @Test
+    void emptyZonesCreateNoHologramAndWakeRestoresCachedText() throws Exception {
+        var server = MockBukkit.mock();
+        var plugin = MockBukkit.createMockPlugin();
+        var world = server.addSimpleWorld("world");
+        var zones = new fr.cliker.clikerv2.performance.ZoneActivity(plugin);
+        zones.start();
+        var bridge = new SharedHolograms(plugin);
+        var api = new Api();
+        var field = SharedHolograms.class.getDeclaredField("api");
+        field.setAccessible(true);
+        field.set(bridge, api);
+        try {
+            var at = new Location(world, 1000, 65, 1000);
+            var handle = bridge.create("asleep", at, List.of("Texte conservé"), null, false);
+            assertTrue(handle.isValid());
+            assertTrue(api.all.isEmpty());
+            var player = server.addPlayer();
+            player.teleport(at);
+            world.getChunkAt(at).load();
+            zones.refresh();
+            server.getScheduler().performTicks(40);
+            assertEquals(1, api.all.size());
+            assertEquals(List.of("Texte conservé"), api.all.getFirst().lines.text);
+            player.teleport(new Location(world, 0, 65, 0));
+            zones.refresh();
+            server.getScheduler().performTicks(40);
+            assertTrue(api.all.getFirst().deleted);
+            assertTrue(handle.isValid());
+            handle.setLines(List.of("Mis à jour en veille"));
+            player.teleport(at);
+            zones.refresh();
+            server.getScheduler().performTicks(40);
+            assertEquals(2, api.all.size());
+            assertEquals(List.of("Mis à jour en veille"), api.all.getLast().lines.text);
+        } finally {
+            bridge.shutdown();
+            zones.shutdown();
+            MockBukkit.unmock();
+        }
+    }
+
+    @Test
     void adapterReplacesOnlyOwnedHandleUpdatesTextAndCleansEverything() throws Exception {
         var server = MockBukkit.mock();
         var plugin = MockBukkit.createMockPlugin();

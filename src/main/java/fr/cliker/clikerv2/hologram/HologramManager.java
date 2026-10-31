@@ -102,6 +102,15 @@ public final class HologramManager {
                                             for (HologramStore.HologramPoint point : points) {
                                                 Type type = parseType(point.type());
                                                 if (type == null) continue;
+                                                if (type == Type.BOSS_TIMER) {
+                                                    SharedHolograms.service()
+                                                            .remove(hologramName(point.id()));
+                                                    SharedHolograms.service()
+                                                            .removeLegacyLeaderboard(
+                                                                    hologramName(point.id()));
+                                                    store.removeById(point.id());
+                                                    continue;
+                                                }
                                                 holograms.put(point.id(), type);
                                                 String name = hologramName(point.id());
                                                 SharedHolograms.service()
@@ -137,7 +146,7 @@ public final class HologramManager {
     }
 
     public void addHologram(Type type, Location location) {
-        if (!available) return;
+        if (!available || type == Type.BOSS_TIMER) return;
         String id = UUID.randomUUID().toString();
         holograms.put(id, type);
         SharedHolograms.service()
@@ -172,7 +181,10 @@ public final class HologramManager {
         if (stopped) return;
         java.util.Set<Type> seen = java.util.EnumSet.noneOf(Type.class);
         for (Map.Entry<String, Type> entry : holograms.entrySet()) {
-            if (seen.add(entry.getValue())) refresh(entry.getKey(), entry.getValue());
+            var handle = SharedHolograms.service().get(hologramName(entry.getKey()));
+            if (handle != null
+                    && fr.cliker.clikerv2.performance.ZoneActivity.active(handle.getLocation())
+                    && seen.add(entry.getValue())) refresh(entry.getKey(), entry.getValue());
         }
     }
 

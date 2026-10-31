@@ -114,9 +114,11 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.discord.DiscordModule discordModule;
     private MoneyScoreboard scoreboard;
     private TabListManager tabListManager;
+    private fr.cliker.clikerv2.performance.ZoneActivity zoneActivity;
     private fr.cliker.clikerv2.hologram.SharedHolograms sharedHolograms;
     private fr.cliker.clikerv2.combat.PersonalCombatAudio personalCombatAudio;
     private fr.cliker.clikerv2.staff.StaffTools staffTools;
+    private fr.cliker.clikerv2.staff.StaffInventories staffInventories;
     private fr.cliker.clikerv2.trash.TrashMenu trashMenu;
     private fr.cliker.clikerv2.tutorial.OnboardingGuide guide;
     private fr.cliker.clikerv2.lootbox.PrestigeLootboxes prestigeLootboxes;
@@ -133,6 +135,8 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
 
     @Override
     public void onEnable() {
+        zoneActivity = new fr.cliker.clikerv2.performance.ZoneActivity(this);
+        zoneActivity.start();
         sharedHolograms = new fr.cliker.clikerv2.hologram.SharedHolograms(this);
         saveDefaultConfig();
         try {
@@ -217,9 +221,9 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
                                 }),
                         this);
 
-        if (getConfig().getInt("displays.tab.style-version", 0) < 1) {
+        if (getConfig().getInt("displays.tab.style-version", 0) < 2) {
             getConfig().set("displays.tab.enabled", true);
-            getConfig().set("displays.tab.style-version", 1);
+            getConfig().set("displays.tab.style-version", 2);
             saveConfig();
         }
         tabListManager = new TabListManager(this, prestigeManager);
@@ -364,7 +368,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         bossEventManager.start();
 
         setExecutor("epee", new SwordCommand(this));
-        getServer().getPluginManager().registerEvents(new StarterSwordListener(), this);
+        getServer().getPluginManager().registerEvents(new StarterSwordListener(this), this);
         TierGear.init(this);
         if (getCommand("stuff") != null) {
             TierGearCommand stuffCommand = new TierGearCommand();
@@ -440,6 +444,8 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         trashMenu.start();
         staffTools = new fr.cliker.clikerv2.staff.StaffTools(this);
         staffTools.start();
+        staffInventories = new fr.cliker.clikerv2.staff.StaffInventories(this);
+        staffInventories.start();
         personalCombatAudio = new fr.cliker.clikerv2.combat.PersonalCombatAudio(this);
         personalCombatAudio.start();
         guide = new fr.cliker.clikerv2.tutorial.OnboardingGuide(this);
@@ -757,6 +763,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     @Override
     public void onDisable() {
         stop("audio de combat", personalCombatAudio, value -> value.shutdown());
+        stop("inventaires staff", staffInventories, value -> value.shutdown());
         stop("outils staff", staffTools, value -> value.shutdown());
         stop("poubelle", trashMenu, value -> value.shutdown());
         stop("tutoriel", guide, value -> value.shutdown());
@@ -815,6 +822,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         stop("claims", claims, value -> value.shutdown());
         stop("hologramManager", hologramManager, value -> value.shutdown());
         stop("sharedHolograms", sharedHolograms, value -> value.shutdown());
+        stop("zones actives", zoneActivity, value -> value.shutdown());
         stop("database", database, value -> value.close());
     }
 

@@ -164,7 +164,7 @@ class PlayerComfortTest {
         command("lock");
         var held = player.getInventory().getItemInMainHand();
         assertTrue(PlayerComfort.locked(held));
-        command("antidrop");
+        command("drop");
         item.setItemStack(held);
         var drop = new PlayerDropItemEvent(player, item);
         comfort.drop(drop);
@@ -207,7 +207,7 @@ class PlayerComfortTest {
         var before = new PlayerDropItemEvent(player, item);
         comfort.drop(before);
         assertTrue(before.isCancelled());
-        command("antidrop");
+        command("drop");
         var allowed = new PlayerDropItemEvent(player, item);
         comfort.drop(allowed);
         assertFalse(allowed.isCancelled());
@@ -218,28 +218,27 @@ class PlayerComfortTest {
     }
 
     @Test
-    void antidropTogglesBackAndForthWithoutArgumentsAndCannotUnlockEquipment() {
-        command("antidrop");
+    void dropTogglesBackAndForthWithoutArgumentsAndCannotUnlockEquipment() {
+        command("drop");
         var first = new PlayerDropItemEvent(player, item);
         comfort.drop(first);
         assertFalse(first.isCancelled());
-        command("antidrop");
+        command("drop");
         var second = new PlayerDropItemEvent(player, item);
         comfort.drop(second);
         assertTrue(second.isCancelled());
-        command("antidrop");
+        command("drop");
         var third = new PlayerDropItemEvent(player, item);
         comfort.drop(third);
         assertFalse(third.isCancelled());
     }
 
     @Test
-    void pickupRequiresSeparateAuthorizationAndResetsOnQuit() {
-        command("antidrop");
+    void pickupAndDroppingSwitchTogetherAndResetOnQuit() {
         var before = new EntityPickupItemEvent(player, item, 0);
         comfort.pickup(before);
         assertTrue(before.isCancelled());
-        command("ramassage", "autoriser");
+        command("drop");
         var allowed = new EntityPickupItemEvent(player, item, 0);
         comfort.pickup(allowed);
         assertFalse(allowed.isCancelled());
@@ -251,7 +250,7 @@ class PlayerComfortTest {
 
     @Test
     void invalidCommandNeverOpensProtection() {
-        command("antidrop", "foo");
+        command("drop", "foo");
         var event = new PlayerDropItemEvent(player, item);
         comfort.drop(event);
         assertTrue(event.isCancelled());

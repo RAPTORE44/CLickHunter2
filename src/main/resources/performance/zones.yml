@@ -1,0 +1,7 @@
+# Mise en veille des mobs et visuels éloignés ; aucun chunk chargé par cette vérification.
+mise-en-veille: true
+distance-activation: 64
+actualisation-ticks: 20
+
+# Supprime le maintien vanilla des chunks de spawn sans joueur ; les tickets d’autres plugins restent respectés.
+liberer-chunks-spawn: true

@@ -145,6 +145,7 @@ public final class BossEventManager implements Listener {
         var wanted = new java.util.HashSet<String>();
         for (var entry : mobManager.bossPoints().entrySet()) {
             var at = entry.getValue();
+            if (!fr.cliker.clikerv2.performance.ZoneActivity.active(at)) continue;
             if (!at.getWorld().isChunkLoaded(at.getBlockX() >> 4, at.getBlockZ() >> 4)) continue;
             String id = "zone-boss-timer:" + entry.getKey();
             wanted.add(id);

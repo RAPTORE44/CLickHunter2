@@ -71,7 +71,9 @@ public final class CompressorManager implements org.bukkit.event.Listener {
                 net.kyori.adventure.text.Component.text(
                         "Autocompresseur "
                                 + tier.label()
-                                + " activé ! 64 ressources donnent 1 du palier suivant.",
+                                + " activé ! Plafond : "
+                                + EssenceCompression.maximumRarity(tier).label()
+                                + ". 64 ressources donnent 1 du palier suivant.",
                         net.kyori.adventure.text.format.NamedTextColor.GREEN));
         onHit(player);
     }
@@ -83,6 +85,7 @@ public final class CompressorManager implements org.bukkit.event.Listener {
             if (player.getPersistentDataContainer()
                     .has(key, org.bukkit.persistence.PersistentDataType.BYTE)) active.add(tier);
         }
+        active.removeIf(tier -> EssenceCompression.maximumRarity(tier) == EssenceRarity.COMMUNE);
         if (active.isEmpty()) return;
         var contents = player.getInventory().getStorageContents();
         Map<MobTier, int[]> counts = new EnumMap<>(MobTier.class);
@@ -100,7 +103,8 @@ public final class CompressorManager implements org.bukkit.event.Listener {
             var count = counts.get(tier);
             if (count == null) continue;
             for (var rarity : EssenceRarity.values())
-                if (rarity.next() != null && count[rarity.ordinal()] >= EssenceCompression.RATIO) {
+                if (EssenceCompression.canCompress(tier, rarity)
+                        && count[rarity.ordinal()] >= EssenceCompression.RATIO) {
                     int converted = EssenceCompression.cascade(player, tier);
                     if (converted > 0
                             && fr.cliker.clikerv2.comfort.PlayerComfort.enabled(

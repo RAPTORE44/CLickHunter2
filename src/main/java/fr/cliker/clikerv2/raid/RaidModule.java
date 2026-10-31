@@ -49,6 +49,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     private int kills;
     private BukkitTask task, movementTask;
     private int rangedCycle;
+    private boolean publicBossPending;
     private final java.util.Set<BukkitTask> rangedTasks = new java.util.HashSet<>();
     private MobTier tier = MobTier.VACHE;
     private final Set<UUID> observers = new HashSet<>();
@@ -57,8 +58,36 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     private final Set<Chunk> heldChunks = new HashSet<>();
     private int heldX = Integer.MIN_VALUE, heldZ = Integer.MIN_VALUE;
 
+    private void releaseArena() {
+        heldChunks.forEach(chunk -> chunk.removePluginChunkTicket(plugin));
+        heldChunks.clear();
+        heldX = Integer.MIN_VALUE;
+        heldZ = Integer.MIN_VALUE;
+    }
+
+    private void pauseVisualTasks() {
+        if (movementTask != null) {
+            movementTask.cancel();
+            movementTask = null;
+        }
+        if (hologramTask != null) {
+            hologramTask.cancel();
+            hologramTask = null;
+        }
+    }
+
+    private void resumeVisualTasks() {
+        if (movementTask == null)
+            movementTask = Bukkit.getScheduler().runTaskTimer(plugin, this::moveCreatures, 10, 10);
+        if (hologramTask == null)
+            hologramTask = Bukkit.getScheduler().runTaskTimer(plugin, this::syncHolograms, 4, 4);
+    }
+
     private void holdArena() {
-        if (!publicBoss) return;
+        if (!publicBoss || world.getPlayers().isEmpty()) {
+            releaseArena();
+            return;
+        }
         int cx = centre().getBlockX() >> 4, cz = centre().getBlockZ() >> 4;
         if (cx == heldX && cz == heldZ) return;
         heldChunks.forEach(chunk -> chunk.removePluginChunkTicket(plugin));
@@ -221,7 +250,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     public void beginPublicBoss() {
         if (publicBoss && boss == null) {
             completed = false;
-            spawnBoss();
+            publicBossPending = true;
+            if (!world.getPlayers().isEmpty()) spawnBoss();
         }
     }
 
@@ -245,8 +275,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         }
         Bukkit.getPluginManager().registerEvents(this, plugin);
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20, 40);
-        movementTask = Bukkit.getScheduler().runTaskTimer(plugin, this::moveCreatures, 10, 10);
-        hologramTask = Bukkit.getScheduler().runTaskTimer(plugin, this::syncHolograms, 4, 4);
+        if (!world.getPlayers().isEmpty()) resumeVisualTasks();
     }
 
     private RaidSetup setup() {
@@ -518,8 +547,15 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
 
     private void tick() {
         if (stopped || completed) return;
+        if (world.getPlayers().isEmpty()) {
+            releaseArena();
+            pauseVisualTasks();
+            return;
+        }
         holdArena();
+        resumeVisualTasks();
         List<Player> players = fighters();
+        if (publicBoss && publicBossPending && boss == null && !players.isEmpty()) spawnBoss();
         for (Player p : world.getPlayers()) {
             bar.addPlayer(p);
             var center = centre();
@@ -624,6 +660,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     }
 
     private void spawnBoss() {
+        publicBossPending = false;
         for (UUID id : normals) {
             var e = Bukkit.getEntity(id);
             if (e != null) e.remove();
@@ -687,8 +724,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         if (e.getEntity() instanceof LivingEntity living) {
             combat.showDamage(p, living, actual);
             if (actual > 0) {
-                living.playHurtAnimation(p.getYaw());
-                world.spawnParticle(
+                fr.cliker.clikerv2.combat.PersonalCombatAudio.hurt(p, living);
+                p.spawnParticle(
                         Particle.DAMAGE_INDICATOR,
                         living.getLocation().add(0, living.getHeight() * .6, 0),
                         6,

@@ -597,7 +597,7 @@ public final class AuctionMenu implements Listener {
                                 player, hand)) {
                             player.sendMessage(
                                     "Équipement protégé : vente annulée. Vérifie /lock et"
-                                            + " /antidrop.");
+                                            + " /drop.");
                             player.closeInventory();
                             return;
                         }

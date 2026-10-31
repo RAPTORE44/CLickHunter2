@@ -58,7 +58,7 @@ public final class AdminDiagnostic {
         var lines = new ArrayList<String>();
         lines.add("ClikerV2 : version " + plugin.getDescription().getVersion());
         lines.add("Plugin : " + (plugin.isEnabled() ? "actif" : "désactivé"));
-        for (String name : List.of("warp", "donateurs")) {
+        for (String name : List.of("warp", "donateurs", "trash", "drop", "inv")) {
             var command = Bukkit.getPluginCommand(name);
             lines.add(
                     "/"
@@ -78,12 +78,25 @@ public final class AdminDiagnostic {
         if (travel == null)
             lines.add(
                     "Raccourcis sur blocs : module non chargé ; consulter le démarrage de"
-                        + " ClikerV2");
+                            + " ClikerV2");
         else lines.addAll(travel.diagnostics());
         var donors = Bukkit.getServicesManager().load(fr.cliker.clikerv2.donors.DonorPodium.class);
         if (donors == null)
             lines.add("Donateurs : module non chargé ; consulter le démarrage de ClikerV2");
         else lines.addAll(donors.diagnostics());
+        int chunks = 0, entities = 0;
+        for (var world : Bukkit.getWorlds()) {
+            chunks += world.getLoadedChunks().length;
+            entities += world.getEntities().size();
+        }
+        lines.add("Chunks actuellement chargés : " + chunks + " ; entités chargées : " + entities);
+        long used = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+        lines.add("Mémoire JVM utilisée : " + (used / 1048576) + " Mio");
+        lines.add(
+                "TAB : "
+                        + plugin.getConfig().getBoolean("displays.tab.enabled", false)
+                        + " ; scoreboard : "
+                        + plugin.getConfig().getBoolean("displays.scoreboard.enabled", false));
         return lines;
     }
 

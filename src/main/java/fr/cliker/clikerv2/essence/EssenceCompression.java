@@ -6,19 +6,27 @@ import org.bukkit.entity.Player;
 
 /**
  * Compression en cascade des essences d'un mob : 64 d'un palier de rareté -> 1 du palier suivant,
- * tant que possible.
+ * jusqu’au plafond nécessaire pour acheter l’équipement du mob.
  */
 public final class EssenceCompression {
     public static final int RATIO = 64;
 
     private EssenceCompression() {}
 
+    public static EssenceRarity maximumRarity(MobTier tier) {
+        return fr.cliker.clikerv2.gear.EquipmentEssences.requiredRarity(tier);
+    }
+
+    public static boolean canCompress(MobTier tier, EssenceRarity rarity) {
+        return rarity.next() != null && rarity.ordinal() < maximumRarity(tier).ordinal();
+    }
+
     /** Retourne le nombre total de compressions effectuées. */
     public static int cascade(Player player, MobTier tier) {
         int total = 0;
         for (EssenceRarity rarity : EssenceRarity.values()) {
             var next = rarity.next();
-            if (next == null) continue;
+            if (!canCompress(tier, rarity)) break;
             int batches = EssenceItem.count(player, tier, rarity) / RATIO;
             if (batches == 0) continue;
             if (EssenceItem.remove(player, tier, rarity, batches * RATIO)) {

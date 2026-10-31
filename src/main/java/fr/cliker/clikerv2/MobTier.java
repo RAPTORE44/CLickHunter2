@@ -81,7 +81,13 @@ public enum MobTier {
     }
 
     public static MobTier parse(String input) {
-        return BY_ID.get(input.toLowerCase(Locale.ROOT).replace(' ', '_'));
+        if (input == null) return null;
+        String id = input.toLowerCase(Locale.ROOT).replace(' ', '_');
+        var found = BY_ID.get(id);
+        if (found != null) return found;
+        return BY_ID.get(
+                java.text.Normalizer.normalize(id, java.text.Normalizer.Form.NFD)
+                        .replaceAll("\\p{M}+", ""));
     }
 
     public static Map<String, MobTier> byId() {

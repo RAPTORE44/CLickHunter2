@@ -132,8 +132,23 @@ public final class MerchantMenu implements Listener {
                                 tier),
                         tier,
                         TierGear.ArmorSlot.BOOTS));
-        inventory.setItem(
-                COMPRESSOR_SLOT, purchaseItem(CompressorItem.create(tier), armorEcus, 0, tier));
+        if (EssenceCompression.maximumRarity(tier) == EssenceRarity.COMMUNE) {
+            var blocked = new ItemStack(org.bukkit.Material.BARRIER);
+            var meta = blocked.getItemMeta();
+            meta.displayName(
+                    Component.text("Aucun compresseur nécessaire", NamedTextColor.GRAY)
+                            .decoration(TextDecoration.ITALIC, false));
+            meta.lore(
+                    List.of(
+                            Component.text(
+                                            "L’équipement utilise seulement des essences Communes.",
+                                            NamedTextColor.GRAY)
+                                    .decoration(TextDecoration.ITALIC, false)));
+            blocked.setItemMeta(meta);
+            inventory.setItem(COMPRESSOR_SLOT, blocked);
+        } else
+            inventory.setItem(
+                    COMPRESSOR_SLOT, purchaseItem(CompressorItem.create(tier), armorEcus, 0, tier));
         inventory.setItem(
                 CHARM_SLOT, purchaseItem(CharmItem.create(tier), armorEcus, armorEssence, tier));
         decorateSteps(player, inventory, tier);
@@ -144,13 +159,21 @@ public final class MerchantMenu implements Listener {
         for (int i = 0; i < STEP_SLOTS.length; i++) {
             EssenceRarity rarity = rarities[i];
             EssenceRarity next = rarity.next();
-            if (next == null) continue;
+            if (!EssenceCompression.canCompress(tier, rarity)) {
+                inventory.setItem(STEP_SLOTS[i], filler());
+                continue;
+            }
             inventory.setItem(STEP_SLOTS[i], compressStepButton(player, tier, rarity, next));
         }
         for (int i = 0; i < DECOMPRESS_SLOTS.length; i++) {
             EssenceRarity rarity = rarities[i + 1];
             EssenceRarity previous = rarity.previous();
-            if (previous == null) continue;
+            if (previous == null
+                    || (rarity.ordinal() > EssenceCompression.maximumRarity(tier).ordinal()
+                            && EssenceItem.count(player, tier, rarity) == 0)) {
+                inventory.setItem(DECOMPRESS_SLOTS[i], filler());
+                continue;
+            }
             inventory.setItem(
                     DECOMPRESS_SLOTS[i], decompressStepButton(player, tier, rarity, previous));
         }
@@ -248,7 +271,8 @@ public final class MerchantMenu implements Listener {
                 && held.hasItemMeta()
                 && held.getItemMeta()
                         .getPersistentDataContainer()
-                        .has(starterKey, PersistentDataType.BYTE)) before = 25;
+                        .has(starterKey, PersistentDataType.BYTE))
+            before = fr.cliker.clikerv2.combat.SwordCommand.BASE_DAMAGE;
         long after = TierGear.pieceDamage(tier);
         long delta = after - before;
         var meta = offered.getItemMeta();
@@ -341,7 +365,7 @@ public final class MerchantMenu implements Listener {
      * (Vache=2, Cochon=4, Poulet=8, ...).
      */
     private long communeEquivalent(MobTier tier) {
-        return 1L << (tier.ordinal() + 1);
+        return fr.cliker.clikerv2.gear.EquipmentEssences.communeEquivalent(tier);
     }
 
     /**
@@ -349,19 +373,15 @@ public final class MerchantMenu implements Listener {
      * Peu Commune = 1 Rare).
      */
     private EssenceRarity requiredRarity(MobTier tier) {
-        return EssenceRarity.forCommuneEquivalent(communeEquivalent(tier));
+        return fr.cliker.clikerv2.gear.EquipmentEssences.requiredRarity(tier);
     }
 
     private int armorEssenceUnits(MobTier tier) {
-        EssenceRarity required = requiredRarity(tier);
-        long units = communeEquivalent(tier) / required.valueMultiplier();
-        return (int) Math.min(units, EssenceRarity.maxItemCost(required));
+        return fr.cliker.clikerv2.gear.EquipmentEssences.armorUnits(tier);
     }
 
     private int swordEssenceUnits(MobTier tier) {
-        EssenceRarity required = requiredRarity(tier);
-        long units = (communeEquivalent(tier) * 2) / required.valueMultiplier();
-        return (int) Math.min(units, EssenceRarity.maxItemCost(required));
+        return fr.cliker.clikerv2.gear.EquipmentEssences.swordUnits(tier);
     }
 
     /**
@@ -523,16 +543,22 @@ public final class MerchantMenu implements Listener {
                     TierGear.createArmor(tier, TierGear.ArmorSlot.BOOTS),
                     armorEcus,
                     armorEssence);
-        else if (slot == COMPRESSOR_SLOT)
+        else if (slot == COMPRESSOR_SLOT) {
+            if (EssenceCompression.maximumRarity(tier) == EssenceRarity.COMMUNE) {
+                player.sendMessage(
+                        "§7Aucun compresseur nécessaire : l’équipement de cette zone utilise des"
+                            + " essences Communes.");
+                return;
+            }
             purchase(player, tier, CompressorItem.create(tier), armorEcus, 0);
-        else if (slot == CHARM_SLOT)
+        } else if (slot == CHARM_SLOT)
             purchase(player, tier, CharmItem.create(tier), armorEcus, armorEssence);
         else {
             for (int i = 0; i < STEP_SLOTS.length; i++) {
                 if (STEP_SLOTS[i] != slot) continue;
                 EssenceRarity rarity = EssenceRarity.values()[i];
                 EssenceRarity next = rarity.next();
-                if (next == null) return;
+                if (!EssenceCompression.canCompress(tier, rarity)) return;
                 if (EssenceItem.remove(player, tier, rarity, EssenceCompression.RATIO)) {
                     fr.cliker.clikerv2.rewards.ItemDelivery.give(
                             player, EssenceItem.create(tier, next, 1));

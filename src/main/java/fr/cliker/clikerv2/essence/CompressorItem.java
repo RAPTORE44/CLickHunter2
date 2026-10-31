@@ -51,6 +51,11 @@ public final class CompressorItem {
                                         "la compression automatique : " + tier.label() + ".",
                                         NamedTextColor.GRAY)
                                 .decoration(TextDecoration.ITALIC, false),
+                        Component.text(
+                                        "Plafond : "
+                                                + EssenceCompression.maximumRarity(tier).label(),
+                                        NamedTextColor.GRAY)
+                                .decoration(TextDecoration.ITALIC, false),
                         Component.text(""),
                         Component.text(
                                         "64 essences d'un palier = 1 du palier suivant.",

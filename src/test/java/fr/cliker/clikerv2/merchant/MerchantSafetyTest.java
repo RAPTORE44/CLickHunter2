@@ -47,6 +47,23 @@ class MerchantSafetyTest {
     }
 
     @Test
+    void cowMerchantDoesNotSellAnUnnecessaryCompressor() {
+        assertEquals(
+                org.bukkit.Material.BARRIER,
+                player.getOpenInventory().getTopInventory().getItem(6).getType());
+        click(6, ClickType.LEFT);
+        assertEquals(64, EssenceItem.count(player, MobTier.VACHE, EssenceRarity.COMMUNE));
+    }
+
+    @Test
+    void obsoleteCompressionClicksCannotConsumeCowResources() {
+        click(15, ClickType.LEFT);
+        click(24, ClickType.RIGHT);
+        assertEquals(64, EssenceItem.count(player, MobTier.VACHE, EssenceRarity.COMMUNE));
+        assertEquals(0, EssenceItem.count(player, MobTier.VACHE, EssenceRarity.PEU_COMMUNE));
+    }
+
+    @Test
     void absentDeliveryDoesNotConsumeCurrencyOrEssences() {
         click(2, ClickType.LEFT);
         assertEquals(64, EssenceItem.count(player, MobTier.VACHE, EssenceRarity.COMMUNE));

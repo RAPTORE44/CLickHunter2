@@ -15,7 +15,7 @@ import java.util.Locale;
 
 public final class HologramCommand implements CommandExecutor, TabCompleter {
     private static final List<String> TYPES =
-            List.of("level", "kills", "ecus", "gemmes", "cendres", "bosstimer");
+            List.of("level", "kills", "ecus", "gemmes", "cendres");
 
     private final HologramManager manager;
 
@@ -82,7 +82,7 @@ public final class HologramCommand implements CommandExecutor, TabCompleter {
             case "ecus" -> HologramManager.Type.ECUS;
             case "gemmes" -> HologramManager.Type.GEMMES;
             case "cendres" -> HologramManager.Type.CENDRES;
-            case "bosstimer" -> HologramManager.Type.BOSS_TIMER;
+            case "bosstimer" -> null;
             default -> null;
         };
     }

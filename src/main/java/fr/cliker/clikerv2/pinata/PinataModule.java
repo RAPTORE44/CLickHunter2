@@ -118,10 +118,15 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
             if (!spawning && System.currentTimeMillis() >= next) spawn(null);
             return;
         }
-        if (System.nanoTime() >= until || entity == null || !entity.isValid()) {
+        if (System.nanoTime() >= until) {
             finish();
             return;
         }
+        if (!fr.cliker.clikerv2.performance.ZoneActivity.active(point)) {
+            sleepEntity();
+            return;
+        }
+        if (entity == null || !entity.isValid()) materialize();
         var at = entity.getLocation();
         if (!at.getWorld().equals(point.getWorld()) || at.distanceSquared(point) > .01)
             entity.teleport(point);
@@ -130,15 +135,20 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
         if (seconds != shownSecond) {
             shownSecond = seconds;
             String title =
-                    withoutTimer(
-                                    settings.yaml.getString(
-                                            "messages.titre", "{couleur}&lPiñata {type}"))
+                    settings.yaml
+                            .getString(
+                                    "messages.titre", "{couleur}&lPiñata {type} &7— &f{secondes}s")
                             .replace(
                                     "{couleur}",
                                     "ecus".equals(rewardType)
                                             ? "&e"
                                             : "xp".equals(rewardType) ? "&b" : "&5")
                             .replace("{type}", rewardLabel());
+            if (!title.contains("{secondes}") && !title.contains("{temps}"))
+                title += " &7— &f{secondes}s";
+            title =
+                    title.replace("{secondes}", Long.toString(seconds))
+                            .replace("{temps}", Long.toString(seconds));
             var holos = SharedHolograms.service();
             if (holos != null && holos.available()) {
                 var holo = holos.get("pinata");
@@ -198,35 +208,8 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                             }
                                             try {
                                                 point = location;
-                                                heldChunk = point.getChunk();
-                                                heldChunk.addPluginChunkTicket(plugin);
-                                                entity =
-                                                        point.getWorld()
-                                                                .spawn(
-                                                                        point,
-                                                                        Strider.class,
-                                                                        CreatureSpawnEvent
-                                                                                .SpawnReason.CUSTOM,
-                                                                        s -> {
-                                                                            s.getPersistentDataContainer()
-                                                                                    .set(
-                                                                                            marker,
-                                                                                            PersistentDataType
-                                                                                                    .BYTE,
-                                                                                            (byte)
-                                                                                                    1);
-                                                                            s.setAI(false);
-                                                                            s.setGravity(false);
-                                                                            s.setSilent(true);
-                                                                            s.setCollidable(false);
-                                                                            s.setPersistent(false);
-                                                                            s.setRemoveWhenFarAway(
-                                                                                    false);
-                                                                            s.setShivering(false);
-                                                                        });
-                                                if (!entity.isValid())
-                                                    throw new IllegalStateException(
-                                                            "Apparition annulée");
+                                                if (fr.cliker.clikerv2.performance.ZoneActivity
+                                                        .active(point)) materialize();
                                                 totals = new HashMap<>();
                                                 maxHealth =
                                                         bounded("points-vie", 10000, 1, 1000000000);
@@ -332,26 +315,24 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                                         && entity != null
                                                         && entity.isValid()) {
                                                     var burst = entity.getLocation().add(0, 1, 0);
-                                                    burst.getWorld()
-                                                            .spawnParticle(
-                                                                    Particle.ITEM,
-                                                                    burst,
-                                                                    12,
-                                                                    .35,
-                                                                    .4,
-                                                                    .35,
-                                                                    .15,
-                                                                    new org.bukkit.inventory
-                                                                            .ItemStack(
-                                                                            Material.EMERALD));
-                                                    burst.getWorld()
-                                                            .playSound(
-                                                                    burst,
-                                                                    Sound.BLOCK_NOTE_BLOCK_PLING,
-                                                                    .5f,
-                                                                    1.4f);
+                                                    player.spawnParticle(
+                                                            Particle.ITEM,
+                                                            burst,
+                                                            12,
+                                                            .35,
+                                                            .4,
+                                                            .35,
+                                                            .15,
+                                                            new org.bukkit.inventory.ItemStack(
+                                                                    Material.EMERALD));
+                                                    player.playSound(
+                                                            burst,
+                                                            Sound.BLOCK_NOTE_BLOCK_PLING,
+                                                            .5f,
+                                                            1.4f);
                                                     health = Math.max(0, health - damage);
-                                                    entity.playHurtAnimation(player.getYaw());
+                                                    fr.cliker.clikerv2.combat.PersonalCombatAudio
+                                                            .hurt(player, entity);
                                                     shownSecond = -1;
                                                     if (health == 0) finish();
                                                     else tick();
@@ -401,6 +382,43 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                                 }
                                             }
                                         }));
+    }
+
+    private void materialize() {
+        heldChunk = point.getChunk();
+        heldChunk.addPluginChunkTicket(plugin);
+        entity =
+                point.getWorld()
+                        .spawn(
+                                point,
+                                Strider.class,
+                                CreatureSpawnEvent.SpawnReason.CUSTOM,
+                                s -> {
+                                    s.getPersistentDataContainer()
+                                            .set(marker, PersistentDataType.BYTE, (byte) 1);
+                                    s.setAI(false);
+                                    s.setGravity(false);
+                                    s.setSilent(true);
+                                    s.setCollidable(false);
+                                    s.setPersistent(false);
+                                    s.setRemoveWhenFarAway(false);
+                                    s.setShivering(false);
+                                });
+        if (!entity.isValid()) throw new IllegalStateException("Apparition annulée");
+        shownSecond = -1;
+    }
+
+    private void sleepEntity() {
+        if (entity != null) {
+            entity.remove();
+            entity = null;
+        }
+        if (heldChunk != null) {
+            heldChunk.removePluginChunkTicket(plugin);
+            heldChunk = null;
+        }
+        var holos = SharedHolograms.service();
+        if (holos != null) holos.remove("pinata");
     }
 
     private void finish() {
@@ -605,10 +623,7 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
             return true;
         }
         if (sub.equals("tp") && sender instanceof Player player) {
-            if (round == null
-                    || entity == null
-                    || !entity.isValid()
-                    || System.nanoTime() >= until) {
+            if (round == null || System.nanoTime() >= until) {
                 message(sender, "absent");
                 return true;
             }

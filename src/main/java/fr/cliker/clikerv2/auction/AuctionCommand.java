@@ -91,7 +91,7 @@ public final class AuctionCommand implements CommandExecutor, org.bukkit.command
             }
             if (fr.cliker.clikerv2.comfort.PlayerComfort.protectedForSale(player, hand)) {
                 player.sendMessage(
-                        "Équipement protégé : /lock pour déverrouiller, puis /antidrop"
+                        "Équipement protégé : /lock pour déverrouiller, puis /drop"
                                 + " pour autoriser sa vente.");
                 return true;
             }

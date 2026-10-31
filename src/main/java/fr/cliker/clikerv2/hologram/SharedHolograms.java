@@ -50,19 +50,7 @@ public final class SharedHolograms {
                                 plugin,
                                 () -> {
                                     for (var handle : new ArrayList<>(handles.values()))
-                                        if (!handle.removed
-                                                && handle.display != null
-                                                && !handle.display.isValid()
-                                                && handle.location
-                                                        .getWorld()
-                                                        .isChunkLoaded(
-                                                                handle.location.getBlockX() >> 4,
-                                                                handle.location.getBlockZ() >> 4)) {
-                                            var lines = handle.rendered;
-                                            handle.spawnNative();
-                                            handle.rendered = List.of();
-                                            handle.setLines(lines);
-                                        }
+                                        handle.refreshActivity();
                                 },
                                 40,
                                 40);
@@ -88,25 +76,8 @@ public final class SharedHolograms {
         remove(id);
         Handle handle = new Handle(id, at, owner, fixed);
         try {
-            // L'API HD n'expose pas de rotation fixe : les panneaux orientés
-            // utilisent TextDisplay, les autres hologrammes conservent HD.
-            if (api != null && !fixed) {
-                handle.external = call(api, "createHologram", at);
-                if (owner != null) {
-                    Object visibility = call(handle.external, "getVisibilitySettings");
-                    Class<?> type =
-                            Class.forName(
-                                    "me.filoghost.holographicdisplays.api.hologram.VisibilitySettings$Visibility");
-                    @SuppressWarnings({"rawtypes", "unchecked"})
-                    Object hidden = Enum.valueOf((Class) type, "HIDDEN");
-                    @SuppressWarnings({"rawtypes", "unchecked"})
-                    Object visible = Enum.valueOf((Class) type, "VISIBLE");
-                    call(visibility, "setGlobalVisibility", hidden);
-                    call(visibility, "setIndividualVisibility", owner, visible);
-                }
-            } else if (nativeFallback || fixed) {
-                handle.spawnNative();
-            }
+            if (handle.shouldRender()) handle.wake();
+            else handle.sleeping = true;
             handles.put(id, handle);
             handle.setLines(lines);
             return handle;
@@ -176,6 +147,7 @@ public final class SharedHolograms {
         private Object external;
         private TextDisplay display;
         private boolean removed;
+        private boolean sleeping;
         private List<String> rendered = List.of();
 
         private Handle(String id, Location at, Player owner, boolean fixed) {
@@ -183,6 +155,79 @@ public final class SharedHolograms {
             this.fixed = fixed;
             this.id = id;
             location = at.clone();
+        }
+
+        private boolean shouldRender() {
+            return owner == null
+                    ? fr.cliker.clikerv2.performance.ZoneActivity.active(location)
+                    : owner.isOnline()
+                            && owner.getWorld() == location.getWorld()
+                            && owner.getLocation().distanceSquared(location) < 16384;
+        }
+
+        private void sleep() {
+            if (external != null && !Boolean.TRUE.equals(call(external, "isDeleted")))
+                call(external, "delete");
+            if (display != null) display.remove();
+            external = null;
+            display = null;
+            sleeping = true;
+        }
+
+        private void wake() throws ReflectiveOperationException {
+            // L'API HD n'expose pas de rotation fixe : les panneaux orientés
+            // utilisent TextDisplay, les autres hologrammes conservent HD.
+            if (api != null && !fixed) {
+                external = call(api, "createHologram", location);
+                if (owner != null) {
+                    Object visibility = call(external, "getVisibilitySettings");
+                    Class<?> type =
+                            Class.forName(
+                                    "me.filoghost.holographicdisplays.api.hologram.VisibilitySettings$Visibility");
+                    @SuppressWarnings({"rawtypes", "unchecked"})
+                    Object hidden = Enum.valueOf((Class) type, "HIDDEN");
+                    @SuppressWarnings({"rawtypes", "unchecked"})
+                    Object visible = Enum.valueOf((Class) type, "VISIBLE");
+                    call(visibility, "setGlobalVisibility", hidden);
+                    call(visibility, "setIndividualVisibility", owner, visible);
+                }
+            } else if (nativeFallback || fixed) {
+                spawnNative();
+            }
+            sleeping = false;
+            var lines = rendered;
+            rendered = List.of();
+            setLines(lines);
+        }
+
+        private void refreshActivity() {
+            if (removed) return;
+            if (!shouldRender()) {
+                if (!sleeping) sleep();
+                return;
+            }
+            if (!sleeping
+                    && ((external != null && !Boolean.TRUE.equals(call(external, "isDeleted")))
+                            || (display != null && display.isValid()))) return;
+            if (!location.getWorld()
+                    .isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) return;
+            try {
+                wake();
+            } catch (ReflectiveOperationException | RuntimeException e) {
+                sleep();
+                if (api != null && nativeFallback) {
+                    api = null;
+                    plugin.getLogger()
+                            .warning(
+                                    "Secours natif des hologrammes activé pendant le réveil d’une"
+                                            + " zone.");
+                } else
+                    plugin.getLogger()
+                            .log(
+                                    java.util.logging.Level.WARNING,
+                                    "Réveil hologramme impossible : " + id,
+                                    e);
+            }
         }
 
         private void spawnNative() {
@@ -210,9 +255,10 @@ public final class SharedHolograms {
 
         public boolean isValid() {
             return !removed
-                    && (external != null
-                            ? !Boolean.TRUE.equals(call(external, "isDeleted"))
-                            : display != null && display.isValid());
+                    && (sleeping
+                            || (external != null
+                                    ? !Boolean.TRUE.equals(call(external, "isDeleted"))
+                                    : display != null && display.isValid()));
         }
 
         public Location getLocation() {
@@ -222,6 +268,10 @@ public final class SharedHolograms {
         public void setLocation(Location at) {
             if (location.equals(at)) return;
             location = at.clone();
+            if (!shouldRender()) {
+                sleep();
+                return;
+            }
             if (external != null) call(external, "setPosition", at);
             else if (display != null) display.teleport(at);
         }

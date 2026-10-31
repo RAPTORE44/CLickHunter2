@@ -48,7 +48,7 @@ public final class MoneyScoreboard implements Listener {
     public static void installStyle(JavaPlugin plugin) {
         File file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "scoreboard.yml");
         if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "scoreboard.yml");
-        if (plugin.getConfig().getInt("displays.scoreboard.style-version", 0) >= 1) return;
+        if (plugin.getConfig().getInt("displays.scoreboard.style-version", 0) >= 2) return;
         File config = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "config.yml");
         try {
             if (config.exists()) {
@@ -63,7 +63,7 @@ public final class MoneyScoreboard implements Listener {
                 Files.copy(config.toPath(), backup);
             }
             plugin.getConfig().set("displays.scoreboard.enabled", true);
-            plugin.getConfig().set("displays.scoreboard.style-version", 1);
+            plugin.getConfig().set("displays.scoreboard.style-version", 2);
             plugin.saveConfig();
         } catch (java.io.IOException e) {
             throw new IllegalStateException(
