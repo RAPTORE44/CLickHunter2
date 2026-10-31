@@ -1,4 +1,4 @@
-# Audit des demandes ClickHunter — 27 octobre 2026
+# Audit des demandes ClickHunter — suivi au 31 octobre 2026
 
 Cet audit compare les demandes de la conversation au code du dépôt. « Présent » signifie que le parcours existe dans le code ; aucun test sur le serveur Paper 1.21.4 de production n'a été effectué. « Partiel » signale un écart fonctionnel. Les prix qui dépendaient de l'ancien pack introuvable restent les prix actuels ou provisoires, comme autorisé.
 
@@ -21,9 +21,12 @@ Cet audit compare les demandes de la conversation au code du dépôt. « Présen
 | Succès Minecraft pour les notifications serveur | **Absent** | Les notifications sont actuellement du chat, titre ou barre d'action. Les toasts de succès nécessitent une intégration dédiée côté client/datapack. |
 | Courrier entre joueurs : livres rédigés depuis le menu, objets joints, blocage d'expéditeurs, modération et notification | **Absent** | `rewards/MailStore` est un journal interne de livraison d'objets, pas une messagerie entre joueurs. |
 | Zone AFK isolée, dix minutes par point, `/afkshop`, prix des lootboxes et quatre talismans | **Absent** | Aucun monde ni compteur AFK. La coupure des commandes/chat, l'inventaire isolé et les récompenses restent à concevoir et tester ensemble. |
-| Succès sans double crédit, enchères et progression économique sûres | Partiel | Les récompenses existantes utilisent SQLite et des clés idempotentes ; les systèmes ATM, courrier et AFK n'ont pas encore de transaction. |
+| Succès sans double crédit, enchères et progression économique sûres | Partiel | L’ATM et les récompenses existantes possèdent des transactions et clés idempotentes. Les commandes console Daily restent distinctes de sa transaction ; courrier et AFK sont absents. Voir l’audit technique du 31 octobre. |
 | Hologrammes Holographic Displays et secours natif sans fond, pas de double nom | Partiel | Le fond transparent et le masquage immédiat des noms de raid sont appliqués au secours natif. Le rendu Holographic Displays réel dépend d'un JAR compatible Paper 1.21.4 indisponible ici. |
 | Dégâts qui montent d'un bloc, compression 64 → 1, autocompresseur consommé | Présent dans le code | `combat/DamagePopups`, `essence/CompressorManager`. |
 | Scoreboard, TAB, chat, tags, mariage, popularité, jeux de chat, enchères | Présent dans le code | `display/`, `social/`, `features/ChatActivities`, `liveauction/`; personnalisation des alertes par joueur : **absente**. |
 
-Priorité de développement après cet audit : ATM avec crédit SQL unique par tranche, messagerie avec livraison atomique des pièces jointes et blocage des expéditeurs, raid public à trois places avec parts plafonnées, puis monde AFK et boutique. Chaque ajout devra comprendre une migration non destructive des données, les permissions, la configuration française, le README et des tests de transaction. Les messages de succès peuvent ensuite remplacer les annonces adaptées sans cacher les informations essentielles.
+Priorité de développement fonctionnel restant : messagerie avec livraison atomique des pièces jointes et blocage des expéditeurs, raid public à trois places avec parts plafonnées, puis monde AFK et boutique. Chaque ajout devra comprendre une migration non destructive des données, les permissions, la configuration française, le README et des tests de transaction. Les messages de succès peuvent ensuite remplacer les annonces adaptées sans cacher les informations essentielles.
+
+
+Dernière passe technique : [audit du 31 octobre 2026](AUDIT-2026-10-31.md), avec corrections BuyZone sans LuckPerms, skins PNJ différés, sorties/reprises de raid, boutons, tâches, arrêt et lectures groupées. Les écarts fonctionnels ci-dessus restent explicites.

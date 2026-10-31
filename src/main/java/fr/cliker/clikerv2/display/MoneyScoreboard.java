@@ -129,6 +129,11 @@ public final class MoneyScoreboard implements Listener {
                 config.getStringList("lignes").stream()
                         .map(
                                 line -> {
+                                    long fields =
+                                            styles.keySet().stream()
+                                                    .filter(key -> line.contains("{" + key + "}"))
+                                                    .count();
+                                    if (fields > 1) return line;
                                     for (var entry : styles.entrySet())
                                         if (line.contains("{" + entry.getKey() + "}"))
                                             return entry.getValue();
@@ -181,8 +186,54 @@ public final class MoneyScoreboard implements Listener {
         }
     }
 
+    private record Target(Player player, Session session) {}
+
     private void refreshAll() {
-        for (Player player : plugin.getServer().getOnlinePlayers()) refresh(player);
+        if (stopped) return;
+        var targets = new HashMap<UUID, Target>();
+        for (Player player : plugin.getServer().getOnlinePlayers()) {
+            Session session = sessions.get(player.getUniqueId());
+            if (session == null) session = setup(player);
+            if (player.getScoreboard() == session.board && pending.add(player.getUniqueId()))
+                targets.put(player.getUniqueId(), new Target(player, session));
+        }
+        if (targets.isEmpty()) return;
+        economy.playerSnapshots(targets.keySet())
+                .whenComplete(
+                        (snapshots, error) -> {
+                            if (stopped || !plugin.isEnabled()) return;
+                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                    plugin,
+                                    () -> {
+                                        if (stopped) return;
+                                        pending.removeAll(targets.keySet());
+                                        if (error != null) {
+                                            plugin.getLogger()
+                                                    .log(
+                                                            Level.WARNING,
+                                                            "Actualisation du scoreboard"
+                                                                    + " impossible",
+                                                            error);
+                                            return;
+                                        }
+                                        targets.forEach(
+                                                (owner, target) -> {
+                                                    Player player = target.player;
+                                                    if (!fr.cliker.clikerv2.runtime.PlayerSessions
+                                                                    .isCurrent(player)
+                                                            || sessions.get(owner) != target.session
+                                                            || player.getScoreboard()
+                                                                    != target.session.board) return;
+                                                    var snapshot = snapshots.get(owner);
+                                                    if (snapshot != null)
+                                                        update(
+                                                                player,
+                                                                target.session,
+                                                                snapshot.balances(),
+                                                                snapshot.kills());
+                                                });
+                                    });
+                        });
     }
 
     private Session setup(Player player) {
@@ -208,41 +259,6 @@ public final class MoneyScoreboard implements Listener {
         player.setScoreboard(board);
         update(player, session, null, null);
         return session;
-    }
-
-    private void refresh(Player player) {
-        Session session = sessions.get(player.getUniqueId());
-        if (session == null) session = setup(player);
-        // Ne pas remplacer en boucle un tableau repris par un autre plugin.
-        if (player.getScoreboard() != session.board || !pending.add(player.getUniqueId())) return;
-        Session target = session;
-        economy.playerSnapshot(player.getUniqueId())
-                .whenComplete(
-                        (snapshot, error) -> {
-                            if (stopped || !plugin.isEnabled()) return;
-                            fr.cliker.clikerv2.runtime.ServerTasks.run(
-                                    plugin,
-                                    () -> {
-                                        pending.remove(player.getUniqueId());
-                                        if (!player.isOnline()
-                                                || sessions.get(player.getUniqueId()) != target
-                                                || player.getScoreboard() != target.board) return;
-                                        if (error != null) {
-                                            plugin.getLogger()
-                                                    .log(
-                                                            Level.WARNING,
-                                                            "Actualisation du scoreboard"
-                                                                    + " impossible",
-                                                            error);
-                                            return;
-                                        }
-                                        update(
-                                                player,
-                                                target,
-                                                snapshot.balances(),
-                                                snapshot.kills());
-                                    });
-                        });
     }
 
     public static Map<String, String> values(

@@ -69,6 +69,63 @@ public final class EconomyService {
                 });
     }
 
+    /** Un cycle d'affichage : une connexion, des lectures groupées et un instantané cohérent. */
+    public CompletableFuture<Map<UUID, PlayerSnapshot>> playerSnapshots(
+            java.util.Collection<UUID> owners) {
+        var selected = List.copyOf(new java.util.LinkedHashSet<>(owners));
+        if (selected.isEmpty()) return CompletableFuture.completedFuture(Map.of());
+        return database.submit(
+                c -> {
+                    var snapshots = new java.util.HashMap<UUID, PlayerSnapshot>();
+                    for (UUID owner : selected)
+                        snapshots.put(owner, new PlayerSnapshot(Balances.empty(), 0));
+                    try {
+                        c.setAutoCommit(false);
+                        // Reste sous les limites de paramètres des anciennes bibliothèques SQLite.
+                        for (int offset = 0; offset < selected.size(); offset += 500) {
+                            var batch =
+                                    selected.subList(
+                                            offset, Math.min(offset + 500, selected.size()));
+                            String marks =
+                                    String.join(
+                                            ",", java.util.Collections.nCopies(batch.size(), "?"));
+                            try (var statement =
+                                    c.prepareStatement(
+                                            "SELECT"
+                                                + " b.uuid,b.ecus,b.gemmes_sombres,b.cendres,COALESCE(k.total,0)"
+                                                + " FROM player_balances b LEFT JOIN"
+                                                + " player_mob_kills k ON k.uuid=b.uuid WHERE"
+                                                + " b.uuid IN ("
+                                                    + marks
+                                                    + ")")) {
+                                for (int i = 0; i < batch.size(); i++)
+                                    statement.setString(i + 1, batch.get(i).toString());
+                                try (var rs = statement.executeQuery()) {
+                                    while (rs.next())
+                                        snapshots.put(
+                                                UUID.fromString(rs.getString(1)),
+                                                new PlayerSnapshot(
+                                                        new Balances(
+                                                                rs.getLong(2),
+                                                                rs.getLong(3),
+                                                                rs.getLong(4)),
+                                                        rs.getLong(5)));
+                                }
+                            }
+                        }
+                        c.commit();
+                        return Map.copyOf(snapshots);
+                    } catch (SQLException | RuntimeException error) {
+                        try {
+                            c.rollback();
+                        } catch (SQLException rollback) {
+                            error.addSuppressed(rollback);
+                        }
+                        throw new DatabaseManager.DatabaseException(error);
+                    }
+                });
+    }
+
     public CompletableFuture<Long> getBalance(UUID uuid, String playerName, CurrencyType currency) {
         return database.submit(
                 connection -> {
@@ -224,7 +281,7 @@ public final class EconomyService {
                         try (var clear =
                                 connection.prepareStatement(
                                         "DELETE FROM buyzone_overrides WHERE uuid=? AND"
-                                            + " zone_id=?")) {
+                                                + " zone_id=?")) {
                             clear.setString(1, uuid.toString());
                             clear.setString(2, zoneId);
                             clear.executeUpdate();

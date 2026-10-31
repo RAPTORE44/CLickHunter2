@@ -86,6 +86,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.Listener {
+    private HologramManager hologramManager;
     private fr.cliker.clikerv2.hunting.RewardLedger rewardLedger;
     private fr.cliker.clikerv2.hunting.AtmModule atmModule;
     private fr.cliker.clikerv2.donors.DonorPodium donorPodium;
@@ -443,8 +444,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         setExecutor("autoclick", autoClickManager);
 
         HologramStore hologramStore = new HologramStore(database);
-        HologramManager hologramManager =
-                new HologramManager(this, hologramStore, levelStore, killStore, economy);
+        hologramManager = new HologramManager(this, hologramStore, levelStore, killStore, economy);
         getServer().getScheduler().runTaskLater(this, hologramManager::load, 20L);
         hologramManager.start();
         if (getCommand("holotop") != null) {
@@ -740,52 +740,69 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
 
     @Override
     public void onDisable() {
-        fr.cliker.clikerv2.ui.MenuOpenGuard.shutdown(this);
-        if (tabListManager != null && getConfig().getBoolean("displays.tab.enabled", false))
-            tabListManager.shutdown();
-        if (expansion != null) expansion.shutdown();
-        fr.cliker.clikerv2.features.CreatureSettings.reset();
-        if (sessionConvenience != null) sessionConvenience.shutdown();
-        if (merchantManager != null) merchantManager.shutdown();
-        if (menuIcons != null) menuIcons.shutdown();
-        if (prestigeManager != null) prestigeManager.shutdown();
-        if (playerComfort != null) playerComfort.shutdown();
-        if (farmTelemetry != null) farmTelemetry.shutdown();
-        if (progressNavigation != null) progressNavigation.shutdown();
+        stop("ouverture des menus", () -> fr.cliker.clikerv2.ui.MenuOpenGuard.shutdown(this));
+        stop(
+                "TAB",
+                () -> {
+                    if (tabListManager != null) tabListManager.shutdown();
+                });
+        stop("expansion", expansion, value -> value.shutdown());
+        stop("configuration des créatures", fr.cliker.clikerv2.features.CreatureSettings::reset);
+        stop("sessionConvenience", sessionConvenience, value -> value.shutdown());
+        stop("merchantManager", merchantManager, value -> value.shutdown());
+        stop("menuIcons", menuIcons, value -> value.shutdown());
+        stop("prestigeManager", prestigeManager, value -> value.shutdown());
+        stop("playerComfort", playerComfort, value -> value.shutdown());
+        stop("farmTelemetry", farmTelemetry, value -> value.shutdown());
+        stop("progressNavigation", progressNavigation, value -> value.shutdown());
         // Restituer les objets déposés dans les interfaces avant d'arrêter /claim et SQLite.
         for (var player : getServer().getOnlinePlayers()) {
-            var holder = player.getOpenInventory().getTopInventory().getHolder();
-            if (holder != null && holder.getClass().getName().startsWith("fr.cliker.clikerv2."))
-                player.closeInventory();
+            stop(
+                    "inventaire de " + player.getUniqueId(),
+                    () -> {
+                        var holder = player.getOpenInventory().getTopInventory().getHolder();
+                        if (holder != null
+                                && holder.getClass().getName().startsWith("fr.cliker.clikerv2."))
+                            player.closeInventory();
+                    });
         }
-        if (activityUI != null) activityUI.shutdown();
-        if (outpostModule != null) outpostModule.shutdown();
-        if (raidModule != null) raidModule.shutdown();
-        if (huntingModule != null) huntingModule.shutdown();
-        if (liveAuctions != null) liveAuctions.shutdown();
-        if (pinata != null) pinata.shutdown();
-        if (communityExtras != null) communityExtras.shutdown();
-        if (socialModule != null) socialModule.shutdown();
-        if (rankings != null) rankings.shutdown();
-        if (donorPodium != null) donorPodium.shutdown();
-        if (wikiModule != null) wikiModule.shutdown();
-        if (atmModule != null) atmModule.shutdown();
-        if (rewardLedger != null) rewardLedger.shutdown();
-        if (referrals != null) referrals.shutdown();
-        if (discordModule != null) discordModule.shutdown();
-        if (scoreboard != null) scoreboard.shutdown();
-        if (mainMenu != null) mainMenu.shutdown();
-        if (buyZoneModule != null) buyZoneModule.shutdown();
-        if (dailyModule != null) dailyModule.shutdown();
-        if (bagMenu != null) bagMenu.shutdown();
-        if (autoClickManager != null) autoClickManager.shutdown();
-        if (bossEventManager != null) bossEventManager.shutdown();
-        if (gearAttributeManager != null) gearAttributeManager.shutdown();
-        if (mobManager != null) mobManager.shutdown();
-        if (outgoingItems != null) outgoingItems.shutdown();
-        if (claims != null) claims.shutdown();
-        if (sharedHolograms != null) sharedHolograms.shutdown();
-        if (database != null) database.close();
+        stop("activityUI", activityUI, value -> value.shutdown());
+        stop("outpostModule", outpostModule, value -> value.shutdown());
+        stop("raidModule", raidModule, value -> value.shutdown());
+        stop("huntingModule", huntingModule, value -> value.shutdown());
+        stop("liveAuctions", liveAuctions, value -> value.shutdown());
+        stop("pinata", pinata, value -> value.shutdown());
+        stop("communityExtras", communityExtras, value -> value.shutdown());
+        stop("socialModule", socialModule, value -> value.shutdown());
+        stop("rankings", rankings, value -> value.shutdown());
+        stop("donorPodium", donorPodium, value -> value.shutdown());
+        stop("wikiModule", wikiModule, value -> value.shutdown());
+        stop("atmModule", atmModule, value -> value.shutdown());
+        stop("rewardLedger", rewardLedger, value -> value.shutdown());
+        stop("referrals", referrals, value -> value.shutdown());
+        stop("discordModule", discordModule, value -> value.shutdown());
+        stop("scoreboard", scoreboard, value -> value.shutdown());
+        stop("mainMenu", mainMenu, value -> value.shutdown());
+        stop("buyZoneModule", buyZoneModule, value -> value.shutdown());
+        stop("dailyModule", dailyModule, value -> value.shutdown());
+        stop("bagMenu", bagMenu, value -> value.shutdown());
+        stop("autoClickManager", autoClickManager, value -> value.shutdown());
+        stop("bossEventManager", bossEventManager, value -> value.shutdown());
+        stop("gearAttributeManager", gearAttributeManager, value -> value.shutdown());
+        stop("mobManager", mobManager, value -> value.shutdown());
+        stop("outgoingItems", outgoingItems, value -> value.shutdown());
+        stop("claims", claims, value -> value.shutdown());
+        stop("hologramManager", hologramManager, value -> value.shutdown());
+        stop("sharedHolograms", sharedHolograms, value -> value.shutdown());
+        stop("database", database, value -> value.close());
+    }
+
+    private <T> void stop(String name, T component, java.util.function.Consumer<T> action) {
+        if (component != null) stop(name, () -> action.accept(component));
+    }
+
+    private void stop(String name, Runnable action) {
+        fr.cliker.clikerv2.runtime.ShutdownSteps.run(getLogger(), name, action);
     }
 
     @org.bukkit.event.EventHandler

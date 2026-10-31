@@ -50,6 +50,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         final LinkedHashSet<UUID> members = new LinkedHashSet<>();
         RaidSession raid;
         int slot;
+        MobTier tier;
         long emptySince;
 
         Party(UUID leader) {
@@ -456,6 +457,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                             false,
                             () -> finish(group));
             group.raid = raid;
+            group.tier = tier;
             group.slot = slot;
             active.put(slot, group);
             raid.start();
@@ -521,7 +523,15 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                 }
             return;
         }
-        if (group.raid != null) group.raid.exit(p);
+        if (group.raid != null) {
+            group.raid.exit(p);
+            if (p.getWorld() == group.raid.world()) {
+                p.sendMessage(
+                        "§eLa sortie est bloquée. Ton appartenance au groupe est conservée ;"
+                                + " réessaie /raid quitter.");
+                return;
+            }
+        }
         if (group.leader.equals(p.getUniqueId()) && group.raid == null) {
             for (UUID id : group.members) memberships.remove(id, group);
         } else {
@@ -784,7 +794,10 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                     .runTask(
                             plugin,
                             () -> {
-                                if (p.isOnline())
+                                if (fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(p)
+                                        && privateWorld(p.getWorld())
+                                        && !memberships.containsKey(p.getUniqueId())
+                                        && !p.hasPermission("cliker.raid.admin"))
                                     p.teleport(Bukkit.getWorlds().getFirst().getSpawnLocation());
                             });
     }
@@ -862,7 +875,18 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
             case "lancer" -> launch(p, party(p));
             case "rejoindre" -> {
                 var group = memberships.get(p.getUniqueId());
-                if (group != null && group.raid != null) group.raid.enter(p);
+                if (group == null || group.raid == null)
+                    p.sendMessage("§7Tu n’as pas de raid actif. /raid pour préparer un groupe.");
+                else if (group.tier == null
+                        || !p.hasPermission("cliker.raid")
+                        || p.isDead()
+                        || fr.cliker.clikerv2.outpost.WorldInventories.isolated(p)
+                        || zones == null
+                        || !zones.canTravel(p, group.tier.id()))
+                    p.sendMessage(
+                            "§cImpossible de rejoindre : vérifie ton accès à la zone et reviens au"
+                                    + " spawn si tu es dans ton avant-poste.");
+                else group.raid.enter(p);
             }
             case "quitter", "sortir" -> leave(p);
             case "parchemin" -> {

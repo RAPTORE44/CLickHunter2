@@ -162,6 +162,50 @@ class PartyRaidsTest {
         assertEquals(arena, leader.getWorld());
     }
 
+    @Test
+    void failedExitKeepsThePlayerInTheirRaidGroup() throws Exception {
+        command(leader, "parchemin", "vache");
+        command(leader, "lancer");
+        var arena = leader.getWorld();
+        assertNotEquals(lobby, arena);
+        org.bukkit.event.Listener blocker =
+                new org.bukkit.event.Listener() {
+                    @org.bukkit.event.EventHandler
+                    public void tp(org.bukkit.event.player.PlayerTeleportEvent e) {
+                        if (e.getTo().getWorld() == lobby) e.setCancelled(true);
+                    }
+                };
+        server.getPluginManager().registerEvents(blocker, plugin);
+        command(leader, "quitter");
+        assertEquals(arena, leader.getWorld());
+        var field = PartyRaids.class.getDeclaredField("memberships");
+        field.setAccessible(true);
+        assertTrue(((Map<?, ?>) field.get(raids)).containsKey(leader.getUniqueId()));
+        org.bukkit.event.HandlerList.unregisterAll(blocker);
+        command(leader, "quitter");
+        assertEquals(lobby, leader.getWorld());
+    }
+
+    @Test
+    void rejoiningChecksZoneAccessAgainAfterItWasRemoved() {
+        zones.join(
+                new org.bukkit.event.player.PlayerJoinEvent(
+                        leader, net.kyori.adventure.text.Component.empty()));
+        drain();
+        leader.addAttachment(plugin, "cliker.zone.cochon", true);
+        command(leader, "parchemin", "cochon");
+        command(leader, "lancer");
+        var arena = leader.getWorld();
+        assertNotEquals(lobby, arena);
+        leader.teleport(lobby.getSpawnLocation());
+        leader.addAttachment(plugin, "cliker.zone.cochon", false);
+        command(leader, "rejoindre");
+        assertEquals(lobby, leader.getWorld());
+        leader.addAttachment(plugin, "cliker.zone.cochon", true);
+        command(leader, "rejoindre");
+        assertEquals(arena, leader.getWorld());
+    }
+
     private void clickLaunch() {
         var e =
                 new InventoryClickEvent(

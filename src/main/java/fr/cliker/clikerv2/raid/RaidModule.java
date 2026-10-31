@@ -320,8 +320,9 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
             return true;
         }
         if (p.getWorld() == world) return true;
-        returns.put(p.getUniqueId(), p.getLocation().clone());
+        var previous = p.getLocation().clone();
         if (p.teleport(spawn())) {
+            returns.put(p.getUniqueId(), previous);
             message(p, "entree");
             bar.addPlayer(p);
         }
@@ -329,10 +330,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     }
 
     private void leave(Player p) {
-        observers.remove(p.getUniqueId());
-        fr.cliker.clikerv2.combat.BossMusic.stop(p);
         Location target = setup() == null ? null : setup().exit(world);
-        Location previous = returns.remove(p.getUniqueId());
+        Location previous = returns.get(p.getUniqueId());
         if (target == null) target = previous;
         if (target == null || target.getWorld() == null || target.getWorld() == world)
             target =
@@ -341,7 +340,15 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                             .findFirst()
                             .orElseThrow()
                             .getSpawnLocation();
-        p.teleport(target);
+        if (!p.teleport(target)) {
+            p.sendMessage(
+                    "§eLa sortie a été refusée. Tu restes dans ton raid ; réessaie la commande"
+                            + " quitter.");
+            return;
+        }
+        returns.remove(p.getUniqueId());
+        observers.remove(p.getUniqueId());
+        fr.cliker.clikerv2.combat.BossMusic.stop(p);
         bar.removePlayer(p);
     }
 

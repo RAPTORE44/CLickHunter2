@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-31",
+  "paper": "1.21.4",
+  "java": "21",
+  "znpcsplus": "2.0.0",
+  "luckperms_installed": false,
+  "holographic_displays_installed": false,
+  "itemsadder_installed": false,
+  "unit_tests": {
+    "tests": 414,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "paper_checks": [
+    "Menu principal : 54 cases",
+    "Daily : calendrier et premier jour réduit à 100 Écus",
+    "PNJ ZNPCsPlus Daily créé avec les propriétés de regard individuel",
+    "Invitation acceptée et groupe partagé",
+    "Les deux joueurs sont téléportés au lancement",
+    "Créatures du raid Vache : vaches réellement reçues par le client",
+    "Boss de fin de raid : Vache invoquée après le premier kill",
+    "Sortie des deux joueurs et nettoyage du groupe",
+    "PNJ d’accès au boss public sauvegardé",
+    "Diagnostic administrateur : SQLite accessible",
+    "BuyZone sans LuckPerms : événement de téléportation capté et achat proposé"
+  ],
+  "restart_checks": [
+    "Portail cochon restauré après redémarrage",
+    "PNJ Daily sauvegardé : doublon refusé après redémarrage",
+    "PNJ d’accès au boss sauvegardé : doublon refusé après redémarrage"
+  ],
+  "limitations": [
+    "Combat fixture: 1 kill before boss, reduced virtual health, zero attack damage; no balance/load claim.",
+    "Skin services returned HTTP 504/429; exact player skin and graphical client rendering not certified.",
+    "Daily progression and arbitrary console commands remain separate transactions."
+  ]
+}

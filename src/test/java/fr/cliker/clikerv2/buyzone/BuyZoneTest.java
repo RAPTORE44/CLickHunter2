@@ -184,6 +184,22 @@ class BuyZoneTest {
     }
 
     @Test
+    void teleportCannotJumpFromNorthToSouthAcrossThePortalButTheReturnNorthStaysPossible()
+            throws Exception {
+        spawn();
+        var blocked =
+                new org.bukkit.event.player.PlayerTeleportEvent(
+                        player, center.clone().add(0, 0, -3), center.clone().add(0, 0, 3));
+        server.getPluginManager().callEvent(blocked);
+        assertTrue(blocked.isCancelled());
+        var returnNorth =
+                new org.bukkit.event.player.PlayerTeleportEvent(
+                        player, center, center.clone().add(0, 0, -15));
+        server.getPluginManager().callEvent(returnNorth);
+        assertFalse(returnNorth.isCancelled());
+    }
+
+    @Test
     void creativeCrossesWithoutOfferOrPurchase() throws Exception {
         spawn();
         player.setGameMode(GameMode.CREATIVE);

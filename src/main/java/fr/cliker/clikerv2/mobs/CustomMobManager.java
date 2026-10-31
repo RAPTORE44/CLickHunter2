@@ -144,14 +144,17 @@ public final class CustomMobManager implements Listener {
         this.spawnIdKey = new NamespacedKey(plugin, "cliker_spawn_id");
     }
 
-    private BukkitTask recoveryTask;
+    private BukkitTask recoveryTask, anchorTask, resetTask;
+    private boolean stopped;
 
     public void startAnchor() {
+        if (stopped || anchorTask != null) return;
         recoveryTask =
                 plugin.getServer()
                         .getScheduler()
                         .runTaskTimer(plugin, this::recoverMissingMobs, 40L, 40L);
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::anchorAll, 1L, 1L);
+        anchorTask =
+                plugin.getServer().getScheduler().runTaskTimer(plugin, this::anchorAll, 1L, 1L);
     }
 
     /** Répare les retraits externes et retrouve les entités après rechargement du chunk. */
@@ -306,12 +309,14 @@ public final class CustomMobManager implements Listener {
      * -> nouveaux mobs spawnés en double.
      */
     public void load() {
+        if (stopped) return;
         store.loadAll()
                 .whenComplete(
                         (points, error) ->
                                 fr.cliker.clikerv2.runtime.ServerTasks.run(
                                         plugin,
                                         () -> {
+                                            if (stopped) return;
                                             if (error != null) {
                                                 plugin.getLogger()
                                                         .severe(
@@ -338,6 +343,7 @@ public final class CustomMobManager implements Listener {
                                             fr.cliker.clikerv2.runtime.ServerTasks.run(
                                                     plugin,
                                                     () -> {
+                                                        if (stopped) return;
                                                         for (var world :
                                                                 plugin.getServer().getWorlds()) {
                                                             for (Entity entity :
@@ -371,7 +377,11 @@ public final class CustomMobManager implements Listener {
     }
 
     public void startPeriodicReset() {
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::resetAll, 18000L, 18000L);
+        if (stopped || resetTask != null) return;
+        resetTask =
+                plugin.getServer()
+                        .getScheduler()
+                        .runTaskTimer(plugin, this::resetAll, 18000L, 18000L);
     }
 
     /**
@@ -390,12 +400,14 @@ public final class CustomMobManager implements Listener {
     }
 
     private void resetAll() {
+        if (stopped) return;
         for (Location location : spawnLocation.values())
             location.getWorld().getChunkAt(location).load();
 
         fr.cliker.clikerv2.runtime.ServerTasks.run(
                 plugin,
                 () -> {
+                    if (stopped) return;
                     for (String spawnId : new ArrayList<>(aliveBySpawnId.keySet())) {
                         if (!bossSpawnIds.contains(spawnId) && !oneShotSpawns.contains(spawnId))
                             despawn(spawnId);
@@ -434,6 +446,9 @@ public final class CustomMobManager implements Listener {
     }
 
     public void shutdown() {
+        stopped = true;
+        if (anchorTask != null) anchorTask.cancel();
+        if (resetTask != null) resetTask.cancel();
         if (recoveryTask != null) recoveryTask.cancel();
         damagePopups.shutdown();
         bossTargets.clear();
@@ -598,6 +613,7 @@ public final class CustomMobManager implements Listener {
     }
 
     private void spawn(String spawnId) {
+        if (stopped) return;
         Location location = spawnLocation.get(spawnId);
         String mobId = spawnMobId.get(spawnId);
         MobTier tier = mobId == null ? null : MobTier.parse(mobId);

@@ -294,7 +294,12 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void teleport(PlayerTeleportEvent event) {
         for (BuyZone zone : gates.values()) {
-            if (!hasAccess(event.getPlayer(), zone) && zone.contains(event.getTo())) {
+            boolean crossingToLockedSide =
+                    event.getTo() != null
+                            && event.getTo().getZ() >= zone.center().getZ()
+                            && zone.crosses(event.getFrom(), event.getTo());
+            if (!hasAccess(event.getPlayer(), zone)
+                    && (zone.contains(event.getTo()) || crossingToLockedSide)) {
                 event.setCancelled(true);
                 prompt(event.getPlayer(), zone, event.getFrom());
                 return;
@@ -598,25 +603,7 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
         }
         if (!Bukkit.getPluginManager().isPluginEnabled("LuckPerms"))
             return java.util.concurrent.CompletableFuture.completedFuture(Map.of());
-        var manager = net.luckperms.api.LuckPermsProvider.get().getUserManager();
-        return manager.loadUser(owner)
-                .thenApply(
-                        user -> {
-                            try {
-                                var permissions = new HashMap<String, Boolean>();
-                                var data = user.getCachedData().getPermissionData();
-                                nodes.forEach(
-                                        (id, node) ->
-                                                permissions.put(
-                                                        id,
-                                                        data.checkPermission(node)
-                                                                == net.luckperms.api.util.Tristate
-                                                                        .TRUE));
-                                return Map.copyOf(permissions);
-                            } finally {
-                                manager.cleanupUser(user);
-                            }
-                        });
+        return fr.cliker.clikerv2.integration.LuckPermsAccess.offline(owner, nodes);
     }
 
     private boolean adminAvailable(CommandSender sender) {

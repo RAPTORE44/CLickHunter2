@@ -36,6 +36,8 @@ public final class HologramManager {
     private final MobKillStore killStore;
     private final EconomyService economy;
     private final boolean available;
+    private volatile boolean stopped;
+    private org.bukkit.scheduler.BukkitTask refreshTask;
 
     private final Map<String, Type> holograms = new HashMap<>();
     private final Map<String, List<String>> rendered = new HashMap<>();
@@ -80,6 +82,7 @@ public final class HologramManager {
     }
 
     public void load() {
+        if (stopped) return;
         if (!available) return;
         store.loadAll()
                 .whenComplete(
@@ -87,6 +90,7 @@ public final class HologramManager {
                                 fr.cliker.clikerv2.runtime.ServerTasks.run(
                                         plugin,
                                         () -> {
+                                            if (stopped) return;
                                             if (error != null) {
                                                 plugin.getLogger()
                                                         .severe(
@@ -115,8 +119,21 @@ public final class HologramManager {
     }
 
     public void start() {
-        if (!available) return;
-        plugin.getServer().getScheduler().runTaskTimer(plugin, this::refreshAll, 100L, 200L);
+        if (!available || stopped || refreshTask != null) return;
+        refreshTask =
+                plugin.getServer()
+                        .getScheduler()
+                        .runTaskTimer(plugin, this::refreshAll, 100L, 200L);
+    }
+
+    public void shutdown() {
+        stopped = true;
+        if (refreshTask != null) refreshTask.cancel();
+        var service = SharedHolograms.service();
+        if (service != null) for (String id : holograms.keySet()) service.remove(hologramName(id));
+        holograms.clear();
+        rendered.clear();
+        inFlight.clear();
     }
 
     public void addHologram(Type type, Location location) {
@@ -152,6 +169,7 @@ public final class HologramManager {
     }
 
     private void refreshAll() {
+        if (stopped) return;
         java.util.Set<Type> seen = java.util.EnumSet.noneOf(Type.class);
         for (Map.Entry<String, Type> entry : holograms.entrySet()) {
             if (seen.add(entry.getValue())) refresh(entry.getKey(), entry.getValue());
@@ -302,10 +320,11 @@ public final class HologramManager {
     }
 
     private void applyLines(Type type, String title, List<Object[]> entries) {
-        if (!plugin.isEnabled()) return;
+        if (stopped || !plugin.isEnabled()) return;
         fr.cliker.clikerv2.runtime.ServerTasks.run(
                 plugin,
                 () -> {
+                    if (stopped) return;
                     List<String> lines =
                             leaderboardLines(
                                     appearance.getString("titres." + type.name(), title), entries);

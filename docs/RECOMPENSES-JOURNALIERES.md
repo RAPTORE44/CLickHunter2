@@ -144,8 +144,8 @@ ils ne sont pas validés par le serveur simulé utilisé pour les tests.
 
 ## Vérification en jeu recommandée
 
-1. `/daily` : vérifier les 28 jours, les infobulles et le bouton Informations.
-2. Réclamer le jour 1 : recevoir la lootbox, puis voir l'icône récupérée.
+1. `/daily` : vérifier les 31 jours, les infobulles et le bouton Informations.
+2. Réclamer le jour 1 : recevoir 100 Écus, puis voir l'icône récupérée.
 3. Cliquer de nouveau et tenter les déplacements d'objets : aucune seconde récompense.
 4. `/daily pnj spawn` : vérifier le skin, le texte, l'immobilité et le clic droit.
 5. Refaire `spawn` : création refusée. Redémarrer : un seul PNJ revient.
@@ -153,12 +153,9 @@ ils ne sont pas validés par le serveur simulé utilisé pour les tests.
 
 ## Migration du calendrier historique
 
-Au premier chargement, une copie de l’ancienne configuration est créée dans
-`backups/daily-<timestamp>.yml`. Le pack de test standard est remplacé par le pack
-final de 28 jours. Un pack personnalisé est préservé et doit être révisé par
-l’administrateur si ses textes font encore référence à 31 jours. Une ancienne
-récupération aux jours 29–31 est considérée comme une fin de cycle, tout en
-conservant sa date : aucune deuxième récupération le même jour.
+Lors du passage au calendrier actuel, les jours manquants sont complétés pour atteindre 31 jours ; les dates et progressions existantes sont conservées. La configuration précédente est sauvegardée dans `backups/daily-<timestamp>.yml`. Les textes standard de fin de cycle sont ajustés de 28 vers 31 jours.
+
+Les anciens coffres par défaut des dix premiers jours sont désormais remplacés par 100, 150, 200, 250, 300, 400, 500, 600, 750 et 1 000 Écus, avec une sauvegarde `backups/daily-equilibrage-<timestamp>.yml`. Les commandes personnalisées restent conservées. Les récompenses des jours suivants restent configurables.
 
 La livraison actuelle utilise encore les commandes de récompense. Les objets des
 commandes ClikerV2 passent désormais par `/claim` si le destinataire est hors ligne

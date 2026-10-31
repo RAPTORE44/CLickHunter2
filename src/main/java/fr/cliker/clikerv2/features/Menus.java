@@ -66,6 +66,7 @@ public final class Menus implements Listener {
         public void put(int slot, ItemStack i, BiConsumer<Player, Boolean> action) {
             inventory.setItem(slot, i);
             if (action != null) actions.put(slot, action);
+            else actions.remove(slot);
         }
 
         public void show(Player p) {

@@ -194,6 +194,12 @@ public class ZnpcsNpc implements Listener {
         if (!owned.isEmpty()) call(old, "saveToStore");
     }
 
+    static Object skinDescriptor(Object factory, String name) throws Exception {
+        // Le descripteur statique de ZNPCsPlus 2.0.0 fait un join() réseau : ne jamais le créer sur
+        // le thread serveur.
+        return call(factory, "createRefreshingDescriptor", name);
+    }
+
     private void property(Object npc, String name, Object value) throws Exception {
         Object property = call(call(api, "getPropertyRegistry"), "getByName", name);
         if (property == null)
@@ -248,9 +254,8 @@ public class ZnpcsNpc implements Listener {
                     Math.max(16, Math.min(128, config.getInt("pnj.distance-affichage", 96))));
             if (config.getString("pnj.type", "player").equals("player")) {
                 Object skin =
-                        call(
+                        skinDescriptor(
                                 call(api, "getSkinDescriptorFactory"),
-                                "createStaticDescriptor",
                                 config.getString("pnj.skin", "Nati144378"));
                 property(npc, "skin", skin);
             }

@@ -2,6 +2,13 @@
 
 ## Dernière mise à jour — 31 octobre 2026
 
+- Audit de stabilité : BuyZone charge ses événements même sans LuckPerms et bloque les téléportations qui franchissent le portail vers le côté verrouillé ; le retour au nord reste possible. Les skins PNJ sont récupérés sans attente réseau sur le thread serveur.
+- Raids : une sortie refusée conserve le groupe, l’état d’observation et le retour ; `/raid rejoindre` revérifie l’accès à la zone. Les rappels de connexion vérifient la session actuelle.
+- Boutons remplacés : une icône inactive ne garde plus l’action du bouton précédent.
+- Arrêt : les erreurs d’un module sont journalisées et n’interrompent plus les nettoyages et sauvegardes suivants ; tâches de mobs et classements annulées explicitement, démarrages idempotents.
+- Scoreboard : instantanés groupés jusqu’à 500 joueurs par requête, avec conservation des lignes personnalisées combinées.
+- [Rapport d’audit, corrections, tests et limites](docs/AUDIT-2026-10-31.md). 414 tests automatisés réussis, 11 vérifications de parcours Paper à deux clients et 3 vérifications après redémarrage ; aucune modification de prix, gains, règles de progression ou format de données dans cette passe.
+
 - Scoreboard : symboles et bordures colorées par information : niveau bleu, Écus jaunes, gemmes violettes, cendres orange, prestige rose, éliminations rouges et joueurs en ligne verts. Libellés blancs pour la lisibilité ; nom ClickHunter et adresse conservés en vert. Migration automatique du style existant avec sauvegarde dans `backups/`, puis personnalisation dans `affichage/scoreboard.yml`. Commandes et permissions inchangées.
 
 - Piñatas : suppression des compteurs de secondes, y compris les anciens textes configurés ; couleurs Écus/XP/Gemmes conservées.
@@ -139,8 +146,8 @@ Les couples conservent leurs commandes toute l’année. L’anneau est identifi
 | `/raid inviter <pseudo>` | Inviter un joueur en ligne pour 60 secondes. |
 | `/raid accepter <pseudo>` | Accepter l’invitation d’un chef ; les membres sont ajoutés au même groupe et le menu du chef est actualisé. |
 | `/raid lancer` | Le chef consomme le parchemin tenu et lance un raid privé de sa difficulté. |
-| `/raid rejoindre` | Rejoindre son raid déjà lancé. |
-| `/raid quitter` | Quitter le groupe et son arène ; `sortir` est accepté. |
+| `/raid rejoindre` | Rejoindre son raid lancé, après nouvelle vérification des droits de zone et de l’état du joueur. |
+| `/raid quitter` | Quitter le groupe après sortie effective de l’arène ; un refus de téléportation conserve le groupe et permet de réessayer. `sortir` est accepté. |
 | `/tallisement` | Consulter la collection de talismans ; alias `/talismans`, `/talissement`. |
 
 ### Économie et équipement

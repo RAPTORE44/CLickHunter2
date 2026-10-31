@@ -75,6 +75,28 @@ class MoneyScoreboardTest {
     }
 
     @Test
+    void styleMigrationPreservesACustomLineWithSeveralStatistics() throws Exception {
+        var file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "scoreboard.yml");
+        var config = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+        String combined = "&fMon portefeuille : &e{ecus} &7/ &5{gemmes}";
+        config.set("style-version", 0);
+        config.set("lignes", java.util.List.of(combined));
+        config.save(file);
+        var economy = new EconomyService(database, Map.of());
+        var kills = new MobKillStore(database);
+        scoreboard =
+                new MoneyScoreboard(
+                        plugin,
+                        economy,
+                        kills,
+                        new PrestigeManager(plugin, new PrestigeStore(database), kills),
+                        score -> {});
+        var migrated = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+        assertEquals(java.util.List.of(combined), migrated.getStringList("lignes"));
+        assertEquals(2, migrated.getInt("style-version"));
+    }
+
+    @Test
     void sidebarUsesGreenBrandRealBalancesAndRestoresPreviousBoard() throws Exception {
         PlayerMock player = server.addPlayer();
         var previous = player.getScoreboard();
