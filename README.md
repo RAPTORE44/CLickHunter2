@@ -2,6 +2,12 @@
 
 ## Dernière mise à jour — 31 octobre 2026
 
+- Administration BuyZone : consulter les zones d’un joueur, débloquer ou retirer un accès, et afficher les coordonnées des portails placés. Fonctionne aussi pour les joueurs hors ligne déjà connus, avec droits sauvegardés par UUID.
+
+- `/top` et `/classement` : menu des classements Écus, Gemmes, Cendres, éliminations, niveaux et donateurs. Sélection Jour, Semaine, Mois, Année ou Depuis toujours, avec navigation vers les périodes précédentes/suivantes et retour à la période actuelle.
+- `/top pnj spawn` place le PNJ qui ouvre ce menu ; `/top pnj remove` le retire. Les points des donateurs restent cachés dans le menu public.
+- Suivi journalier sauvegardé en SQLite, par calendrier Europe/Paris. Les anciennes périodes sans données ne sont pas inventées ; l’historique de points déjà daté est repris automatiquement.
+
 - Classement automatique des donateurs par points : **1 € = 1 point**, avec deux décimales. Ajouts et retraits possibles depuis la console de la boutique, même si le joueur est hors ligne ou n’a encore jamais rejoint le serveur.
 - `/donateurs` ouvre un menu administrateur paginé ; clic sur un joueur pour ajouter ou retirer 1, 10 ou 100 points. Une commande permet tout autre montant. Les trois premiers mettent à jour les noms et skins des PNJ existants, sans déplacer les PNJ et sans y afficher les points.
 - Les opérations sont sauvegardées avec leur historique SQL ; une référence de transaction facultative empêche de traiter deux fois un même paiement.
@@ -58,6 +64,7 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | --- | --- |
 | `/aide [commande]` | Liste les commandes accessibles par catégorie ; `/aide warp` affiche le détail. |
 | `/menu` | Ouvrir le menu principal. |
+| `/top [categorie]` / `/classement [categorie]` | Ouvrir les classements et parcourir les périodes : `ecus`, `gemmes`, `cendres`, `kills` (ou `mobs`), `niveaux` (ou `niveau`, `level`), `donateurs`. Permission `cliker.classement.use`, accordée par défaut. |
 | `/tuto` | Consulter le livre-guide. |
 | `/spawn` | Rejoindre le point d'accueil. |
 | `/discord` | Recevoir le lien du Discord. |
@@ -211,6 +218,12 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/setspawn` | Définir le point d'accueil à la position actuelle. | `cliker.spawn.admin` |
 | `/buyzone spawn <zone>` | Placer un portail d'achat pour une zone configurée. | `cliker.buyzone.admin` |
 | `/buyzone remove <zone>` | Supprimer ce portail. | `cliker.buyzone.admin` |
+| `/buyzone liste` | Lister les zones configurées et les portails enregistrés. | `cliker.buyzone.admin` |
+| `/buyzone info <zone>` | Consulter la permission, l’état et la position du portail. | `cliker.buyzone.admin` |
+| `/buyzone portails` | Voir les portails placés avec monde, coordonnées et état actif ou en attente. | `cliker.buyzone.admin` |
+| `/buyzone joueur <pseudo>` | Voir les droits zone par zone : accès sauvegardé, accord/retrait administrateur ou permission ; alias `player`. | `cliker.buyzone.admin` |
+| `/buyzone debloquer <pseudo> <zone>` | Accorder gratuitement l’accès à cette zone ; alias `unlock`. | `cliker.buyzone.admin` |
+| `/buyzone retirer <pseudo> <zone>` | Retirer l’accès et l’achat sauvegardé de cette zone, sans remboursement ; alias `revoke`. | `cliker.buyzone.admin` |
 | `/daily pnj spawn` / `/daily pnj remove` | Placer ou supprimer le PNJ des récompenses. | `cliker.daily.admin` |
 | `/atm pnj spawn` / `/atm pnj remove` | Placer ou supprimer Marketus à sa position. | `cliker.atm.admin` |
 | `/donateurs` / `/donateurs menu` | Ouvrir le menu paginé des donateurs ; clic sur un joueur pour gérer ses points. Depuis la console : afficher les dix premiers. Alias `/topdonateurs`. | `cliker.donateurs.admin` |
@@ -221,6 +234,7 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/donateurs spawn <1\|2\|3>` | Placer le PNJ de ce rang à sa position ; refuse les doublons. | `cliker.donateurs.admin` |
 | `/donateurs remove <1\|2\|3>` | Retirer ce PNJ pour le déplacer ; les points restent sauvegardés. | `cliker.donateurs.admin` |
 | `/donateurs list` | Afficher les dix premiers donateurs et leurs points dans le chat administrateur ou la console. | `cliker.donateurs.admin` |
+| `/top pnj spawn` / `/top pnj remove` | Placer ou retirer le PNJ des classements ; `/classement pnj ...` est équivalent. | `cliker.classement.admin` |
 | `/wiki pnj spawn` / `/wiki pnj remove` | Placer ou supprimer le PNJ Wiki. Lien et textes dans `wiki.yml`. | `cliker.wiki.admin` |
 | `/discord pnj spawn` / `/discord pnj remove` | Placer ou supprimer le PNJ Discord. | `cliker.discord.admin` |
 | `/contrats pnj spawn` / `/contrats pnj remove` | Placer ou supprimer le PNJ des contrats. | `cliker.contrats.admin` |
@@ -451,3 +465,30 @@ donateurs retirer RAPTORE44 9.99 remboursement-123-ligne-1
 ```
 
 Les points utilisent des centièmes entiers en SQLite pour éviter les arrondis flottants ; ils sont indépendants des Écus, Gemmes et Cendres. Les comptes sont identifiés par pseudo sans distinction de majuscules : utiliser le pseudo fourni par la boutique et corriger les totaux avec les commandes en cas de changement de pseudo. Les modifications sont journalisées avec l’auteur et la référence dans `donor_point_events`, avec le total dans `donor_points`, dans `data/economy.db`. Sauvegarder cette base avec les fichiers des PNJ. Seuls les OP ou titulaires de `cliker.donateurs.admin` (OP par défaut) peuvent consulter les points et les modifier. Les PNJ publics n’affichent jamais les points.
+
+## Classements et historique calendaire
+
+`/top` et son alias `/classement` ouvrent le même menu de 54 cases, également accessible depuis `/menu`. Les catégories sont en première ligne, puis les boutons Jour, Semaine, Mois, Année et Depuis toujours. Les dix places sont conservées même avec moins de joueurs. Les flèches changent d’une période à la fois ; la boussole revient à la période actuelle et l’horloge actualise la sélection. Les semaines vont du lundi au dimanche. Les mois et années sont calendaires, pas des durées glissantes de trente ou 365 jours. Les dates futures et les périodes antérieures au suivi sont bloquées. En changeant de catégorie, une période non suivie est clairement indiquée comme indisponible.
+
+| Catégorie | Depuis toujours | Jour / semaine / mois / année |
+| --- | --- | --- |
+| Écus, Gemmes, Cendres | Soldes actuels des joueurs, comme les classements existants. | Progression nette du solde sur la période : entrées moins sorties, pas le solde à la fin de cette ancienne période. Les dépenses et remboursements sont donc pris en compte. Seules les progressions positives figurent au top. |
+| Éliminations | Total du compteur existant `player_mob_kills`. | Éliminations ajoutées au compteur pendant la période. |
+| Niveaux | Dernier niveau connu du joueur. | Niveaux gagnés pendant la période ; une baisse ou une réinitialisation ne retire pas les niveaux déjà gagnés. Le premier niveau connu sert de base. |
+| Donateurs | Classement des points actuels. | Points ajoutés moins points retirés pendant la période. Le menu public affiche seulement le rang et le pseudo, jamais le nombre de points ; `/donateurs` reste réservé aux administrateurs. |
+
+Le suivi des catégories de jeu commence à l’installation de cette version. Les totaux existants restent accessibles dans Depuis toujours, mais ils ne sont pas artificiellement affectés à une ancienne journée. La première période peut être partielle : la fiche d’information affiche la date de début du suivi. Les opérations déjà datées dans `donor_point_events` sont reprises une seule fois et converties depuis leur date UTC vers le calendrier configuré.
+
+Les agrégats journaliers sont dans `ranking_daily`, et les dates de début dans `ranking_meta`, dans `data/economy.db`. Leur mise à jour appartient à la même transaction SQLite que les compteurs et soldes : une opération annulée ou une récompense idempotente ne laisse pas de progression supplémentaire. Les menus lisent au maximum dix entrées en asynchrone ; fermer le menu ou changer de monde empêche une ancienne lecture de le rouvrir. Les joueurs hors ligne restent classés.
+
+Le fuseau est `classements.fuseau` dans `config.yml`, par défaut `Europe/Paris`. Modifier ce réglage nécessite un redémarrage et concerne les nouvelles journées enregistrées ; les anciens agrégats ne sont pas recalculés dans un autre fuseau. Les changements d’heure sont gérés par le calendrier Java. Sauvegarder la base avec les autres données du plugin.
+
+Le PNJ utilise ZNPCsPlus 2.0.0 et `pnj/classements.yml` pour sa position, son type, ses textes et son skin éventuel. `/top pnj spawn` le pose à la position de l’administrateur et refuse les doublons. Un clic droit ouvre directement le menu. Le PNJ est restauré après redémarrage ; les commandes restent accessibles même si le fournisseur de PNJ est absent.
+
+## Administrer les accès aux zones
+
+`/buyzone joueur Pseudo` distingue les zones ouvertes, les droits accordés ou retirés par l’administration, les permissions et les portails actifs. `/buyzone debloquer Pseudo cochon` accorde la zone sans prélèvement ; `/buyzone retirer Pseudo cochon` la retire sans remboursement. Les autres zones du joueur sont conservées. Le bénéficiaire doit être connu du serveur ; il peut être hors ligne. Les comptes sont retrouvés localement par pseudo puis les droits sont enregistrés par UUID. Aucun profil Minecraft n’est recherché sur le réseau.
+
+Les accords et retraits sont sauvegardés dans `buyzone_overrides`, avec les accès dans `buyzone_unlocks`, et rechargés sur le joueur connecté. Un retrait explicite prime sur une permission LuckPerms pour les portails et déplacements gérés par ClickHunter ; il ne modifie ni les groupes ni les nœuds LuckPerms. Un nouvel achat normal ou un nouveau déblocage administrateur rétablit l’accès. Le créatif et `cliker.buyzone.bypass` gardent leur contournement, signalé lors de la consultation. La zone Vache reste accessible gratuitement comme zone de départ.
+
+Hors ligne, les permissions LuckPerms sont consultées sans contexte de monde actif ; le résultat avertit que les permissions contextuelles doivent être confirmées après connexion. `/buyzone portails` liste les positions sauvegardées, y compris les mondes non chargés ou les positions invalides ; cela ne les supprime pas. `/buyzone info <zone>` donne le détail et `/buyzone liste` rappelle les identifiants configurés.

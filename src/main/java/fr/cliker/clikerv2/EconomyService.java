@@ -221,6 +221,14 @@ public final class EconomyService {
                             grant.setString(3, permission);
                             grant.executeUpdate();
                         }
+                        try (var clear =
+                                connection.prepareStatement(
+                                        "DELETE FROM buyzone_overrides WHERE uuid=? AND"
+                                            + " zone_id=?")) {
+                            clear.setString(1, uuid.toString());
+                            clear.setString(2, zoneId);
+                            clear.executeUpdate();
+                        }
                         connection.commit();
                         return ZonePurchase.PURCHASED;
                     } catch (SQLException exception) {

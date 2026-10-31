@@ -5,6 +5,11 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  top:
+    aliases: [classement]
+    description: Classements par jour, semaine, mois, année et depuis toujours
+    usage: /top [ecus|gemmes|cendres|kills|niveaux|donateurs] ou /top pnj spawn|remove
+    permission: cliker.classement.use
   bestiairebloc:
     description: Raccourci du bestiaire sur un bloc avec hologramme
     permission: cliker.services.admin
@@ -162,7 +167,7 @@ commands:
     permission: cliker.menu
   buyzone:
     description: Créer ou supprimer un portail d'achat de zone
-    usage: /buyzone spawn <zone> | /buyzone remove <zone>
+    usage: /buyzone spawn|remove|info <zone> | liste | portails | joueur <pseudo> | debloquer|retirer <pseudo> <zone>
   daily:
     description: Calendrier des récompenses journalières NorthBlue
     usage: /daily [pnj spawn|remove]
@@ -249,7 +254,7 @@ commands:
     usage: /charm <mob>
     permission: cliker.mob.admin
   holotop:
-    description: Gestion des hologrammes de classement (DecentHolograms requis)
+    description: Gestion des hologrammes de classement
     usage: /holotop <spawn <level|kills|ecus|gemmes|cendres|bosstimer>|remove>
     permission: cliker.mob.admin
   ah:
@@ -281,6 +286,10 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.classement.use:
+    default: true
+  cliker.classement.admin:
+    default: op
   cliker.donateurs.admin:
     default: op
   cliker.wiki.use:

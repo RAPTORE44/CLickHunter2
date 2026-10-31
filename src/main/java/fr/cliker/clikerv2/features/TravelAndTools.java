@@ -97,6 +97,7 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
     }
 
     private boolean access(Player p, MobTier t) {
+        if (zones != null) return zones.canTravel(p, t.id());
         if (t == MobTier.VACHE) return true;
         String node = "cliker.zone." + t.id();
         if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
@@ -626,7 +627,7 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                                                         "hologrammes." + section,
                                                         section.equals("bestiaires")
                                                                 ? "&2&lBestiaire\n"
-                                                                      + "&fClic droit pour ouvrir"
+                                                                        + "&fClic droit pour ouvrir"
                                                                 : section.equals("sacs")
                                                                         ? "&a&lSacs\n"
                                                                               + "&fClic droit pour"
@@ -634,10 +635,10 @@ public final class TravelAndTools implements Listener, CommandExecutor, TabCompl
                                                                         : section.equals(
                                                                                         "raccourcis-warp")
                                                                                 ? "&a&lVoyager\n"
-                                                                                      + "&fClic"
-                                                                                      + " droit"
-                                                                                      + " pour"
-                                                                                      + " ouvrir"
+                                                                                        + "&fClic"
+                                                                                        + " droit"
+                                                                                        + " pour"
+                                                                                        + " ouvrir"
                                                                                 : "&a&lAméliorations\n"
                                                                                       + "&fClic"
                                                                                       + " droit"

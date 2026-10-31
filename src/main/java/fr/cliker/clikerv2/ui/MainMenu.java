@@ -82,7 +82,8 @@ public final class MainMenu implements CommandExecutor, Listener {
                             "guide",
                             "atm",
                             "wiki",
-                            "claim")) {
+                            "claim",
+                            "classements")) {
                 String path = "boutons." + id;
                 if (config.contains(path)) continue;
                 int slot = defaults.getInt(path + ".slot"), size = config.getInt("taille", 36);

@@ -168,3 +168,11 @@ boutons:
     nom: '&aRécompenses en attente'
     description: ['&7Clique pour ouvrir.']
     commande: claim
+
+  classements:
+    slot: 53
+    materiau: NETHER_STAR
+    nom: '&6Classements'
+    description: ['&7Compare les joueurs et parcours les périodes.', '&eClique pour ouvrir.']
+    commande: top
+    permission: cliker.classement.use

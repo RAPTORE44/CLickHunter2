@@ -61,9 +61,16 @@ public final class HelpCommand implements CommandExecutor, TabCompleter {
                 "Inventaire");
         add("raid", "Rejoindre un raid ou gérer ton groupe.", "cliker.raid", "Activités");
         add("boss", "Rejoindre l'arène du boss serveur.", "cliker.navigation.use", "Activités");
+        add(
+                "top",
+                "Classements : catégories et navigation par jour, semaine, mois, année ou depuis"
+                    + " toujours ; alias /classement.",
+                "cliker.classement.use",
+                "Progression");
         add("daily", "Ouvrir le calendrier journalier.", "cliker.daily.use", "Activités");
         add("enchere", "Rejoindre l'enchère en cours.", "cliker.enchere.use", "Activités");
         add("avantposte", "Gérer ou visiter les avant-postes.", "cliker.avantposte", "Activités");
+        aliases.put("classement", "top");
         aliases.put("is", "avantposte");
         aliases.put("z", "zone");
         aliases.put("talismans", "tallisement");

@@ -143,3 +143,15 @@ connues sont remplacés. Les montants positifs, la gratuité déjà configurée,
 permissions, les positions et les achats sont conservés. Les zones personnalisées
 ne sont pas affectées. Après migration, `-1` reste utilisable pour désactiver
 volontairement une zone : la migration ne repasse pas à chaque démarrage.
+
+## Accès administrateur et diagnostic des zones
+
+Toutes ces commandes nécessitent `cliker.buyzone.admin` :
+
+- `/buyzone joueur <pseudo>` (alias `player`) : droits par zone, achat enregistré, décision administrateur, permission et portail actif.
+- `/buyzone debloquer <pseudo> <zone>` (alias `unlock`) : accès gratuit sauvegardé par UUID.
+- `/buyzone retirer <pseudo> <zone>` (alias `revoke`) : retrait sauvegardé, achat antérieur retiré sans remboursement. Un nouvel achat peut rétablir l’accès.
+- `/buyzone portails` : monde, coordonnées et état de chaque portail enregistré, même si le monde n’est pas chargé.
+- `/buyzone liste` et `/buyzone info <zone>` : catalogue et détails du portail.
+
+Les joueurs hors ligne déjà connus sont acceptés. Les retraits administrateur sont prioritaires dans les contrôles ClickHunter sur les permissions, sans modifier les groupes LuckPerms. Le mode créatif, le bypass administrateur et la gratuité de la zone Vache restent applicables. Les permissions contextuelles LuckPerms des joueurs hors ligne devront être confirmées à leur connexion. Sauvegarder `buyzone_unlocks` et `buyzone_overrides` dans la base `data/economy.db` avec les autres données du plugin.

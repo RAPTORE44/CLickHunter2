@@ -488,4 +488,125 @@ class BuyZoneTest {
                         .join());
         assertTrue(new BuyZoneStore(database).load(player.getUniqueId()).join().isEmpty());
     }
+
+    private void drainAdmin() {
+        for (int i = 0; i < 5; i++) {
+            database.submit(c -> null).join();
+            server.getScheduler().performTicks(2);
+        }
+    }
+
+    @Test
+    void adminRevocationOverridesExternalPermissionsAndCanBeGrantedAgain() {
+        player.addAttachment(plugin, "cliker.zone.cochon", true);
+        assertTrue(module.canTravel(player, "cochon"));
+        module.onCommand(
+                admin, COMMAND, "buyzone", new String[] {"retirer", player.getName(), "cochon"});
+        drainAdmin();
+        assertFalse(module.canTravel(player, "cochon"));
+        assertEquals(
+                Boolean.FALSE,
+                new BuyZoneStore(database)
+                        .state(player.getUniqueId())
+                        .join()
+                        .overrides()
+                        .get("cochon"));
+        player.setGameMode(GameMode.CREATIVE);
+        assertTrue(module.canTravel(player, "cochon"));
+        player.setGameMode(GameMode.SURVIVAL);
+        module.onCommand(
+                admin, COMMAND, "buyzone", new String[] {"debloquer", player.getName(), "cochon"});
+        drainAdmin();
+        assertTrue(module.canTravel(player, "cochon"));
+        assertTrue(new BuyZoneStore(database).load(player.getUniqueId()).join().contains("cochon"));
+    }
+
+    @Test
+    void offlineKnownPlayersCanBeManagedWithoutChargingTheirBalance() {
+        UUID owner = UUID.randomUUID();
+        economy.set(owner, "OfflineUser", CurrencyType.ECUS, 150).join();
+        module.onCommand(
+                admin, COMMAND, "buyzone", new String[] {"debloquer", "offlineuser", "cochon"});
+        drainAdmin();
+        var store = new BuyZoneStore(database);
+        assertTrue(store.load(owner).join().contains("cochon"));
+        assertEquals(150, economy.getBalance(owner, "OfflineUser", CurrencyType.ECUS).join());
+        module.onCommand(
+                admin, COMMAND, "buyzone", new String[] {"retirer", "OfflineUser", "cochon"});
+        drainAdmin();
+        assertTrue(store.load(owner).join().isEmpty());
+        assertEquals(Boolean.FALSE, store.state(owner).join().overrides().get("cochon"));
+        assertEquals(
+                EconomyService.ZonePurchase.PURCHASED,
+                economy.purchaseZone(
+                                owner,
+                                "OfflineUser",
+                                "cochon",
+                                "cliker.zone.cochon",
+                                CurrencyType.ECUS,
+                                100)
+                        .join());
+        assertFalse(store.state(owner).join().overrides().containsKey("cochon"));
+        assertEquals(50, economy.getBalance(owner, "OfflineUser", CurrencyType.ECUS).join());
+    }
+
+    @Test
+    void zoneAdministrationRequiresPermissionAndKeepsTheStartingZoneFree() {
+        module.onCommand(
+                player, COMMAND, "buyzone", new String[] {"debloquer", player.getName(), "cochon"});
+        module.onCommand(
+                admin, COMMAND, "buyzone", new String[] {"retirer", player.getName(), "vache"});
+        module.onCommand(
+                admin,
+                COMMAND,
+                "buyzone",
+                new String[] {"debloquer", player.getName(), "inconnue"});
+        drainAdmin();
+        assertTrue(module.canTravel(player, "vache"));
+        assertTrue(new BuyZoneStore(database).load(player.getUniqueId()).join().isEmpty());
+    }
+
+    @Test
+    void placedPortalListIncludesCoordinatesAndPlayerInspectionShowsSavedAccess() {
+        spawn();
+        while (admin.nextMessage() != null) {}
+        module.onCommand(admin, COMMAND, "buyzone", new String[] {"portails"});
+        var messages = new StringBuilder();
+        String message;
+        while ((message = admin.nextMessage()) != null) messages.append(message).append("\n");
+        assertTrue(messages.toString().contains("cochon"));
+        assertTrue(messages.toString().contains(world.getName()));
+        module.onCommand(
+                admin, COMMAND, "buyzone", new String[] {"debloquer", player.getName(), "cochon"});
+        drainAdmin();
+        while (admin.nextMessage() != null) {}
+        module.onCommand(admin, COMMAND, "buyzone", new String[] {"joueur", player.getName()});
+        drainAdmin();
+        messages = new StringBuilder();
+        while ((message = admin.nextMessage()) != null) messages.append(message).append("\n");
+        assertTrue(messages.toString().contains("accord administrateur"));
+        assertTrue(messages.toString().contains("Portail placé"));
+    }
+
+    @Test
+    void revokingOneZoneDoesNotDenyAnotherZoneUsingTheSamePermission() throws Exception {
+        var file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "buyzone.yml");
+        var config = YamlConfiguration.loadConfiguration(file);
+        config.set("zones.test_non_configure.permission", "cliker.zone.cochon");
+        config.save(file);
+        module.shutdown();
+        module = new BuyZoneModule(plugin, economy, database);
+        var load = BuyZoneModule.class.getDeclaredMethod("load", Player.class);
+        load.setAccessible(true);
+        load.invoke(module, player);
+        drainAdmin();
+        player.addAttachment(plugin, "cliker.zone.cochon", true);
+        assertTrue(module.canTravel(player, "cochon"));
+        assertTrue(module.canTravel(player, "test_non_configure"));
+        module.onCommand(
+                admin, COMMAND, "buyzone", new String[] {"retirer", player.getName(), "cochon"});
+        drainAdmin();
+        assertFalse(module.canTravel(player, "cochon"));
+        assertTrue(module.canTravel(player, "test_non_configure"));
+    }
 }

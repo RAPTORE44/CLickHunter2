@@ -89,6 +89,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.hunting.RewardLedger rewardLedger;
     private fr.cliker.clikerv2.hunting.AtmModule atmModule;
     private fr.cliker.clikerv2.donors.DonorPodium donorPodium;
+    private fr.cliker.clikerv2.rankings.RankingsModule rankings;
     private fr.cliker.clikerv2.wiki.WikiModule wikiModule;
     private fr.cliker.clikerv2.hunting.HuntingModule huntingModule;
     private fr.cliker.clikerv2.raid.RaidModule raidModule;
@@ -677,6 +678,14 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             if (donorPodium != null) donorPodium.shutdown();
             unavailableCommands("donateurs");
         }
+        try {
+            rankings = new fr.cliker.clikerv2.rankings.RankingsModule(this, database);
+            rankings.start();
+        } catch (RuntimeException error) {
+            getLogger().log(java.util.logging.Level.SEVERE, "Classements indisponibles", error);
+            if (rankings != null) rankings.shutdown();
+            unavailableCommands("top");
+        }
         playerComfort = new fr.cliker.clikerv2.comfort.PlayerComfort(this);
         playerComfort.start();
         farmTelemetry = new fr.cliker.clikerv2.comfort.FarmTelemetry(this);
@@ -756,6 +765,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         if (pinata != null) pinata.shutdown();
         if (communityExtras != null) communityExtras.shutdown();
         if (socialModule != null) socialModule.shutdown();
+        if (rankings != null) rankings.shutdown();
         if (donorPodium != null) donorPodium.shutdown();
         if (wikiModule != null) wikiModule.shutdown();
         if (atmModule != null) atmModule.shutdown();

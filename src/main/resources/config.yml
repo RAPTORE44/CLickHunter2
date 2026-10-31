@@ -23,3 +23,7 @@ comfort:
   no-hunger: true
   no-fall-damage: true
   protect-decoration: true
+
+# Calendrier des classements journaliers ; changement pris en compte après redémarrage.
+classements:
+  fuseau: Europe/Paris

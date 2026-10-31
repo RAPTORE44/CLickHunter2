@@ -38,6 +38,7 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
     private final YamlConfiguration config;
     private final Map<String, BuyZone> gates = new LinkedHashMap<>();
     private final Map<UUID, Set<String>> unlocked = new HashMap<>();
+    private final Map<UUID, Map<String, Boolean>> decisions = new HashMap<>();
     private final Map<UUID, Object> sessions = new HashMap<>();
     private final Map<UUID, PermissionAttachment> attachments = new HashMap<>();
     private final Map<UUID, Offer> offers = new HashMap<>();
@@ -179,22 +180,25 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
     }
 
     public boolean hasAccess(Player player, BuyZone zone) {
-        return player.getGameMode() == org.bukkit.GameMode.CREATIVE
-                || player.hasPermission(BYPASS)
-                || player.hasPermission(zone.permission())
-                || unlocked.getOrDefault(player.getUniqueId(), Set.of()).contains(zone.id());
+        return effectiveAccess(player, zone.id(), zone.permission());
     }
 
-    /** Même règle d'accès que les portails, sans déduire un droit d'une simple découverte. */
-    public boolean canTravel(Player player, String id) {
-        if (!config.contains("zones." + id)) return false;
-        if (id.equals("vache")) return true;
+    private boolean effectiveAccess(Player player, String id, String permission) {
+        if (id.equals("vache")
+                || player.getGameMode() == org.bukkit.GameMode.CREATIVE
+                || player.hasPermission(BYPASS)) return true;
         if (!unlocked.containsKey(player.getUniqueId())) return false;
-        String permission = config.getString("zones." + id + ".permission", "cliker.zone." + id);
-        return player.getGameMode() == org.bukkit.GameMode.CREATIVE
-                || player.hasPermission(BYPASS)
-                || player.hasPermission(permission)
-                || unlocked.get(player.getUniqueId()).contains(id);
+        Boolean decision = decisions.getOrDefault(player.getUniqueId(), Map.of()).get(id);
+        if (decision != null) return decision;
+        return player.hasPermission(permission) || unlocked.get(player.getUniqueId()).contains(id);
+    }
+
+    public boolean canTravel(Player player, String id) {
+        return config.contains("zones." + id)
+                && effectiveAccess(
+                        player,
+                        id,
+                        config.getString("zones." + id + ".permission", "cliker.zone." + id));
     }
 
     /** Les téléportations sociales ne doivent pas sauter un portail d’achat. */
@@ -217,8 +221,7 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
         UUID uuid = player.getUniqueId();
         Object token = new Object();
         sessions.put(uuid, token);
-        unlocked.remove(uuid);
-        store.load(uuid)
+        store.state(uuid)
                 .whenComplete(
                         (owned, error) ->
                                 sync(
@@ -229,8 +232,20 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
                                                 failure(player, error);
                                                 return;
                                             }
-                                            unlocked.put(uuid, new HashSet<>(owned));
-                                            for (String id : owned) grant(player, id);
+                                            var previous = attachments.remove(uuid);
+                                            if (previous != null) player.removeAttachment(previous);
+                                            unlocked.put(uuid, new HashSet<>(owned.owned()));
+                                            decisions.put(uuid, new HashMap<>(owned.overrides()));
+                                            for (String id : owned.owned()) grant(player, id);
+                                            for (var decision : owned.overrides().entrySet())
+                                                if (decision.getValue())
+                                                    grant(player, decision.getKey());
+                                            var offer = offers.get(uuid);
+                                            if (offer != null && hasAccess(player, offer.zone)) {
+                                                offer.completed = true;
+                                                offers.remove(uuid, offer);
+                                                closeIfOpen(player, offer);
+                                            }
                                             checkPresence(player);
                                         }));
     }
@@ -254,6 +269,7 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
         UUID uuid = event.getPlayer().getUniqueId();
         sessions.remove(uuid);
         unlocked.remove(uuid);
+        decisions.remove(uuid);
         offers.remove(uuid);
         PermissionAttachment attachment = attachments.remove(uuid);
         if (attachment != null) event.getPlayer().removeAttachment(attachment);
@@ -452,7 +468,11 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
                                             // prochaine connexion.
                                             unlocked.computeIfAbsent(uuid, key -> new HashSet<>())
                                                     .add(offer.zone.id());
+                                            decisions
+                                                    .computeIfAbsent(uuid, key -> new HashMap<>())
+                                                    .remove(offer.zone.id());
                                             grant(online, offer.zone.id());
+                                            load(online);
                                             Inventory top =
                                                     online.getOpenInventory().getTopInventory();
                                             boolean stillOpen =
@@ -558,11 +578,279 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
         config.save(file);
     }
 
+    private java.util.concurrent.CompletableFuture<UUID> resolveTarget(String name) {
+        Player online = Bukkit.getPlayerExact(name);
+        if (online != null)
+            return java.util.concurrent.CompletableFuture.completedFuture(online.getUniqueId());
+        var cached = Bukkit.getOfflinePlayerIfCached(name);
+        if (cached != null && cached.hasPlayedBefore())
+            return java.util.concurrent.CompletableFuture.completedFuture(cached.getUniqueId());
+        return store.resolve(name);
+    }
+
+    private java.util.concurrent.CompletableFuture<Map<String, Boolean>> permissionSnapshot(
+            UUID owner, Map<String, String> nodes) {
+        Player player = Bukkit.getPlayer(owner);
+        if (player != null) {
+            var permissions = new HashMap<String, Boolean>();
+            nodes.forEach((id, node) -> permissions.put(id, player.hasPermission(node)));
+            return java.util.concurrent.CompletableFuture.completedFuture(permissions);
+        }
+        if (!Bukkit.getPluginManager().isPluginEnabled("LuckPerms"))
+            return java.util.concurrent.CompletableFuture.completedFuture(Map.of());
+        var manager = net.luckperms.api.LuckPermsProvider.get().getUserManager();
+        return manager.loadUser(owner)
+                .thenApply(
+                        user -> {
+                            try {
+                                var permissions = new HashMap<String, Boolean>();
+                                var data = user.getCachedData().getPermissionData();
+                                nodes.forEach(
+                                        (id, node) ->
+                                                permissions.put(
+                                                        id,
+                                                        data.checkPermission(node)
+                                                                == net.luckperms.api.util.Tristate
+                                                                        .TRUE));
+                                return Map.copyOf(permissions);
+                            } finally {
+                                manager.cleanupUser(user);
+                            }
+                        });
+    }
+
+    private boolean adminAvailable(CommandSender sender) {
+        return !stopped
+                && sender.hasPermission(ADMIN)
+                && (!(sender instanceof Player player)
+                        || fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player));
+    }
+
+    private void playerZones(CommandSender sender, String name, String zone, Boolean allow) {
+        if (!name.matches("[A-Za-z0-9_]{1,16}")) {
+            sender.sendMessage("§cIndique un pseudo Minecraft valide.");
+            return;
+        }
+        if (zone != null && !config.isConfigurationSection("zones." + zone)) {
+            sender.sendMessage("§cZone inconnue. /buyzone liste");
+            return;
+        }
+        if ("vache".equals(zone) && Boolean.FALSE.equals(allow)) {
+            sender.sendMessage(
+                    "§eLa zone Vache est la zone de départ : son accès reste gratuit pour tous.");
+            return;
+        }
+        resolveTarget(name)
+                .whenComplete(
+                        (owner, error) ->
+                                sync(
+                                        () -> {
+                                            if (!adminAvailable(sender)) return;
+                                            if (error != null) {
+                                                adminError(sender, error);
+                                                return;
+                                            }
+                                            if (owner == null) {
+                                                sender.sendMessage(
+                                                        "§cJoueur inconnu : il doit avoir déjà"
+                                                                + " rejoint le serveur.");
+                                                return;
+                                            }
+                                            if (allow != null)
+                                                updateAccess(sender, name, owner, zone, allow);
+                                            else inspectAccess(sender, name, owner);
+                                        }));
+    }
+
+    private void updateAccess(
+            CommandSender sender, String name, UUID owner, String zone, boolean allow) {
+        String permission =
+                config.getString("zones." + zone + ".permission", "cliker.zone." + zone);
+        store.setAccess(owner, zone, permission, allow)
+                .whenComplete(
+                        (ignored, error) ->
+                                sync(
+                                        () -> {
+                                            if (stopped) return;
+                                            if (error != null) {
+                                                if (adminAvailable(sender))
+                                                    adminError(sender, error);
+                                                return;
+                                            }
+                                            Player online = Bukkit.getPlayer(owner);
+                                            if (online != null) {
+                                                decisions
+                                                        .computeIfAbsent(
+                                                                owner, key -> new HashMap<>())
+                                                        .put(zone, allow);
+                                                var owned =
+                                                        unlocked.computeIfAbsent(
+                                                                owner, key -> new HashSet<>());
+                                                if (allow) owned.add(zone);
+                                                else owned.remove(zone);
+                                                var attachment =
+                                                        attachments.computeIfAbsent(
+                                                                owner,
+                                                                key ->
+                                                                        online.addAttachment(
+                                                                                plugin));
+                                                if (allow)
+                                                    attachment.setPermission(permission, true);
+                                                else attachment.unsetPermission(permission);
+                                                load(online);
+                                            }
+                                            if (adminAvailable(sender))
+                                                sender.sendMessage(
+                                                        (allow
+                                                                        ? "§aAccès accordé : "
+                                                                        : "§eAccès retiré : ")
+                                                                + name
+                                                                + " → "
+                                                                + zone
+                                                                + ". §7Aucun prélèvement ni"
+                                                                + " remboursement.");
+                                        }));
+    }
+
+    private record Inspection(BuyZoneStore.Access access, Map<String, Boolean> permissions) {}
+
+    private void inspectAccess(CommandSender sender, String name, UUID owner) {
+        var nodes = new LinkedHashMap<String, String>();
+        for (String id : config.getConfigurationSection("zones").getKeys(false))
+            nodes.put(id, config.getString("zones." + id + ".permission", "cliker.zone." + id));
+        store.state(owner)
+                .thenCombine(permissionSnapshot(owner, nodes), Inspection::new)
+                .whenComplete(
+                        (snapshot, error) ->
+                                sync(
+                                        () -> {
+                                            if (!adminAvailable(sender)) return;
+                                            if (error != null) {
+                                                adminError(sender, error);
+                                                return;
+                                            }
+                                            sender.sendMessage(
+                                                    "§6Zones de §e" + name + " §7(" + owner + ")");
+                                            var access = snapshot.access();
+                                            for (String id : nodes.keySet()) {
+                                                Boolean decision = access.overrides().get(id);
+                                                boolean granted =
+                                                        id.equals("vache")
+                                                                || (decision != null
+                                                                        ? decision
+                                                                        : access.owned()
+                                                                                        .contains(
+                                                                                                id)
+                                                                                || snapshot.permissions()
+                                                                                        .getOrDefault(
+                                                                                                id,
+                                                                                                false));
+                                                String source =
+                                                        id.equals("vache")
+                                                                ? "départ"
+                                                                : decision != null
+                                                                        ? (decision
+                                                                                ? "accord"
+                                                                                      + " administrateur"
+                                                                                : "retrait"
+                                                                                      + " administrateur")
+                                                                        : access.owned()
+                                                                                        .contains(
+                                                                                                id)
+                                                                                ? "accès sauvegardé"
+                                                                                : snapshot.permissions()
+                                                                                                .getOrDefault(
+                                                                                                        id,
+                                                                                                        false)
+                                                                                        ? "permission"
+                                                                                        : "verrouillée";
+                                                sender.sendMessage(
+                                                        (granted ? "§a✔ " : "§c✘ ")
+                                                                + id
+                                                                + " §7— "
+                                                                + source
+                                                                + (gates.containsKey(id)
+                                                                        ? " §8| §aPortail placé"
+                                                                        : " §8| §7Sans portail"
+                                                                                + " actif"));
+                                            }
+                                            Player target = Bukkit.getPlayer(owner);
+                                            if (target == null)
+                                                sender.sendMessage(
+                                                        "§7Hors ligne : les permissions LuckPerms"
+                                                                + " dépendant d’un monde/contexte"
+                                                                + " devront être confirmées après"
+                                                                + " connexion.");
+                                            else if (target.getGameMode() == GameMode.CREATIVE
+                                                    || target.hasPermission(BYPASS))
+                                                sender.sendMessage(
+                                                        "§eContournement temporaire actif pour ce"
+                                                            + " joueur (créatif ou bypass), en plus"
+                                                            + " des droits listés.");
+                                        }));
+    }
+
+    private void adminError(CommandSender sender, Throwable error) {
+        plugin.getLogger().log(Level.SEVERE, "Administration des accès BuyZone impossible", error);
+        sender.sendMessage("§cOpération impossible. Consulte les journaux.");
+    }
+
+    private void placedPortals(CommandSender sender) {
+        var placed = config.getConfigurationSection("portails");
+        if (placed == null || placed.getKeys(false).isEmpty()) {
+            sender.sendMessage("§7Aucun portail placé.");
+            return;
+        }
+        sender.sendMessage("§6Portails enregistrés :");
+        for (String id : placed.getKeys(false)) {
+            String path = "portails." + id;
+            sender.sendMessage(
+                    "§e"
+                            + id
+                            + " §7— "
+                            + config.getString(path + ".world", "monde inconnu")
+                            + " §f"
+                            + config.get(path + ".x")
+                            + ", "
+                            + config.get(path + ".y")
+                            + ", "
+                            + config.get(path + ".z")
+                            + (gates.containsKey(id)
+                                    ? " §a(actif)"
+                                    : " §c(monde non chargé ou position invalide)"));
+        }
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission(ADMIN)) {
             sender.sendMessage(
                     Component.text("Permission administrateur requise.", NamedTextColor.RED));
+            return true;
+        }
+        if (args.length == 1 && args[0].equalsIgnoreCase("portails")) {
+            placedPortals(sender);
+            return true;
+        }
+        if (args.length == 2
+                && (args[0].equalsIgnoreCase("joueur") || args[0].equalsIgnoreCase("player"))) {
+            playerZones(sender, args[1], null, null);
+            return true;
+        }
+        if (args.length >= 3
+                && Set.of("debloquer", "unlock", "retirer", "revoke")
+                        .contains(args[0].toLowerCase(Locale.ROOT))) {
+            String id =
+                    java.text.Normalizer.normalize(
+                                    String.join("_", Arrays.copyOfRange(args, 2, args.length))
+                                            .toLowerCase(Locale.ROOT),
+                                    java.text.Normalizer.Form.NFD)
+                            .replaceAll("\\p{M}", "");
+            playerZones(
+                    sender,
+                    args[1],
+                    id,
+                    args[0].equalsIgnoreCase("debloquer") || args[0].equalsIgnoreCase("unlock"));
             return true;
         }
         if (args.length == 1 && args[0].equalsIgnoreCase("liste")) {
@@ -580,6 +868,7 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
                                             ? "aucun"
                                             : String.join(", ", gates.keySet())),
                             NamedTextColor.GRAY));
+            placedPortals(sender);
             return true;
         }
         if (args.length >= 2) {
@@ -684,7 +973,7 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
                     if (northSafe(player, zone) == null) {
                         player.sendMessage(
                                 Component.text(
-                                        "Prévois un sol sûr à 5 blocs au nord du portail pour le"
+                                        "Prévois un sol sûr à 15 blocs au nord du portail pour le"
                                                 + " retour des joueurs.",
                                         NamedTextColor.RED));
                         return true;
@@ -721,7 +1010,8 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
         }
         sender.sendMessage(
                 Component.text(
-                        "/buyzone spawn <zone> | remove <zone> | info <zone> | liste",
+                        "/buyzone spawn|remove|info <zone> | liste | portails | joueur <pseudo> |"
+                                + " debloquer|retirer <pseudo> <zone>",
                         NamedTextColor.YELLOW));
         return true;
     }
@@ -730,12 +1020,32 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
     public List<String> onTabComplete(
             CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission(ADMIN)) return List.of();
-        Set<String> options =
-                args.length == 1
-                        ? Set.of("spawn", "remove", "info", "liste")
-                        : args.length == 2
-                                ? config.getConfigurationSection("zones").getKeys(false)
-                                : Set.of();
+        Set<String> options = new HashSet<>();
+        if (args.length == 1)
+            options.addAll(
+                    Set.of(
+                            "spawn",
+                            "remove",
+                            "info",
+                            "liste",
+                            "portails",
+                            "joueur",
+                            "player",
+                            "debloquer",
+                            "unlock",
+                            "retirer",
+                            "revoke"));
+        else if (args.length == 2
+                && Set.of("spawn", "remove", "info").contains(args[0].toLowerCase(Locale.ROOT)))
+            options.addAll(config.getConfigurationSection("zones").getKeys(false));
+        else if (args.length == 2
+                && Set.of("joueur", "player", "debloquer", "unlock", "retirer", "revoke")
+                        .contains(args[0].toLowerCase(Locale.ROOT)))
+            for (var player : Bukkit.getOnlinePlayers()) options.add(player.getName());
+        else if (args.length == 3
+                && Set.of("debloquer", "unlock", "retirer", "revoke")
+                        .contains(args[0].toLowerCase(Locale.ROOT)))
+            options.addAll(config.getConfigurationSection("zones").getKeys(false));
         String prefix = args.length == 0 ? "" : args[args.length - 1].toLowerCase(Locale.ROOT);
         return options.stream().filter(option -> option.startsWith(prefix)).sorted().toList();
     }
@@ -753,6 +1063,7 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
         offers.clear();
         sessions.clear();
         unlocked.clear();
+        decisions.clear();
     }
 
     private static final class Offer implements InventoryHolder {

@@ -18,9 +18,20 @@ public final class DatabaseManager {
     private final org.bukkit.plugin.java.JavaPlugin plugin;
     private final String jdbcUrl;
     private final ExecutorService executor;
+    private final java.time.ZoneId rankingZone;
 
     public DatabaseManager(JavaPlugin plugin, String relativePath) {
         this.plugin = plugin;
+        java.time.ZoneId selectedZone;
+        try {
+            selectedZone =
+                    java.time.ZoneId.of(
+                            plugin.getConfig().getString("classements.fuseau", "Europe/Paris"));
+        } catch (java.time.DateTimeException error) {
+            plugin.getLogger().warning("Fuseau des classements invalide : Europe/Paris utilisé.");
+            selectedZone = java.time.ZoneId.of("Europe/Paris");
+        }
+        rankingZone = selectedZone;
         File database = new File(plugin.getDataFolder(), relativePath);
         File parent = database.getParentFile();
         if (parent != null && !parent.exists() && !parent.mkdirs()) {
@@ -43,14 +54,14 @@ public final class DatabaseManager {
             statement.executeUpdate("PRAGMA busy_timeout=5000");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS donor_points(name_key TEXT PRIMARY KEY,name TEXT"
-                        + " NOT NULL,units INTEGER NOT NULL CHECK(units>=0))");
+                            + " NOT NULL,units INTEGER NOT NULL CHECK(units>=0))");
             statement.executeUpdate(
                     "CREATE INDEX IF NOT EXISTS donor_ranking ON donor_points(units DESC,name_key"
-                        + " ASC)");
+                            + " ASC)");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS donor_point_events(receipt TEXT PRIMARY"
-                        + " KEY,name_key TEXT NOT NULL,delta INTEGER NOT NULL,actor TEXT NOT"
-                        + " NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
+                            + " KEY,name_key TEXT NOT NULL,delta INTEGER NOT NULL,actor TEXT NOT"
+                            + " NULL,created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS player_balances (uuid TEXT PRIMARY KEY NOT NULL,"
                             + " player_name TEXT NOT NULL, ecus INTEGER NOT NULL DEFAULT 0,"
@@ -104,6 +115,10 @@ public final class DatabaseManager {
                     "CREATE TABLE IF NOT EXISTS buyzone_unlocks (uuid TEXT NOT NULL, zone_id TEXT"
                         + " NOT NULL, permission TEXT NOT NULL, purchased_at TEXT NOT NULL DEFAULT"
                         + " CURRENT_TIMESTAMP, PRIMARY KEY(uuid, zone_id))");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS buyzone_overrides(uuid TEXT NOT NULL,zone_id TEXT"
+                        + " NOT NULL,allowed INTEGER NOT NULL CHECK(allowed IN (0,1)),PRIMARY"
+                        + " KEY(uuid,zone_id))");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS claim_items(id TEXT PRIMARY KEY, owner TEXT NOT"
                         + " NULL, source TEXT NOT NULL, payload TEXT NOT NULL, state INTEGER NOT"
@@ -192,6 +207,7 @@ public final class DatabaseManager {
                 statement.executeUpdate(
                         "ALTER TABLE auctions ADD COLUMN fee_paid INTEGER NOT NULL DEFAULT 0");
             migrateUpgradesCadenceColumn(statement);
+            fr.cliker.clikerv2.rankings.RankingHistory.install(connection, rankingZone);
         }
     }
 
@@ -323,11 +339,16 @@ public final class DatabaseManager {
         try (Statement statement = connection.createStatement()) {
             statement.execute("PRAGMA busy_timeout=5000");
             statement.execute("PRAGMA foreign_keys=ON");
+            fr.cliker.clikerv2.rankings.RankingHistory.register(connection, rankingZone);
         } catch (SQLException error) {
             connection.close();
             throw error;
         }
         return connection;
+    }
+
+    public java.time.ZoneId rankingZone() {
+        return rankingZone;
     }
 
     public void close() {
