@@ -435,6 +435,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         fr.cliker.clikerv2.lootbox.LootboxTier.load(this);
         prestigeLootboxes = new fr.cliker.clikerv2.lootbox.PrestigeLootboxes(this, database);
         new fr.cliker.clikerv2.mobs.VanillaRewardsListener(this);
+        new fr.cliker.clikerv2.world.PermanentDay(this);
         trashMenu = new fr.cliker.clikerv2.trash.TrashMenu(this);
         trashMenu.start();
         staffTools = new fr.cliker.clikerv2.staff.StaffTools(this);

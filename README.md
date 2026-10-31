@@ -2,6 +2,11 @@
 
 ## Dernière mise à jour — 31 octobre 2026
 
+- Version **1.0.3** : jour permanent à midi (6 000 ticks) dans tous les mondes, y compris ceux chargés après le démarrage. Cycle jour/nuit désactivé ; les sauts d’heure vers la nuit sont bloqués, sans tâche répétitive.
+- Aucune nouvelle commande. Liste des commandes par catégorie vérifiée. Validation : **438 tests réussis**, aucun échec ni test ignoré.
+
+## Mise à jour 1.0.2 — 31 octobre 2026
+
 - Version **1.0.2**, identifiable avec `/version ClikerV2`.
 - Classements réorganisés : accueil avec six catégories, puis podium et top 10, périodes sur une ligne et navigation séparée.
 - Commandes staff `/flyspeed`, `/god`, `/heal`, `/feed`, chacune avec sa permission ; ciblage d’un autre joueur réservé à `cliker.staff.others`.
@@ -362,7 +367,7 @@ La base est créée dans `plugins/ClikerV2/data/economy.db`. Les opérations SQL
 mvn clean package
 ```
 
-Le fichier JAR compilé est dans `target/clikerv2-1.0.2.jar`.
+Le fichier JAR compilé est dans `target/clikerv2-1.0.3.jar`.
 
 ## Sacs personnels
 

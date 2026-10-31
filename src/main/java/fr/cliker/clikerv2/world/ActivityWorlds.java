@@ -25,8 +25,7 @@ public final class ActivityWorlds {
         world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
         world.setGameRule(GameRule.DO_FIRE_TICK, false);
         world.setGameRule(GameRule.MOB_GRIEFING, false);
-        world.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
-        world.setTime(6000);
+        PermanentDay.apply(world);
         world.setSpawnLocation(0, 65, 0);
         return world;
     }
