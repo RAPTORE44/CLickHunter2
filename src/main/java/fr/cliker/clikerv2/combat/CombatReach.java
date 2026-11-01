@@ -8,6 +8,19 @@ import org.bukkit.entity.Player;
 public final class CombatReach {
     private CombatReach() {}
 
+    public static boolean sword(org.bukkit.inventory.ItemStack item) {
+        return item != null && item.getType().name().endsWith("_SWORD");
+    }
+
+    public static boolean autoRange(Player player, LivingEntity target) {
+        var a = player.getBoundingBox();
+        var b = target.getBoundingBox();
+        double x = Math.max(0, Math.max(a.getMinX() - b.getMaxX(), b.getMinX() - a.getMaxX()));
+        double y = Math.max(0, Math.max(a.getMinY() - b.getMaxY(), b.getMinY() - a.getMaxY()));
+        double z = Math.max(0, Math.max(a.getMinZ() - b.getMaxZ(), b.getMinZ() - a.getMaxZ()));
+        return x * x + y * y + z * z <= 1.0;
+    }
+
     public static boolean canHit(Player player, LivingEntity target) {
         return !player.isDead()
                 && !target.isDead()

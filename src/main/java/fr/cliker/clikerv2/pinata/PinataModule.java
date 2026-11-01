@@ -262,6 +262,8 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
         event.setCancelled(true);
         if (!(event instanceof EntityDamageByEntityEvent attack)
                 || !(attack.getDamager() instanceof Player player)) return;
+        if (!fr.cliker.clikerv2.combat.CombatReach.sword(player.getInventory().getItemInMainHand()))
+            return;
         if (round == null
                 || entity == null
                 || !entity.getUniqueId().equals(event.getEntity().getUniqueId())

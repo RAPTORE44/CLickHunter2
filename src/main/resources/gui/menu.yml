@@ -221,3 +221,10 @@ boutons:
     - '&710 minutes = 1 point. Équipement conservé au retour.'
     commande: afk
     permission: cliker.afk
+  skins:
+    slot: 44
+    materiau: PAINTING
+    nom: '&dSkins des épées'
+    description:
+    - '&7Collection et apparences débloquées.'
+    commande: skin

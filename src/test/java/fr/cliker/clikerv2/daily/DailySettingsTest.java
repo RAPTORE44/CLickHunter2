@@ -40,8 +40,8 @@ class DailySettingsTest {
         old.set("recompenses.5.commandes", List.of("give {joueur} apple"));
         old.save(file);
         var settings = new DailySettings(plugin);
-        assertEquals(List.of("coffre {joueur} prestige 1"), settings.commands(1));
-        assertEquals(List.of("coffre {joueur} prestige 1"), settings.commands(10));
+        assertEquals(List.of("coffre {joueur} commun 1"), settings.commands(1));
+        assertEquals(List.of("coffre {joueur} peu-commun 1"), settings.commands(10));
         assertEquals(List.of("give {joueur} apple"), settings.commands(5));
         assertTrue(settings.commands(11).getFirst().startsWith("coffre"));
         settings.config().set("recompenses.1.commandes", List.of("ecus give {joueur} 125"));

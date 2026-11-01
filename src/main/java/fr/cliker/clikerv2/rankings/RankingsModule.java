@@ -108,7 +108,7 @@ public final class RankingsModule implements CommandExecutor, TabCompleter, List
         long load = ++requestId;
         loads.put(player.getUniqueId(), load);
         var request = requests.begin(player);
-        store.board(metric, period, date)
+        store.board(metric, period, date, endViews.contains(player.getUniqueId()))
                 .whenComplete(
                         (board, error) -> {
                             if (stopped || !plugin.isEnabled()) return;
@@ -136,6 +136,71 @@ public final class RankingsModule implements CommandExecutor, TabCompleter, List
                         });
     }
 
+    private final java.util.Set<UUID> endViews = new java.util.HashSet<>();
+    private fr.cliker.clikerv2.features.Menus dateMenus;
+
+    private void calendar(Player player, RankingMetric metric, LocalDate month) {
+        var menus = dateMenus;
+        if (menus == null) {
+            dateMenus = new fr.cliker.clikerv2.features.Menus(plugin);
+            menus = dateMenus;
+        }
+        var view =
+                menus.create(
+                        player,
+                        54,
+                        "Calendrier — " + month.getMonthValue() + "/" + month.getYear());
+        int offset = month.getDayOfWeek().getValue() - 1;
+        for (int day = 1; day <= month.lengthOfMonth(); day++) {
+            LocalDate chosen = month.withDayOfMonth(day);
+            int index = offset + day - 1;
+            int slot = (index / 7) * 9 + 1 + index % 7;
+            if (chosen.isAfter(LocalDate.now(zone))) continue;
+            view.put(
+                    slot,
+                    fr.cliker.clikerv2.features.Menus.item(
+                            Material.PAPER, "&e" + day, "&7" + chosen),
+                    (who, right) -> duration(who, metric, chosen));
+        }
+        view.put(
+                45,
+                fr.cliker.clikerv2.features.Menus.item(Material.ARROW, "&eMois précédent"),
+                (who, right) -> calendar(who, metric, month.minusMonths(1)));
+        view.put(
+                8,
+                fr.cliker.clikerv2.features.Menus.item(Material.NETHER_STAR, "&aDepuis toujours"),
+                (who, right) -> open(who, metric, RankingPeriod.ALL, month));
+        if (month.plusMonths(1).isBefore(LocalDate.now(zone).plusDays(1)))
+            view.put(
+                    53,
+                    fr.cliker.clikerv2.features.Menus.item(Material.ARROW, "&eMois suivant"),
+                    (who, right) -> calendar(who, metric, month.plusMonths(1)));
+        view.show(player);
+    }
+
+    private void duration(Player player, RankingMetric metric, LocalDate day) {
+        var menus = dateMenus;
+        if (menus == null) {
+            dateMenus = new fr.cliker.clikerv2.features.Menus(plugin);
+            menus = dateMenus;
+        }
+        var v = menus.create(player, 27, "Période autour du " + day);
+        int n = 0;
+        for (var period : RankingPeriod.values())
+            v.put(
+                    10 + n++,
+                    fr.cliker.clikerv2.features.Menus.item(Material.CLOCK, "&b" + period.label),
+                    (who, right) -> {
+                        endViews.add(who.getUniqueId());
+                        open(who, metric, period, day);
+                    });
+        v.put(
+                22,
+                fr.cliker.clikerv2.features.Menus.item(Material.ARROW, "&eCalendrier"),
+                (who, right) -> calendar(who, metric, day.withDayOfMonth(1)));
+        v.show(player);
+    }
+
     private void render(
             Player player,
             RankingMetric metric,
@@ -158,6 +223,10 @@ public final class RankingsModule implements CommandExecutor, TabCompleter, List
                         54,
                         slot -> {
                             if (!player.hasPermission(USE)) return;
+                            if (slot == 46) {
+                                calendar(player, metric, date.withDayOfMonth(1));
+                                return;
+                            }
                             if (slot == 48) {
                                 open(player);
                                 return;
@@ -173,6 +242,13 @@ public final class RankingsModule implements CommandExecutor, TabCompleter, List
                             else if (slot == 49) open(player, metric, period, period.start(today));
                             else if (slot == 50) open(player, metric, period, date);
                         });
+        view.getInventory()
+                .setItem(
+                        46,
+                        HuntUI.item(
+                                Material.CLOCK,
+                                "&bChoisir une date",
+                                List.of("&7Calendrier mensuel, puis choix de la durée.")));
         Material[] periodIcons = {
             Material.SUNFLOWER, Material.PAPER, Material.MAP, Material.BOOK, Material.NETHER_STAR
         };
@@ -191,7 +267,13 @@ public final class RankingsModule implements CommandExecutor, TabCompleter, List
         var info = new ArrayList<String>();
         info.add("&f" + period.range(date));
         info.add("&7Fuseau : " + zone);
-        info.add("&7" + metric.meaning(all));
+        info.add(
+                "&7"
+                        + (endViews.contains(player.getUniqueId())
+                                        && !all
+                                        && metric != RankingMetric.LEVELS
+                                ? "Situation à la fin de la période sélectionnée."
+                                : metric.meaning(all)));
         info.add(
                 "&7Suivi par période depuis le "
                         + board.since().format(DateTimeFormatter.ofPattern("dd/MM/uuuu")));
@@ -345,6 +427,7 @@ public final class RankingsModule implements CommandExecutor, TabCompleter, List
 
     @EventHandler
     public void quit(PlayerQuitEvent event) {
+        endViews.remove(event.getPlayer().getUniqueId());
         loads.remove(event.getPlayer().getUniqueId());
     }
 

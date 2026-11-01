@@ -5,6 +5,13 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  skin:
+    description: Collection de skins et parchemins d’épée
+    usage: /skin [donner <joueur> [quantité] [normal|special|evenement]]
+  mannequin:
+    description: Placer ou retirer le mannequin d’entraînement
+    usage: /mannequin [spawn|remove]
+    permission: cliker.mannequin.admin
   afk:
     description: Rejoindre le monde AFK ou revenir avec son équipement
     usage: /afk [quitter]
@@ -325,6 +332,10 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.skin.admin:
+    default: op
+  cliker.mannequin.admin:
+    default: op
   cliker.afk:
     description: Accès au monde et à la boutique AFK
     default: true

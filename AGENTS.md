@@ -39,3 +39,7 @@ Le pied du TAB doit faire alterner Site, Boutique, Discord et Vote toutes les di
 ## Règles confirmées après la version 1.0.3
 
 L’Épée du Dresseur inflige 5 dégâts de base. Compression automatique et manuelle plafonnées à la rareté nécessaire pour acheter l’épée et les armures du mob ; Vache reste en Commun. Conserver la décompression des anciennes ressources. Les boss de zone sont sans dégâts et ont 100 fois les PV du mob ; les boss de raid ont 1 000 fois les PV du mob de raid. Le grand hologramme global « Prochains boss » est retiré, les compteurs par zone restent présents. Les piñatas affichent de nouveau leurs secondes restantes. TAB et scoreboard restent actifs, avec le style RGB et animé demandé. `/drop` remplace `/antidrop` et `/ramassage` et bascule les deux actions ensemble. Conserver la mise en veille des zones et la conservation des PV ; ne pas réintroduire de chargement global des chunks de spawn au démarrage ou au reset.
+
+## Demandes après 1.0.5
+
+Autoclic : un bloc de distance entre hitboxes. Épée en main obligatoire, y compris avec skin de bloc (le matériau reste une épée). Les essences des mobs ordinaires ne vont pas dans /claim : surplus réservé au sol ; les boss et récompenses rares gardent le journal. Daily fixe progressif sans prestige. Étoile : MENU CLICKHUNTER, gras et sans italique.

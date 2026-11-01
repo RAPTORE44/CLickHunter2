@@ -75,6 +75,9 @@ class AutoClickStateTest {
         player.addAttachment(plugin, "cliker.autoclick.use", true);
         manager = new AutoClickManager(plugin, upgrades);
         manager.onCommand(player, null, "autoclick", new String[0]);
+        player.getInventory()
+                .setItemInMainHand(
+                        new org.bukkit.inventory.ItemStack(org.bukkit.Material.WOODEN_SWORD));
         manager.start();
     }
 
@@ -86,6 +89,13 @@ class AutoClickStateTest {
         } finally {
             MockBukkit.unmock();
         }
+    }
+
+    @Test
+    void emptyHandSkipsAllTargetSearches() {
+        player.getInventory().clear();
+        server.getScheduler().performTicks(50);
+        assertEquals(0, world.traces);
     }
 
     @Test

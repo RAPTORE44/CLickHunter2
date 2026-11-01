@@ -103,6 +103,8 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.community.AfkModule afkModule;
     private fr.cliker.clikerv2.community.MailModule mailModule;
     private fr.cliker.clikerv2.community.ToastNotifications toastNotifications;
+    private fr.cliker.clikerv2.cosmetics.WeaponSkins weaponSkins;
+    private fr.cliker.clikerv2.combat.TrainingDummy trainingDummy;
     private DatabaseManager database;
     private EconomyService economy;
     private CustomMobManager mobManager;
@@ -752,6 +754,8 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
                 new fr.cliker.clikerv2.community.MailModule(
                         this, communityStore, claims, outgoingItems);
         afkModule = new fr.cliker.clikerv2.community.AfkModule(this, communityStore, claims);
+        weaponSkins = new fr.cliker.clikerv2.cosmetics.WeaponSkins(this);
+        trainingDummy = new fr.cliker.clikerv2.combat.TrainingDummy(this, mobManager);
         getLogger().info("Economie active avec SQLite.");
     }
 
@@ -831,6 +835,8 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         stop("AFK", afkModule, value -> value.shutdown());
         stop("courrier", mailModule, value -> value.shutdown());
         stop("notifications", toastNotifications, value -> value.shutdown());
+        stop("skins", weaponSkins, value -> value.shutdown());
+        stop("mannequin", trainingDummy, value -> value.shutdown());
         stop("claims", claims, value -> value.shutdown());
         stop("hologramManager", hologramManager, value -> value.shutdown());
         stop("sharedHolograms", sharedHolograms, value -> value.shutdown());

@@ -84,6 +84,13 @@ class GearParityTest {
                     assertEquals(
                             normal, mobs.calculateDamage(player, tier), tier.id() + " OP/non-OP");
                 }
+                var top = MobTier.values()[MobTier.values().length - 1];
+                player.getInventory()
+                        .setItemInMainHand(
+                                new org.bukkit.inventory.ItemStack(org.bukkit.Material.DIAMOND));
+                assertNull(mobs.calculateDamage(player, top));
+                player.getInventory().setItemInMainHand(null);
+                assertNull(mobs.calculateDamage(player, top));
             } finally {
                 mobs.shutdown();
             }

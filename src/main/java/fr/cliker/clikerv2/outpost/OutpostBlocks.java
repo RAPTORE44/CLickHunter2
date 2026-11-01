@@ -37,6 +37,7 @@ public final class OutpostBlocks implements Listener {
     private final NamespacedKey receipt;
     private BukkitTask task;
     private boolean ready, stopped;
+    private final Map<UUID, Long> emptyUntil = new HashMap<>();
 
     public OutpostBlocks(
             JavaPlugin plugin, DatabaseManager db, YamlConfiguration config, World world) {
@@ -223,7 +224,7 @@ public final class OutpostBlocks implements Listener {
             player.sendMessage("Boutique en cours de chargement.");
             return;
         }
-        var menu = blockMenus.create(player, 27, "Blocs — Catégories");
+        var menu = blockMenus.create(player, 54, "Construction — Catégories");
         Material[] icons = {
             Material.CHEST,
             Material.OAK_LOG,
@@ -235,16 +236,24 @@ public final class OutpostBlocks implements Listener {
         for (int i = 0; i < CATEGORIES.size(); i++) {
             final int choice = i;
             menu.put(
-                    10 + i,
-                    fr.cliker.clikerv2.features.Menus.item(icons[i], CATEGORIES.get(i)),
+                    new int[] {11, 13, 15, 29, 31, 33}[i],
+                    fr.cliker.clikerv2.features.Menus.item(
+                            icons[i],
+                            "&a" + CATEGORIES.get(i),
+                            "&7Catalogue complet des blocs de construction.",
+                            "&eClique pour parcourir cette catégorie."),
                     (who, right) -> openCategory(who, 0, choice));
         }
         menu.show(player);
     }
 
+    private final Map<Integer, List<Material>> categoryCache = new HashMap<>();
+
     private void openCategory(Player player, int page, int category) {
         List<Material> products =
-                materials.stream().filter(m -> category == 0 || category(m) == category).toList();
+                categoryCache.computeIfAbsent(
+                        category,
+                        k -> materials.stream().filter(m -> k == 0 || category(m) == k).toList());
         if (!ready || player.getWorld() != world || !WorldInventories.readyForBuilder(player)) {
             player.sendMessage("Boutique en cours de chargement.");
             return;
@@ -365,7 +374,10 @@ public final class OutpostBlocks implements Listener {
                                                                         : NamedTextColor.RED));
                                             if (Boolean.TRUE.equals(paid)
                                                     && fr.cliker.clikerv2.runtime.PlayerSessions
-                                                            .isCurrent(player)) pump(player);
+                                                            .isCurrent(player)) {
+                                                emptyUntil.remove(player.getUniqueId());
+                                                pump(player);
+                                            }
                                         }));
     }
 
@@ -417,6 +429,7 @@ public final class OutpostBlocks implements Listener {
     private record Delivery(String id, Material material, int count) {}
 
     void pump(Player player) {
+        if (System.nanoTime() < emptyUntil.getOrDefault(player.getUniqueId(), 0L)) return;
         if (!ready
                 || player.getWorld() != world
                 || !WorldInventories.readyForBuilder(player)
@@ -452,6 +465,10 @@ public final class OutpostBlocks implements Listener {
                                                             .isCurrent(player)
                                                     || player.getWorld() != world
                                                     || !WorldInventories.readyForBuilder(player)) {
+                                                if (error == null && delivery == null)
+                                                    emptyUntil.put(
+                                                            owner,
+                                                            System.nanoTime() + 10_000_000_000L);
                                                 delivering.remove(owner);
                                                 if (error != null)
                                                     plugin.getLogger()
@@ -460,6 +477,12 @@ public final class OutpostBlocks implements Listener {
                                                                     "Lecture d’achat de blocs"
                                                                             + " impossible",
                                                                     error);
+                                                return;
+                                            }
+                                            if (delivery == null) {
+                                                emptyUntil.put(
+                                                        owner, System.nanoTime() + 10_000_000_000L);
+                                                delivering.remove(owner);
                                                 return;
                                             }
                                             var data = player.getPersistentDataContainer();
@@ -579,11 +602,13 @@ public final class OutpostBlocks implements Listener {
 
     @EventHandler
     public void quit(org.bukkit.event.player.PlayerQuitEvent e) {
+        emptyUntil.remove(e.getPlayer().getUniqueId());
         moves.remove(e.getPlayer().getUniqueId());
         notices.remove(e.getPlayer().getUniqueId());
     }
 
     public void shutdown() {
+        emptyUntil.clear();
         stopped = true;
         if (task != null) task.cancel();
         npcs.values().forEach(ZnpcsNpc::shutdown);

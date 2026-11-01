@@ -56,6 +56,8 @@ public final class ChatActivities implements Listener {
                                                 "une lootbox divine",
                                                 "une caisse selon son prestige"))
                         .toList());
+        settings.yaml.set("messages.debut", "&d&l[Jeu] &f{question} &7({secondes} s)");
+        settings.yaml.set("messages.gagnant", "&d[Jeu] &a{joueur} &fa trouvé &e{reponse}&f !");
         settings.save();
         simplifyDefaultAnswers();
         if (settings.yaml.getInt("jeux.intervalle-secondes", 900) != 900) {
@@ -303,16 +305,7 @@ public final class ChatActivities implements Listener {
         attempts.clear();
         nextGame = System.nanoTime() + interval() * 1_000_000_000L;
         announce(
-                "debut",
-                Map.of(
-                        "question",
-                        question.text
-                                + " "
-                                + settings.yaml.getString(
-                                        "messages.consigne",
-                                        "&7Un mot ou un nombre suffit ; accents facultatifs."),
-                        "secondes",
-                        Integer.toString(duration)));
+                "debut", Map.of("question", question.text, "secondes", Integer.toString(duration)));
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

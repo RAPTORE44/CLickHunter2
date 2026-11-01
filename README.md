@@ -1,6 +1,31 @@
 # ClikerV2
 
-## Dernière mise à jour — 1er novembre 2026 — version 1.0.5
+## Dernière mise à jour — 1er novembre 2026 — version 1.0.6
+
+- Validation : **465 tests réussis**, aucun ignoré, et essais Paper des nouveaux menus et du parchemin.
+- Autoclic limité à **un bloc entre les hitboxes** du joueur et du mob. Sans épée : aucun dégât ni recherche de cible automatique. Les skins de bloc gardent le matériau épée et ses dégâts ; la règle s'applique aussi aux raids, piñatas et au mannequin.
+- Étoile en case 9 : **MENU CLICKHUNTER**, en gras, droite et sans italique. `/stats <pseudo>` ouvre les statistiques du joueur en ligne ciblé.
+- Essences des mobs ordinaires : inventaire directement, surplus au sol réservé au propriétaire, sans `/claim`. Essences des boss, caisses, parchemins, raids et achats gardent la livraison durable habituelle. Si le joueur quitte entre la mort et la confirmation SQL, l'essence ordinaire apparaît au point de mort si son chunk est encore chargé.
+- Daily fixe : une caisse Commune chaque jour 1–7 (dont le premier), Peu commune 8–14, Rare 15–21, Épique 22–28, Légendaire 29–31. Les récompenses personnalisées sont conservées. Les jeux de chat n'annoncent plus la caisse ni le type de réponse attendu ; la récompense reste attribuée.
+- Parchemins de skins : superposer sur une épée dans son inventaire ; résultat aléatoire avec doublons. Collection de cinq raretés et catégories Spécial/Événement ; apparences équipables après découverte. Chance de parchemin ordinaire : 1 % par élimination, réglable dans `cosmetiques/skins.yml`, qui expose aussi les blocs de chaque tier. Distribution des raretés : 55/25/13/6/1 %. Aucun changement des statistiques de l'épée.
+- Calendrier des classements : bouton horloge, mois par page, sélection du jour puis durée (jour, semaine, mois, année, toujours). Pour Écus/Gemmes/Cendres/kills/donateurs, la vue datée reconstitue la situation en fin de période depuis les variations enregistrées. Avant le début du suivi : historique indisponible. Les niveaux conservent leur vue des niveaux gagnés, car les anciennes baisses n'étaient pas enregistrées.
+- Avant-poste : catégories espacées en double coffre, descriptions et catalogue de tous les blocs plaçables de Paper 1.21.4 ; cache des listes de produits et attente de dix secondes entre lectures d'une file d'achats vide, annulée dès un achat. Le TAB construit son bandeau une fois par rafraîchissement pour tous les joueurs et passe au minimum à une mise à jour par seconde.
+- Les œufs correspondants sont déjà utilisés pour les mobs débloqués du bestiaire et des warps ; les identités verrouillées restent masquées.
+
+### Nouvelles commandes et syntaxes
+
+| Commande | Utilisation | Permission |
+| --- | --- | --- |
+| `/skin` | Collection, catégories et équipement sur l'épée tenue ; raccourci dans `/menu`. | Joueurs |
+| `/skin donner <joueur> [1-64] [normal\|special\|evenement]` | Distribuer des parchemins depuis le jeu ou la console. | `cliker.skin.admin` (OP) |
+| `/mannequin spawn` | Placer le mannequin d'entraînement à sa position ; affiche les dégâts au-dessus de la tête. Point sauvegardé, corps recréé au chargement naturel du chunk. | `cliker.mannequin.admin` (OP) |
+| `/mannequin remove` | Retirer le mannequin et son point. | `cliker.mannequin.admin` (OP) |
+| `/enchere test` | Simulation du serpent de mises et des pages, sans déplacement, débit ou lot réel. | `cliker.enchere.admin` |
+| `/stats [pseudo]` | Statistiques personnelles ou d'un autre joueur connecté. | Permission existante de `/stats` |
+
+Ces optimisations réduisent des tâches précises ; elles ne constituent pas une mesure de gain global RAM/CPU sur le serveur de production. [Détails et validation 1.0.6](docs/MISE-A-JOUR-1.0.6.md).
+
+## Mise à jour 1.0.5 — 1er novembre 2026
 
 - Coups critiques en retombant : dégâts ×1,5 arrondis au supérieur, cumulables avec le critique d'équipement. Calcul partagé par la chasse et les raids ; Dresseur reste à 5 de base (8 en critique sans autre bonus).
 - Courrier privé avec interface, rédaction privée par paragraphes, aperçu en livre, livres/objets joints, blocage des expéditeurs, modération configurable et notification à la connexion. Les pièces jointes vont dans l’inventaire, avec surplus dans `/claim`.

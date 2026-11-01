@@ -872,6 +872,8 @@ public final class CustomMobManager implements Listener {
     }
 
     public Long calculateDamage(Player player, MobTier tier, boolean boss) {
+        if (!fr.cliker.clikerv2.combat.CombatReach.sword(player.getInventory().getItemInMainHand()))
+            return null;
         Long applied = stuffDamage(player);
         var plain = player.getInventory().getItemInMainHand();
         if (applied == null && plain.hasItemMeta())
@@ -1125,6 +1127,16 @@ public final class CustomMobManager implements Listener {
                         : fr.cliker.clikerv2.hunting.Gains.of(0, 0, 0, 0);
         var gains = normalRewards(killer, tier).plus(extra);
         List<LootboxTier> boxes = rollLootboxDrops(killer, drops);
+        if (fr.cliker.clikerv2.cosmetics.WeaponSkins.shouldDrop()) {
+            var scroll = fr.cliker.clikerv2.cosmetics.WeaponSkins.drop();
+            if (scroll != null) drops.add(scroll);
+        }
+        var dropLocation = victim.getLocation();
+        var ordinary = new ArrayList<ItemStack>();
+        if (!boss) {
+            var essence = drops.removeFirst();
+            ordinary.add(essence);
+        }
         var earned = gains;
         UUID owner = killer.getUniqueId();
         hunting.kill(
@@ -1151,12 +1163,45 @@ public final class CustomMobManager implements Listener {
                                             return;
                                         }
                                         if (Boolean.TRUE.equals(ok)) {
+                                            var recipient = org.bukkit.Bukkit.getPlayer(owner);
+                                            if (recipient != null
+                                                    && !fr.cliker.clikerv2.outpost.WorldInventories
+                                                            .isolated(recipient))
+                                                for (var essence : ordinary)
+                                                    for (var left :
+                                                            recipient
+                                                                    .getInventory()
+                                                                    .addItem(essence)
+                                                                    .values()) {
+                                                        var ground =
+                                                                recipient
+                                                                        .getWorld()
+                                                                        .dropItem(
+                                                                                recipient
+                                                                                        .getLocation(),
+                                                                                left);
+                                                        ground.setOwner(owner);
+                                                        ground.setPickupDelay(0);
+                                                    }
                                             var delivery =
                                                     org.bukkit.Bukkit.getServicesManager()
                                                             .load(
                                                                     fr.cliker.clikerv2.rewards
                                                                             .ClaimService.class);
                                             if (delivery != null) delivery.notifyAndDeliver(owner);
+                                            if (recipient == null
+                                                    && dropLocation
+                                                            .getWorld()
+                                                            .isChunkLoaded(
+                                                                    dropLocation.getBlockX() >> 4,
+                                                                    dropLocation.getBlockZ() >> 4))
+                                                for (var item : ordinary) {
+                                                    var ground =
+                                                            dropLocation
+                                                                    .getWorld()
+                                                                    .dropItem(dropLocation, item);
+                                                    ground.setOwner(owner);
+                                                }
                                             Player current = org.bukkit.Bukkit.getPlayer(owner);
                                             if (current != null) {
                                                 if (boss) showBossReward(current, extra);

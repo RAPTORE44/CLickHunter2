@@ -289,6 +289,43 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
         if (updated.phase().equals("DONE")) room.update(updated, 0);
     }
 
+    private fr.cliker.clikerv2.features.Menus testMenus;
+
+    private void testMenu(Player player, int page) {
+        if (testMenus == null) testMenus = new fr.cliker.clikerv2.features.Menus(plugin);
+        var v = testMenus.create(player, 54, "Enchère TEST — sans débit");
+        for (int i = 0; i < BidPrices.PAGE_SIZE; i++) {
+            int index = page * BidPrices.PAGE_SIZE + i;
+            if (index >= prices.size()) break;
+            long price = prices.get(index);
+            int nextPage = (index + 1) / BidPrices.PAGE_SIZE;
+            v.put(
+                    BidPrices.slot(i),
+                    fr.cliker.clikerv2.features.Menus.item(
+                            Material.GOLD_INGOT,
+                            "&e" + fr.cliker.clikerv2.Numbers.compact(price) + " Écus",
+                            "&7Simulation staff ; aucun objet ni débit."),
+                    (who, right) -> {
+                        who.sendActionBar(
+                                net.kyori.adventure.text.Component.text(
+                                        "Mise simulée : " + price + " Écus • 30 s"));
+                        testMenu(
+                                who, Math.min(nextPage, (prices.size() - 1) / BidPrices.PAGE_SIZE));
+                    });
+        }
+        if (page > 0)
+            v.put(
+                    45,
+                    fr.cliker.clikerv2.features.Menus.item(Material.ARROW, "&ePrécédent"),
+                    (who, right) -> testMenu(who, page - 1));
+        if ((page + 1) * BidPrices.PAGE_SIZE < prices.size())
+            v.put(
+                    53,
+                    fr.cliker.clikerv2.features.Menus.item(Material.ARROW, "&eSuivant"),
+                    (who, right) -> testMenu(who, page + 1));
+        v.show(player);
+    }
+
     private void openCurrent(Player player) {
         if (state == null || !room.present.contains(player.getUniqueId()) || !room.inside(player))
             return;
@@ -871,6 +908,11 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
     @Override
     public boolean onCommand(CommandSender sender, Command c, String label, String[] args) {
         String sub = args.length == 0 ? "info" : args[0].toLowerCase(Locale.ROOT);
+        if (sub.equals("test")) {
+            if (sender instanceof Player p && sender.hasPermission("cliker.enchere.admin"))
+                testMenu(p, 0);
+            return true;
+        }
         if (sub.equals("setsalle") || sub.equals("setpresentoir")) {
             if (!sender.hasPermission("cliker.enchere.admin") || !(sender instanceof Player p)) {
                 sender.sendMessage("§cPermission administrateur et présence en jeu requises.");

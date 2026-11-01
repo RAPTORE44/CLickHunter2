@@ -67,6 +67,27 @@ class RankingStoreTest {
     }
 
     @Test
+    void calendarCanReconstructTheBalanceAtTheEndOfADay() {
+        sqlAt("2024-01-31T12:00:00Z", "INSERT INTO player_balances VALUES('a','Alice',1000,0,0)");
+        sqlAt("2024-02-01T12:00:00Z", "UPDATE player_balances SET ecus=1200 WHERE uuid='a'");
+        sqlAt("2024-02-02T12:00:00Z", "UPDATE player_balances SET ecus=900 WHERE uuid='a'");
+        assertEquals(
+                1200,
+                store.board(RankingMetric.ECUS, RankingPeriod.DAY, LocalDate.of(2024, 2, 1), true)
+                        .join()
+                        .entries()
+                        .getFirst()
+                        .value());
+        assertEquals(
+                1000,
+                store.board(RankingMetric.ECUS, RankingPeriod.MONTH, LocalDate.of(2024, 1, 1), true)
+                        .join()
+                        .entries()
+                        .getFirst()
+                        .value());
+    }
+
+    @Test
     void currenciesKeepCalendarHistoryAndUseNetChangesRatherThanRefundInflation() {
         sqlAt("2024-01-31T12:00:00Z", "INSERT INTO player_balances VALUES('a','Alice',1000,0,0)");
         sqlAt("2024-02-01T12:00:00Z", "UPDATE player_balances SET ecus=1100 WHERE uuid='a'");
@@ -140,7 +161,7 @@ class RankingStoreTest {
                                 try (var s = c.createStatement()) {
                                     s.executeUpdate(
                                             "INSERT INTO player_balances"
-                                                + " VALUES('a','Alice',100,0,0)");
+                                                    + " VALUES('a','Alice',100,0,0)");
                                 }
                                 c.rollback();
                                 return null;
@@ -168,14 +189,14 @@ class RankingStoreTest {
                 var s = c.createStatement()) {
             s.executeUpdate(
                     "CREATE TABLE player_balances(uuid TEXT PRIMARY KEY,player_name TEXT,ecus"
-                        + " INTEGER,gemmes_sombres INTEGER,cendres INTEGER)");
+                            + " INTEGER,gemmes_sombres INTEGER,cendres INTEGER)");
             s.executeUpdate("INSERT INTO player_balances VALUES('a','Alice',1000,0,0)");
             s.executeUpdate(
                     "CREATE TABLE donor_points(name_key TEXT PRIMARY KEY,name TEXT,units INTEGER)");
             s.executeUpdate("INSERT INTO donor_points VALUES('alice','Alice',3999)");
             s.executeUpdate(
                     "CREATE TABLE donor_point_events(receipt TEXT PRIMARY KEY,name_key TEXT,delta"
-                        + " INTEGER,actor TEXT,created_at TEXT)");
+                            + " INTEGER,actor TEXT,created_at TEXT)");
             s.executeUpdate(
                     "INSERT INTO donor_point_events"
                         + " VALUES('purchase','alice',5000,'console','2024-03-30"

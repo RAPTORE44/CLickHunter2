@@ -29,6 +29,25 @@ public final class DailySettings {
         migrateCalendar();
         balanceEarlyRewards();
         migratePrestigeRewards();
+        if (config.getInt("recompenses-fixes-version", 0) < 1) {
+            for (int day = 1; day <= 31; day++) {
+                String rarity =
+                        day <= 7
+                                ? "commun"
+                                : day <= 14
+                                        ? "peu-commun"
+                                        : day <= 21 ? "rare" : day <= 28 ? "epique" : "legendaire";
+                var commands = config.getStringList("recompenses." + day + ".commandes");
+                if (commands.stream().anyMatch(c -> c.startsWith("coffre {joueur} prestige"))) {
+                    config.set(
+                            "recompenses." + day + ".commandes",
+                            List.of("coffre {joueur} " + rarity + " 1"));
+                    config.set("recompenses." + day + ".description", "Caisse " + rarity + " ×1");
+                }
+            }
+            config.set("recompenses-fixes-version", 1);
+            save();
+        }
         zone = ZoneId.of(config.getString("fuseau-horaire", "Europe/Paris"));
     }
 

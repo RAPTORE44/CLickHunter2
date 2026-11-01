@@ -121,7 +121,7 @@ class DailyMenuTest {
                         module.settings()
                                 .commands(currentDay)
                                 .getFirst()
-                                .startsWith("coffre {joueur} prestige "));
+                                .startsWith("coffre {joueur} "));
             else if (currentDay <= 28)
                 assertTrue(
                         module.settings()
@@ -133,7 +133,7 @@ class DailyMenuTest {
                         module.settings()
                                 .commands(currentDay)
                                 .getFirst()
-                                .startsWith("coffre {joueur} prestige "));
+                                .startsWith("coffre {joueur} "));
             if (currentDay > 1)
                 assertEquals(
                         currentDay == 1 ? Material.CHEST : Material.TRIPWIRE_HOOK, item.getType());

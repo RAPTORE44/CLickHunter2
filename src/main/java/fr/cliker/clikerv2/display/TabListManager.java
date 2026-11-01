@@ -75,7 +75,7 @@ public final class TabListManager implements Listener {
                                 plugin,
                                 this::refresh,
                                 1,
-                                Math.max(10, settings.yaml.getLong("actualisation-ticks", 10)));
+                                Math.max(20, settings.yaml.getLong("actualisation-ticks", 20)));
     }
 
     private String group(Player p) {
@@ -107,7 +107,12 @@ public final class TabListManager implements Listener {
         return rank < 0 ? groups.size() : rank;
     }
 
+    private Component batchHeader, batchFooter;
+
     private void refresh() {
+        if (Bukkit.getOnlinePlayers().isEmpty()) return;
+        batchHeader = lines("entete");
+        batchFooter = lines("pied");
         List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
         originalNames.keySet().removeIf(id -> Bukkit.getPlayer(id) == null);
         players.sort(
@@ -118,11 +123,15 @@ public final class TabListManager implements Listener {
             player.setPlayerListOrder(players.size() - i);
             apply(player);
         }
+        batchHeader = null;
+        batchFooter = null;
     }
 
     public void apply(Player player) {
         originalNames.putIfAbsent(player.getUniqueId(), player.playerListName());
-        player.sendPlayerListHeaderAndFooter(lines("entete"), lines("pied"));
+        player.sendPlayerListHeaderAndFooter(
+                batchHeader == null ? lines("entete") : batchHeader,
+                batchFooter == null ? lines("pied") : batchFooter);
         Component name = buildTabName(player);
         if (!name.equals(player.playerListName())) player.playerListName(name);
     }

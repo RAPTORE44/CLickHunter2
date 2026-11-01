@@ -20,6 +20,11 @@ public final class RankingStore {
 
     public CompletableFuture<Board> board(
             RankingMetric metric, RankingPeriod period, LocalDate date) {
+        return board(metric, period, date, false);
+    }
+
+    public CompletableFuture<Board> board(
+            RankingMetric metric, RankingPeriod period, LocalDate date, boolean endOfPeriod) {
         return database.submit(
                 c -> {
                     try {
@@ -97,15 +102,52 @@ public final class RankingStore {
                                             + " SUM(value)>0) r JOIN player_mob_kills k ON"
                                             + " k.uuid=r.owner LEFT JOIN player_balances b ON"
                                             + " b.uuid=k.uuid LEFT JOIN player_levels l ON"
-                                            + " l.uuid=k.uuid ORDER BY 2 DESC,name COLLATE"
+                                            + " l.uuid=k.uuid ORDER BY 2 DESC,name COLLATE NOCASE"
+                                            + " ASC LIMIT 10";
+                        }
+                        if (endOfPeriod
+                                && period != RankingPeriod.ALL
+                                && metric != RankingMetric.LEVELS) {
+                            String key =
+                                    metric == RankingMetric.DONORS
+                                            ? "b.name_key"
+                                            : metric == RankingMetric.KILLS ? "k.uuid" : "b.uuid";
+                            String value =
+                                    metric == RankingMetric.DONORS
+                                            ? "b.units"
+                                            : metric == RankingMetric.KILLS
+                                                    ? "k.total"
+                                                    : "b." + metric.column;
+                            sql =
+                                    "SELECT "
+                                            + name
+                                            + " AS name,("
+                                            + value
+                                            + "-COALESCE(r.total,0)) AS total FROM "
+                                            + table
+                                            + " LEFT JOIN (SELECT owner,SUM(value) AS total FROM"
+                                            + " ranking_daily WHERE metric=? AND day>=? AND day<?"
+                                            + " GROUP BY owner) r ON r.owner="
+                                            + key
+                                            + " WHERE ("
+                                            + value
+                                            + "-COALESCE(r.total,0))>0 ORDER BY 2 DESC,name COLLATE"
                                             + " NOCASE ASC LIMIT 10";
                         }
                         var rows = new ArrayList<Entry>();
                         try (var s = c.prepareStatement(sql)) {
                             if (period != RankingPeriod.ALL) {
                                 s.setString(1, metric.id);
-                                s.setString(2, period.start(date).toString());
-                                s.setString(3, period.shift(date, 1).toString());
+                                s.setString(
+                                        2,
+                                        endOfPeriod && metric != RankingMetric.LEVELS
+                                                ? period.shift(date, 1).toString()
+                                                : period.start(date).toString());
+                                s.setString(
+                                        3,
+                                        endOfPeriod && metric != RankingMetric.LEVELS
+                                                ? "9999-12-31"
+                                                : period.shift(date, 1).toString());
                             }
                             try (var r = s.executeQuery()) {
                                 while (r.next()) rows.add(new Entry(r.getString(1), r.getLong(2)));

@@ -69,6 +69,7 @@ public final class AutoClickManager implements CommandExecutor, Listener {
             // contournerait sinon l’absence d’attaque vanilla. L’activation est conservée
             // pour reprendre normalement après réapparition ou sortie du mode spectateur.
             if (player.isDead() || player.getGameMode() == GameMode.SPECTATOR) continue;
+            if (!CombatReach.sword(player.getInventory().getItemInMainHand())) continue;
             int interval = effectiveIntervalTicks(player);
             int last = lastAttackTick.getOrDefault(uuid, -interval);
             if (elapsedTicks - last < interval) continue;
@@ -89,7 +90,8 @@ public final class AutoClickManager implements CommandExecutor, Listener {
                                                                     PersistentDataType.STRING));
             if (result != null
                     && result.getHitEntity() instanceof LivingEntity living
-                    && living.isValid()) {
+                    && living.isValid()
+                    && CombatReach.autoRange(player, living)) {
                 if (!player.hasLineOfSight(living)) continue;
                 player.swingMainHand();
                 living.damage(1.0, player);

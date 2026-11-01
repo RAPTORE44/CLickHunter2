@@ -122,7 +122,7 @@ public final class SessionConvenience implements Listener, CommandExecutor, TabC
             var existing = inventory.getItem(8);
             var meta = existing.getItemMeta();
             meta.displayName(
-                    Component.text("Menu ClickHunter", NamedTextColor.GREEN)
+                    Component.text("MENU CLICKHUNTER", NamedTextColor.GREEN)
                             .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD)
                             .decoration(
                                     net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
@@ -151,7 +151,7 @@ public final class SessionConvenience implements Listener, CommandExecutor, TabC
         var star = new ItemStack(Material.NETHER_STAR);
         var meta = star.getItemMeta();
         meta.displayName(
-                Component.text("Menu ClickHunter", NamedTextColor.GREEN)
+                Component.text("MENU CLICKHUNTER", NamedTextColor.GREEN)
                         .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD)
                         .decoration(net.kyori.adventure.text.format.TextDecoration.ITALIC, false));
         meta.lore(
