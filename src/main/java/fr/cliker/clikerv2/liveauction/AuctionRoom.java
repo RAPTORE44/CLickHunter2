@@ -27,17 +27,21 @@ final class AuctionRoom implements Listener {
     private Interaction interaction;
     private String shown = "";
     private Chunk chunk;
+    private final AuctionProtection protection;
+    private org.bukkit.boss.BossBar timer;
 
     AuctionRoom(
             JavaPlugin plugin, Settings settings, Consumer<Player> open, Consumer<Player> leave) {
         this.plugin = plugin;
         this.settings = settings;
+        protection = new AuctionProtection(settings);
         this.open = open;
         this.leave = leave;
         marker = new NamespacedKey(plugin, "auction_presentoir");
     }
 
     void start() {
+        protection.start(plugin);
         for (World w : Bukkit.getWorlds()) for (Entity e : w.getEntities()) cleanup(e);
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
@@ -80,7 +84,51 @@ final class AuctionRoom implements Listener {
         }
     }
 
+    void positionChanged() {
+        protection.refresh();
+    }
+
+    private void timer(LiveAuctionStore.State state, long seconds) {
+        if (state == null || state.phase().equals("DONE")) {
+            if (timer != null) timer.removeAll();
+            return;
+        }
+        if (timer == null)
+            timer =
+                    Bukkit.createBossBar(
+                            "Enchères",
+                            org.bukkit.boss.BarColor.YELLOW,
+                            org.bukkit.boss.BarStyle.SOLID);
+        boolean waiting = state.phase().equals("REGISTERING");
+        String title =
+                waiting
+                        ? "Enchères • début dans " + seconds + " s"
+                        : "Enchères • lot " + (state.lot() + 1) + "/3 • " + seconds + " s";
+        if (!title.equals(timer.getTitle())) timer.setTitle(title);
+        timer.setProgress(
+                Math.max(
+                        0,
+                        Math.min(
+                                1,
+                                (double) seconds
+                                        / Math.max(
+                                                1,
+                                                settings.yaml.getInt(
+                                                        waiting
+                                                                ? "inscriptions-secondes"
+                                                                : "offre-secondes",
+                                                        waiting ? 180 : 30)))));
+        var viewers = new HashSet<>(timer.getPlayers());
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            boolean inside = protection.inside(p.getLocation());
+            if (inside) {
+                if (!viewers.contains(p)) timer.addPlayer(p);
+            } else if (viewers.contains(p)) timer.removePlayer(p);
+        }
+    }
+
     void update(LiveAuctionStore.State state, long seconds) {
+        timer(state, seconds);
         for (UUID owner : new ArrayList<>(present)) {
             Player p = Bukkit.getPlayer(owner);
             if (p == null) {
@@ -200,7 +248,14 @@ final class AuctionRoom implements Listener {
         if (holograms != null) holograms.remove("auction-presentoir");
     }
 
+    @EventHandler
+    public void quit(PlayerQuitEvent event) {
+        if (timer != null) timer.removePlayer(event.getPlayer());
+    }
+
     void shutdown() {
+        if (timer != null) timer.removeAll();
+        protection.shutdown();
         clear();
         present.clear();
         HandlerList.unregisterAll(this);

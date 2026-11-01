@@ -1131,11 +1131,16 @@ public final class CustomMobManager implements Listener {
             var scroll = fr.cliker.clikerv2.cosmetics.WeaponSkins.drop();
             if (scroll != null) drops.add(scroll);
         }
-        var dropLocation = victim.getLocation();
         var ordinary = new ArrayList<ItemStack>();
-        if (!boss) {
-            var essence = drops.removeFirst();
-            ordinary.add(essence);
+        if (!boss) ordinary.add(drops.removeFirst());
+        // Les nouveaux œufs de boss ne réservent que la place disponible au moment du gain.
+        for (var iterator = drops.iterator(); iterator.hasNext(); ) {
+            var item = iterator.next();
+            if (fr.cliker.clikerv2.rewards.ClaimService.mobEgg(item)) {
+                int space = fr.cliker.clikerv2.rewards.ClaimService.available(killer, item);
+                if (space == 0) iterator.remove();
+                else if (space < item.getAmount()) item.setAmount(space);
+            }
         }
         var earned = gains;
         UUID owner = killer.getUniqueId();
@@ -1167,41 +1172,14 @@ public final class CustomMobManager implements Listener {
                                             if (recipient != null
                                                     && !fr.cliker.clikerv2.outpost.WorldInventories
                                                             .isolated(recipient))
-                                                for (var essence : ordinary)
-                                                    for (var left :
-                                                            recipient
-                                                                    .getInventory()
-                                                                    .addItem(essence)
-                                                                    .values()) {
-                                                        var ground =
-                                                                recipient
-                                                                        .getWorld()
-                                                                        .dropItem(
-                                                                                recipient
-                                                                                        .getLocation(),
-                                                                                left);
-                                                        ground.setOwner(owner);
-                                                        ground.setPickupDelay(0);
-                                                    }
+                                                for (var item : ordinary)
+                                                    recipient.getInventory().addItem(item);
                                             var delivery =
                                                     org.bukkit.Bukkit.getServicesManager()
                                                             .load(
                                                                     fr.cliker.clikerv2.rewards
                                                                             .ClaimService.class);
                                             if (delivery != null) delivery.notifyAndDeliver(owner);
-                                            if ((recipient == null || fr.cliker.clikerv2.outpost.WorldInventories.isolated(recipient))
-                                                    && dropLocation
-                                                            .getWorld()
-                                                            .isChunkLoaded(
-                                                                    dropLocation.getBlockX() >> 4,
-                                                                    dropLocation.getBlockZ() >> 4))
-                                                for (var item : ordinary) {
-                                                    var ground =
-                                                            dropLocation
-                                                                    .getWorld()
-                                                                    .dropItem(dropLocation, item);
-                                                    ground.setOwner(owner);
-                                                }
                                             Player current = org.bukkit.Bukkit.getPlayer(owner);
                                             if (current != null) {
                                                 if (boss) showBossReward(current, extra);
@@ -1247,7 +1225,7 @@ public final class CustomMobManager implements Listener {
                 ItemStack part = item.clone();
                 int amount = Math.min(remaining, Math.min(64, item.getMaxStackSize()));
                 part.setAmount(amount);
-                result.add(fr.cliker.clikerv2.rewards.ClaimService.serialize(part));
+                result.add(fr.cliker.clikerv2.rewards.ClaimService.serializeMobDrop(part));
                 remaining -= amount;
             }
         }

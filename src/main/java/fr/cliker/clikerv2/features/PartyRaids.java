@@ -230,6 +230,23 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         return memberships.computeIfAbsent(p.getUniqueId(), id -> new Party(id));
     }
 
+    @EventHandler(priority = EventPriority.HIGH)
+    public void parchmentClick(PlayerInteractEvent event) {
+        if (event.getHand() != org.bukkit.inventory.EquipmentSlot.HAND
+                || !event.getAction().isRightClick()) return;
+        var item = event.getItem();
+        if (item == null
+                || !item.hasItemMeta()
+                || !item.getItemMeta()
+                        .getPersistentDataContainer()
+                        .has(scroll, PersistentDataType.STRING)) return;
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        if (!player.hasPermission("cliker.raid")
+                || fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
+        fr.cliker.clikerv2.ui.MenuOpenGuard.request(plugin, player, () -> lobby(player));
+    }
+
     private void lobby(Player p) {
         if (!p.hasPermission("cliker.raid")) return;
         var group = party(p);
@@ -483,6 +500,11 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
     }
 
     private void launch(Player p, Party group) {
+        var deliveries = Bukkit.getServicesManager().load(ClaimService.class);
+        if (deliveries != null && deliveries.isDelivering(p.getUniqueId())) {
+            p.sendMessage("§eAttends la fin des transferts d’objets.");
+            return;
+        }
         if (!group.leader.equals(p.getUniqueId())) {
             p.sendMessage("Seul le chef du groupe peut lancer le raid.");
             return;

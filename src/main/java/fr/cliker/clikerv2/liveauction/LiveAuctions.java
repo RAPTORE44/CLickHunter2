@@ -73,7 +73,15 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
         this.economy = economy;
         this.claims = claims;
         config = new Settings(plugin, "activites/encheres.yml");
-        entryFee = config.yaml.getLong("entree-ecus", 10_000_000);
+        if (!config.yaml.contains("protection-rayon")) config.yaml.set("protection-rayon", 100);
+        if (config.yaml.getInt("entree-gratuite-version", 0) < 1) {
+            if (!config.yaml.contains("entree-ecus")
+                    || config.yaml.getLong("entree-ecus") == 10_000_000)
+                config.yaml.set("entree-ecus", 0);
+            config.yaml.set("entree-gratuite-version", 1);
+            config.save();
+        }
+        entryFee = config.yaml.getLong("entree-ecus", 0);
         if (entryFee < 0 || entryFee > 1_000_000_000_000_000L)
             throw new IllegalArgumentException("Frais d’entrée invalides");
         room = new AuctionRoom(plugin, config, this::openCurrent, this::leave);
@@ -242,7 +250,9 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                                 text("inscription").replace("{secondes}", Long.toString(seconds))
                                         + " &7— Entrée : &e"
                                         + Numbers.compact(entryFee)
-                                        + " Écus &7(non remboursable)")
+                                        + (entryFee == 0
+                                                ? " Écu &7(gratuit)"
+                                                : " Écus &7(non remboursable)"))
                         .clickEvent(ClickEvent.runCommand("/enchere rejoindre")));
     }
 
@@ -916,6 +926,7 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                 testMenu(p, 0);
             return true;
         }
+        if (sub.equals("setspawn")) sub = "setsalle";
         if (sub.equals("setsalle") || sub.equals("setpresentoir")) {
             if (!sender.hasPermission("cliker.enchere.admin") || !(sender instanceof Player p)) {
                 sender.sendMessage("§cPermission administrateur et présence en jeu requises.");
@@ -930,6 +941,7 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                     config.yaml, sub.equals("setsalle") ? "salle" : "presentoir", p.getLocation());
             config.save();
             room.clear();
+            room.positionChanged();
             sender.sendMessage("§aPosition d’enchère sauvegardée.");
             return true;
         }
@@ -987,7 +999,7 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
         if (args.length != 1) return List.of();
         var choices = new ArrayList<>(List.of("rejoindre", "quitter", "quit"));
         if (s.hasPermission("cliker.enchere.admin"))
-            choices.addAll(List.of("forcer", "demarrer", "setsalle", "setpresentoir"));
+            choices.addAll(List.of("forcer", "demarrer", "setsalle", "setspawn", "setpresentoir"));
         return choices.stream()
                 .filter(x -> x.startsWith(args[0].toLowerCase(Locale.ROOT)))
                 .toList();

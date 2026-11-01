@@ -42,6 +42,22 @@ public final class MailStore {
         }
     }
 
+    public CompletableFuture<Boolean> discardOverflow(UUID owner, String id) {
+        return database.submit(
+                c -> {
+                    try (var s =
+                            c.prepareStatement(
+                                    "UPDATE claim_items SET state=2 WHERE owner=? AND id=? AND"
+                                            + " state=0")) {
+                        s.setString(1, owner.toString());
+                        s.setString(2, id);
+                        return s.executeUpdate() == 1;
+                    } catch (SQLException e) {
+                        throw new DatabaseManager.DatabaseException(e);
+                    }
+                });
+    }
+
     public CompletableFuture<Entry> enqueue(UUID owner, String source, String payload) {
         return database.submit(
                 c -> {
@@ -93,7 +109,7 @@ public final class MailStore {
                     try (var s =
                             c.prepareStatement(
                                     "SELECT id,payload FROM claim_items WHERE owner=? AND source=?"
-                                        + " AND state<>2")) {
+                                            + " AND state<>2")) {
                         s.setString(1, owner.toString());
                         s.setString(2, source);
                         try (var r = s.executeQuery()) {

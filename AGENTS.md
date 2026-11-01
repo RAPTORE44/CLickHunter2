@@ -43,3 +43,7 @@ L’Épée du Dresseur inflige 5 dégâts de base. Compression automatique et ma
 ## Demandes après 1.0.5
 
 Autoclic : un bloc de distance entre hitboxes. Épée en main obligatoire, y compris avec skin de bloc (le matériau reste une épée). Les essences des mobs ordinaires ne vont pas dans /claim : surplus réservé au sol ; les boss et récompenses rares gardent le journal. Daily fixe progressif sans prestige. Étoile : MENU CLICKHUNTER, gras et sans italique.
+
+## Demandes après 1.0.9
+
+Œufs/essences de mobs : supprimer le surplus quand l’inventaire est plein ; aucun nouveau drop au sol. `/claim` propose Tout récupérer. Entrée aux enchères gratuite par défaut ; protection passive à 100 blocs du point de salle, toute hauteur, bossbar pendant les événements.

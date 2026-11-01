@@ -31,6 +31,8 @@ class ClaimServiceTest {
         plugin = MockBukkit.createMockPlugin();
         player = server.addPlayer();
         ConfigurationSerialization.registerClass(ItemStackMock.class);
+        ConfigurationSerialization.registerClass(
+                org.mockbukkit.mockbukkit.inventory.meta.SpawnEggMetaMock.class);
         player.addAttachment(plugin, "cliker.claim", true);
         Path file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "claim.yml").toPath();
         Files.createDirectories(file.getParent());
@@ -90,6 +92,57 @@ class ClaimServiceTest {
         player.getInventory().setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
         player.getInventory().setHelmet(new ItemStack(Material.NETHERITE_HELMET));
         player.getInventory().setItemInOffHand(new ItemStack(Material.SHIELD));
+    }
+
+    @Test
+    void newEggsAreDiscardedOnFullInventoryButOldClaimsArePreserved() throws Exception {
+        fillInventory();
+        var egg = new ItemStack(Material.COW_SPAWN_EGG, 3);
+        claims.give(player.getUniqueId(), player.getName(), egg);
+        drain();
+        assertEquals(0, claims.store().page(player.getUniqueId(), 0).join().total());
+        assertTrue(
+                ClaimService.serializeMobDrop(egg).startsWith("discard-egg-overflow: true\n"),
+                ClaimService.serializeMobDrop(egg));
+        assertNotNull(ClaimService.deserialize(ClaimService.serializeMobDrop(egg)));
+        claims.store()
+                .enqueue(player.getUniqueId(), "new-egg", ClaimService.serializeMobDrop(egg))
+                .join();
+        claims.notifyAndDeliver(player.getUniqueId());
+        await(() -> claims.store().page(player.getUniqueId(), 0).join().total() == 0);
+        String legacy = ClaimService.serialize(egg).replace("discard-egg-overflow: true\n", "");
+        claims.store().enqueue(player.getUniqueId(), "old-egg", legacy).join();
+        claims.notifyAndDeliver(player.getUniqueId());
+        drain();
+        drain();
+        assertEquals(1, claims.store().page(player.getUniqueId(), 0).join().total());
+    }
+
+    @Test
+    void partiallyCollectedNewEggsDiscardOnlyTheirRemainder() throws Exception {
+        fillInventory();
+        player.getInventory().setItem(0, new ItemStack(Material.COW_SPAWN_EGG, 60));
+        claims.store()
+                .enqueue(
+                        player.getUniqueId(),
+                        "partial-egg",
+                        ClaimService.serializeMobDrop(new ItemStack(Material.COW_SPAWN_EGG, 6)))
+                .join();
+        claims.notifyAndDeliver(player.getUniqueId());
+        await(() -> player.getInventory().getItem(0).getAmount() == 64);
+        await(() -> claims.store().page(player.getUniqueId(), 0).join().total() == 0);
+    }
+
+    @Test
+    void recoverAllScansPastAnUncollectableFirstPage() throws Exception {
+        fillInventory();
+        player.getInventory().setItem(0, new ItemStack(Material.STONE, 63));
+        for (int i = 0; i < 45; i++)
+            enqueue(player.getUniqueId(), "blocked-" + i, new ItemStack(Material.DIAMOND));
+        enqueue(player.getUniqueId(), "fits-last-page", new ItemStack(Material.STONE));
+        claims.recoverAll(player);
+        await(() -> player.getInventory().getItem(0).getAmount() == 64);
+        await(() -> claims.store().page(player.getUniqueId(), 0).join().total() == 45);
     }
 
     @Test

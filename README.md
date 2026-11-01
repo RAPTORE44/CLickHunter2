@@ -1,6 +1,26 @@
 # ClikerV2
 
-## Dernière mise à jour — 1er novembre 2026 — version 1.0.9
+## Dernière mise à jour — 1er novembre 2026 — version 1.0.10
+
+- Validation : **483 tests fonctionnels réussis**, aucun échec ni test ignoré ; essais Paper des six parcours décrits dans le compte rendu.
+- Nouveaux gains d’œufs/essences : le surplus est supprimé si l’inventaire est plein, sans apparition au sol ni stockage durable visible dans `/claim`. Une pile partiellement récupérable est complétée, puis son surplus supprimé. Les œufs déjà stockés avant cette mise à jour sont conservés.
+- `/claim` : bouton **Tout récupérer**. Le plugin récupère ce qui peut tenir, même après une première page d’objets non récupérables ; le reste des autres objets demeure en attente. Chaque transfert garde ses reçus anti-duplication. Les achats journalisés existants conservent leur livraison.
+- Clic droit avec un parchemin de raid en main principale : ouvre le groupe de raid, sans consommation. Le parchemin est consommé seulement au lancement confirmé.
+- Entrée aux enchères : **0 Écu par défaut**. L’ancien tarif standard de 10 000 000 est migré à zéro ; un tarif personnalisé reste conservé et peut être changé via `entree-ecus`.
+- Bossbar du chrono d’inscription puis de chaque lot pour les joueurs dans la zone protégée, inscrits ou spectateurs. L’actionbar existante des participants reste présente.
+- Zone d’enchère protégée à **100 blocs de chaque côté du point de salle**, sur toute la hauteur du monde, même sans enchère active : dégâts, faim, casse/pose, nouveaux mobs, jets d’objets et nouveaux objets au sol bloqués. Protections supplémentaires contre explosions, feu, pistons et fluides. Cela s’applique aussi aux OP.
+
+### Commandes et réglages des enchères
+
+| Commande / action | Utilisation | Permission |
+| --- | --- | --- |
+| `/enchere setspawn` | Alias de `/enchere setsalle` : définit le centre de salle et de protection. Impossible pendant une enchère active. | `cliker.enchere.admin` |
+| `/claim` → Tout récupérer | Transférer tous les objets qui tiennent dans l’inventaire. | `cliker.claim` |
+| Parchemin de raid → clic droit | Ouvrir le menu de groupe. | `cliker.raid` |
+
+Configuration : `activites/encheres.yml`, `entree-ecus: 0`, `protection-rayon: 100`. Préparer les constructions avant de définir la salle : les événements de construction sont ensuite bloqués, y compris pour le staff. Les gains et données persistantes existantes sont conservés. [Détails et validation](docs/MISE-A-JOUR-1.0.10.md).
+
+## Mise à jour 1.0.9 — 1er novembre 2026
 
 - Icônes : calcul des cases décorables une fois par rafraîchissement, au lieu de reclasser le menu pour chacune des 54 cases. Sur le test instrumenté, 108 → 2 lectures du holder par image. Les objets de joueurs, lots, ventes et boutiques vanilla gardent leurs exclusions.
 - Scoreboard : réutilisation des composants déjà calculés tant que pseudo, niveau, prestige, soldes, kills et nombre de connectés ne changent pas. Les données restent lues à la même fréquence ; toute modification apparaît au rafraîchissement suivant. Les lignes modifiées extérieurement restent rétablies.

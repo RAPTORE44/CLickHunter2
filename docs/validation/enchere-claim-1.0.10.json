@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "checks": [
+    "Bouton Tout récupérer : caisse reçue après libération d’une place",
+    "Clic droit parchemin dans l’air : menu de raid ouvert",
+    "Entrée par défaut 0 et bossbar reçue dans la zone",
+    "Zone enchère : dégâts annulés pour un non OP",
+    "Zone enchère : apparition de mob bloquée",
+    "Zone enchère : jet de pile refusé, objets conservés"
+  ],
+  "chat": [
+    "Removed 6 item(s) from player SoundObserver",
+    "Gave 2304 [Stone] to SoundObserver",
+    "1x Coffre du Nether attribué(s) à SoundObserver.",
+    "Removed 64 item(s) from player SoundObserver",
+    "Removed 39 item(s) from player RestoreAdmin",
+    "Teleported RestoreAdmin to 2000.500000, 70.000000, 2000.500000",
+    "Successfully filled 64 block(s)",
+    "Position d’enchère sauvegardée.",
+    "Position d’enchère sauvegardée.",
+    "Teleported SoundObserver to RestoreAdmin",
+    "ENCHÈRE » Trois lots légendaires ! 180s pour t’inscrire : /enchere rejoindre — Entrée : 0 Écus (non remboursable)",
+    "Target is invulnerable to the given damage type",
+    "Summoned new Cow",
+    "Removed 2241 item(s) from player SoundObserver",
+    "Gave 3 [Dirt] to SoundObserver"
+  ],
+  "version": "1.0.10",
+  "automatedFunctional": {
+    "tests": 483,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

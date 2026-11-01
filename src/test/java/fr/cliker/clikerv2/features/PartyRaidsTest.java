@@ -142,6 +142,24 @@ class PartyRaidsTest {
     }
 
     @Test
+    void rightClickParchmentOpensTheGroupWithoutConsumingIt() {
+        command(leader, "parchemin", "vache");
+        var parchment = leader.getInventory().getItemInMainHand().clone();
+        var e =
+                new org.bukkit.event.player.PlayerInteractEvent(
+                        leader,
+                        org.bukkit.event.block.Action.RIGHT_CLICK_AIR,
+                        parchment,
+                        null,
+                        org.bukkit.block.BlockFace.UP,
+                        org.bukkit.inventory.EquipmentSlot.HAND);
+        raids.parchmentClick(e);
+        server.getScheduler().performTicks(2);
+        assertEquals(27, leader.getOpenInventory().getTopInventory().getSize());
+        assertEquals(parchment, leader.getInventory().getItemInMainHand());
+    }
+
+    @Test
     void publicRaidAcceptsThreeHelpersAndLaunchesWithEveryAcceptedMember() {
         command(leader, "parchemin", "vache");
         command(leader, "public");

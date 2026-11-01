@@ -81,6 +81,10 @@ public final class ClaimService implements Listener, CommandExecutor {
         return config.saveToString();
     }
 
+    public static String serializeMobDrop(ItemStack item) {
+        return (mobEgg(item) ? "discard-egg-overflow: true\n" : "") + serialize(item);
+    }
+
     public static ItemStack deserialize(String payload) {
         try {
             YamlConfiguration c = new YamlConfiguration();
@@ -132,17 +136,31 @@ public final class ClaimService implements Listener, CommandExecutor {
                 });
     }
 
+    public static boolean mobEgg(ItemStack item) {
+        return item != null
+                && (item.getType().name().endsWith("_SPAWN_EGG")
+                        || (item.getType() == Material.EGG
+                                && fr.cliker.clikerv2.essence.EssenceItem.TIER_KEY != null
+                                && fr.cliker.clikerv2.essence.EssenceItem.tierOf(item) != null));
+    }
+
+    public static int available(Player player, ItemStack item) {
+        return capacity(player.getInventory().getStorageContents(), item);
+    }
+
     public void give(UUID owner, String name, ItemStack item) {
         if (item == null || item.getType().isAir() || item.getAmount() <= 0) return;
         Player online = Bukkit.getPlayer(owner);
         ItemStack remaining = item.clone();
+        if (online != null && mobEgg(remaining) && available(online, remaining) == 0) return;
         if (online != null
                 && online.isOnline()
                 && !fr.cliker.clikerv2.outpost.WorldInventories.isolated(online)
                 && !isDelivering(owner)) {
             var leftovers = online.getInventory().addItem(remaining);
             if (leftovers.isEmpty()) return;
-            for (ItemStack leftover : leftovers.values()) enqueue(owner, leftover);
+            if (!mobEgg(remaining))
+                for (ItemStack leftover : leftovers.values()) enqueue(owner, leftover);
         } else enqueue(owner, remaining);
     }
 
@@ -196,13 +214,26 @@ public final class ClaimService implements Listener, CommandExecutor {
         notifyAndDeliver(owner);
     }
 
+    private final Map<UUID, Integer> bulkPages = new HashMap<>();
+
+    public void recoverAll(Player player) {
+        if (!player.hasPermission("cliker.claim")
+                || fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
+        if (bulkPages.putIfAbsent(player.getUniqueId(), 0) != null) return;
+        notifyAndDeliver(player.getUniqueId());
+    }
+
     public void notifyAndDeliver(UUID owner) {
         Player player = Bukkit.getPlayer(owner);
-        if (player != null && fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) return;
+        if (player != null && fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) {
+            bulkPages.remove(owner);
+            return;
+        }
         if (player == null || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)) return;
         String purchase = purchaseSources.get(owner);
         var priorityFound = new java.util.concurrent.atomic.AtomicBoolean();
-        var pageFuture = store.page(owner, 0);
+        int bulkPage = bulkPages.getOrDefault(owner, 0);
+        var pageFuture = store.page(owner, bulkPage);
         if (purchase != null)
             pageFuture =
                     pageFuture.thenCombine(
@@ -220,9 +251,14 @@ public final class ClaimService implements Listener, CommandExecutor {
                 (page, error) ->
                         sync(
                                 () -> {
-                                    if (!fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)
+                                    if (!fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(
+                                            player)) return;
+                                    if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)
                                             || error != null
-                                            || page.entries().isEmpty()) return;
+                                            || page.entries().isEmpty()) {
+                                        bulkPages.remove(owner);
+                                        return;
+                                    }
                                     if (isDelivering(owner)) return;
                                     if (!Objects.equals(purchase, purchaseSources.get(owner))) {
                                         notifyAndDeliver(owner);
@@ -232,6 +268,54 @@ public final class ClaimService implements Listener, CommandExecutor {
                                         purchaseSources.remove(owner, purchase);
                                     for (var entry : page.entries()) {
                                         try {
+                                            if (entry.payload()
+                                                            .startsWith(
+                                                                    "discard-egg-overflow: true\n")
+                                                    && !hasReceipt(player, entry.id())
+                                                    && available(
+                                                                    player,
+                                                                    deserialize(entry.payload()))
+                                                            == 0) {
+                                                store.discardOverflow(owner, entry.id())
+                                                        .whenComplete(
+                                                                (discarded, failure) ->
+                                                                        sync(
+                                                                                () -> {
+                                                                                    if (failure
+                                                                                            != null) {
+                                                                                        plugin.getLogger()
+                                                                                                .log(
+                                                                                                        Level
+                                                                                                                .SEVERE,
+                                                                                                        "Suppression"
+                                                                                                            + " de surplus"
+                                                                                                            + " d’œufs"
+                                                                                                            + " impossible",
+                                                                                                        failure);
+                                                                                        bulkPages
+                                                                                                .remove(
+                                                                                                        owner);
+                                                                                        return;
+                                                                                    }
+                                                                                    if (Boolean.TRUE
+                                                                                            .equals(
+                                                                                                    discarded)) {
+                                                                                        if (bulkPages
+                                                                                                .containsKey(
+                                                                                                        owner))
+                                                                                            bulkPages
+                                                                                                    .put(
+                                                                                                            owner,
+                                                                                                            0);
+                                                                                        notifyAndDeliver(
+                                                                                                owner);
+                                                                                    } else
+                                                                                        bulkPages
+                                                                                                .remove(
+                                                                                                        owner);
+                                                                                }));
+                                                return;
+                                            }
                                             if (hasReceipt(player, entry.id())
                                                     || plan(
                                                                     player.getInventory()
@@ -239,10 +323,16 @@ public final class ClaimService implements Listener, CommandExecutor {
                                                                     deserialize(entry.payload()),
                                                                     entry.id())
                                                             != null) {
+                                                if (bulkPages.containsKey(owner))
+                                                    bulkPages.put(owner, 0);
                                                 deliver(player, entry.id(), true);
                                                 return;
                                             }
-                                            if (splitForDelivery(player, entry)) return;
+                                            if (splitForDelivery(player, entry)) {
+                                                if (bulkPages.containsKey(owner))
+                                                    bulkPages.put(owner, 0);
+                                                return;
+                                            }
                                         } catch (RuntimeException invalid) {
                                             plugin.getLogger()
                                                     .log(
@@ -252,6 +342,13 @@ public final class ClaimService implements Listener, CommandExecutor {
                                                             invalid);
                                         }
                                     }
+                                    if (bulkPages.containsKey(owner)
+                                            && (long) (bulkPage + 1) * 45 < page.total()) {
+                                        bulkPages.put(owner, bulkPage + 1);
+                                        notifyAndDeliver(owner);
+                                        return;
+                                    }
+                                    bulkPages.remove(owner);
                                     message(player, "attente");
                                 }));
     }
@@ -264,7 +361,13 @@ public final class ClaimService implements Listener, CommandExecutor {
         part.setAmount(fits);
         overflow.setAmount(item.getAmount() - fits);
         UUID owner = player.getUniqueId();
-        store.split(owner, entry.id(), entry.payload(), serialize(part), serialize(overflow))
+        boolean eggPolicy = entry.payload().startsWith("discard-egg-overflow: true\n");
+        store.split(
+                        owner,
+                        entry.id(),
+                        entry.payload(),
+                        eggPolicy ? serializeMobDrop(part) : serialize(part),
+                        eggPolicy ? serializeMobDrop(overflow) : serialize(overflow))
                 .whenComplete(
                         (split, error) ->
                                 sync(
@@ -364,6 +467,9 @@ public final class ClaimService implements Listener, CommandExecutor {
                                                 icon.setItemMeta(meta);
                                                 holder.inventory.setItem(i, icon);
                                             }
+                                            holder.inventory.setItem(
+                                                    50,
+                                                    button(Material.HOPPER, "&aTout récupérer"));
                                             if (page > 0)
                                                 holder.inventory.setItem(
                                                         45,
@@ -627,7 +733,8 @@ public final class ClaimService implements Listener, CommandExecutor {
         // Livraison visible dans l’inventaire : pas de message de succès à chaque drop.
         Inventory top = current.getOpenInventory().getTopInventory();
         if (top != null && top.getHolder() instanceof Holder holder) open(current, holder.page);
-        if (automatic || purchaseSources.containsKey(owner)) notifyAndDeliver(owner);
+        if (automatic || bulkPages.containsKey(owner) || purchaseSources.containsKey(owner))
+            notifyAndDeliver(owner);
     }
 
     private void releaseAndReconcile(UUID owner, String id, String lease) {
@@ -760,6 +867,7 @@ public final class ClaimService implements Listener, CommandExecutor {
 
     @EventHandler
     public void quit(PlayerQuitEvent event) {
+        bulkPages.remove(event.getPlayer().getUniqueId());
         purchaseSources.remove(event.getPlayer().getUniqueId());
         opening.remove(event.getPlayer().getUniqueId());
     }
@@ -778,6 +886,17 @@ public final class ClaimService implements Listener, CommandExecutor {
         int slot = event.getRawSlot();
         if (slot >= 0 && slot < holder.entries.size())
             deliver(player, holder.entries.get(slot).id(), false);
+        else if (slot == 50)
+            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                    plugin,
+                    () -> {
+                        if (fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player)
+                                && player.getOpenInventory().getTopInventory().getHolder()
+                                        == holder) {
+                            player.closeInventory();
+                            recoverAll(player);
+                        }
+                    });
         else if (slot == 49)
             fr.cliker.clikerv2.runtime.ServerTasks.run(plugin, () -> player.closeInventory());
         else if (slot == 45 && holder.page > 0) open(player, holder.page - 1);
@@ -853,6 +972,7 @@ public final class ClaimService implements Listener, CommandExecutor {
     }
 
     public void shutdown() {
+        bulkPages.clear();
         purchaseSources.clear();
         stopped = true;
         for (Player p : Bukkit.getOnlinePlayers()) {
