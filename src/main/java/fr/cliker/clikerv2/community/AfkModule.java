@@ -26,6 +26,7 @@ public final class AfkModule implements Listener, CommandExecutor, TabCompleter 
     private static final NamespacedKey SNAPSHOT =
             Objects.requireNonNull(NamespacedKey.fromString("clikerv2:afk_snapshot"));
     private static final Set<UUID> MUTED = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, Object> opening = new HashMap<>();
     private final JavaPlugin plugin;
     private final CommunityStore store;
     private final ClaimService claims;
@@ -237,7 +238,7 @@ public final class AfkModule implements Listener, CommandExecutor, TabCompleter 
                                                 notice(
                                                         p,
                                                         "&cMonde AFK indisponible. Ton équipement"
-                                                            + " est conservé.");
+                                                                + " est conservé.");
                                                 return;
                                             }
                                             if (WorldInventories.isolated(p)
@@ -248,7 +249,7 @@ public final class AfkModule implements Listener, CommandExecutor, TabCompleter 
                                                 notice(
                                                         p,
                                                         "&cEntrée annulée : ton état a changé"
-                                                            + " pendant la préparation.");
+                                                                + " pendant la préparation.");
                                                 return;
                                             }
                                             enterReady(p, target);
@@ -422,11 +423,14 @@ public final class AfkModule implements Listener, CommandExecutor, TabCompleter 
     }
 
     private void shop(Player p) {
+        Object token = new Object();
+        if (opening.putIfAbsent(p.getUniqueId(), token) != null) return;
         store.points(p.getUniqueId())
                 .whenComplete(
                         (points, error) ->
                                 sync(
                                         () -> {
+                                            if (!opening.remove(p.getUniqueId(), token)) return;
                                             if (!p.isOnline()) return;
                                             if (error != null) {
                                                 notice(p, "&cBoutique momentanément indisponible.");
@@ -557,6 +561,7 @@ public final class AfkModule implements Listener, CommandExecutor, TabCompleter 
 
     @EventHandler
     public void quit(PlayerQuitEvent e) {
+        opening.remove(e.getPlayer().getUniqueId());
         if (isolated(e.getPlayer())) accrue(e.getPlayer());
         preparing.remove(e.getPlayer().getUniqueId());
         clocks.remove(e.getPlayer().getUniqueId());
@@ -650,6 +655,7 @@ public final class AfkModule implements Listener, CommandExecutor, TabCompleter 
     }
 
     public void shutdown() {
+        opening.clear();
         task.cancel();
         preparing.clear();
         for (var p : Bukkit.getOnlinePlayers()) if (isolated(p)) exit(p);

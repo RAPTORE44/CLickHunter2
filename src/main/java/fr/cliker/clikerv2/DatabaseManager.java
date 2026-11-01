@@ -18,6 +18,7 @@ public final class DatabaseManager {
     private final org.bukkit.plugin.java.JavaPlugin plugin;
     private final String jdbcUrl;
     private final ExecutorService executor;
+    private Connection workerConnection;
     private final java.time.ZoneId rankingZone;
 
     public DatabaseManager(JavaPlugin plugin, String relativePath) {
@@ -117,8 +118,8 @@ public final class DatabaseManager {
                         + " CURRENT_TIMESTAMP, PRIMARY KEY(uuid, zone_id))");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS buyzone_overrides(uuid TEXT NOT NULL,zone_id TEXT"
-                        + " NOT NULL,allowed INTEGER NOT NULL CHECK(allowed IN (0,1)),PRIMARY"
-                        + " KEY(uuid,zone_id))");
+                            + " NOT NULL,allowed INTEGER NOT NULL CHECK(allowed IN (0,1)),PRIMARY"
+                            + " KEY(uuid,zone_id))");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS claim_items(id TEXT PRIMARY KEY, owner TEXT NOT"
                         + " NULL, source TEXT NOT NULL, payload TEXT NOT NULL, state INTEGER NOT"
@@ -284,15 +285,31 @@ public final class DatabaseManager {
     }
 
     public <T> CompletableFuture<T> submit(Function<Connection, T> operation) {
-        return CompletableFuture.supplyAsync(
-                () -> {
-                    try (Connection connection = open()) {
-                        return operation.apply(connection);
-                    } catch (SQLException exception) {
-                        throw new DatabaseException(exception);
-                    }
-                },
-                executor);
+        try {
+            return CompletableFuture.supplyAsync(
+                    () -> {
+                        try {
+                            if (workerConnection == null || workerConnection.isClosed())
+                                workerConnection = open();
+                            fr.cliker.clikerv2.rankings.RankingHistory.register(
+                                    workerConnection, rankingZone);
+                            try {
+                                return operation.apply(workerConnection);
+                            } finally {
+                                if (!workerConnection.isClosed()
+                                        && !workerConnection.getAutoCommit()) {
+                                    workerConnection.rollback();
+                                    workerConnection.setAutoCommit(true);
+                                }
+                            }
+                        } catch (SQLException error) {
+                            throw new DatabaseException(error);
+                        }
+                    },
+                    executor);
+        } catch (java.util.concurrent.RejectedExecutionException error) {
+            return CompletableFuture.failedFuture(error);
+        }
     }
 
     public void invalidRecord(String table, String id, RuntimeException error) {
@@ -352,6 +369,22 @@ public final class DatabaseManager {
     }
 
     public void close() {
+        if (!executor.isShutdown())
+            executor.execute(
+                    () -> {
+                        if (workerConnection != null)
+                            try {
+                                workerConnection.close();
+                            } catch (SQLException error) {
+                                plugin.getLogger()
+                                        .log(
+                                                java.util.logging.Level.SEVERE,
+                                                "Fermeture SQLite impossible",
+                                                error);
+                            } finally {
+                                workerConnection = null;
+                            }
+                    });
         executor.shutdown();
         try {
             // Laisser les dernières sauvegardes de coffres se terminer avant l'arrêt du serveur.

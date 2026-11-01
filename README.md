@@ -1,6 +1,16 @@
 # ClikerV2
 
-## Dernière mise à jour — 1er novembre 2026 — version 1.0.6
+## Dernière mise à jour — 1er novembre 2026 — version 1.0.7
+
+- Connexion SQLite réutilisée exclusivement sur son worker ; rollback des transactions interrompues, réinitialisation entre opérations et fermeture après vidage. Aucun changement des données, des récompenses ou de l'équilibrage.
+- TAB : priorité calculée une fois par joueur lors du tri, ordre et bandeau envoyés uniquement lorsqu'ils changent ; caches retirés à déconnexion et à l'arrêt. Fréquence et animations conservées.
+- Courrier et boutique AFK : une ouverture SQL en vol par joueur et menu, anciens résultats ignorés après déconnexion.
+- Libellés colorés : cache borné à 256 textes courts ; motif Unicode des icônes précompilé.
+- Validation : **470 tests fonctionnels réussis**, deux microbenchmarks, parcours Paper et charge locale de 1/10/25/50/100 clients avec ouverture effective de `/stats` pour chacun. Ces scénarios courts ne certifient pas 100 combattants permanents.
+- Mesure SQL : médiane 70,4 → 13,5 ms pour 400 lectures en file, pas pour le CPU global. Profil JFR de 60 secondes disponible ; les limites et les risques résiduels sont détaillés dans [le rapport d'audit](docs/AUDIT-PERFORMANCES-1.0.7.md).
+- Aucune commande ni permission modifiée ; liste complète par catégorie vérifiée. Paper 1.21.4 / Java 21, mêmes dépendances. Remplacer le JAR puis redémarrer.
+
+## Mise à jour 1.0.6 — 1er novembre 2026
 
 - Validation : **465 tests réussis**, aucun ignoré, et essais Paper des nouveaux menus et du parchemin.
 - Autoclic limité à **un bloc entre les hitboxes** du joueur et du mob. Sans épée : aucun dégât ni recherche de cible automatique. Les skins de bloc gardent le matériau épée et ses dégâts ; la règle s'applique aussi aux raids, piñatas et au mannequin.

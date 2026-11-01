@@ -1,0 +1,42 @@
+[
+  {
+    "clients": 1,
+    "connectionMs": 2943,
+    "observationMs": 5003,
+    "statsOpened": 1,
+    "decodedPackets": 480,
+    "tabHeaderPackets": 5
+  },
+  {
+    "clients": 10,
+    "connectionMs": 2979,
+    "observationMs": 5003,
+    "statsOpened": 10,
+    "decodedPackets": 4456,
+    "tabHeaderPackets": 50
+  },
+  {
+    "clients": 25,
+    "connectionMs": 4531,
+    "observationMs": 5008,
+    "statsOpened": 25,
+    "decodedPackets": 10859,
+    "tabHeaderPackets": 125
+  },
+  {
+    "clients": 50,
+    "connectionMs": 9462,
+    "observationMs": 5014,
+    "statsOpened": 50,
+    "decodedPackets": 31520,
+    "tabHeaderPackets": 250
+  },
+  {
+    "clients": 100,
+    "connectionMs": 32186,
+    "observationMs": 5017,
+    "statsOpened": 100,
+    "decodedPackets": 103947,
+    "tabHeaderPackets": 500
+  }
+]

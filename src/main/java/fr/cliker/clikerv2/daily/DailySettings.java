@@ -195,8 +195,27 @@ public final class DailySettings {
         return result;
     }
 
+    private static final Map<String, Component> LABELS =
+            java.util.Collections.synchronizedMap(
+                    new java.util.LinkedHashMap<>(256, .75f, true) {
+                        @Override
+                        protected boolean removeEldestEntry(Map.Entry<String, Component> entry) {
+                            return size() > 256;
+                        }
+                    });
+
+    static int cachedLabels() {
+        return LABELS.size();
+    }
+
     public static Component color(String text) {
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(text);
+        if (text == null || text.length() > 96)
+            return LegacyComponentSerializer.legacyAmpersand().deserialize(text);
+        Component cached = LABELS.get(text);
+        if (cached != null) return cached;
+        Component parsed = LegacyComponentSerializer.legacyAmpersand().deserialize(text);
+        LABELS.put(text, parsed);
+        return parsed;
     }
 
     public String message(String key) {

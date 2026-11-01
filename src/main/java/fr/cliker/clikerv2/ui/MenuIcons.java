@@ -108,9 +108,12 @@ public final class MenuIcons implements Listener {
         }
     }
 
+    private static final java.util.regex.Pattern MARKS = java.util.regex.Pattern.compile("\\p{M}");
+
     private static String normalize(String text) {
-        return Normalizer.normalize(text.toLowerCase(Locale.ROOT), Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "");
+        return MARKS.matcher(
+                        Normalizer.normalize(text.toLowerCase(Locale.ROOT), Normalizer.Form.NFD))
+                .replaceAll("");
     }
 
     static boolean eligible(Inventory inventory, int slot) {

@@ -1,0 +1,2617 @@
+[
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/ClikerPlugin.java",
+    "package": "fr.cliker.clikerv2",
+    "lines": 903,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/DatabaseManager.java",
+    "package": "fr.cliker.clikerv2",
+    "lines": 407,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        331,
+        "return CompletableFuture.completedFuture(operation.get());"
+      ],
+      [
+        343,
+        "future.complete(operation.get());"
+      ],
+      [
+        391,
+        "if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/EconomyService.java",
+    "package": "fr.cliker.clikerv2",
+    "lines": 562,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 11,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        90,
+        "String.join("
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/MobTier.java",
+    "package": "fr.cliker.clikerv2",
+    "lines": 96,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/Numbers.java",
+    "package": "fr.cliker.clikerv2",
+    "lines": 32,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/auction/AuctionCommand.java",
+    "package": "fr.cliker.clikerv2.auction",
+    "lines": 109,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        50,
+        "String.join(\" \", java.util.Arrays.copyOfRange(args, 1, args.length)));"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/auction/AuctionListing.java",
+    "package": "fr.cliker.clikerv2.auction",
+    "lines": 15,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/auction/AuctionManager.java",
+    "package": "fr.cliker.clikerv2.auction",
+    "lines": 382,
+    "listeners": 1,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/auction/AuctionMenu.java",
+    "package": "fr.cliker.clikerv2.auction",
+    "lines": 662,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        514,
+        "String.join(\"\\n\", saved));"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/auction/AuctionStore.java",
+    "package": "fr.cliker.clikerv2.auction",
+    "lines": 221,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 7,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/bag/BagCommand.java",
+    "package": "fr.cliker.clikerv2.bag",
+    "lines": 37,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/bag/BagManager.java",
+    "package": "fr.cliker.clikerv2.bag",
+    "lines": 371,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/bag/BagMenu.java",
+    "package": "fr.cliker.clikerv2.bag",
+    "lines": 201,
+    "listeners": 4,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/bag/BagOrganizer.java",
+    "package": "fr.cliker.clikerv2.bag",
+    "lines": 167,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/bag/BagStore.java",
+    "package": "fr.cliker.clikerv2.bag",
+    "lines": 40,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 2,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/bag/TalismanCommand.java",
+    "package": "fr.cliker.clikerv2.bag",
+    "lines": 93,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/bag/TalismanItem.java",
+    "package": "fr.cliker.clikerv2.bag",
+    "lines": 109,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/buyzone/BuyZone.java",
+    "package": "fr.cliker.clikerv2.buyzone",
+    "lines": 84,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/buyzone/BuyZoneModule.java",
+    "package": "fr.cliker.clikerv2.buyzone",
+    "lines": 1080,
+    "listeners": 9,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        838,
+        "String.join(\"_\", Arrays.copyOfRange(args, 2, args.length))"
+      ],
+      [
+        853,
+        "+ String.join("
+      ],
+      [
+        862,
+        ": String.join(\", \", gates.keySet())),"
+      ],
+      [
+        869,
+        "String.join(\"_\", Arrays.copyOfRange(args, 1, args.length))"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/buyzone/BuyZoneStore.java",
+    "package": "fr.cliker.clikerv2.buyzone",
+    "lines": 118,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 3,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/combat/AutoClickManager.java",
+    "package": "fr.cliker.clikerv2.combat",
+    "lines": 184,
+    "listeners": 1,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/combat/BossMusic.java",
+    "package": "fr.cliker.clikerv2.combat",
+    "lines": 44,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/combat/CombatReach.java",
+    "package": "fr.cliker.clikerv2.combat",
+    "lines": 32,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/combat/CriticalHits.java",
+    "package": "fr.cliker.clikerv2.combat",
+    "lines": 29,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/combat/DamagePopups.java",
+    "package": "fr.cliker.clikerv2.combat",
+    "lines": 238,
+    "listeners": 2,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/combat/DeathLogFilter.java",
+    "package": "fr.cliker.clikerv2.combat",
+    "lines": 37,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/combat/PersonalCombatAudio.java",
+    "package": "fr.cliker.clikerv2.combat",
+    "lines": 295,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/combat/StarterSwordListener.java",
+    "package": "fr.cliker.clikerv2.combat",
+    "lines": 58,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/combat/SwordCommand.java",
+    "package": "fr.cliker.clikerv2.combat",
+    "lines": 86,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/combat/TrainingDummy.java",
+    "package": "fr.cliker.clikerv2.combat",
+    "lines": 98,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/comfort/FarmTelemetry.java",
+    "package": "fr.cliker.clikerv2.comfort",
+    "lines": 294,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/comfort/PlayerComfort.java",
+    "package": "fr.cliker.clikerv2.comfort",
+    "lines": 379,
+    "listeners": 9,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/comfort/ProgressNavigation.java",
+    "package": "fr.cliker.clikerv2.comfort",
+    "lines": 188,
+    "listeners": 1,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        106,
+        "Location target = spawn.get().add(0, 0, -5);"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/comfort/SessionConvenience.java",
+    "package": "fr.cliker.clikerv2.comfort",
+    "lines": 332,
+    "listeners": 12,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/comfort/UpgradeGuide.java",
+    "package": "fr.cliker.clikerv2.comfort",
+    "lines": 174,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/community/AfkModule.java",
+    "package": "fr.cliker.clikerv2.community",
+    "lines": 665,
+    "listeners": 14,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 2,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/community/CommunityStore.java",
+    "package": "fr.cliker.clikerv2.community",
+    "lines": 389,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 1,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/community/MailModule.java",
+    "package": "fr.cliker.clikerv2.community",
+    "lines": 582,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/community/ToastNotifications.java",
+    "package": "fr.cliker.clikerv2.community",
+    "lines": 154,
+    "listeners": 3,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/config/ConfigFiles.java",
+    "package": "fr.cliker.clikerv2.config",
+    "lines": 79,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/config/StoredLocation.java",
+    "package": "fr.cliker.clikerv2.config",
+    "lines": 57,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/config/YamlFiles.java",
+    "package": "fr.cliker.clikerv2.config",
+    "lines": 83,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/cooldown/CooldownCommand.java",
+    "package": "fr.cliker.clikerv2.cooldown",
+    "lines": 62,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/cosmetics/WeaponSkins.java",
+    "package": "fr.cliker.clikerv2.cosmetics",
+    "lines": 237,
+    "listeners": 1,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 2,
+    "blocking_markers": [
+      [
+        188,
+        ".set(collection, PersistentDataType.STRING, String.join(\",\", owned));"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/daily/DailyMenu.java",
+    "package": "fr.cliker.clikerv2.daily",
+    "lines": 226,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/daily/DailyModule.java",
+    "package": "fr.cliker.clikerv2.daily",
+    "lines": 280,
+    "listeners": 1,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/daily/DailyNpc.java",
+    "package": "fr.cliker.clikerv2.daily",
+    "lines": 16,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/daily/DailyProgress.java",
+    "package": "fr.cliker.clikerv2.daily",
+    "lines": 55,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/daily/DailySettings.java",
+    "package": "fr.cliker.clikerv2.daily",
+    "lines": 281,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/daily/RewardStore.java",
+    "package": "fr.cliker.clikerv2.daily",
+    "lines": 82,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        46,
+        "LocalDate today = calendarDate.get();"
+      ],
+      [
+        79,
+        "if (!executor.awaitTermination(10, TimeUnit.SECONDS)) throw new IllegalStateException(\"Sauvegardes SQLite encore en cours\");"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/discord/DiscordModule.java",
+    "package": "fr.cliker.clikerv2.discord",
+    "lines": 143,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/display/MoneyScoreboard.java",
+    "package": "fr.cliker.clikerv2.display",
+    "lines": 359,
+    "listeners": 2,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/display/RankPrefix.java",
+    "package": "fr.cliker.clikerv2.display",
+    "lines": 49,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        28,
+        "LuckPerms api = LuckPermsProvider.get();"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/display/RgbText.java",
+    "package": "fr.cliker.clikerv2.display",
+    "lines": 31,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/display/StatsCommand.java",
+    "package": "fr.cliker.clikerv2.display",
+    "lines": 30,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/display/StatsMenu.java",
+    "package": "fr.cliker.clikerv2.display",
+    "lines": 289,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/display/TabListManager.java",
+    "package": "fr.cliker.clikerv2.display",
+    "lines": 280,
+    "listeners": 2,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        86,
+        "net.luckperms.api.LuckPermsProvider.get()"
+      ],
+      [
+        155,
+        "String.join(\"\\n\", settings.yaml.getStringList(key))"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/donors/DonorPodium.java",
+    "package": "fr.cliker.clikerv2.donors",
+    "lines": 538,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/donors/DonorPointsStore.java",
+    "package": "fr.cliker.clikerv2.donors",
+    "lines": 194,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 4,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/economy/CurrencyCommand.java",
+    "package": "fr.cliker.clikerv2.economy",
+    "lines": 171,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/economy/CurrencyType.java",
+    "package": "fr.cliker.clikerv2.economy",
+    "lines": 39,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/economy/ExpCommand.java",
+    "package": "fr.cliker.clikerv2.economy",
+    "lines": 50,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/economy/PermissionBonus.java",
+    "package": "fr.cliker.clikerv2.economy",
+    "lines": 20,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/essence/CompressorCommand.java",
+    "package": "fr.cliker.clikerv2.essence",
+    "lines": 36,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/essence/CompressorItem.java",
+    "package": "fr.cliker.clikerv2.essence",
+    "lines": 77,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/essence/CompressorManager.java",
+    "package": "fr.cliker.clikerv2.essence",
+    "lines": 121,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/essence/EssenceCompression.java",
+    "package": "fr.cliker.clikerv2.essence",
+    "lines": 44,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/essence/EssenceItem.java",
+    "package": "fr.cliker.clikerv2.essence",
+    "lines": 109,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/essence/EssenceRarity.java",
+    "package": "fr.cliker.clikerv2.essence",
+    "lines": 56,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/essence/SellCommand.java",
+    "package": "fr.cliker.clikerv2.essence",
+    "lines": 21,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/essence/SellMenu.java",
+    "package": "fr.cliker.clikerv2.essence",
+    "lines": 246,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/AdminDiagnostic.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 204,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 1,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": [
+      [
+        90,
+        "entities += world.getEntities().size();"
+      ]
+    ]
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/Boosts.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 269,
+    "listeners": 4,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/ChatActivities.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 428,
+    "listeners": 1,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/CreatureSettings.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 64,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/ExpansionModule.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 57,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/HelpCommand.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 176,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        159,
+        "String.join(\"  \", commands),"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/HuntKillEvent.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 31,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/Menus.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 104,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/MobEggs.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 35,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/PartyRaids.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 1093,
+    "listeners": 6,
+    "timers": 1,
+    "sql_submissions": 4,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/PlainGear.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 78,
+    "listeners": 6,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/ServiceNpcs.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 564,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/Settings.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 44,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/ShopStore.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 144,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 3,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/Talismans.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 608,
+    "listeners": 1,
+    "timers": 1,
+    "sql_submissions": 4,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/features/TravelAndTools.java",
+    "package": "fr.cliker.clikerv2.features",
+    "lines": 719,
+    "listeners": 18,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        161,
+        "net.luckperms.api.LuckPermsProvider.get()"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/CharmCommand.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 37,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/CharmItem.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 46,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/DoubleRespawn.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 43,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/EnchantCommand.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 21,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/EnchantMenu.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 271,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/EnchantRoll.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 20,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/EnchantType.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 131,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/EquipmentEssences.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 33,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/GearAttributeManager.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 127,
+    "listeners": 2,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/GearGuide.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 185,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/GearLore.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 143,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/GearTransactions.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 151,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/ItemMods.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 141,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/ReforgeCommand.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 21,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/ReforgeMenu.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 247,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/ReforgeType.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 68,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/RuneCommand.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 21,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/RuneMenu.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 258,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/RuneType.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 67,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/TierGear.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 220,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/gear/TierGearCommand.java",
+    "package": "fr.cliker.clikerv2.gear",
+    "lines": 73,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/hologram/HologramCommand.java",
+    "package": "fr.cliker.clikerv2.hologram",
+    "lines": 101,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        61,
+        "\"Type inconnu. Utilisez : \" + String.join(\", \", TYPES),"
+      ],
+      [
+        73,
+        "\"/\" + label + \" <spawn <\" + String.join(\"|\", TYPES) + \">|remove>\","
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/hologram/HologramManager.java",
+    "package": "fr.cliker.clikerv2.hologram",
+    "lines": 412,
+    "listeners": 0,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/hologram/HologramStore.java",
+    "package": "fr.cliker.clikerv2.hologram",
+    "lines": 99,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 3,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/hologram/SharedHolograms.java",
+    "package": "fr.cliker.clikerv2.hologram",
+    "lines": 302,
+    "listeners": 0,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        289,
+        "} else if (display != null) display.text(DailySettings.color(String.join(\"\\n\", lines)));"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/hunting/AtmModule.java",
+    "package": "fr.cliker.clikerv2.hunting",
+    "lines": 190,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/hunting/AtmStore.java",
+    "package": "fr.cliker.clikerv2.hunting",
+    "lines": 113,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 2,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/hunting/ContractStore.java",
+    "package": "fr.cliker.clikerv2.hunting",
+    "lines": 191,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 3,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/hunting/Gains.java",
+    "package": "fr.cliker.clikerv2.hunting",
+    "lines": 37,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/hunting/HuntUI.java",
+    "package": "fr.cliker.clikerv2.hunting",
+    "lines": 123,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/hunting/HuntingModule.java",
+    "package": "fr.cliker.clikerv2.hunting",
+    "lines": 521,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        261,
+        "var known = stats.join();"
+      ],
+      [
+        339,
+        "var state = progress.join().get(contract.id());"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/hunting/HuntingStore.java",
+    "package": "fr.cliker.clikerv2.hunting",
+    "lines": 171,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 2,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/hunting/RewardLedger.java",
+    "package": "fr.cliker.clikerv2.hunting",
+    "lines": 267,
+    "listeners": 1,
+    "timers": 0,
+    "sql_submissions": 3,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/integration/LuckPermsAccess.java",
+    "package": "fr.cliker.clikerv2.integration",
+    "lines": 34,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        14,
+        "var manager = net.luckperms.api.LuckPermsProvider.get().getUserManager();"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/level/LevelDamageBonus.java",
+    "package": "fr.cliker.clikerv2.level",
+    "lines": 16,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/level/LevelUpListener.java",
+    "package": "fr.cliker.clikerv2.level",
+    "lines": 39,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/level/PlayerLevelStore.java",
+    "package": "fr.cliker.clikerv2.level",
+    "lines": 85,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 3,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/liveauction/AuctionRoom.java",
+    "package": "fr.cliker.clikerv2.liveauction",
+    "lines": 208,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": [
+      [
+        41,
+        "for (World w : Bukkit.getWorlds()) for (Entity e : w.getEntities()) cleanup(e);"
+      ],
+      [
+        187,
+        "for (Entity entity : e.getEntities())"
+      ]
+    ]
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/liveauction/BidPrices.java",
+    "package": "fr.cliker.clikerv2.liveauction",
+    "lines": 52,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctionStore.java",
+    "package": "fr.cliker.clikerv2.liveauction",
+    "lines": 576,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 9,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/liveauction/LiveAuctions.java",
+    "package": "fr.cliker.clikerv2.liveauction",
+    "lines": 1025,
+    "listeners": 5,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/lootbox/LootboxCommand.java",
+    "package": "fr.cliker.clikerv2.lootbox",
+    "lines": 138,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        52,
+        "\"Rareté inconnue : \" + String.join(\", \", LootboxTier.byId().keySet()),"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/lootbox/LootboxItem.java",
+    "package": "fr.cliker.clikerv2.lootbox",
+    "lines": 71,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/lootbox/LootboxManager.java",
+    "package": "fr.cliker.clikerv2.lootbox",
+    "lines": 144,
+    "listeners": 1,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/lootbox/LootboxStore.java",
+    "package": "fr.cliker.clikerv2.lootbox",
+    "lines": 42,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 1,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/lootbox/LootboxTier.java",
+    "package": "fr.cliker.clikerv2.lootbox",
+    "lines": 160,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/lootbox/PrestigeLootboxes.java",
+    "package": "fr.cliker.clikerv2.lootbox",
+    "lines": 53,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/merchant/MerchantCommand.java",
+    "package": "fr.cliker.clikerv2.merchant",
+    "lines": 110,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        59,
+        "\"Marchands : \" + String.join(\", \", mobIds), NamedTextColor.YELLOW));"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/merchant/MerchantManager.java",
+    "package": "fr.cliker.clikerv2.merchant",
+    "lines": 226,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": [
+      [
+        70,
+        "for (Entity entity : world.getEntities()) {"
+      ]
+    ]
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/merchant/MerchantMenu.java",
+    "package": "fr.cliker.clikerv2.merchant",
+    "lines": 639,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/merchant/MerchantStore.java",
+    "package": "fr.cliker.clikerv2.merchant",
+    "lines": 100,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 3,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/mobs/BossEventManager.java",
+    "package": "fr.cliker.clikerv2.mobs",
+    "lines": 218,
+    "listeners": 2,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/mobs/CustomMobManager.java",
+    "package": "fr.cliker.clikerv2.mobs",
+    "lines": 1535,
+    "listeners": 4,
+    "timers": 3,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": [
+      [
+        205,
+        "for (Entity entity : at.getChunk().getEntities()) {"
+      ],
+      [
+        361,
+        "world.getEntities()) {"
+      ],
+      [
+        428,
+        "for (Entity entity : world.getEntities()) {"
+      ],
+      [
+        593,
+        "for (Entity entity : at.getChunk().getEntities())"
+      ],
+      [
+        624,
+        "for (var entity : event.getEntities()) {"
+      ],
+      [
+        690,
+        "for (Entity candidate : location.getChunk().getEntities())"
+      ]
+    ]
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/mobs/MobKillStore.java",
+    "package": "fr.cliker.clikerv2.mobs",
+    "lines": 88,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 3,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/mobs/MobKillsCommand.java",
+    "package": "fr.cliker.clikerv2.mobs",
+    "lines": 100,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/mobs/MobSpawnCommand.java",
+    "package": "fr.cliker.clikerv2.mobs",
+    "lines": 161,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/mobs/MobSpawnStore.java",
+    "package": "fr.cliker.clikerv2.mobs",
+    "lines": 118,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 4,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/mobs/VanillaRewardsListener.java",
+    "package": "fr.cliker.clikerv2.mobs",
+    "lines": 51,
+    "listeners": 4,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/mobs/VanillaSpawnListener.java",
+    "package": "fr.cliker.clikerv2.mobs",
+    "lines": 24,
+    "listeners": 1,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/npc/VillagerAppearance.java",
+    "package": "fr.cliker.clikerv2.npc",
+    "lines": 34,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/npc/ZnpcsNpc.java",
+    "package": "fr.cliker.clikerv2.npc",
+    "lines": 437,
+    "listeners": 1,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/outpost/OutpostBlocks.java",
+    "package": "fr.cliker.clikerv2.outpost",
+    "lines": 639,
+    "listeners": 3,
+    "timers": 1,
+    "sql_submissions": 4,
+    "player_saves": 1,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/outpost/OutpostModule.java",
+    "package": "fr.cliker.clikerv2.outpost",
+    "lines": 916,
+    "listeners": 24,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/outpost/OutpostStore.java",
+    "package": "fr.cliker.clikerv2.outpost",
+    "lines": 205,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 5,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/outpost/WorldInventories.java",
+    "package": "fr.cliker.clikerv2.outpost",
+    "lines": 333,
+    "listeners": 9,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 1,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/performance/ZoneActivity.java",
+    "package": "fr.cliker.clikerv2.performance",
+    "lines": 95,
+    "listeners": 0,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/pinata/PinataModule.java",
+    "package": "fr.cliker.clikerv2.pinata",
+    "lines": 680,
+    "listeners": 6,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": [
+      [
+        80,
+        "for (World world : Bukkit.getWorlds()) for (Entity e : world.getEntities()) clean(e);"
+      ],
+      [
+        561,
+        "event.getEntities().forEach(this::clean);"
+      ]
+    ]
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/pinata/PinataStore.java",
+    "package": "fr.cliker.clikerv2.pinata",
+    "lines": 189,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 6,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/prestige/PrestigeChatFormatter.java",
+    "package": "fr.cliker.clikerv2.prestige",
+    "lines": 74,
+    "listeners": 1,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/prestige/PrestigeCommand.java",
+    "package": "fr.cliker.clikerv2.prestige",
+    "lines": 23,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/prestige/PrestigeManager.java",
+    "package": "fr.cliker.clikerv2.prestige",
+    "lines": 366,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 1,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/prestige/PrestigeMenu.java",
+    "package": "fr.cliker.clikerv2.prestige",
+    "lines": 242,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/prestige/PrestigeStore.java",
+    "package": "fr.cliker.clikerv2.prestige",
+    "lines": 180,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 5,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/prestige/PrestigeType.java",
+    "package": "fr.cliker.clikerv2.prestige",
+    "lines": 54,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/raid/ProportionalRewards.java",
+    "package": "fr.cliker.clikerv2.raid",
+    "lines": 65,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/raid/PublicRaidRewards.java",
+    "package": "fr.cliker.clikerv2.raid",
+    "lines": 30,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/raid/RaidModule.java",
+    "package": "fr.cliker.clikerv2.raid",
+    "lines": 1045,
+    "listeners": 12,
+    "timers": 4,
+    "sql_submissions": 1,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": [
+      [
+        983,
+        "for (var entity : e.getChunk().getEntities())"
+      ],
+      [
+        1017,
+        "for (var entity : world.getEntities())"
+      ]
+    ]
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/raid/RaidScrolls.java",
+    "package": "fr.cliker.clikerv2.raid",
+    "lines": 31,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/raid/RaidSetup.java",
+    "package": "fr.cliker.clikerv2.raid",
+    "lines": 348,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        210,
+        "\"§eClés : \" + String.join(\", \", new TreeSet<>(allowed.keySet())));"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/rankings/RankingHistory.java",
+    "package": "fr.cliker.clikerv2.rankings",
+    "lines": 150,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/rankings/RankingMetric.java",
+    "package": "fr.cliker.clikerv2.rankings",
+    "lines": 75,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/rankings/RankingPeriod.java",
+    "package": "fr.cliker.clikerv2.rankings",
+    "lines": 50,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/rankings/RankingStore.java",
+    "package": "fr.cliker.clikerv2.rankings",
+    "lines": 162,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 1,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/rankings/RankingsModule.java",
+    "package": "fr.cliker.clikerv2.rankings",
+    "lines": 441,
+    "listeners": 1,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/referral/ReferralModule.java",
+    "package": "fr.cliker.clikerv2.referral",
+    "lines": 476,
+    "listeners": 2,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        138,
+        "store.join(owner, player.getName(), player.getFirstPlayed(), clock.millis(), window)"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/referral/ReferralStore.java",
+    "package": "fr.cliker.clikerv2.referral",
+    "lines": 100,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 4,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/rewards/ClaimService.java",
+    "package": "fr.cliker.clikerv2.rewards",
+    "lines": 893,
+    "listeners": 13,
+    "timers": 0,
+    "sql_submissions": 1,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        231,
+        "if (purchase != null && !priorityFound.get())"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/rewards/ItemDelivery.java",
+    "package": "fr.cliker.clikerv2.rewards",
+    "lines": 15,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/rewards/MailStore.java",
+    "package": "fr.cliker.clikerv2.rewards",
+    "lines": 243,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 7,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        194,
+        "+ String.join("
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/rewards/OutgoingItems.java",
+    "package": "fr.cliker.clikerv2.rewards",
+    "lines": 254,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/rewards/OutgoingStore.java",
+    "package": "fr.cliker.clikerv2.rewards",
+    "lines": 106,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 2,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/runtime/PlayerSessions.java",
+    "package": "fr.cliker.clikerv2.runtime",
+    "lines": 13,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/runtime/ServerTasks.java",
+    "package": "fr.cliker.clikerv2.runtime",
+    "lines": 24,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/runtime/ShutdownSteps.java",
+    "package": "fr.cliker.clikerv2.runtime",
+    "lines": 24,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/security/SystemEggProtection.java",
+    "package": "fr.cliker.clikerv2.security",
+    "lines": 32,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/social/CommunityExtras.java",
+    "package": "fr.cliker.clikerv2.social",
+    "lines": 669,
+    "listeners": 2,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/social/CommunityStore.java",
+    "package": "fr.cliker.clikerv2.social",
+    "lines": 216,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 1,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/social/SocialModule.java",
+    "package": "fr.cliker.clikerv2.social",
+    "lines": 1245,
+    "listeners": 5,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/social/SocialSettings.java",
+    "package": "fr.cliker.clikerv2.social",
+    "lines": 89,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/social/SocialStore.java",
+    "package": "fr.cliker.clikerv2.social",
+    "lines": 272,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 1,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/spawn/RespawnListener.java",
+    "package": "fr.cliker.clikerv2.spawn",
+    "lines": 23,
+    "listeners": 1,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/spawn/SetSpawnCommand.java",
+    "package": "fr.cliker.clikerv2.spawn",
+    "lines": 56,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/spawn/SpawnCommand.java",
+    "package": "fr.cliker.clikerv2.spawn",
+    "lines": 47,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/spawn/SpawnManager.java",
+    "package": "fr.cliker.clikerv2.spawn",
+    "lines": 86,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/spawn/SpawnStore.java",
+    "package": "fr.cliker.clikerv2.spawn",
+    "lines": 67,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 2,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/staff/StaffInventories.java",
+    "package": "fr.cliker.clikerv2.staff",
+    "lines": 134,
+    "listeners": 5,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/staff/StaffTools.java",
+    "package": "fr.cliker.clikerv2.staff",
+    "lines": 137,
+    "listeners": 1,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/station/StationCommand.java",
+    "package": "fr.cliker.clikerv2.station",
+    "lines": 68,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [
+      [
+        39,
+        "if (type == null) { sender.sendMessage(Component.text(\"Type inconnu. Utilisez : \" + String.join(\", \", TYPES), NamedTextColor.RED)); return true; }"
+      ],
+      [
+        45,
+        "sender.sendMessage(Component.text(\"/\" + label + \" <spawn <\" + String.join(\"|\", TYPES) + \">|remove>\", NamedTextColor.YELLOW));"
+      ]
+    ],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/station/StationManager.java",
+    "package": "fr.cliker.clikerv2.station",
+    "lines": 210,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/station/StationStore.java",
+    "package": "fr.cliker.clikerv2.station",
+    "lines": 116,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 3,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/station/StationType.java",
+    "package": "fr.cliker.clikerv2.station",
+    "lines": 21,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/trash/TrashMenu.java",
+    "package": "fr.cliker.clikerv2.trash",
+    "lines": 295,
+    "listeners": 6,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/tuto/TutoBook.java",
+    "package": "fr.cliker.clikerv2.tuto",
+    "lines": 180,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/tuto/TutoCommand.java",
+    "package": "fr.cliker.clikerv2.tuto",
+    "lines": 17,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/tuto/TutoJoinListener.java",
+    "package": "fr.cliker.clikerv2.tuto",
+    "lines": 96,
+    "listeners": 1,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/tutorial/OnboardingGuide.java",
+    "package": "fr.cliker.clikerv2.tutorial",
+    "lines": 160,
+    "listeners": 4,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/ui/GainBar.java",
+    "package": "fr.cliker.clikerv2.ui",
+    "lines": 38,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/ui/MainMenu.java",
+    "package": "fr.cliker.clikerv2.ui",
+    "lines": 308,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/ui/MenuIcons.java",
+    "package": "fr.cliker.clikerv2.ui",
+    "lines": 349,
+    "listeners": 5,
+    "timers": 1,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/ui/MenuNavigation.java",
+    "package": "fr.cliker.clikerv2.ui",
+    "lines": 66,
+    "listeners": 1,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/ui/MenuOpenGuard.java",
+    "package": "fr.cliker.clikerv2.ui",
+    "lines": 110,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 1,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/ui/ViewRequests.java",
+    "package": "fr.cliker.clikerv2.ui",
+    "lines": 56,
+    "listeners": 3,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/upgrade/UpgradeCommand.java",
+    "package": "fr.cliker.clikerv2.upgrade",
+    "lines": 53,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/upgrade/UpgradeManager.java",
+    "package": "fr.cliker.clikerv2.upgrade",
+    "lines": 257,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/upgrade/UpgradeMenu.java",
+    "package": "fr.cliker.clikerv2.upgrade",
+    "lines": 275,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/upgrade/UpgradeQuantityMenu.java",
+    "package": "fr.cliker.clikerv2.upgrade",
+    "lines": 203,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/upgrade/UpgradeStore.java",
+    "package": "fr.cliker.clikerv2.upgrade",
+    "lines": 195,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 3,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/upgrade/UpgradeType.java",
+    "package": "fr.cliker.clikerv2.upgrade",
+    "lines": 57,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/wiki/WikiModule.java",
+    "package": "fr.cliker.clikerv2.wiki",
+    "lines": 189,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/world/ActivityWorlds.java",
+    "package": "fr.cliker.clikerv2.world",
+    "lines": 97,
+    "listeners": 0,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  },
+  {
+    "file": "src/main/java/fr/cliker/clikerv2/world/PermanentDay.java",
+    "package": "fr.cliker.clikerv2.world",
+    "lines": 40,
+    "listeners": 2,
+    "timers": 0,
+    "sql_submissions": 0,
+    "player_saves": 0,
+    "blocking_markers": [],
+    "world_scans": []
+  }
+]

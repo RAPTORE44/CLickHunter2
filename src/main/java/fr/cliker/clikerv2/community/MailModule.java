@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /** Rédaction privée depuis le menu, lecture en livre et envoi durable de pièces jointes. */
 public final class MailModule implements Listener, CommandExecutor, TabCompleter {
+    private final Map<UUID, Object> opening = new HashMap<>();
     private final JavaPlugin plugin;
     private final CommunityStore store;
     private final ClaimService claims;
@@ -96,11 +97,14 @@ public final class MailModule implements Listener, CommandExecutor, TabCompleter
     }
 
     private void open(Player p, int page) {
+        Object token = new Object();
+        if (opening.putIfAbsent(p.getUniqueId(), token) != null) return;
         store.inbox(p.getUniqueId(), page)
                 .whenComplete(
                         (letters, e) ->
                                 sync(
                                         () -> {
+                                            if (!opening.remove(p.getUniqueId(), token)) return;
                                             if (!ready(p)) return;
                                             if (e != null) {
                                                 error(p, e);
@@ -561,6 +565,7 @@ public final class MailModule implements Listener, CommandExecutor, TabCompleter
 
     @EventHandler
     public void quit(PlayerQuitEvent e) {
+        opening.remove(e.getPlayer().getUniqueId());
         writing.remove(e.getPlayer().getUniqueId());
         drafts.remove(e.getPlayer().getUniqueId());
         busy.remove(e.getPlayer().getUniqueId());
@@ -568,6 +573,7 @@ public final class MailModule implements Listener, CommandExecutor, TabCompleter
     }
 
     public void shutdown() {
+        opening.clear();
         writing.clear();
         drafts.clear();
         busy.clear();

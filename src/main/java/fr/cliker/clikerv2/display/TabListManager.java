@@ -109,18 +109,27 @@ public final class TabListManager implements Listener {
 
     private Component batchHeader, batchFooter;
 
+    private record Banner(Component header, Component footer) {}
+
+    private final Map<UUID, Banner> banners = new HashMap<>();
+    private final Map<UUID, Integer> orders = new HashMap<>();
+
     private void refresh() {
         if (Bukkit.getOnlinePlayers().isEmpty()) return;
         batchHeader = lines("entete");
         batchFooter = lines("pied");
         List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
         originalNames.keySet().removeIf(id -> Bukkit.getPlayer(id) == null);
+        Map<Player, Integer> priorities = new HashMap<>();
+        for (Player player : players) priorities.put(player, priority(player));
         players.sort(
-                Comparator.comparingInt(this::priority)
+                Comparator.comparingInt((Player p) -> priorities.get(p))
                         .thenComparing(Player::getName, String.CASE_INSENSITIVE_ORDER));
         for (int i = 0; i < players.size(); i++) {
             Player player = players.get(i);
-            player.setPlayerListOrder(players.size() - i);
+            int order = players.size() - i;
+            if (!java.util.Objects.equals(orders.put(player.getUniqueId(), order), order))
+                player.setPlayerListOrder(order);
             apply(player);
         }
         batchHeader = null;
@@ -129,9 +138,12 @@ public final class TabListManager implements Listener {
 
     public void apply(Player player) {
         originalNames.putIfAbsent(player.getUniqueId(), player.playerListName());
-        player.sendPlayerListHeaderAndFooter(
-                batchHeader == null ? lines("entete") : batchHeader,
-                batchFooter == null ? lines("pied") : batchFooter);
+        var banner =
+                new Banner(
+                        batchHeader == null ? lines("entete") : batchHeader,
+                        batchFooter == null ? lines("pied") : batchFooter);
+        if (!banner.equals(banners.put(player.getUniqueId(), banner)))
+            player.sendPlayerListHeaderAndFooter(banner.header(), banner.footer());
         Component name = buildTabName(player);
         if (!name.equals(player.playerListName())) player.playerListName(name);
     }
@@ -244,6 +256,14 @@ public final class TabListManager implements Listener {
         apply(event.getPlayer());
     }
 
+    @EventHandler
+    public void quit(org.bukkit.event.player.PlayerQuitEvent event) {
+        UUID id = event.getPlayer().getUniqueId();
+        banners.remove(id);
+        orders.remove(id);
+        originalNames.remove(id);
+    }
+
     public void shutdown() {
         if (task != null) task.cancel();
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -253,6 +273,8 @@ public final class TabListManager implements Listener {
             player.setPlayerListOrder(0);
         }
         originalNames.clear();
+        banners.clear();
+        orders.clear();
         HandlerList.unregisterAll(this);
     }
 }

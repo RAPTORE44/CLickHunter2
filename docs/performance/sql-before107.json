@@ -1,0 +1,8 @@
+{
+  "scenario": "400 SELECT 1 en file, 3 r\u00e9p\u00e9titions apr\u00e8s \u00e9chauffement",
+  "nanoseconds": [
+    85517273,
+    70404696,
+    64434938
+  ]
+}

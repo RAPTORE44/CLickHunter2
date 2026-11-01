@@ -1,0 +1,21 @@
+{
+  "durationSeconds": 60,
+  "events": {
+    "jdk.ObjectAllocationSample": 10213,
+    "jdk.ExecutionSample": 1180,
+    "jdk.CPULoad": 59,
+    "minecraft.ServerTickTime": 59,
+    "jdk.GarbageCollection": 25
+  },
+  "periodicAverageTickMs": {
+    "min": 0.15446500000000002,
+    "median": 9.056398999999999,
+    "max": 101.19355200000001
+  },
+  "gcPauseMs": {
+    "sum": 740.045119,
+    "max": 67.668491
+  },
+  "cpuLoadUsable": false,
+  "note": "JFR exploratoire après seulement, fin de charge puis retour au repos. Moyennes périodiques, pas percentiles tick par tick. CPU load zéro non interprétable dans cet environnement."
+}
