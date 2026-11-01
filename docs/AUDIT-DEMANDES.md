@@ -1,5 +1,7 @@
 # Audit des demandes ClickHunter — suivi au 31 octobre 2026
 
+> État historique avant 1.0.5 : voir [la nouvelle livraison](MISE-A-JOUR-1.0.5.md) pour les systèmes AFK, courrier, raids publics, parchemins et notifications désormais ajoutés.
+
 Cet audit compare les demandes de la conversation au code du dépôt. « Présent » signifie que le parcours existe dans le code ; aucun test sur le serveur Paper 1.21.4 de production n'a été effectué. « Partiel » signale un écart fonctionnel. Les prix qui dépendaient de l'ancien pack introuvable restent les prix actuels ou provisoires, comme autorisé.
 
 | Demande | État vérifié | Écart ou preuve |

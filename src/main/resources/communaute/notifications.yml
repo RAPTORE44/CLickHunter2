@@ -1,0 +1,6 @@
+actif: true
+# File privée limitée à cinq notifications ; pas de diffusion globale.
+intervalle-secondes: 8
+evenements:
+  niveaux: true
+  bienvenue: true

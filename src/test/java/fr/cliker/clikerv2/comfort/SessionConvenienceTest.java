@@ -42,6 +42,14 @@ class SessionConvenienceTest {
     }
 
     @Test
+    void afkProfileStaysEmptyWhenTheMenuStarIsRefreshed() {
+        player.getInventory().clear();
+        player.getPersistentDataContainer().set(java.util.Objects.requireNonNull(NamespacedKey.fromString("clikerv2:afk_snapshot")),org.bukkit.persistence.PersistentDataType.STRING,"protected snapshot");
+        service.ensureMenu(player);
+        assertTrue(player.getInventory().isEmpty());
+    }
+
+    @Test
     void menuMovesExistingItemWithoutLossAndNeverDuplicates() {
         player.getInventory().clear();
         player.getInventory().setItem(8, new ItemStack(Material.DIAMOND, 23));

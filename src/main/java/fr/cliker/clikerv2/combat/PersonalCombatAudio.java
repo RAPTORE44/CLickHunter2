@@ -89,6 +89,10 @@ public final class PersonalCombatAudio implements Listener {
         this.plugin = plugin;
     }
 
+    public static boolean canIsolateChat() {
+        return current != null && current.enabled;
+    }
+
     public static void mark(Player player) {
         var audio = current;
         if (audio != null) {
@@ -195,6 +199,25 @@ public final class PersonalCombatAudio implements Listener {
         if (!enabled) return;
         try {
             String name = (String) packetName.invoke(event);
+            if (name.equals("SYSTEM_CHAT")
+                    || name.equals("PLAYER_CHAT")
+                    || name.equals("DISGUISED_CHAT")) {
+                UUID recipient = (UUID) uuidMethod.invoke(userMethod.invoke(event));
+                if (fr.cliker.clikerv2.community.AfkModule.muted(recipient)) {
+                    boolean overlay = false;
+                    if (name.equals("SYSTEM_CHAT")) {
+                        Object bytes = bufferMethod.invoke(event);
+                        int end =
+                                (Integer)
+                                        Class.forName("io.netty.buffer.ByteBuf")
+                                                .getMethod("writerIndex")
+                                                .invoke(bytes);
+                        overlay = ((Number) byteMethod.invoke(bytes, end - 1)).intValue() == 1;
+                    }
+                    if (!overlay) cancelMethod.invoke(event, true);
+                }
+                return;
+            }
             boolean damage = name.equals("HURT_ANIMATION") || name.equals("DAMAGE_EVENT");
             if (!damage && !name.equals("SOUND_EFFECT")) return;
             Object user = userMethod.invoke(event);

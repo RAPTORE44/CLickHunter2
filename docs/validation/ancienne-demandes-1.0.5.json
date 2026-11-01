@@ -1,0 +1,32 @@
+{
+  "version": "1.0.5",
+  "automated": {
+    "tests": 462,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "paper": "1.21.4",
+  "java": 21,
+  "znpcsplus": "2.0.0",
+  "mail_checks_passed": [
+    "Courrier : pièce jointe livrée directement dans l’inventaire et une seule fois",
+    "Rédaction depuis le menu : texte privé et confirmation d’envoi",
+    "Notification Minecraft : paquet de succès privé reçu avec le courrier",
+    "Expéditeur bloqué : envoi refusé et objet restitué sans perte"
+  ],
+  "afk_final": {
+    "success": true,
+    "checks": [
+      "Entrée AFK : inventaire vide après préparation des chunks",
+      "AFK : messages système entrants et chat sortant isolés",
+      "Boutique : caisse différée puis livrée, trois diamants restaurés"
+    ],
+    "chats": []
+  },
+  "limits": [
+    "Les quatre contrôles courrier proviennent des étapes réussies du premier essai, interrompu ensuite par le premier chargement AFK.",
+    "Le parcours AFK corrigé a été rejoué avec succès.",
+    "Pas de test du serveur de production ni du rendu ItemsAdder/Holographic Displays."
+  ]
+}

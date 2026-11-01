@@ -39,3 +39,7 @@ boss-serveur:
     intervalle-secondes: 8
     rayon: 3
     degats: 8
+
+# Un parchemin de la zone du raid pour chaque vainqueur ayant contribué au boss.
+parchemins:
+  victoire: true

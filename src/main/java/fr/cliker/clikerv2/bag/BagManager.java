@@ -198,6 +198,8 @@ public final class BagManager implements Listener {
                                                     plugin, "collection_talisman"),
                                             org.bukkit.persistence.PersistentDataType.STRING);
                     if (id != null) {
+                        if (id.matches("afk:[1-4]"))
+                            general.merge("afk", Integer.parseInt(id.substring(4)), Math::max);
                         String[] parts = id.split(":");
                         if (parts.length == 3
                                 && parts[0].equals("general")

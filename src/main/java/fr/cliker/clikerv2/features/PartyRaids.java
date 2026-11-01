@@ -52,6 +52,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         int slot;
         MobTier tier;
         long emptySince;
+        boolean openToPublic;
 
         Party(UUID leader) {
             this.leader = leader;
@@ -77,6 +78,8 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         void beginPublicBoss();
 
         default void observe(Player player) {}
+
+        default void publicParty(UUID leader, Set<UUID> helpers) {}
     }
 
     @FunctionalInterface
@@ -86,6 +89,10 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
 
     private static RaidSession session(RaidModule raid) {
         return new RaidSession() {
+            public void publicParty(UUID leader, Set<UUID> helpers) {
+                raid.publicParty(leader, helpers);
+            }
+
             public World world() {
                 return raid.world();
             }
@@ -206,17 +213,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
     }
 
     private ItemStack parchment(MobTier t) {
-        var i =
-                Menus.item(
-                        Material.PAPER,
-                        "Parchemin de raid — " + t.label(),
-                        "Difficulté : zone " + (t.ordinal() + 1),
-                        "Le chef le tient en main pour lancer le raid.",
-                        "Un parchemin consommé par lancement ; groupe de 1 à 8 joueurs.");
-        var meta = i.getItemMeta();
-        meta.getPersistentDataContainer().set(scroll, PersistentDataType.STRING, t.id());
-        i.setItemMeta(meta);
-        return i;
+        return fr.cliker.clikerv2.raid.RaidScrolls.create(plugin, t);
     }
 
     @EventHandler
@@ -263,6 +260,14 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                     else if (current.members.contains(player.getUniqueId()))
                         current.raid.enter(player);
                 });
+        v.put(
+                20,
+                Menus.item(
+                        Material.BELL,
+                        "&bOuvrir au public",
+                        "&7Trois renforts ; chacun gagne un tiers du lot.",
+                        "&7Ou /raid public"),
+                (player, right) -> openPublic(player));
         v.put(
                 26,
                 Menus.item(Material.BARRIER, "Quitter le groupe"),
@@ -320,7 +325,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         var group = party(leader);
         if (!group.leader.equals(leader.getUniqueId())
                 || group.raid != null
-                || group.members.size() >= 8) {
+                || group.members.size() >= (group.openToPublic ? 4 : 8)) {
             leader.sendMessage("Seul le chef peut inviter, avant le lancement (8 places maximum).");
             return;
         }
@@ -378,7 +383,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         if (group == null
                 || !group.leader.equals(inv.leader)
                 || group.raid != null
-                || group.members.size() >= 8) {
+                || group.members.size() >= (group.openToPublic ? 4 : 8)) {
             p.sendMessage("Ce groupe n’est plus disponible.");
             return;
         }
@@ -395,6 +400,84 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                 p.getName() + " a rejoint ton groupe de raid (" + group.members.size() + "/8).");
         refreshLobby(group);
         if (p.getOpenInventory().getTopInventory() != lobbies.get(p.getUniqueId())) lobby(p);
+    }
+
+    private void openPublic(Player p) {
+        var group = party(p);
+        if (!group.leader.equals(p.getUniqueId())
+                || group.raid != null
+                || group.members.size() > 1) {
+            p.sendMessage("§cPrépare un groupe seul avant de l’ouvrir au public.");
+            return;
+        }
+        if (group.openToPublic) {
+            p.sendMessage("§7Ton raid est déjà ouvert au public.");
+            return;
+        }
+        var held = p.getInventory().getItemInMainHand();
+        String id =
+                held.hasItemMeta()
+                        ? held.getItemMeta()
+                                .getPersistentDataContainer()
+                                .get(scroll, PersistentDataType.STRING)
+                        : null;
+        MobTier tier = id == null ? null : MobTier.parse(id);
+        if (tier == null
+                || zones == null
+                || !zones.canTravel(p, tier.id())
+                || fr.cliker.clikerv2.outpost.WorldInventories.isolated(p)) {
+            p.sendMessage("§cTiens un parchemin d’une zone débloquée au spawn.");
+            return;
+        }
+        group.tier = tier;
+        group.openToPublic = true;
+        Bukkit.broadcast(
+                fr.cliker.clikerv2.daily.DailySettings.color(
+                                "&d⚔ &f"
+                                        + p.getName()
+                                        + " &7ouvre son raid à trois renforts. &e[Participer]")
+                        .clickEvent(
+                                net.kyori.adventure.text.event.ClickEvent.runCommand(
+                                        "/raid participer " + p.getName())));
+        lobby(p);
+    }
+
+    private void joinPublic(Player p, String name) {
+        Player leader = Bukkit.getPlayerExact(name);
+        Party group = leader == null ? null : memberships.get(leader.getUniqueId());
+        if (group == null
+                || !group.openToPublic
+                || group.raid != null
+                || group.members.size() >= 4
+                || group.leader.equals(p.getUniqueId())) {
+            p.sendMessage("§cCe raid public n’a plus de place disponible.");
+            return;
+        }
+        if (group.tier == null
+                || zones == null
+                || !zones.canTravel(p, group.tier.id())
+                || fr.cliker.clikerv2.outpost.WorldInventories.isolated(p)
+                || p.isDead()) {
+            p.sendMessage("§cTu dois avoir débloqué cette zone et être disponible au clicker.");
+            return;
+        }
+        Party existing = memberships.get(p.getUniqueId());
+        if (existing != null && (existing.raid != null || existing.members.size() > 1)) {
+            p.sendMessage("§cQuitte d’abord ton groupe de raid.");
+            return;
+        }
+        if (existing != null) memberships.remove(p.getUniqueId(), existing);
+        group.members.add(p.getUniqueId());
+        memberships.put(p.getUniqueId(), group);
+        invites.remove(p.getUniqueId());
+        refreshLobby(group);
+        lobby(p);
+        leader.sendMessage(
+                "§a"
+                        + p.getName()
+                        + " rejoint ton raid ("
+                        + (group.members.size() - 1)
+                        + "/3 renforts).");
     }
 
     private void launch(Player p, Party group) {
@@ -455,6 +538,11 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                             tier.ordinal() + 1,
                             false,
                             () -> finish(group));
+            if (group.openToPublic) {
+                var helpers = new HashSet<>(group.members);
+                helpers.remove(group.leader);
+                raid.publicParty(group.leader, helpers);
+            }
             group.raid = raid;
             group.tier = tier;
             group.slot = slot;
@@ -861,6 +949,11 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
             return true;
         }
         switch (a[0].toLowerCase(Locale.ROOT)) {
+            case "public" -> openPublic(p);
+            case "participer" -> {
+                if (a.length == 2) joinPublic(p, a[1]);
+                else p.sendMessage("§e/raid participer <chef>");
+            }
             case "inviter" -> {
                 if (a.length == 2) {
                     var other = Bukkit.getPlayerExact(a[1]);
@@ -914,6 +1007,8 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                 : s.hasPermission("cliker.services.admin")
                                         ? List.of(
                                                 "inviter",
+                                                "public",
+                                                "participer",
                                                 "accepter",
                                                 "lancer",
                                                 "rejoindre",
@@ -921,6 +1016,8 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                                 "parchemin")
                                         : List.of(
                                                 "inviter",
+                                                "public",
+                                                "participer",
                                                 "accepter",
                                                 "lancer",
                                                 "rejoindre",

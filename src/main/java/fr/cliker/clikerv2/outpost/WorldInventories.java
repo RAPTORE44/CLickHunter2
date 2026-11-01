@@ -79,6 +79,7 @@ public final class WorldInventories implements Listener {
     }
 
     public static boolean isolated(Player player) {
+        if (fr.cliker.clikerv2.community.AfkModule.isolated(player)) return true;
         var service = Bukkit.getServicesManager().load(WorldInventories.class);
         return service != null
                 && (service.inWorld(player)
@@ -104,6 +105,8 @@ public final class WorldInventories implements Listener {
         if (!isolated(player)) return true;
         String root = command.toLowerCase(Locale.ROOT).replaceFirst("^/", "").split(" ")[0];
         if (root.contains(":")) root = root.substring(root.indexOf(':') + 1);
+        if (fr.cliker.clikerv2.community.AfkModule.isolated(player))
+            return Set.of("afk", "afkshop").contains(root);
         return COMMANDS.contains(root);
     }
 
@@ -151,6 +154,7 @@ public final class WorldInventories implements Listener {
     }
 
     public void reconcile(Player player) {
+        if (fr.cliker.clikerv2.community.AfkModule.isolated(player)) return;
         if (failed.contains(player.getUniqueId())) return;
         var data = player.getPersistentDataContainer();
         String current = data.getOrDefault(active, PersistentDataType.STRING, "clicker");

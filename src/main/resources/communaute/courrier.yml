@@ -1,0 +1,6 @@
+maximum-courriers: 100
+delai-envoi-secondes: 10
+moderation:
+  autoriser-liens: false
+  # Ajouter ici des mots interdits, en minuscules et sans accents.
+  mots-interdits: []

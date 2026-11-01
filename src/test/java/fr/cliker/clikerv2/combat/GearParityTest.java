@@ -35,6 +35,29 @@ class GearParityTest {
                             new CompressorManager(),
                             bags);
             try {
+                player.getInventory().setItemInMainHand(SwordCommand.create());
+                assertEquals(5L, mobs.calculateDamage(player, MobTier.values()[0]));
+                var falling =
+                        (org.bukkit.entity.Player)
+                                java.lang.reflect.Proxy.newProxyInstance(
+                                        org.bukkit.entity.Player.class.getClassLoader(),
+                                        new Class<?>[] {org.bukkit.entity.Player.class},
+                                        (self, method, args) ->
+                                                switch (method.getName()) {
+                                                    case "getFallDistance" -> 0.7f;
+                                                    case "isOnGround",
+                                                                    "isSprinting",
+                                                                    "isInWater",
+                                                                    "isInsideVehicle",
+                                                                    "isClimbing",
+                                                                    "isFlying",
+                                                                    "isGliding",
+                                                                    "hasPotionEffect" ->
+                                                            false;
+                                                    default -> method.invoke(player, args);
+                                                });
+                assertEquals(8L, mobs.calculateDamage(falling, MobTier.values()[0]));
+                assertEquals(8L, mobs.calculateDamage(falling, MobTier.values()[0], true));
                 for (var tier : MobTier.values()) {
                     player.getInventory().clear();
                     player.getInventory().setItemInMainHand(TierGear.createSword(tier));

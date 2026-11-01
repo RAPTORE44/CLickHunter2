@@ -1,6 +1,33 @@
 # ClikerV2
 
-## Dernière mise à jour — 31 octobre 2026
+## Dernière mise à jour — 1er novembre 2026 — version 1.0.5
+
+- Coups critiques en retombant : dégâts ×1,5 arrondis au supérieur, cumulables avec le critique d'équipement. Calcul partagé par la chasse et les raids ; Dresseur reste à 5 de base (8 en critique sans autre bonus).
+- Courrier privé avec interface, rédaction privée par paragraphes, aperçu en livre, livres/objets joints, blocage des expéditeurs, modération configurable et notification à la connexion. Les pièces jointes vont dans l’inventaire, avec surplus dans `/claim`.
+- Monde AFK vide avec sphère en verre, inventaire sauvegardé puis vidé et rendu à la sortie, commandes limitées et chat isolé. Préparation asynchrone des chunks avant le transfert. ZNPCsPlus 2.0.0 est nécessaire au filtre du chat ; l’entrée est refusée si le filtre est indisponible.
+- Dix minutes AFK = un point. Boutique : caisse Rare 1 point, Divine 6 points et quatre talismans à bonus fixes Écus/XP/Gemmes. Meilleur tier actif dans les sacs ; achats livrés au retour au clicker. Sauvegarde de durée par session, sans crédit hors ligne.
+- Raids publics : un chef et trois renforts maximum ; chef avec lot normal et renforts à un tiers du lot de base chacun, uniquement s’ils contribuent au boss. Raids privés proportionnels conservés. Parchemin de la zone après victoire, livré par le journal durable.
+- Notifications privées sous forme de succès Minecraft : courrier, niveaux multiples de dix, Daily, déblocage de zone et victoire. File limitée, aucune annonce globale ; secours par titre si l’API de succès échoue.
+- Validation : **462 tests automatisés réussis**, aucun échec ni test ignoré ; parcours Paper du courrier, des succès et de l’isolation AFK avec restitution et livraison.
+- Configuration : `communaute/afk.yml`, `communaute/courrier.yml`, `communaute/notifications.yml` et `activites/raid.yml` (`parchemins.victoire`). [Installation et validation](docs/MISE-A-JOUR-1.0.5.md).
+
+### Commandes : courrier et AFK
+
+| Commande | Utilisation | Permission |
+| --- | --- | --- |
+| `/courrier` ou `/mail` | Boîte aux lettres, lecture et pièces jointes. | `cliker.courrier` |
+| `/courrier ecrire <pseudo>` | Menu de rédaction ; texte privé dans le chat, `terminer` pour revenir au menu, `annuler` pour suspendre. | `cliker.courrier` |
+| `/courrier envoyer <pseudo>` | Envoyer toute la pile tenue ; les livres sont acceptés. | `cliker.courrier` |
+| `/courrier bloquer <pseudo>` / `/courrier debloquer <pseudo>` | Refuser ou autoriser les prochains envois. | `cliker.courrier` |
+| `/afk` | Rejoindre le monde AFK. | `cliker.afk` |
+| `/afk quitter` | Retrouver son monde, son inventaire, son mode de jeu et son XP. `sortir` et `exit` acceptés. | `cliker.afk` |
+| `/afkshop` | Boutique de points ; accessible aussi depuis le clicker. | `cliker.afk` |
+| `/raid public` | Ouvrir son groupe seul, avec un parchemin en main ; annonce cliquable. | `cliker.raid` |
+| `/raid participer <chef>` | Rejoindre avant le lancement, si la zone est débloquée. | `cliker.raid` |
+
+Les deux nouvelles permissions sont accordées aux joueurs par défaut. La liste complète des autres commandes, classées par catégorie, reste ci-dessous.
+
+## Mise à jour 1.0.4 — 31 octobre 2026
 
 - **Version 1.0.4** : mise en veille des mobs et hologrammes sans joueur à proximité (64 blocs par défaut), conservation des spawns et PV au réveil. Plus de chargement forcé de tous les chunks au démarrage/reset, plus de neuf chunks de boss maintenus à vide. Mondes de raids privés chargés seulement au lancement ; tâches de combat et d’hologrammes suspendues dans les arènes vides.
 - Effets de coup, particules de dégâts, animations de blessure et sons réservés à l’attaquant. La mort des mobs reste visible par tous ; les attaques dangereuses des boss restent annoncées aux participants.

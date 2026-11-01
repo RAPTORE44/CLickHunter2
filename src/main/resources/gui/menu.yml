@@ -205,3 +205,19 @@ boutons:
     - '&eClique pour ouvrir.'
     commande: top
     permission: cliker.classement.use
+  courrier:
+    slot: 40
+    materiau: WRITTEN_BOOK
+    nom: '&b✉ Boîte aux lettres'
+    description:
+    - '&7Lettres privées, livres et objets entre joueurs.'
+    commande: courrier
+    permission: cliker.courrier
+  afk:
+    slot: 42
+    materiau: CLOCK
+    nom: '&3⌛ Monde AFK'
+    description:
+    - '&710 minutes = 1 point. Équipement conservé au retour.'
+    commande: afk
+    permission: cliker.afk

@@ -142,6 +142,31 @@ class PartyRaidsTest {
     }
 
     @Test
+    void publicRaidAcceptsThreeHelpersAndLaunchesWithEveryAcceptedMember() {
+        command(leader, "parchemin", "vache");
+        command(leader, "public");
+        command(member, "participer", leader.getName());
+        var second = server.addPlayer("Second");
+        second.teleport(lobby.getSpawnLocation());
+        second.addAttachment(plugin, "cliker.raid", true);
+        var third = server.addPlayer("Third");
+        third.teleport(lobby.getSpawnLocation());
+        third.addAttachment(plugin, "cliker.raid", true);
+        var fourth = server.addPlayer("Fourth");
+        fourth.teleport(lobby.getSpawnLocation());
+        fourth.addAttachment(plugin, "cliker.raid", true);
+        command(second, "participer", leader.getName());
+        command(third, "participer", leader.getName());
+        command(fourth, "participer", leader.getName());
+        command(leader, "lancer");
+        assertNotEquals(lobby, leader.getWorld());
+        assertEquals(leader.getWorld(), member.getWorld());
+        assertEquals(leader.getWorld(), second.getWorld());
+        assertEquals(leader.getWorld(), third.getWorld());
+        assertEquals(lobby, fourth.getWorld());
+    }
+
+    @Test
     void staffCanTeleportToActiveRaidWhileOutsidersRemainBlocked() {
         command(leader);
         command(leader, "parchemin", "vache");

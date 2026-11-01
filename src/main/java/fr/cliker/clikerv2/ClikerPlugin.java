@@ -100,6 +100,9 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private GearAttributeManager gearAttributeManager;
     private BossEventManager bossEventManager;
     private fr.cliker.clikerv2.features.ExpansionModule expansion;
+    private fr.cliker.clikerv2.community.AfkModule afkModule;
+    private fr.cliker.clikerv2.community.MailModule mailModule;
+    private fr.cliker.clikerv2.community.ToastNotifications toastNotifications;
     private DatabaseManager database;
     private EconomyService economy;
     private CustomMobManager mobManager;
@@ -743,6 +746,12 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+        var communityStore = new fr.cliker.clikerv2.community.CommunityStore(database);
+        toastNotifications = new fr.cliker.clikerv2.community.ToastNotifications(this);
+        mailModule =
+                new fr.cliker.clikerv2.community.MailModule(
+                        this, communityStore, claims, outgoingItems);
+        afkModule = new fr.cliker.clikerv2.community.AfkModule(this, communityStore, claims);
         getLogger().info("Economie active avec SQLite.");
     }
 
@@ -819,6 +828,9 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         stop("gearAttributeManager", gearAttributeManager, value -> value.shutdown());
         stop("mobManager", mobManager, value -> value.shutdown());
         stop("outgoingItems", outgoingItems, value -> value.shutdown());
+        stop("AFK", afkModule, value -> value.shutdown());
+        stop("courrier", mailModule, value -> value.shutdown());
+        stop("notifications", toastNotifications, value -> value.shutdown());
         stop("claims", claims, value -> value.shutdown());
         stop("hologramManager", hologramManager, value -> value.shutdown());
         stop("sharedHolograms", sharedHolograms, value -> value.shutdown());

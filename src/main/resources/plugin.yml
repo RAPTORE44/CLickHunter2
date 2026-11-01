@@ -5,6 +5,19 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  afk:
+    description: Rejoindre le monde AFK ou revenir avec son équipement
+    usage: /afk [quitter]
+    permission: cliker.afk
+  afkshop:
+    description: Boutique des points AFK
+    usage: /afkshop
+    permission: cliker.afk
+  courrier:
+    aliases: [mail]
+    description: Lettres privées et pièces jointes entre joueurs
+    usage: /courrier [ecrire|envoyer|bloquer|debloquer] <pseudo>
+    permission: cliker.courrier
   inv:
     description: Ouvrir et modifier l’inventaire d’un joueur en ligne
     usage: /inv <joueur>
@@ -98,7 +111,7 @@ commands:
     permission: cliker.mob.admin
     aliases: [bossrespawn]
   jeutchat:
-    description: Jeux de chat et récompense divine au premier gagnant
+    description: Jeux de chat et caisse selon le prestige au premier gagnant
     permission: cliker.jeutchat
   diagnostic:
     description: Diagnostic administrateur des données, destinations et services
@@ -312,6 +325,12 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.afk:
+    description: Accès au monde et à la boutique AFK
+    default: true
+  cliker.courrier:
+    description: Accès aux lettres et pièces jointes
+    default: true
   cliker.staff.inv:
     default: op
   cliker.staff.flyspeed:

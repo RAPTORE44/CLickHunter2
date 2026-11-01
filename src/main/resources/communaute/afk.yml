@@ -1,0 +1,10 @@
+# Monde créé à la première entrée ; ne pas changer son nom avec des joueurs dedans.
+monde: clickhunter_afk
+secondes-par-point: 600
+prix:
+  rare: 1
+  divine: 6
+  talisman-1: 12
+  talisman-2: 24
+  talisman-3: 36
+  talisman-4: 48

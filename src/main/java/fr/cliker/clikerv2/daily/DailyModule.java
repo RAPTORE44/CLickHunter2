@@ -175,6 +175,14 @@ public final class DailyModule implements CommandExecutor, TabCompleter, Listene
                                                 if (player.isOnline())
                                                     send(player, "erreur-commande");
                                             } else if (player.isOnline()) {
+                                                fr.cliker.clikerv2.community.ToastNotifications
+                                                        .show(
+                                                                player,
+                                                                org.bukkit.Material.CHEST,
+                                                                "Journée validée !",
+                                                                "Calendrier : jour "
+                                                                        + day
+                                                                        + " sur 31.");
                                                 fr.cliker.clikerv2.tutorial.OnboardingGuide.record(
                                                         player,
                                                         fr.cliker.clikerv2.tutorial.OnboardingGuide

@@ -107,6 +107,7 @@ public final class SessionConvenience implements Listener, CommandExecutor, TabC
     }
 
     public void ensureMenu(Player player) {
+        if (fr.cliker.clikerv2.community.AfkModule.isolated(player)) return;
         if (!player.isOnline() || player.isDead()) return;
         var delivery =
                 Bukkit.getServicesManager().load(fr.cliker.clikerv2.rewards.ClaimService.class);

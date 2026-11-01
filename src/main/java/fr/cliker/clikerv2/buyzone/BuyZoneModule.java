@@ -442,6 +442,12 @@ public final class BuyZoneModule implements Listener, CommandExecutor, TabComple
                                                 if (online != null) {
                                                     failure(online, error);
                                                     closeIfOpen(online, offer);
+                                                    fr.cliker.clikerv2.community.ToastNotifications
+                                                            .show(
+                                                                    online,
+                                                                    Material.ENDER_PEARL,
+                                                                    "Nouvelle zone débloquée !",
+                                                                    offer.zone.name());
                                                 } else
                                                     plugin.getLogger()
                                                             .log(

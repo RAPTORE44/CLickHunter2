@@ -913,7 +913,7 @@ public final class CustomMobManager implements Listener {
                                                 player, "degats")));
         compressorManager.onHit(player);
 
-        return Math.max(1L, applied);
+        return fr.cliker.clikerv2.combat.CriticalHits.apply(player, Math.max(1L, applied));
     }
 
     /**
@@ -1005,20 +1005,11 @@ public final class CustomMobManager implements Listener {
      */
     private long applyWeaponProcs(Player player, long baseDamage) {
         ItemStack weapon = player.getInventory().getItemInMainHand();
-        if (!weapon.hasItemMeta()) return baseDamage;
-        String gearMobId =
-                weapon.getItemMeta()
-                        .getPersistentDataContainer()
-                        .get(TierGear.SWORD_KEY, PersistentDataType.STRING);
-        if (gearMobId == null) return baseDamage;
-        MobTier tier = MobTier.parse(gearMobId);
-        if (tier == null) return baseDamage;
-
         long finalDamage = baseDamage;
 
         double critical = armorEnchantBonus(player, EnchantType.CRITICAL);
         if (critical > 0 && ThreadLocalRandom.current().nextDouble(100.0) < critical)
-            finalDamage *= 2;
+            finalDamage = finalDamage > Long.MAX_VALUE / 2 ? Long.MAX_VALUE : finalDamage * 2;
 
         double lifesteal =
                 ItemMods.getReforge(weapon) != null
@@ -1311,43 +1302,53 @@ public final class CustomMobManager implements Listener {
                         + (treasureTalisman ? 25 : 0);
         long cendresReward = weaponRuneBonus(killer, RuneType.CENDRES);
 
-        return fr.cliker.clikerv2.hunting.Gains.of(
-                Math.max(
-                        0,
-                        Math.round(
-                                ecusReward
-                                        * fr.cliker.clikerv2.features.Boosts.multiplier(
-                                                killer, "coins")
-                                        * (1
-                                                + fr.cliker.clikerv2.features.Talismans.power(
-                                                                "richesse",
-                                                                bagManager.generalTier(
-                                                                        uuid, "richesse"))
-                                                        / 100))),
-                Math.max(
-                        0,
-                        Math.round(
-                                gemmesReward
-                                        * fr.cliker.clikerv2.features.Boosts.multiplier(
-                                                killer, "gemmes"))),
-                Math.max(
-                        0,
-                        Math.round(
-                                cendresReward
-                                        * fr.cliker.clikerv2.features.Boosts.multiplier(
-                                                killer, "cendres"))),
-                Math.max(
-                        0,
-                        Math.round(
-                                xpReward
-                                        * fr.cliker.clikerv2.features.Boosts.multiplier(
-                                                killer, "xp")
-                                        * (1
-                                                + fr.cliker.clikerv2.features.Talismans.power(
-                                                                "sagesse",
-                                                                bagManager.generalTier(
-                                                                        uuid, "sagesse"))
-                                                        / 100))));
+        var gains =
+                fr.cliker.clikerv2.hunting.Gains.of(
+                        Math.max(
+                                0,
+                                Math.round(
+                                        ecusReward
+                                                * fr.cliker.clikerv2.features.Boosts.multiplier(
+                                                        killer, "coins")
+                                                * (1
+                                                        + fr.cliker.clikerv2.features.Talismans
+                                                                        .power(
+                                                                                "richesse",
+                                                                                bagManager
+                                                                                        .generalTier(
+                                                                                                uuid,
+                                                                                                "richesse"))
+                                                                / 100))),
+                        Math.max(
+                                0,
+                                Math.round(
+                                        gemmesReward
+                                                * fr.cliker.clikerv2.features.Boosts.multiplier(
+                                                        killer, "gemmes"))),
+                        Math.max(
+                                0,
+                                Math.round(
+                                        cendresReward
+                                                * fr.cliker.clikerv2.features.Boosts.multiplier(
+                                                        killer, "cendres"))),
+                        Math.max(
+                                0,
+                                Math.round(
+                                        xpReward
+                                                * fr.cliker.clikerv2.features.Boosts.multiplier(
+                                                        killer, "xp")
+                                                * (1
+                                                        + fr.cliker.clikerv2.features.Talismans
+                                                                        .power(
+                                                                                "sagesse",
+                                                                                bagManager
+                                                                                        .generalTier(
+                                                                                                uuid,
+                                                                                                "sagesse"))
+                                                                / 100))));
+        int afkTier = bagManager.generalTier(uuid, "afk");
+        return gains.plus(
+                fr.cliker.clikerv2.hunting.Gains.of(10L * afkTier, 10L * afkTier, 0, 5L * afkTier));
     }
 
     /**

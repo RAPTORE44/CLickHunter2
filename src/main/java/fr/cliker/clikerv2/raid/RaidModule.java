@@ -43,6 +43,16 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     private Gains normalReward, bossReward;
     private boolean managed, publicBoss, completed;
     private Runnable finished;
+    private UUID publicPartyLeader;
+    private Set<UUID> publicPartyHelpers = Set.of();
+
+    public void publicParty(UUID leader, Set<UUID> helpers) {
+        if (publicBoss || helpers.size() > 3)
+            throw new IllegalArgumentException("Groupe public invalide");
+        publicPartyLeader = leader;
+        publicPartyHelpers = Set.copyOf(helpers);
+    }
+
     private World world;
     private UUID boss;
     private long bossMax;
@@ -765,7 +775,11 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                             "raid-mob:" + id,
                             p.getUniqueId(),
                             p.getName(),
-                            fr.cliker.clikerv2.features.Boosts.rewards(p, normalReward))
+                            fr.cliker.clikerv2.features.Boosts.rewards(
+                                    p,
+                                    publicPartyHelpers.contains(p.getUniqueId())
+                                            ? PublicRaidRewards.third(normalReward)
+                                            : normalReward))
                     .whenComplete(
                             (paid, error) ->
                                     onMain(
@@ -796,7 +810,11 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                 if (contribution.containsKey(participant.getUniqueId()))
                     participant.sendMessage(DailySettings.color("&6Bilan du boss &8• &e" + podium));
         }
-        var shares = ProportionalRewards.allocate(bossReward, contribution);
+        var shares =
+                publicPartyLeader == null
+                        ? ProportionalRewards.allocate(bossReward, contribution)
+                        : PublicRaidRewards.allocate(
+                                bossReward, publicPartyLeader, publicPartyHelpers, contribution);
         Map<UUID, Gains> credited = new LinkedHashMap<>();
         shares.forEach(
                 (id, gain) ->
@@ -804,10 +822,21 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                                 id,
                                 fr.cliker.clikerv2.features.Boosts.rewards(
                                         Bukkit.getPlayer(id), gain)));
-        payShares(source, credited, players);
+        Map<UUID, String> scrollRewards = new LinkedHashMap<>();
+        if (managed && !publicBoss && config.getBoolean("parchemins.victoire", true))
+            for (UUID id : credited.keySet())
+                scrollRewards.put(
+                        id,
+                        fr.cliker.clikerv2.rewards.ClaimService.serialize(
+                                RaidScrolls.create(plugin, tier)));
+        payShares(source, credited, players, scrollRewards);
     }
 
-    private void payShares(UUID source, Map<UUID, Gains> shares, Map<UUID, String> players) {
+    private void payShares(
+            UUID source,
+            Map<UUID, Gains> shares,
+            Map<UUID, String> players,
+            Map<UUID, String> scrollRewards) {
         ledger.database()
                 .submit(
                         c -> {
@@ -820,6 +849,12 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                                             share.getKey(),
                                             players.getOrDefault(share.getKey(), "Joueur"),
                                             share.getValue());
+                                for (var reward : scrollRewards.entrySet())
+                                    fr.cliker.clikerv2.rewards.MailStore.insert(
+                                            c,
+                                            reward.getKey(),
+                                            "raid-victory-scroll:" + source + ":" + reward.getKey(),
+                                            reward.getValue());
                                 c.commit();
                                 return true;
                             } catch (SQLException ex) {
@@ -843,7 +878,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                                                                     if (!stopped)
                                                                         payShares(
                                                                                 source, shares,
-                                                                                players);
+                                                                                players,
+                                                                                        scrollRewards);
                                                                 },
                                                                 100);
                                                 return;
@@ -854,6 +890,29 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                                                         Player p = Bukkit.getPlayer(id);
                                                         if (p != null) {
                                                             message(p, "victoire");
+                                                            var claims =
+                                                                    Bukkit.getServicesManager()
+                                                                            .load(
+                                                                                    fr.cliker
+                                                                                            .clikerv2
+                                                                                            .rewards
+                                                                                            .ClaimService
+                                                                                            .class);
+                                                            if (claims != null) claims.resume(id);
+                                                            fr.cliker.clikerv2.community
+                                                                    .ToastNotifications.show(
+                                                                    p,
+                                                                    Material.PAPER,
+                                                                    publicBoss
+                                                                            ? "Boss serveur vaincu"
+                                                                                    + " !"
+                                                                            : "Raid remporté !",
+                                                                    publicBoss
+                                                                            ? "Ta contribution a"
+                                                                                  + " été récompensée."
+                                                                            : "Récompenses et"
+                                                                                  + " parchemin"
+                                                                                  + " enregistrés.");
                                                             for (String line : HuntUI.gains(gain))
                                                                 p.sendMessage(
                                                                         DailySettings.color(line));
