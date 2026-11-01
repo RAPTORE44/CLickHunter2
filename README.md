@@ -1,6 +1,23 @@
 # ClikerV2
 
-## Dernière mise à jour — 1er novembre 2026 — version 1.0.7
+## Dernière mise à jour — 1er novembre 2026 — version 1.0.8
+
+- Validation : **476 tests fonctionnels réussis**, aucun échec ni test ignoré ; les tests HTTP utilisent un transport simulé, pas un vrai salon Discord.
+- Notifications Discord par webhook : vagues de boss de zone, mort d'un boss de zone, apparition/victoire du boss serveur, piñatas, inscriptions aux enchères et ouverture d'un raid public. Événements, textes et couleurs configurables séparément.
+- Configuration privée : `plugins/ClikerV2/integrations/discord-notifications.yml`. Désactivé par défaut. Créer un webhook dans le salon Discord, renseigner `webhook-url`, mettre `actif: true`, puis `/discordnotif reload`. Le lien d'invitation `discord.gg` n'est pas un webhook. Ne jamais publier l'URL privée.
+- Aucun nouveau plugin ou bot Discord requis. Envois hors thread serveur, un seul en vol, file bornée et déduplication en mémoire ; mentions désactivées. Une panne Discord ne bloque pas le gameplay.
+- Les morts des boss de zone et les raids publics sont désactivés par défaut pour éviter le spam. Les compteurs d'inscription d'une même enchère ne créent qu'une notification Discord.
+- [Configuration, événements et limites](docs/NOTIFICATIONS-DISCORD.md). Le README conserve la liste complète des commandes par catégorie.
+
+### Administration Discord
+
+| Commande | Action | Permission |
+| --- | --- | --- |
+| `/discordnotif statut` | Afficher l'état et la file, sans révéler l'URL. | `cliker.discord.admin` (OP par défaut) |
+| `/discordnotif test` | Mettre un message de test en file ; seule sa réception dans le salon confirme l'envoi. | `cliker.discord.admin` |
+| `/discordnotif reload` | Recharger les paramètres sans redémarrage. Une configuration invalide conserve l'ancien état. | `cliker.discord.admin` |
+
+## Mise à jour 1.0.7 — 1er novembre 2026
 
 - Connexion SQLite réutilisée exclusivement sur son worker ; rollback des transactions interrompues, réinitialisation entre opérations et fermeture après vidage. Aucun changement des données, des récompenses ou de l'équilibrage.
 - TAB : priorité calculée une fois par joueur lors du tri, ordre et bandeau envoyés uniquement lorsqu'ils changent ; caches retirés à déconnexion et à l'arrêt. Fréquence et animations conservées.

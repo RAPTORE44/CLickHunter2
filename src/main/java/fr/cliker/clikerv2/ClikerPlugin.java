@@ -105,6 +105,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.community.ToastNotifications toastNotifications;
     private fr.cliker.clikerv2.cosmetics.WeaponSkins weaponSkins;
     private fr.cliker.clikerv2.combat.TrainingDummy trainingDummy;
+    private fr.cliker.clikerv2.discord.DiscordNotifications discordNotifications;
     private DatabaseManager database;
     private EconomyService economy;
     private CustomMobManager mobManager;
@@ -186,6 +187,16 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         outgoingItems = new fr.cliker.clikerv2.rewards.OutgoingItems(this, database, claims);
         outgoingItems.start();
         rewardLedger = new fr.cliker.clikerv2.hunting.RewardLedger(this, database);
+        try {
+            discordNotifications = new fr.cliker.clikerv2.discord.DiscordNotifications(this);
+        } catch (RuntimeException error) {
+            getLogger()
+                    .warning(
+                            "Notifications Discord indisponibles : vérifier"
+                                    + " integrations/discord-notifications.yml sans publier son URL"
+                                    + " privée.");
+            unavailableCommands("discordnotif");
+        }
         activityUI = new fr.cliker.clikerv2.hunting.HuntUI(this);
         new fr.cliker.clikerv2.ui.MenuNavigation(this);
         registerCurrencyCommand("ecus", CurrencyType.ECUS);
@@ -837,6 +848,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         stop("notifications", toastNotifications, value -> value.shutdown());
         stop("skins", weaponSkins, value -> value.shutdown());
         stop("mannequin", trainingDummy, value -> value.shutdown());
+        stop("notifications Discord", discordNotifications, value -> value.shutdown());
         stop("claims", claims, value -> value.shutdown());
         stop("hologramManager", hologramManager, value -> value.shutdown());
         stop("sharedHolograms", sharedHolograms, value -> value.shutdown());

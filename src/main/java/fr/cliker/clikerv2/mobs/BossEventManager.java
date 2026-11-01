@@ -103,6 +103,11 @@ public final class BossEventManager implements Listener {
 
     private void spawnWave() {
         mobManager.triggerBossWave();
+        if (!mobManager.bossSpawnIds().isEmpty())
+            fr.cliker.clikerv2.discord.DiscordNotifications.emit(
+                    "boss-zones-spawn",
+                    java.util.UUID.randomUUID().toString(),
+                    java.util.Map.of("nombre", Integer.toString(mobManager.bossSpawnIds().size())));
         hideBossBar();
         if (settings.getBoolean("annonces.actives", true)) {
             Component message =

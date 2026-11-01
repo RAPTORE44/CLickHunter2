@@ -5,6 +5,10 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  discordnotif:
+    description: Gérer les notifications Discord des événements
+    usage: /discordnotif [statut|test|reload]
+    permission: cliker.discord.admin
   skin:
     description: Collection de skins et parchemins d’épée
     usage: /skin [donner <joueur> [quantité] [normal|special|evenement]]

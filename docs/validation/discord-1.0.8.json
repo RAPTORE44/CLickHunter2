@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "checks": [
+    "Commande statut : notifications désactivées sans URL divulguée",
+    "Test sans webhook : aucun envoi HTTP",
+    "Rechargement de la configuration réussi"
+  ],
+  "chat": [
+    "Notifications Discord : désactivées. /discordnotif test | reload",
+    "Notifications désactivées ou file pleine. Configure integrations/discord-notifications.yml.",
+    "Configuration des notifications Discord rechargée."
+  ],
+  "version": "1.0.8",
+  "automatedFunctional": {
+    "tests": 476,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "externalDiscordTest": "Non effectué : aucun webhook réel fourni ; transport simulé dans les tests."
+}

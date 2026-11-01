@@ -431,6 +431,8 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         }
         group.tier = tier;
         group.openToPublic = true;
+        fr.cliker.clikerv2.discord.DiscordNotifications.emit(
+                "raid-public", UUID.randomUUID().toString(), Map.of("joueur", p.getName()));
         Bukkit.broadcast(
                 fr.cliker.clikerv2.daily.DailySettings.color(
                                 "&d⚔ &f"
@@ -698,6 +700,8 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         try {
             serverBoss.beginPublicBoss();
             serverActive = true;
+            fr.cliker.clikerv2.discord.DiscordNotifications.emit(
+                    "boss-serveur-spawn", UUID.randomUUID().toString(), Map.of());
             Bukkit.broadcast(
                     net.kyori.adventure.text.Component.text(
                                     "⚔ Le boss du serveur est apparu ! Tout le monde peut rejoindre"
@@ -823,6 +827,10 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                                 return;
                                             }
                                             serverActive = false;
+                                            fr.cliker.clikerv2.discord.DiscordNotifications.emit(
+                                                    "boss-serveur-mort",
+                                                    UUID.randomUUID().toString(),
+                                                    Map.of());
                                             Bukkit.broadcast(
                                                     net.kyori.adventure.text.Component.text(
                                                             "Le boss du serveur a été vaincu !"

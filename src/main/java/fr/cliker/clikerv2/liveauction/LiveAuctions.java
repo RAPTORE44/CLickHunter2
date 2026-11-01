@@ -234,6 +234,9 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
     }
 
     private void registrationAnnouncement(long seconds) {
+        if (state != null)
+            fr.cliker.clikerv2.discord.DiscordNotifications.emit(
+                    "enchere-inscriptions", state.id(), Map.of("secondes", Long.toString(seconds)));
         Bukkit.broadcast(
                 DailySettings.color(
                                 text("inscription").replace("{secondes}", Long.toString(seconds))

@@ -1,0 +1,50 @@
+# URL PRIVÉE : Discord > Paramètres du salon > Intégrations > Webhooks.
+# Ne jamais publier ce fichier une fois l'URL renseignée.
+actif: false
+webhook-url: ''
+nom-webhook: 'ClickHunter • Événements'
+serveur: ClickHunter
+adresse: play.clickhunter.fr
+file-maximum: 64
+# Toutes les mentions Discord sont neutralisées, y compris celles des pseudos.
+evenements:
+  test:
+    actif: true
+    titre: '✅ Notifications {serveur}'
+    texte: 'Les événements de {serveur} sont reliés à ce salon. Rejoins-nous : {adresse}'
+    couleur: 5763719
+  boss-zones-spawn:
+    actif: true
+    titre: '⚔️ Les boss de zone sont disponibles !'
+    texte: '{nombre} points de boss ont été réinitialisés. Rejoins ta zone sur {adresse} !'
+    couleur: 16766720
+  boss-zone-mort:
+    actif: false
+    titre: '🏆 Boss {boss} vaincu'
+    texte: '{joueur} a éliminé le boss {boss} sur {serveur}.'
+    couleur: 5763719
+  boss-serveur-spawn:
+    actif: true
+    titre: '🔥 Le boss du serveur est arrivé !'
+    texte: 'Tous les joueurs peuvent rejoindre avec /boss sur {adresse}.'
+    couleur: 15548997
+  boss-serveur-mort:
+    actif: true
+    titre: '🏆 Le boss du serveur a été vaincu !'
+    texte: 'Les récompenses ont été réparties selon les dégâts des participants.'
+    couleur: 5763719
+  pinata-spawn:
+    actif: true
+    titre: '🎉 Une piñata est apparue !'
+    texte: 'Récompense : {recompense}. Rejoins-la avec /pinata tp sur {adresse} !'
+    couleur: 10181046
+  enchere-inscriptions:
+    actif: true
+    titre: '🔨 Les inscriptions aux enchères sont ouvertes !'
+    texte: 'Rejoins avec /enchere rejoindre sur {adresse}. Début dans {secondes} secondes.'
+    couleur: 16766720
+  raid-public:
+    actif: false
+    titre: '🛡️ {joueur} ouvre un raid public'
+    texte: 'Trois renforts peuvent rejoindre : /raid participer {joueur}, sur {adresse}.'
+    couleur: 3447003

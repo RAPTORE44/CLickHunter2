@@ -241,6 +241,13 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                                                         ClickEvent.runCommand(
                                                                                 "/pinata tp")));
                                                 tick();
+                                                fr.cliker.clikerv2.discord.DiscordNotifications
+                                                        .emit(
+                                                                "pinata-spawn",
+                                                                UUID.randomUUID().toString(),
+                                                                Map.of(
+                                                                        "recompense",
+                                                                        rewardLabel()));
                                             } catch (RuntimeException failure) {
                                                 plugin.getLogger()
                                                         .log(
