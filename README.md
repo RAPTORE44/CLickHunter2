@@ -1,6 +1,13 @@
 # ClikerV2
 
-## Dernière mise à jour — 1er novembre 2026 — version 1.0.8
+## Dernière mise à jour — 1er novembre 2026 — version 1.0.9
+
+- Icônes : calcul des cases décorables une fois par rafraîchissement, au lieu de reclasser le menu pour chacune des 54 cases. Sur le test instrumenté, 108 → 2 lectures du holder par image. Les objets de joueurs, lots, ventes et boutiques vanilla gardent leurs exclusions.
+- Scoreboard : réutilisation des composants déjà calculés tant que pseudo, niveau, prestige, soldes, kills et nombre de connectés ne changent pas. Les données restent lues à la même fréquence ; toute modification apparaît au rafraîchissement suivant. Les lignes modifiées extérieurement restent rétablies.
+- Autoclic : aucune tâche périodique sans utilisateur ; démarrage à l'activation, arrêt après la dernière désactivation, révocation ou déconnexion. La cadence, l'épée obligatoire et la portée d'un bloc sont conservées.
+- **478 tests fonctionnels réussis**, aucun échec ni test ignoré. Aucune commande, permission, dépendance, récompense ou donnée persistante modifiée. [Validation et limites](docs/OPTIMISATION-1.0.9.md).
+
+## Mise à jour 1.0.8 — 1er novembre 2026
 
 - Validation : **476 tests fonctionnels réussis**, aucun échec ni test ignoré ; les tests HTTP utilisent un transport simulé, pas un vrai salon Discord.
 - Notifications Discord par webhook : vagues de boss de zone, mort d'un boss de zone, apparition/victoire du boss serveur, piñatas, inscriptions aux enchères et ouverture d'un raid public. Événements, textes et couleurs configurables séparément.

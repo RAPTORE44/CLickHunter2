@@ -117,39 +117,45 @@ public final class MenuIcons implements Listener {
     }
 
     static boolean eligible(Inventory inventory, int slot) {
+        return slot >= 0
+                && slot < inventory.getSize()
+                && (eligibleSlots(inventory) & (1L << slot)) != 0;
+    }
+
+    static long eligibleSlots(Inventory inventory) {
         var holder = inventory.getHolder();
-        if (holder == null) return false;
-        if (holder instanceof fr.cliker.clikerv2.features.Menus.View view && view.vanilla)
-            return false;
-        if (fr.cliker.clikerv2.social.SocialModule.isSnapshot(inventory)) return false;
+        if (holder == null) return 0;
+        if (holder instanceof fr.cliker.clikerv2.features.Menus.View view && view.vanilla) return 0;
+        if (fr.cliker.clikerv2.social.SocialModule.isSnapshot(inventory)) return 0;
         String type = holder.getClass().getName();
-        if (!type.startsWith("fr.cliker.clikerv2.")) return false;
-        if (type.contains("MerchantMenu$") && slot != 49) return false;
-        // Les prix, les lots et la tête du meilleur enchérisseur gardent leur apparence réelle.
-        if (type.contains("LiveAuctions$View") && (slot < 45 || slot == 49 || slot == 50))
-            return false;
-        if (holder instanceof fr.cliker.clikerv2.features.Menus.View view
-                && view.merchandise
-                && slot < 45) return false;
-        if (type.contains("BagMenu$") && inventory.getSize() == 54) return false;
-        if (type.contains("SellMenu$") && slot < 45) return false;
-        if (type.contains("ClaimService$") && slot < 45) return false;
-        if (type.contains("AuctionMenu$Listings") && slot < 45) return false;
-        if (type.contains("AuctionMenu$Confirmation") && slot == 13) return false;
-        if ((type.contains("EnchantMenu$")
-                        || type.contains("ReforgeMenu$")
-                        || type.contains("RuneMenu$"))
-                && slot == 4) return false;
-        if (type.contains("StatsMenu$") && Set.of(12, 21, 30, 39, 22).contains(slot)) return false;
-        return true;
+        if (!type.startsWith("fr.cliker.clikerv2.")) return 0;
+        int size = inventory.getSize();
+        if (size <= 0 || size > 54) return 0;
+        long mask = (1L << size) - 1, products = (1L << 45) - 1;
+        if (type.contains("MerchantMenu$")) mask &= 1L << 49;
+        if (type.contains("LiveAuctions$View")) mask &= ~(products | (1L << 49) | (1L << 50));
+        if (holder instanceof fr.cliker.clikerv2.features.Menus.View view && view.merchandise)
+            mask &= ~products;
+        if (type.contains("BagMenu$") && size == 54) return 0;
+        if (type.contains("SellMenu$")
+                || type.contains("ClaimService$")
+                || type.contains("AuctionMenu$Listings")) mask &= ~products;
+        if (type.contains("AuctionMenu$Confirmation")) mask &= ~(1L << 13);
+        if (type.contains("EnchantMenu$")
+                || type.contains("ReforgeMenu$")
+                || type.contains("RuneMenu$")) mask &= ~(1L << 4);
+        if (type.contains("StatsMenu$"))
+            mask &= ~((1L << 12) | (1L << 21) | (1L << 30) | (1L << 39) | (1L << 22));
+        return mask;
     }
 
     public void render(Inventory inventory) {
         if (!config.getBoolean("active", true)) return;
         ItemStack[] previous =
                 rendered.computeIfAbsent(inventory, ignored -> new ItemStack[inventory.getSize()]);
+        long eligible = eligibleSlots(inventory);
         for (int slot = 0; slot < inventory.getSize(); slot++) {
-            if (!eligible(inventory, slot)) continue;
+            if ((eligible & (1L << slot)) == 0) continue;
             var item = inventory.getItem(slot);
             if (item == null) {
                 previous[slot] = null;
@@ -246,8 +252,7 @@ public final class MenuIcons implements Listener {
     public void open(InventoryOpenEvent event) {
         if (!(event.getPlayer() instanceof Player player)) return;
         var inventory = event.getInventory();
-        if (!java.util.stream.IntStream.range(0, inventory.getSize())
-                .anyMatch(slot -> eligible(inventory, slot))) return;
+        if (eligibleSlots(inventory) == 0) return;
         render(inventory);
         views.put(player.getUniqueId(), inventory);
         if (task == null)

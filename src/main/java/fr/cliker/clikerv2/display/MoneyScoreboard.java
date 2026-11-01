@@ -321,16 +321,31 @@ public final class MoneyScoreboard implements Listener {
 
     private void update(
             Player player, Session session, EconomyService.Balances balances, Long kills) {
-        Map<String, String> values =
-                values(
+        var state =
+                new RenderState(
                         player.getName(),
                         player.getLevel(),
                         prestige.getLevel(player.getUniqueId()),
                         balances,
                         kills,
                         plugin.getServer().getOnlinePlayers().size());
+        if (!state.equals(session.state)) {
+            Map<String, String> values =
+                    values(
+                            player.getName(),
+                            player.getLevel(),
+                            prestige.getLevel(player.getUniqueId()),
+                            balances,
+                            kills,
+                            plugin.getServer().getOnlinePlayers().size());
+            session.content = new Component[lines.size()];
+            for (int i = 0; i < lines.size(); i++)
+                session.content[i] =
+                        DailySettings.color(DailySettings.replace(lines.get(i), values));
+            session.state = state;
+        }
         for (int i = 0; i < lines.size(); i++) {
-            Component content = DailySettings.color(DailySettings.replace(lines.get(i), values));
+            Component content = session.content[i];
             Team team = session.board.getTeam("cliker_line_" + i);
             if (!content.equals(team.prefix())) team.prefix(content);
         }
@@ -355,5 +370,22 @@ public final class MoneyScoreboard implements Listener {
 
     private record Snapshot(EconomyService.Balances balances, Long kills) {}
 
-    private record Session(Scoreboard board, Scoreboard previous) {}
+    private record RenderState(
+            String name,
+            int level,
+            int prestige,
+            EconomyService.Balances balances,
+            Long kills,
+            int online) {}
+
+    private static final class Session {
+        final Scoreboard board, previous;
+        RenderState state;
+        Component[] content;
+
+        Session(Scoreboard board, Scoreboard previous) {
+            this.board = board;
+            this.previous = previous;
+        }
+    }
 }

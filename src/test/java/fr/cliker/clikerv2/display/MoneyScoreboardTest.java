@@ -151,6 +151,26 @@ class MoneyScoreboardTest {
                         .getOption(org.bukkit.scoreboard.Team.Option.COLLISION_RULE));
         assertTrue(board.getTeam("cliker_no_push").hasEntry(player.getName()));
         assertEquals(14, formats.get());
+        var original = board.getTeam("cliker_line_4").prefix();
+        server.getScheduler().performTicks(40);
+        database.submit(c -> null).join();
+        server.getScheduler().performOneTick();
+        assertSame(original, board.getTeam("cliker_line_4").prefix());
+        board.getTeam("cliker_line_4").prefix(net.kyori.adventure.text.Component.text("incorrect"));
+        server.getScheduler().performTicks(40);
+        database.submit(c -> null).join();
+        server.getScheduler().performOneTick();
+        assertEquals(original, board.getTeam("cliker_line_4").prefix());
+        economy.set(player.getUniqueId(), player.getName(), CurrencyType.GEMMES_SOMBRES, 250)
+                .join();
+        server.getScheduler().performTicks(40);
+        database.submit(c -> null).join();
+        server.getScheduler().performOneTick();
+        assertTrue(
+                PlainTextComponentSerializer.plainText()
+                        .serialize(board.getTeam("cliker_line_4").prefix())
+                        .contains("25"));
+
         scoreboard.shutdown();
         assertSame(previous, player.getScoreboard());
     }

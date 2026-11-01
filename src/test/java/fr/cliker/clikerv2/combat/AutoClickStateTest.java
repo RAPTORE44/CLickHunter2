@@ -92,6 +92,27 @@ class AutoClickStateTest {
     }
 
     @Test
+    void timerStopsWhenUnusedAndDoesNotDuplicateOnRepeatedStart() throws Exception {
+        var field = AutoClickManager.class.getDeclaredField("task");
+        field.setAccessible(true);
+        var running = (org.bukkit.scheduler.BukkitTask) field.get(manager);
+        assertNotNull(running);
+        manager.start();
+        assertSame(running, field.get(manager));
+        manager.onCommand(player, null, "autoclick", new String[0]);
+        assertTrue(running.isCancelled());
+        assertNull(field.get(manager));
+        manager.start();
+        assertNull(field.get(manager));
+        manager.onCommand(player, null, "autoclick", new String[0]);
+        assertNotNull(field.get(manager));
+        manager.onQuit(
+                new org.bukkit.event.player.PlayerQuitEvent(
+                        player, net.kyori.adventure.text.Component.empty()));
+        assertNull(field.get(manager));
+    }
+
+    @Test
     void emptyHandSkipsAllTargetSearches() {
         player.getInventory().clear();
         server.getScheduler().performTicks(50);

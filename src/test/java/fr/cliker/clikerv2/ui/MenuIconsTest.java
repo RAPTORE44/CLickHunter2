@@ -33,6 +33,40 @@ class MenuIconsTest {
     }
 
     @Test
+    void inventoryClassificationIsDoneOncePerFrame() {
+        MockBukkit.mock();
+        var plugin = MockBukkit.createMockPlugin();
+        var calls = new java.util.concurrent.atomic.AtomicInteger();
+        var holder = new Holder();
+        var inventory =
+                (Inventory)
+                        java.lang.reflect.Proxy.newProxyInstance(
+                                Inventory.class.getClassLoader(),
+                                new Class<?>[] {Inventory.class},
+                                (self, method, args) ->
+                                        switch (method.getName()) {
+                                            case "getHolder" -> {
+                                                calls.incrementAndGet();
+                                                yield holder;
+                                            }
+                                            case "getSize" -> 54;
+                                            case "getItem" -> null;
+                                            case "hashCode" -> System.identityHashCode(self);
+                                            case "equals" -> self == args[0];
+                                            default -> null;
+                                        });
+        var icons = new MenuIcons(plugin, id -> null);
+        try {
+            icons.render(inventory);
+            assertEquals(2, calls.get());
+            icons.render(inventory);
+            assertEquals(4, calls.get());
+        } finally {
+            icons.shutdown();
+        }
+    }
+
+    @Test
     void changedDailyStateRefreshesModelAndLoreAfterAnUnchangedFrame() {
         MockBukkit.mock();
         var plugin = MockBukkit.createMockPlugin();
@@ -67,8 +101,7 @@ class MenuIconsTest {
         assertEquals(20, holder.inventory.getItem(13).getItemMeta().getCustomModelData());
         assertEquals(meta.lore(), holder.inventory.getItem(13).getItemMeta().lore());
         assertEquals(
-                java.util.List.of(
-                        "icons:etats_cadenas_ferme_grise", "icons:recompenses_cadeau"),
+                java.util.List.of("icons:etats_cadenas_ferme_grise", "icons:recompenses_cadeau"),
                 ids);
     }
 

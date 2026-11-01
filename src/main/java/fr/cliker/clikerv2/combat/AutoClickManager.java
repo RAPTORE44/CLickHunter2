@@ -47,6 +47,7 @@ public final class AutoClickManager implements CommandExecutor, Listener {
     }
 
     public void start() {
+        if (task != null || active.isEmpty()) return;
         task = plugin.getServer().getScheduler().runTaskTimer(plugin, this::tick, 10L, 10L);
     }
 
@@ -109,6 +110,7 @@ public final class AutoClickManager implements CommandExecutor, Listener {
                     player.setCooldown(weapon.getType(), interval);
             }
         }
+        stopIfIdle();
     }
 
     /** Cadence effective du moteur, vérifié par pas de dix ticks. */
@@ -157,9 +159,11 @@ public final class AutoClickManager implements CommandExecutor, Listener {
         UUID uuid = player.getUniqueId();
         if (active.remove(uuid)) {
             lastAttackTick.remove(uuid);
+            stopIfIdle();
             player.sendMessage(Component.text("Autoclick désactivé.", NamedTextColor.RED));
         } else {
             active.add(uuid);
+            start();
             player.sendMessage(
                     Component.text(
                             "Autoclick activé : vise une créature. La cadence dépend de tes"
@@ -173,10 +177,19 @@ public final class AutoClickManager implements CommandExecutor, Listener {
     public void onQuit(PlayerQuitEvent event) {
         active.remove(event.getPlayer().getUniqueId());
         lastAttackTick.remove(event.getPlayer().getUniqueId());
+        stopIfIdle();
+    }
+
+    private void stopIfIdle() {
+        if (active.isEmpty() && task != null) {
+            task.cancel();
+            task = null;
+        }
     }
 
     public void shutdown() {
         if (task != null) task.cancel();
+        task = null;
         active.clear();
         lastAttackTick.clear();
         org.bukkit.event.HandlerList.unregisterAll(this);

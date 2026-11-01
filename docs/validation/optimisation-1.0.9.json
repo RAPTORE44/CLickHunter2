@@ -1,0 +1,25 @@
+{
+  "success": true,
+  "checks": [
+    "/stats ouvre les statistiques de la cible",
+    "Collection skins : catégories, verrouillages et retour",
+    "Enchère test : menu, mise simulée sans téléportation",
+    "Mannequin d’entraînement créé",
+    "Classements : calendrier mensuel accessible",
+    "Menu principal : raccourci skins présent"
+  ],
+  "chat": [],
+  "version": "1.0.9",
+  "automatedFunctional": {
+    "tests": 478,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "structuralMeasurement": {
+    "inventorySlots": 54,
+    "holderReadsBefore": 108,
+    "holderReadsAfter": 2,
+    "method": "instrumentation après, comparaison avec le chemin antérieur ; pas un pourcentage CPU"
+  }
+}
