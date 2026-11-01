@@ -1189,7 +1189,7 @@ public final class CustomMobManager implements Listener {
                                                                     fr.cliker.clikerv2.rewards
                                                                             .ClaimService.class);
                                             if (delivery != null) delivery.notifyAndDeliver(owner);
-                                            if (recipient == null
+                                            if ((recipient == null || fr.cliker.clikerv2.outpost.WorldInventories.isolated(recipient))
                                                     && dropLocation
                                                             .getWorld()
                                                             .isChunkLoaded(

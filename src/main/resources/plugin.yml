@@ -261,7 +261,7 @@ commands:
     permission: cliker.upgrade.use
   stats:
     description: Ouvre le menu de statistiques du joueur
-    usage: /stats
+    usage: /stats [pseudo]
     permission: cliker.stats.use
   prestige:
     description: Ouvre le menu de prestige (niveau + mobs tués)
