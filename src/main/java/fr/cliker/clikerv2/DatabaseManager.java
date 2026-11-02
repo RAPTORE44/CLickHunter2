@@ -183,6 +183,24 @@ public final class DatabaseManager {
                         + " NOT NULL,cycle TEXT NOT NULL,baseline INTEGER NOT NULL,claimed INTEGER"
                         + " NOT NULL DEFAULT 0,PRIMARY KEY(owner,contract,cycle))");
             statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS contract_offers(owner TEXT NOT NULL,cycle TEXT NOT"
+                        + " NULL,slot INTEGER NOT NULL,mob TEXT NOT NULL,target INTEGER NOT"
+                        + " NULL,ecus INTEGER NOT NULL,gems INTEGER NOT NULL,cendres INTEGER NOT"
+                        + " NULL,xp INTEGER NOT NULL,PRIMARY KEY(owner,cycle,slot))");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS boss_reports(source TEXT NOT NULL,owner TEXT NOT"
+                        + " NULL,boss TEXT NOT NULL,label TEXT NOT NULL,damage INTEGER NOT"
+                        + " NULL,total INTEGER NOT NULL,ecus INTEGER NOT NULL,gems INTEGER NOT"
+                        + " NULL,cendres INTEGER NOT NULL,xp INTEGER NOT NULL,items TEXT NOT"
+                        + " NULL,created INTEGER NOT NULL,PRIMARY KEY(source,owner))");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS boss_records(owner TEXT NOT NULL,boss TEXT NOT"
+                        + " NULL,damage INTEGER NOT NULL,percent REAL NOT NULL,fights INTEGER NOT"
+                        + " NULL,PRIMARY KEY(owner,boss))");
+            statement.executeUpdate(
+                    "CREATE INDEX IF NOT EXISTS boss_reports_owner ON boss_reports(owner,created"
+                        + " DESC)");
+            statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS outposts(id INTEGER PRIMARY KEY AUTOINCREMENT,owner"
                         + " TEXT NOT NULL UNIQUE,name TEXT NOT NULL,tier INTEGER NOT NULL DEFAULT"
                         + " 0)");

@@ -119,4 +119,42 @@ class ContractStoreTest {
         economy.set(owner, "Joueur", fr.cliker.clikerv2.economy.CurrencyType.ECUS, 0).join();
         assertEquals("recompense", interact(boss, "today"));
     }
+
+    private ContractStore.Contract adaptive(String mob, long target) {
+        return new ContractStore.Contract(
+                "adaptatif-0", mob, false, target, Gains.of(target, 0, 0, 0));
+    }
+
+    @Test
+    void adaptiveOfferCanFollowProgressionUntilAcceptedThenSurvivesReloadAndConfigChanges() {
+        kill(false);
+        var first = adaptive("vache", 2);
+        assertEquals(first, store.offers(owner, "day", List.of(first)).join().getFirst());
+        var advanced = adaptive("cochon", 20);
+        assertEquals(advanced, store.offers(owner, "day", List.of(advanced)).join().getFirst());
+        assertEquals("actualise", interact(first, "day"));
+        hunts.kill("pig", owner, "Joueur", "cochon", false, Gains.of(0, 0, 0, 0), List.of()).join();
+        assertEquals("accepte", interact(advanced, "day"));
+        var reloaded = new ContractStore(ledger);
+        assertEquals(
+                advanced,
+                reloaded.offers(owner, "day", List.of(adaptive("warden", 999))).join().getFirst());
+        assertEquals(advanced, reloaded.savedOffers(owner, "day").join().getFirst());
+        assertEquals(first, reloaded.offers(owner, "tomorrow", List.of(first)).join().getFirst());
+    }
+
+    @Test
+    void claimedAdaptiveSlotCannotBeRerolledAndPaidAgainByChangingZone() {
+        kill(false);
+        var offer = adaptive("vache", 1);
+        store.offers(owner, "day", List.of(offer)).join();
+        assertEquals("accepte", interact(offer, "day"));
+        kill(false);
+        assertEquals("recompense", interact(offer, "day"));
+        assertEquals(
+                offer,
+                store.offers(owner, "day", List.of(adaptive("cochon", 100))).join().getFirst());
+        assertEquals("deja", interact(offer, "day"));
+        assertEquals(1, economy.getBalances(owner).join().ecus());
+    }
 }

@@ -48,6 +48,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,6 +69,7 @@ public final class CustomMobManager implements Listener {
     public static NamespacedKey MOB_ID_KEY;
 
     private final JavaPlugin plugin;
+    private final Map<String, Map<UUID, Long>> bossContributions = new HashMap<>();
     private final fr.cliker.clikerv2.combat.DamagePopups damagePopups;
     private final double bossHpMultiplier;
     private final MobSpawnStore store;
@@ -466,6 +468,7 @@ public final class CustomMobManager implements Listener {
         pendingRespawns.clear();
         sleepingSpawns.clear();
         currentHealth.clear();
+        bossContributions.clear();
     }
 
     public void addSpawn(String mobId, Location location) {
@@ -668,6 +671,7 @@ public final class CustomMobManager implements Listener {
         bossTargets.remove(spawnId);
         UUID uuid = aliveBySpawnId.remove(spawnId);
         currentHealth.remove(spawnId);
+        bossContributions.remove(spawnId);
         if (uuid == null) return;
         Entity entity = plugin.getServer().getEntity(uuid);
         if (entity != null) entity.remove();
@@ -836,6 +840,10 @@ public final class CustomMobManager implements Listener {
         }
         long maxHp = boss ? bossHealth(tier) : Math.round(tier.maxHealth());
         long hpBefore = currentHealth.getOrDefault(spawnId, maxHp);
+        if (boss && applied > 0 && hpBefore > 0)
+            bossContributions
+                    .computeIfAbsent(spawnId, ignored -> new LinkedHashMap<>())
+                    .merge(player.getUniqueId(), Math.min(hpBefore, applied), Math::addExact);
         long hpAfter = Math.max(0, hpBefore - applied);
         currentHealth.put(spawnId, hpAfter);
         if (applied > 0) {
@@ -1066,6 +1074,8 @@ public final class CustomMobManager implements Listener {
         var provider = fr.cliker.clikerv2.hologram.SharedHolograms.service();
         if (provider != null) provider.remove("mob:" + spawnId);
         boolean boss = bossSpawnIds.remove(spawnId);
+        Map<UUID, Long> contributions = bossContributions.remove(spawnId);
+        if (contributions == null) contributions = Map.of();
 
         var combatTelemetry =
                 org.bukkit.Bukkit.getServicesManager()
@@ -1086,7 +1096,7 @@ public final class CustomMobManager implements Listener {
         }
         if (killer != null) {
             try {
-                rewardKill(killer, victim, tier, boss, fightDuration);
+                rewardKill(killer, victim, tier, boss, fightDuration, Map.copyOf(contributions));
             } catch (RuntimeException error) {
                 plugin.getLogger()
                         .log(
@@ -1117,7 +1127,12 @@ public final class CustomMobManager implements Listener {
 
     /** Le reçu du kill valide tous les objets et monnaies avant le moindre affichage. */
     private void rewardKill(
-            Player killer, LivingEntity victim, MobTier tier, boolean boss, long fightDuration) {
+            Player killer,
+            LivingEntity victim,
+            MobTier tier,
+            boolean boss,
+            long fightDuration,
+            Map<UUID, Long> contributions) {
         int amount = ThreadLocalRandom.current().nextInt(1, 4);
         List<ItemStack> drops = new ArrayList<>();
         drops.add(EssenceItem.create(tier, amount));
@@ -1151,7 +1166,28 @@ public final class CustomMobManager implements Listener {
                         tier.id(),
                         boss,
                         gains,
-                        serializeDrops(drops))
+                        serializeDrops(drops),
+                        contributions,
+                        drops.isEmpty()
+                                ? "&7Aucun objet supplémentaire."
+                                : drops.stream()
+                                        .map(
+                                                item ->
+                                                        "&7"
+                                                                + item.getAmount()
+                                                                + " × "
+                                                                + (item.getItemMeta()
+                                                                                .hasDisplayName()
+                                                                        ? net.kyori.adventure.text
+                                                                                .serializer.plain
+                                                                                .PlainTextComponentSerializer
+                                                                                .plainText()
+                                                                                .serialize(
+                                                                                        item.getItemMeta()
+                                                                                                .displayName())
+                                                                        : item.getType()
+                                                                                .translationKey()))
+                                        .collect(java.util.stream.Collectors.joining("\n")))
                 .whenComplete(
                         (ok, error) -> {
                             if (!plugin.isEnabled()) return;
@@ -1182,7 +1218,8 @@ public final class CustomMobManager implements Listener {
                                             if (delivery != null) delivery.notifyAndDeliver(owner);
                                             Player current = org.bukkit.Bukkit.getPlayer(owner);
                                             if (current != null) {
-                                                if (boss) showBossReward(current, extra);
+                                                // Le bilan privé remplace les lignes de récompenses
+                                                // du boss.
                                                 announceLootboxes(current, boxes);
                                             }
                                             org.bukkit.Bukkit.getPluginManager()
@@ -1203,6 +1240,15 @@ public final class CustomMobManager implements Listener {
                                                     && org.bukkit.Bukkit.getPlayer(owner) == killer)
                                                 telemetry.confirmedKill(
                                                         killer, tier, boss, earned, fightDuration);
+                                            if (boss)
+                                                for (UUID participant : contributions.keySet()) {
+                                                    Player viewer =
+                                                            org.bukkit.Bukkit.getPlayer(
+                                                                    participant);
+                                                    if (viewer != null)
+                                                        fr.cliker.clikerv2.hunting.BossReports
+                                                                .notify(viewer);
+                                                }
                                             ledger.flushXP(owner);
                                             if (fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(
                                                             killer)

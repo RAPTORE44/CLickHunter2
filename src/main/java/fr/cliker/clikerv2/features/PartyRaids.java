@@ -252,25 +252,14 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         var group = party(p);
         var v = menus.create(p, 27, "Groupe de raid");
         int i = 0;
-        for (UUID id : group.members) {
-            var member = Bukkit.getOfflinePlayer(id);
-            v.put(
-                    i++,
-                    Menus.item(
-                            Material.PLAYER_HEAD,
-                            (id.equals(group.leader) ? "Chef : " : "Membre : ") + member.getName()),
-                    null);
-        }
+        for (UUID id : group.members) v.put(i++, memberItem(group, id), null);
         v.put(
                 18,
                 Menus.item(Material.EMERALD, "Inviter des joueurs", "Ou /raid inviter <pseudo>"),
                 (player, r) -> inviteMenu(player, 0));
         v.put(
                 22,
-                Menus.item(
-                        group.raid == null ? Material.PAPER : Material.ENDER_PEARL,
-                        group.raid == null ? "Lancer le raid" : "Rejoindre le raid",
-                        "Chef : tiens un parchemin de zone en main."),
+                launchItem(group),
                 (player, r) -> {
                     var current = party(player);
                     if (current.raid == null) launch(player, current);
@@ -292,6 +281,13 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                     leave(player);
                     player.closeInventory();
                 });
+        v.put(
+                24,
+                Menus.item(
+                        Material.CLOCK,
+                        "&bActualiser la préparation",
+                        "&7Vérifier le parchemin, les accès et le matériel."),
+                (who, right) -> refreshLobby(group));
         v.show(p);
         lobbies.put(p.getUniqueId(), v.getInventory());
     }
@@ -306,14 +302,142 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
             for (int slot = 0; slot < 8; slot++)
                 inventory.setItem(slot, Menus.item(Material.BLACK_STAINED_GLASS_PANE, " "));
             int slot = 0;
-            for (UUID member : group.members)
-                inventory.setItem(
-                        slot++,
-                        Menus.item(
-                                Material.PLAYER_HEAD,
-                                (member.equals(group.leader) ? "Chef : " : "Membre : ")
-                                        + Bukkit.getOfflinePlayer(member).getName()));
+            for (UUID member : group.members) inventory.setItem(slot++, memberItem(group, member));
+            inventory.setItem(22, launchItem(group));
         }
+    }
+
+    private MobTier selectedTier(Party group) {
+        if (group.raid != null) return group.tier;
+        Player leader = Bukkit.getPlayer(group.leader);
+        if (leader == null) return null;
+        ItemStack held = leader.getInventory().getItemInMainHand();
+        String id =
+                held.hasItemMeta()
+                        ? held.getItemMeta()
+                                .getPersistentDataContainer()
+                                .get(scroll, PersistentDataType.STRING)
+                        : null;
+        return id == null ? null : MobTier.parse(id);
+    }
+
+    private List<String> blockers(Party group, UUID id, MobTier tier) {
+        List<String> reasons = new ArrayList<>();
+        Player member = Bukkit.getPlayer(id);
+        if (member == null) {
+            reasons.add("hors ligne");
+            return reasons;
+        }
+        if (member.isDead()) reasons.add("joueur mort");
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(member))
+            reasons.add("hors inventaire clicker");
+        if (!member.hasPermission("cliker.raid")) reasons.add("permission raid manquante");
+        if (tier == null) reasons.add("parchemin du chef manquant");
+        else if (zones == null || !zones.canTravel(member, tier.id()))
+            reasons.add("zone non débloquée");
+        var delivery = Bukkit.getServicesManager().load(ClaimService.class);
+        if (delivery != null && delivery.isDelivering(id))
+            reasons.add("transfert d'objets en cours");
+        return reasons;
+    }
+
+    private ItemStack memberItem(Party group, UUID id) {
+        Player member = Bukkit.getPlayer(id);
+        MobTier tier = selectedTier(group);
+        List<String> reasons = blockers(group, id, tier);
+        List<String> lore = new ArrayList<>();
+        lore.add(reasons.isEmpty() ? "&a✔ Prêt" : "&c✘ Non prêt");
+        boolean unlocked =
+                member != null
+                        && tier != null
+                        && zones != null
+                        && zones.canTravel(member, tier.id());
+        lore.add(
+                tier == null
+                        ? "&7Zone : &eparchemin du chef à choisir"
+                        : "&7Zone : " + (unlocked ? "&a✔ débloquée" : "&c✘ verrouillée"));
+        lore.add(
+                id.equals(group.leader)
+                        ? "&7Parchemin : "
+                                + (tier == null ? "&c✘ absent ou invalide" : "&a✔ valide en main")
+                        : "&7Parchemin : &bcelui du chef suffit");
+        lore.add("&8────────────────────");
+        lore.add("&eÉquipement conseillé (non bloquant)");
+        lore.add(
+                unlocked
+                        ? "&7Épée et set : &f" + tier.label() + " &7ou mieux."
+                        : "&7Épée et armures de la zone du raid.");
+        if (member != null && unlocked) {
+            int armor = 0;
+            for (ItemStack piece : member.getInventory().getArmorContents()) {
+                if (piece == null || !piece.hasItemMeta()) continue;
+                String tag =
+                        piece.getItemMeta()
+                                .getPersistentDataContainer()
+                                .get(
+                                        new NamespacedKey(plugin, "cliker_tier_armor"),
+                                        PersistentDataType.STRING);
+                MobTier pieceTier = tag == null ? null : MobTier.parse(tag);
+                if (pieceTier != null && pieceTier.ordinal() >= tier.ordinal()) armor++;
+            }
+            lore.add(
+                    (armor == 4 ? "&a✔ " : "&e⚠ ")
+                            + "Armure de niveau conseillé : "
+                            + armor
+                            + "/4 pièces");
+        }
+        if (member != null)
+            lore.add(
+                    fr.cliker.clikerv2.combat.CombatReach.sword(
+                                    member.getInventory().getItemInMainHand())
+                            ? "&a✔ Épée en main"
+                            : "&e⚠ Aucune épée en main");
+        for (String reason : reasons) lore.add("&c• " + reason);
+        ItemStack icon =
+                Menus.item(
+                        Material.PLAYER_HEAD,
+                        (reasons.isEmpty() ? "&a" : "&c")
+                                + (id.equals(group.leader) ? "Chef : " : "Membre : ")
+                                + Objects.toString(Bukkit.getOfflinePlayer(id).getName(), "Joueur"),
+                        lore.toArray(String[]::new));
+        return icon;
+    }
+
+    private ItemStack launchItem(Party group) {
+        if (group.raid != null) return Menus.item(Material.ENDER_PEARL, "&aRejoindre le raid");
+        MobTier tier = selectedTier(group);
+        List<String> lore = new ArrayList<>();
+        for (UUID id : group.members) {
+            List<String> reasons = blockers(group, id, tier);
+            if (!reasons.isEmpty())
+                lore.add(
+                        "&c"
+                                + Objects.toString(Bukkit.getOfflinePlayer(id).getName(), "Joueur")
+                                + " : "
+                                + String.join(", ", reasons));
+        }
+        int limit = Math.max(1, Math.min(4, settings.yaml.getInt("groupes.maximum-simultanes", 4)));
+        if (active.size() >= limit) lore.add("&cToutes les arènes sont occupées.");
+        boolean ready = lore.isEmpty();
+        if (ready) lore.add("&a✔ Tous les membres sont prêts.");
+        lore.add("&7Seul le chef lance le raid.");
+        lore.add("&7L'équipement conseillé ne bloque pas le départ.");
+        return Menus.item(
+                ready ? Material.LIME_DYE : Material.BARRIER,
+                ready ? "&aLancer le raid" : "&cDépart bloqué",
+                lore.toArray(String[]::new));
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void preparationHeld(PlayerItemHeldEvent event) {
+        Party group = memberships.get(event.getPlayer().getUniqueId());
+        if (group != null)
+            Bukkit.getScheduler()
+                    .runTask(
+                            plugin,
+                            () -> {
+                                if (!stopped) refreshLobby(group);
+                            });
     }
 
     @EventHandler
@@ -537,12 +661,13 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                     || player.isDead()
                     || fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)
                     || !zones.canTravel(player, tier.id())
-                    || !player.hasPermission("cliker.raid")) {
+                    || !player.hasPermission("cliker.raid")
+                    || deliveries != null && deliveries.isDelivering(member)) {
                 p.sendMessage(
                         "Impossible de lancer : "
                                 + (player == null ? member : player.getName())
                                 + " doit être en ligne, hors avant-poste, autorisé au raid et avoir"
-                                + " débloqué la zone.");
+                                + " débloqué la zone et terminé ses transferts d'objets.");
                 return;
             }
         }

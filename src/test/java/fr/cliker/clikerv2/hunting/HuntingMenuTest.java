@@ -73,9 +73,11 @@ class HuntingMenuTest {
     }
 
     private void drain() throws Exception {
-        db.submit(c -> null).join();
-        Thread.sleep(10);
-        server.getScheduler().performOneTick();
+        for (int i = 0; i < 6; i++) {
+            db.submit(c -> null).join();
+            Thread.sleep(10);
+            server.getScheduler().performOneTick();
+        }
     }
 
     private String allText() {
@@ -146,5 +148,55 @@ class HuntingMenuTest {
                         Map.of(0, new org.bukkit.inventory.ItemStack(Material.DIAMOND)));
         server.getPluginManager().callEvent(drag);
         assertTrue(drag.isCancelled());
+    }
+
+    @Test
+    void adaptiveContractsUseHighestAccessibleDiscoveredZoneAndThreeIncreasingDifficulties()
+            throws Exception {
+        var zones =
+                new fr.cliker.clikerv2.buyzone.BuyZoneModule(
+                        plugin, new EconomyService(db, Map.of()), db);
+        try {
+            module.setZones(zones);
+            zones.join(
+                    new org.bukkit.event.player.PlayerJoinEvent(
+                            player, net.kyori.adventure.text.Component.empty()));
+            player.addAttachment(plugin, "cliker.contrats", true);
+            player.addAttachment(plugin, "cliker.zone.cochon", true);
+            for (String mob : List.of("vache", "cochon", "mouton"))
+                store.kill(
+                                "discover-" + mob,
+                                player.getUniqueId(),
+                                player.getName(),
+                                mob,
+                                false,
+                                Gains.of(0, 0, 0, 0),
+                                List.of())
+                        .join();
+            drain();
+            module.openContracts(player);
+            drain();
+            assertTrue(allText().contains("Cochon"));
+            assertFalse(allText().contains("Vache"));
+            assertFalse(allText().contains("Mouton"));
+            assertTrue(allText().contains("Facile"));
+            assertTrue(allText().contains("Normal"));
+            assertTrue(allText().contains("Difficile"));
+            var offers =
+                    new ContractStore(ledger)
+                            .savedOffers(
+                                    player.getUniqueId(),
+                                    java.time.LocalDate.now(java.time.ZoneId.of("Europe/Paris"))
+                                            .toString())
+                            .join();
+            assertEquals(3, offers.size());
+            assertTrue(offers.get(0).target() < offers.get(1).target());
+            assertTrue(offers.get(1).target() < offers.get(2).target());
+            assertEquals(
+                    Material.PAPER,
+                    player.getOpenInventory().getTopInventory().getItem(13).getType());
+        } finally {
+            zones.shutdown();
+        }
     }
 }

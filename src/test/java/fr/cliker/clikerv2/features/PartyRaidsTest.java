@@ -399,4 +399,73 @@ class PartyRaidsTest {
         command(member, "rejoindre");
         assertSame(leader.getWorld(), member.getWorld());
     }
+
+    private String preparationText(int slot) {
+        var meta = leader.getOpenInventory().getTopInventory().getItem(slot).getItemMeta();
+        return meta.displayName().toString() + meta.lore().toString();
+    }
+
+    @Test
+    void preparationExplainsMissingScrollAndZoneAndDoesNotRequireHelpersToCarryScrolls() {
+        zones.join(
+                new org.bukkit.event.player.PlayerJoinEvent(
+                        leader, net.kyori.adventure.text.Component.empty()));
+        zones.join(
+                new org.bukkit.event.player.PlayerJoinEvent(
+                        member, net.kyori.adventure.text.Component.empty()));
+        drain();
+        command(leader);
+        assertTrue(preparationText(0).contains("Non prêt"));
+        assertTrue(preparationText(22).contains("parchemin"));
+        leader.addAttachment(plugin, "cliker.zone.cochon", true);
+        command(leader, "parchemin", "cochon");
+        command(leader, "inviter", member.getName());
+        command(member, "accepter", leader.getName());
+        assertTrue(preparationText(1).contains("zone non débloquée"));
+        assertTrue(preparationText(1).contains("celui du chef suffit"));
+        assertEquals(
+                Material.BARRIER,
+                leader.getOpenInventory().getTopInventory().getItem(22).getType());
+        member.addAttachment(plugin, "cliker.zone.cochon", true);
+        command(leader);
+        assertTrue(preparationText(1).contains("Prêt"));
+        assertTrue(preparationText(22).contains("Tous les membres sont prêts"));
+        assertEquals(
+                Material.LIME_DYE,
+                leader.getOpenInventory().getTopInventory().getItem(22).getType());
+        clickLaunch();
+        assertEquals(leader.getWorld(), member.getWorld());
+        assertNotEquals(lobby, leader.getWorld());
+    }
+
+    @Test
+    void pendingMemberTransferBlocksLaunchWithoutConsumingLeaderScroll() {
+        command(leader, "parchemin", "vache");
+        command(leader, "inviter", member.getName());
+        command(member, "accepter", leader.getName());
+        var parchment = leader.getInventory().getItemInMainHand().clone();
+        var pending = new java.util.concurrent.CompletableFuture<Void>();
+        var outgoing = new OutgoingItems(plugin, db, claims, p -> {});
+        server.getServicesManager()
+                .register(OutgoingItems.class, outgoing, plugin, ServicePriority.Normal);
+        org.bukkit.configuration.serialization.ConfigurationSerialization.registerClass(
+                org.mockbukkit.mockbukkit.inventory.ItemStackMock.class);
+        try {
+            var diamond = new org.bukkit.inventory.ItemStack(Material.DIAMOND);
+            member.getInventory().setItemInMainHand(diamond);
+            assertTrue(outgoing.consumeHeld(member, diamond, receipt -> pending, error -> {}));
+            command(leader);
+            assertTrue(preparationText(1).contains("transfert d'objets en cours"));
+            assertEquals(
+                    Material.BARRIER,
+                    leader.getOpenInventory().getTopInventory().getItem(22).getType());
+            command(leader, "lancer");
+            assertTrue(sessions.stream().noneMatch(session -> !session.publicBoss));
+            assertEquals(parchment, leader.getInventory().getItemInMainHand());
+            assertEquals(lobby, leader.getWorld());
+        } finally {
+            outgoing.shutdown();
+            pending.cancel(false);
+        }
+    }
 }

@@ -792,24 +792,6 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     }
 
     private void payBoss(UUID source, Map<UUID, Long> contribution, Map<UUID, String> players) {
-        List<Map.Entry<UUID, Long>> ranking =
-                contribution.entrySet().stream()
-                        .sorted(Map.Entry.<UUID, Long>comparingByValue().reversed())
-                        .limit(5)
-                        .toList();
-        if (!ranking.isEmpty()) {
-            String podium =
-                    ranking.stream()
-                            .map(
-                                    entry ->
-                                            players.getOrDefault(entry.getKey(), "Joueur")
-                                                    + " : "
-                                                    + Numbers.compact(entry.getValue()))
-                            .collect(java.util.stream.Collectors.joining("  •  "));
-            for (Player participant : world.getPlayers())
-                if (contribution.containsKey(participant.getUniqueId()))
-                    participant.sendMessage(DailySettings.color("&6Bilan du boss &8• &e" + podium));
-        }
         var shares =
                 publicPartyLeader == null
                         ? ProportionalRewards.allocate(bossReward, contribution)
@@ -829,14 +811,24 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                         id,
                         fr.cliker.clikerv2.rewards.ClaimService.serialize(
                                 RaidScrolls.create(plugin, tier)));
-        payShares(source, credited, players, scrollRewards);
+        payShares(
+                source,
+                credited,
+                players,
+                scrollRewards,
+                contribution,
+                (publicBoss ? "serveur:" : "raid:") + tier.id(),
+                (publicBoss ? "Boss serveur • " : "Raid • ") + tier.label());
     }
 
     private void payShares(
             UUID source,
             Map<UUID, Gains> shares,
             Map<UUID, String> players,
-            Map<UUID, String> scrollRewards) {
+            Map<UUID, String> scrollRewards,
+            Map<UUID, Long> contribution,
+            String bossKey,
+            String bossLabel) {
         ledger.database()
                 .submit(
                         c -> {
@@ -855,6 +847,22 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                                             reward.getKey(),
                                             "raid-victory-scroll:" + source + ":" + reward.getKey(),
                                             reward.getValue());
+                                long totalDamage = BossReports.total(contribution);
+                                for (var entry : contribution.entrySet())
+                                    BossReports.record(
+                                            c,
+                                            source.toString(),
+                                            entry.getKey(),
+                                            bossKey,
+                                            bossLabel,
+                                            entry.getValue(),
+                                            totalDamage,
+                                            shares.getOrDefault(
+                                                    entry.getKey(), Gains.of(0, 0, 0, 0)),
+                                            scrollRewards.containsKey(entry.getKey())
+                                                    ? "&dParchemin de raid enregistré (inventaire"
+                                                          + " ou /claim)."
+                                                    : "&7Aucun objet supplémentaire.");
                                 c.commit();
                                 return true;
                             } catch (SQLException ex) {
@@ -877,9 +885,13 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                                                                 () -> {
                                                                     if (!stopped)
                                                                         payShares(
-                                                                                source, shares,
+                                                                                source,
+                                                                                shares,
                                                                                 players,
-                                                                                        scrollRewards);
+                                                                                scrollRewards,
+                                                                                contribution,
+                                                                                bossKey,
+                                                                                bossLabel);
                                                                 },
                                                                 100);
                                                 return;
@@ -889,7 +901,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                                                         ledger.flushXP(id);
                                                         Player p = Bukkit.getPlayer(id);
                                                         if (p != null) {
-                                                            message(p, "victoire");
+                                                            BossReports.notify(p);
                                                             var claims =
                                                                     Bukkit.getServicesManager()
                                                                             .load(
@@ -913,9 +925,6 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                                                                             : "Récompenses et"
                                                                                   + " parchemin"
                                                                                   + " enregistrés.");
-                                                            for (String line : HuntUI.gains(gain))
-                                                                p.sendMessage(
-                                                                        DailySettings.color(line));
                                                         }
                                                     });
                                             if (managed && finished != null) finished.run();

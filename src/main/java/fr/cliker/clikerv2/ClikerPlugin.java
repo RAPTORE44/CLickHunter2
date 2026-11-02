@@ -326,6 +326,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             if (huntingModule != null) huntingModule.shutdown();
             unavailable("bestiaire");
             unavailable("contrats");
+            unavailable("bilanboss");
         }
         try {
             outpostModule = new fr.cliker.clikerv2.outpost.OutpostModule(this, database, claims);
@@ -565,6 +566,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             if (buyZoneModule != null) buyZoneModule.shutdown();
             buyZoneModule = null;
         }
+        if (huntingModule != null) huntingModule.setZones(buyZoneModule);
         getServer()
                 .getPluginManager()
                 .registerEvents(new fr.cliker.clikerv2.security.SystemEggProtection(), this);

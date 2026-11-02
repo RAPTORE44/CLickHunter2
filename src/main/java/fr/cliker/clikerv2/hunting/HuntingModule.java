@@ -24,6 +24,8 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
     private final RewardLedger ledger;
     private final CustomMobManager mobs;
     private final ContractStore contracts;
+    private final BossReports bossReports;
+    private fr.cliker.clikerv2.buyzone.BuyZoneModule zones;
     private final List<ContractStore.Contract> definitions = new ArrayList<>();
     private final File file;
     private final YamlConfiguration config;
@@ -35,6 +37,7 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
     private record OpenRequest(long id, org.bukkit.inventory.Inventory inventory, UUID world) {}
 
     private final Map<UUID, OpenRequest> requests = new HashMap<>();
+    private final Map<UUID, List<ContractStore.Contract>> offers = new HashMap<>();
     private long requestId;
     private boolean stopped;
 
@@ -46,6 +49,7 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
         this.mobs = mobs;
         pinnedContract = new org.bukkit.NamespacedKey(plugin, "pinned_hunting_contract");
         contracts = new ContractStore(ledger);
+        bossReports = new BossReports(plugin, ledger);
         file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "chasse.yml");
         if (!file.exists()) fr.cliker.clikerv2.config.ConfigFiles.install(plugin, "chasse.yml");
         config = fr.cliker.clikerv2.config.YamlFiles.load(file);
@@ -76,6 +80,21 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
                                         config.getLong(p + "cendres"),
                                         config.getLong(p + "xp"))));
             }
+        String[] levels = {"facile", "normal", "difficile"};
+        long[] targets = {30, 100, 300};
+        for (int i = 0; i < levels.length; i++) {
+            String path = "adaptatifs." + levels[i] + ".";
+            if (!config.contains(path + "objectif")) {
+                config.set(path + "objectif", targets[i]);
+                config.set(path + "supplement-par-zone", i == 0 ? 5 : i == 1 ? 15 : 40);
+                config.set(path + "multiplicateur-recompense", i == 0 ? 1 : i == 1 ? 3 : 9);
+                added = true;
+            }
+        }
+        if (!config.contains("messages.actualise")) {
+            config.set("messages.actualise", "&eCette offre a changé. Vérifie le nouvel objectif.");
+            added = true;
+        }
         if (added) save();
         Bukkit.getPluginManager().registerEvents(this, plugin);
         npc =
@@ -88,7 +107,12 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
                         "ClickHunterContrats");
     }
 
+    public void setZones(fr.cliker.clikerv2.buyzone.BuyZoneModule zones) {
+        this.zones = zones;
+    }
+
     public void start() {
+        bossReports.start();
         for (String command : List.of("bestiaire", "contrats")) {
             Objects.requireNonNull(plugin.getCommand(command)).setExecutor(this);
             plugin.getCommand(command).setTabCompleter(this);
@@ -129,7 +153,8 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
                                                     "Chasse : erreur SQLite",
                                                     error);
                                     if (player.isOnline()) message(player, "erreur");
-                                } else if (player.isOnline()) action.accept(value);
+                                } else if (fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(
+                                        player)) action.accept(value);
                             });
                 });
     }
@@ -251,138 +276,256 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
         }
         long request = request(player);
         String cycle = cycle();
-        var stats = store.stats(player.getUniqueId());
-        var progress = contracts.progress(player.getUniqueId(), definitions, cycle);
         result(
                 player,
-                CompletableFuture.allOf(stats, progress),
-                ignored -> {
+                store.stats(player.getUniqueId()),
+                known -> {
                     if (!current(player, request)) return;
-                    var known = stats.join();
-                    java.util.function.IntConsumer pin =
-                            slot -> {
-                                if (slot < 0 || slot >= definitions.size()) return;
-                                var contract = definitions.get(slot);
-                                var stat = known.get(contract.mob());
-                                if (stat == null || stat.kills() == 0) {
-                                    player.sendMessage("§7Découvre d'abord cette créature.");
-                                    return;
-                                }
-                                var data = player.getPersistentDataContainer();
-                                String existing =
-                                        data.get(
-                                                pinnedContract,
-                                                org.bukkit.persistence.PersistentDataType.STRING);
-                                if (contract.id().equals(existing)) {
-                                    data.remove(pinnedContract);
-                                    player.sendMessage("§7Suivi du contrat retiré.");
-                                    player.sendActionBar(
-                                            net.kyori.adventure.text.Component.empty());
-                                } else {
-                                    data.set(
-                                            pinnedContract,
-                                            org.bukkit.persistence.PersistentDataType.STRING,
-                                            contract.id());
-                                    player.sendMessage(
-                                            "§aContrat épinglé : "
-                                                    + MobTier.parse(contract.mob()).label()
-                                                    + (contract.boss() ? " (boss)" : "")
-                                                    + "."
-                                                    + " Le suivi apparaît dans ta barre d'action.");
-                                    updatePinned(player, contract);
-                                }
-                            };
-                    var view =
-                            HuntUI.view(
-                                    player,
-                                    "&6Contrats &8• &7" + cycle,
-                                    54,
-                                    slot -> {
-                                        if (!player.hasPermission("cliker.contrats")
-                                                || slot < 0
-                                                || slot >= definitions.size()
-                                                || !cycle.equals(cycle())
-                                                || !busy.add(player.getUniqueId())) return;
-                                        var contract = definitions.get(slot);
-                                        var clickedInventory =
-                                                player.getOpenInventory().getTopInventory();
-                                        result(
-                                                player,
-                                                contracts.interact(
-                                                        player.getUniqueId(),
-                                                        player.getName(),
-                                                        contract,
-                                                        cycle),
-                                                status -> {
-                                                    busy.remove(player.getUniqueId());
-                                                    message(player, status);
-                                                    ledger.flushXP(player.getUniqueId());
-                                                    if (player.getOpenInventory().getTopInventory()
-                                                            == clickedInventory)
-                                                        openContracts(player);
-                                                });
-                                    },
-                                    pin);
-                    for (int i = 0; i < definitions.size(); i++) {
-                        var contract = definitions.get(i);
-                        var mob = MobTier.parse(contract.mob());
-                        var stat = known.get(contract.mob());
-                        if (stat == null || stat.kills() == 0) {
-                            view.inventory.setItem(
-                                    i,
-                                    HuntUI.item(
-                                            Material.GRAY_DYE,
-                                            "&8Contrat inconnu",
-                                            List.of("&7Découvre d'abord la créature.")));
-                            continue;
-                        }
-                        var state = progress.join().get(contract.id());
-                        List<String> lore = new ArrayList<>();
-                        lore.add(
-                                "&7Objectif : &f"
-                                        + contract.target()
-                                        + " "
-                                        + (contract.boss() ? "boss" : "mobs"));
-                        lore.add(
-                                "&7Progression : &f"
-                                        + Math.min(state.done(), contract.target())
-                                        + "/"
-                                        + contract.target());
-                        lore.add("");
-                        lore.addAll(HuntUI.gains(contract.reward()));
-                        lore.add("");
-                        lore.add("&eClic droit pour épingler le suivi.");
-                        lore.add(
-                                state.claimed()
-                                        ? "&aRécompense récupérée"
-                                        : !state.accepted()
-                                                ? "&eClique pour accepter"
-                                                : state.done() >= contract.target()
-                                                        ? "&aClique pour réclamer"
-                                                        : "&7Contrat en cours");
-                        view.inventory.setItem(
-                                i,
-                                HuntUI.item(
-                                        state.claimed()
-                                                ? Material.LIME_DYE
-                                                : contract.boss()
-                                                        ? Material.NETHER_STAR
-                                                        : Material.PAPER,
-                                        "&e" + mob.label() + (contract.boss() ? " &c• Boss" : ""),
-                                        lore));
+                    MobTier highest = MobTier.values()[0];
+                    for (MobTier mob : MobTier.values()) {
+                        var stat = known.get(mob.id());
+                        if (zones != null
+                                && zones.canTravel(player, mob.id())
+                                && stat != null
+                                && stat.kills() > 0) highest = mob;
                     }
-                    view.inventory.setItem(
-                            49,
-                            HuntUI.item(
-                                    Material.CLOCK,
-                                    "&bContrats quotidiens",
-                                    List.of(
-                                            "&7Réinitialisation à minuit : " + zone,
-                                            "&7Seules les éliminations après acceptation comptent.",
-                                            "&7Réclame tes récompenses avant minuit.")));
-                    fr.cliker.clikerv2.ui.MenuNavigation.back(plugin, view.inventory, 45);
-                    player.openInventory(view.inventory);
+                    List<ContractStore.Contract> desired = adaptiveDefinitions(highest);
+                    result(
+                            player,
+                            contracts.offers(player.getUniqueId(), cycle, desired),
+                            selected -> {
+                                if (!current(player, request)) return;
+                                List<ContractStore.Contract> all = new ArrayList<>(selected);
+                                all.addAll(this.definitions);
+                                result(
+                                        player,
+                                        contracts.progress(player.getUniqueId(), all, cycle),
+                                        progress -> {
+                                            if (!current(player, request)) return;
+                                            showContracts(player, cycle, known, all, progress);
+                                        });
+                            });
                 });
+    }
+
+    private List<ContractStore.Contract> adaptiveDefinitions(MobTier highest) {
+        List<ContractStore.Contract> desired = new ArrayList<>();
+        String[] levels = {"facile", "normal", "difficile"};
+        String selectedMob = highest.id();
+        var base =
+                definitions.stream()
+                        .filter(c -> !c.boss() && c.mob().equals(selectedMob))
+                        .findFirst()
+                        .orElse(definitions.get(0));
+        for (int i = 0; i < levels.length; i++) {
+            String path = "adaptatifs." + levels[i] + ".";
+            long target =
+                    Math.min(
+                            1_000_000,
+                            Math.min(1_000_000, Math.max(1, config.getLong(path + "objectif", 30)))
+                                    + Math.min(
+                                                    10_000,
+                                                    Math.max(
+                                                            0,
+                                                            config.getLong(
+                                                                    path + "supplement-par-zone",
+                                                                    5)))
+                                            * highest.ordinal());
+            long multiplier =
+                    Math.min(
+                            1000,
+                            Math.max(1, config.getLong(path + "multiplicateur-recompense", 1)));
+            var g = base.reward();
+            desired.add(
+                    new ContractStore.Contract(
+                            "adaptatif-" + i,
+                            highest.id(),
+                            false,
+                            target,
+                            Gains.of(
+                                    scaled(
+                                            g.amount(fr.cliker.clikerv2.economy.CurrencyType.ECUS),
+                                            multiplier),
+                                    scaled(
+                                            g.amount(
+                                                    fr.cliker.clikerv2.economy.CurrencyType
+                                                            .GEMMES_SOMBRES),
+                                            multiplier),
+                                    scaled(
+                                            g.amount(
+                                                    fr.cliker.clikerv2.economy.CurrencyType
+                                                            .CENDRES),
+                                            multiplier),
+                                    scaled(g.xp(), multiplier))));
+        }
+        return desired;
+    }
+
+    private void showContracts(
+            Player player,
+            String cycle,
+            Map<String, HuntingStore.Stats> known,
+            List<ContractStore.Contract> all,
+            Map<String, ContractStore.Progress> progress) {
+        List<ContractStore.Contract> definitions =
+                all.stream()
+                        .filter(
+                                c ->
+                                        c.id().startsWith("adaptatif-")
+                                                || progress.get(c.id()).accepted())
+                        .toList();
+        offers.put(player.getUniqueId(), definitions);
+        List<Integer> positions = new ArrayList<>();
+        positions.addAll(List.of(11, 13, 15));
+        for (int slot = 0; slot < 45; slot++)
+            if (slot != 11 && slot != 13 && slot != 15) positions.add(slot);
+        java.util.function.IntConsumer pin =
+                slot -> {
+                    slot = positions.indexOf(slot);
+                    if (slot < 0 || slot >= definitions.size()) return;
+                    var contract = definitions.get(slot);
+                    var stat = known.get(contract.mob());
+                    if (stat == null || stat.kills() == 0) {
+                        player.sendMessage("§7Découvre d'abord cette" + " créature.");
+                        return;
+                    }
+                    var data = player.getPersistentDataContainer();
+                    String existing =
+                            data.get(
+                                    pinnedContract,
+                                    org.bukkit.persistence.PersistentDataType.STRING);
+                    if (contract.id().equals(existing)) {
+                        data.remove(pinnedContract);
+                        player.sendMessage("§7Suivi du contrat retiré.");
+                        player.sendActionBar(net.kyori.adventure.text.Component.empty());
+                    } else {
+                        data.set(
+                                pinnedContract,
+                                org.bukkit.persistence.PersistentDataType.STRING,
+                                contract.id());
+                        player.sendMessage(
+                                "§aContrat épinglé : "
+                                        + MobTier.parse(contract.mob()).label()
+                                        + (contract.boss() ? " (boss)" : "")
+                                        + ". Le suivi apparaît"
+                                        + " dans ta barre"
+                                        + " d'action.");
+                        updatePinned(player, contract);
+                    }
+                };
+        var view =
+                HuntUI.view(
+                        player,
+                        "&6Contrats &8• &7" + cycle,
+                        54,
+                        slot -> {
+                            slot = positions.indexOf(slot);
+                            if (!player.hasPermission("cliker.contrats")
+                                    || slot < 0
+                                    || slot >= definitions.size()
+                                    || !cycle.equals(cycle())
+                                    || !busy.add(player.getUniqueId())) return;
+                            var contract = definitions.get(slot);
+                            if (zones == null || !zones.canTravel(player, contract.mob())) {
+                                busy.remove(player.getUniqueId());
+                                player.sendMessage("§cCette zone n'est" + " plus" + " accessible.");
+                                return;
+                            }
+                            var clickedInventory = player.getOpenInventory().getTopInventory();
+                            result(
+                                    player,
+                                    contracts.interact(
+                                            player.getUniqueId(),
+                                            player.getName(),
+                                            contract,
+                                            cycle),
+                                    status -> {
+                                        busy.remove(player.getUniqueId());
+                                        message(player, status);
+                                        ledger.flushXP(player.getUniqueId());
+                                        if (player.getOpenInventory().getTopInventory()
+                                                == clickedInventory) openContracts(player);
+                                    });
+                        },
+                        pin);
+        for (int i = 0; i < definitions.size(); i++) {
+            var contract = definitions.get(i);
+            var mob = MobTier.parse(contract.mob());
+            var stat = known.get(contract.mob());
+            if (stat == null || stat.kills() == 0) {
+                view.inventory.setItem(
+                        positions.get(i),
+                        HuntUI.item(
+                                Material.GRAY_DYE,
+                                "&8Contrat inconnu",
+                                List.of("&7Découvre d'abord la" + " créature.")));
+                continue;
+            }
+            var state = progress.get(contract.id());
+            List<String> lore = new ArrayList<>();
+            lore.add(
+                    "&7Objectif : &f"
+                            + contract.target()
+                            + " "
+                            + (contract.boss() ? "boss" : "mobs"));
+            lore.add(
+                    "&7Progression : &f"
+                            + Math.min(state.done(), contract.target())
+                            + "/"
+                            + contract.target());
+            lore.add("");
+            lore.addAll(HuntUI.gains(contract.reward()));
+            lore.add("");
+            lore.add("&eClic droit pour épingler le suivi.");
+            if (!contract.id().startsWith("adaptatif-"))
+                lore.add("&7Ancien contrat conservé jusqu'à" + " minuit.");
+            lore.add(
+                    state.claimed()
+                            ? "&aRécompense récupérée"
+                            : !state.accepted()
+                                    ? "&eClique pour accepter"
+                                    : state.done() >= contract.target()
+                                            ? "&aClique pour" + " réclamer"
+                                            : "&7Contrat en" + " cours");
+            view.inventory.setItem(
+                    positions.get(i),
+                    HuntUI.item(
+                            state.claimed()
+                                    ? Material.LIME_DYE
+                                    : contract.boss() ? Material.NETHER_STAR : Material.PAPER,
+                            difficulty(contract.id())
+                                    + mob.label()
+                                    + (contract.boss() ? " &c• Boss" : ""),
+                            lore));
+        }
+        view.inventory.setItem(
+                49,
+                HuntUI.item(
+                        Material.CLOCK,
+                        "&bContrats quotidiens",
+                        List.of(
+                                "&7Réinitialisation à minuit : " + zone,
+                                "&7Trois difficultés adaptées à"
+                                        + " ta dernière zone"
+                                        + " découverte.",
+                                "&7Un contrat accepté reste" + " figé jusqu'à minuit.",
+                                "&7Seules les éliminations" + " après acceptation" + " comptent.",
+                                "&7Réclame tes récompenses" + " avant minuit.")));
+        fr.cliker.clikerv2.ui.MenuNavigation.back(plugin, view.inventory, 45);
+        player.openInventory(view.inventory);
+    }
+
+    private static long scaled(long value, long multiplier) {
+        return value > Long.MAX_VALUE / multiplier ? Long.MAX_VALUE : value * multiplier;
+    }
+
+    private static String difficulty(String id) {
+        return switch (id) {
+            case "adaptatif-0" -> "&aFacile &8• &f";
+            case "adaptatif-1" -> "&eNormal &8• &f";
+            case "adaptatif-2" -> "&cDifficile &8• &f";
+            default -> "&7Ancien &8• &f";
+        };
     }
 
     private ContractStore.Contract pinned(Player player) {
@@ -391,7 +534,10 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
                         .get(pinnedContract, org.bukkit.persistence.PersistentDataType.STRING);
         return id == null
                 ? null
-                : definitions.stream().filter(def -> def.id().equals(id)).findFirst().orElse(null);
+                : offers.getOrDefault(player.getUniqueId(), definitions).stream()
+                        .filter(def -> def.id().equals(id))
+                        .findFirst()
+                        .orElse(null);
     }
 
     private void updatePinned(Player player, ContractStore.Contract contract) {
@@ -446,8 +592,17 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
 
     @EventHandler
     public void trackContractOnJoin(PlayerJoinEvent event) {
-        ContractStore.Contract contract = pinned(event.getPlayer());
-        if (contract != null) updatePinned(event.getPlayer(), contract);
+        Player player = event.getPlayer();
+        result(
+                player,
+                contracts.savedOffers(player.getUniqueId(), cycle()),
+                saved -> {
+                    List<ContractStore.Contract> all = new ArrayList<>(definitions);
+                    all.addAll(saved);
+                    offers.put(player.getUniqueId(), List.copyOf(all));
+                    ContractStore.Contract contract = pinned(player);
+                    if (contract != null) updatePinned(player, contract);
+                });
     }
 
     @Override
@@ -507,6 +662,7 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
 
     @EventHandler
     public void quit(PlayerQuitEvent e) {
+        offers.remove(e.getPlayer().getUniqueId());
         requests.remove(e.getPlayer().getUniqueId());
         busy.remove(e.getPlayer().getUniqueId());
     }
@@ -515,6 +671,8 @@ public final class HuntingModule implements CommandExecutor, TabCompleter, Liste
         HandlerList.unregisterAll(this);
         stopped = true;
         npc.shutdown();
+        bossReports.shutdown();
+        offers.clear();
         busy.clear();
         requests.clear();
     }

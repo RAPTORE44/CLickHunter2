@@ -1,6 +1,16 @@
 # ClikerV2
 
-## Dernière mise à jour — 1er novembre 2026 — version 1.0.10
+## Dernière mise à jour — 2 novembre 2026 — version 1.0.11
+
+- Validation : **489 tests réussis**, sans échec ni test ignoré ; essais locaux sur Paper 1.21.4 avec un joueur non OP, un boss à deux participants, un raid à deux et un redémarrage.
+- **Contrats adaptés à la progression** : trois difficultés, ciblant la dernière zone accessible dont le joueur a déjà tué la créature. Les objectifs augmentent avec la zone ; les offres non acceptées suivent la progression. Un contrat accepté ou réclamé conserve sa cible, son objectif et ses gains jusqu’à minuit. Les anciens contrats déjà acceptés restent disponibles jusqu’à la fin de leur journée.
+- **Préparation des raids** : chaque membre affiche son état prêt/non prêt, l’accès à la zone, la validité du parchemin du chef et des conseils d’équipement. Le bouton de départ récapitule les blocages ; le parchemin du chef suffit pour le groupe. Bouton Actualiser et mise à jour au changement de case de la barre rapide. Les conseils ne bloquent pas le lancement.
+- **Bilans personnels des boss** : lien privé après une victoire et `/bilanboss` pour les 28 derniers combats de zone, de raid ou contre le boss serveur. Dégâts effectifs, contribution, gains attribués et records personnels par type de boss sont sauvegardés. Aucun nouveau message global. Les boss de zone conservent leurs récompenses au coup final ; les raids gardent leur répartition actuelle.
+- Configuration : `progression/chasse.yml`, section `adaptatifs`. Aucun plugin supplémentaire. Les bilans commencent avec cette version ; les anciens combats ne possèdent pas d’historique de dégâts récupérable.
+
+[Comportement et validation de la version 1.0.11](docs/MISE-A-JOUR-1.0.11.md).
+
+## Mise à jour 1.0.10 — 1er novembre 2026
 
 - Validation : **483 tests fonctionnels réussis**, aucun échec ni test ignoré ; essais Paper des six parcours décrits dans le compte rendu.
 - Nouveaux gains d’œufs/essences : le surplus est supprimé si l’inventaire est plein, sans apparition au sol ni stockage durable visible dans `/claim`. Une pile partiellement récupérable est complétée, puis son surplus supprimé. Les œufs déjà stockés avant cette mise à jour sont conservés.
@@ -288,9 +298,10 @@ Les couples conservent leurs commandes toute l’année. L’anneau est identifi
 | `/stats` | Consulter ses statistiques ; clic droit sur un joueur pour consulter les siennes en lecture seule. |
 | `/prestige` | Consulter les conditions et effectuer un prestige si les conditions sont remplies. |
 | `/bestiaire` | Consulter les créatures découvertes et les maîtrises. |
-| `/contrats` | Clic gauche pour accepter/réclamer ; clic droit sur une créature découverte pour épingler sa progression dans la barre d'action. |
+| `/contrats` | Trois difficultés adaptées à la dernière zone accessible et découverte ; clic gauche pour accepter/réclamer, clic droit pour épingler le suivi. Permission `cliker.contrats`. |
 | `/pinata` / `/pinata tp` | Voir la piñata active et la rejoindre ; alias `/pignata`. |
-| `/raid` | Ouvrir son groupe de raid (1 à 8 joueurs). Le boss affiche sa jauge de vie ; à la victoire, les participants voient le top 5 des dégâts et leur récapitulatif individuel de gains. |
+| `/raid` | Ouvrir son groupe de raid (1 à 8 joueurs), les états de préparation et le récapitulatif des blocages du départ. Permission `cliker.raid`. |
+| `/bilanboss` | Consulter uniquement ses bilans personnels et records des boss de zone, de raid et du serveur. Permission `cliker.bilanboss` (accordée par défaut), aucun alias. |
 | `/raid inviter <pseudo>` | Inviter un joueur en ligne pour 60 secondes. |
 | `/raid accepter <pseudo>` | Accepter l’invitation d’un chef ; les membres sont ajoutés au même groupe et le menu du chef est actualisé. |
 | `/raid lancer` | Le chef consomme le parchemin tenu et lance un raid privé de sa difficulté. |
@@ -604,7 +615,7 @@ La liste des **68 commandes principales** et de leurs alias est classée par cat
 
 ### Aide, suivi et confirmations
 
-`/aide` ne liste que les commandes permises par LuckPerms et les permissions Bukkit effectives ; `/aide <commande>` affiche son usage et propose de saisir la commande. Dans `/contrats`, le clic gauche conserve l'acceptation/la réclamation et le clic droit épingle ou retire le suivi. La barre d'action indique l'objectif, reprend à la reconnexion et ne compte que les éliminations confirmées en base. Une extension d'avant-poste affiche sa nouvelle surface et son prix avant le bouton de confirmation ; annuler ne touche pas au solde. À la victoire du boss de raid, les participants voient le top 5 des dégâts puis le message individuel de récompense, alloué comme avant.
+`/aide` ne liste que les commandes permises par LuckPerms et les permissions Bukkit effectives ; `/aide <commande>` affiche son usage et propose de saisir la commande. Dans `/contrats`, le clic gauche conserve l'acceptation/la réclamation et le clic droit épingle ou retire le suivi. La barre d'action indique l'objectif, reprend à la reconnexion et ne compte que les éliminations confirmées en base. Une extension d'avant-poste affiche sa nouvelle surface et son prix avant le bouton de confirmation ; annuler ne touche pas au solde. À la victoire d’un boss, un lien privé ouvre `/bilanboss` : dégâts effectifs, contribution, gains et records personnels. L’allocation des gains est conservée.
 
 
 ### Piñata de la zone Vache

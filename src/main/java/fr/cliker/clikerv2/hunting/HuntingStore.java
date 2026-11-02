@@ -39,6 +39,19 @@ public final class HuntingStore {
             boolean boss,
             Gains gains,
             List<String> items) {
+        return kill(eventId, owner, name, mob, boss, gains, items, Map.of(), "");
+    }
+
+    public CompletableFuture<Boolean> kill(
+            String eventId,
+            UUID owner,
+            String name,
+            String mob,
+            boolean boss,
+            Gains gains,
+            List<String> items,
+            Map<UUID, Long> contributions,
+            String itemSummary) {
         return ledger.database()
                 .submit(
                         c -> {
@@ -98,6 +111,27 @@ public final class HuntingStore {
                                 for (int i = 0; i < items.size(); i++)
                                     MailStore.insert(
                                             c, owner, "kill:" + eventId + ":" + i, items.get(i));
+                                if (boss && !contributions.isEmpty()) {
+                                    long total = BossReports.total(contributions);
+                                    for (var entry : contributions.entrySet())
+                                        BossReports.record(
+                                                c,
+                                                eventId,
+                                                entry.getKey(),
+                                                "zone:" + mob,
+                                                "Boss de zone • "
+                                                        + fr.cliker.clikerv2.MobTier.parse(mob)
+                                                                .label(),
+                                                entry.getValue(),
+                                                total,
+                                                entry.getKey().equals(owner)
+                                                        ? gains
+                                                        : Gains.of(0, 0, 0, 0),
+                                                entry.getKey().equals(owner)
+                                                        ? itemSummary
+                                                        : "&7Récompenses de zone attribuées au coup"
+                                                              + " final.");
+                                }
                                 c.commit();
                                 return true;
                             } catch (SQLException e) {

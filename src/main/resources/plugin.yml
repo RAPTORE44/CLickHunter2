@@ -5,6 +5,10 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  bilanboss:
+    description: Consulter ses bilans personnels et records de boss
+    usage: /bilanboss
+    permission: cliker.bilanboss
   discordnotif:
     description: Gérer les notifications Discord des événements
     usage: /discordnotif [statut|test|reload]
@@ -336,6 +340,9 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.bilanboss:
+    description: Consulter ses propres bilans de boss
+    default: true
   cliker.skin.admin:
     default: op
   cliker.mannequin.admin:

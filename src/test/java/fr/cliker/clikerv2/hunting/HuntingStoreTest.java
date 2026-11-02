@@ -231,4 +231,109 @@ class HuntingStoreTest {
                         .join());
         assertEquals(1, new MailStore(db).page(owner, 0).join().total());
     }
+
+    @Test
+    void bossReportIsPrivateIdempotentAndTracksDamageAndPercentRecordsSeparately() {
+        UUID helper = UUID.randomUUID();
+        var gain = Gains.of(100, 20, 3, 40);
+        var hits = Map.of(owner, 75L, helper, 25L);
+        assertTrue(
+                hunts.kill(
+                                "boss-one",
+                                owner,
+                                "Chasseur",
+                                "vache",
+                                true,
+                                gain,
+                                List.of(),
+                                hits,
+                                "Œuf rare")
+                        .join());
+        assertFalse(
+                hunts.kill(
+                                "boss-one",
+                                owner,
+                                "Chasseur",
+                                "vache",
+                                true,
+                                gain,
+                                List.of(),
+                                hits,
+                                "Œuf rare")
+                        .join());
+        var first = BossReports.history(ledger, owner).join().getFirst();
+        assertEquals(75, first.damage());
+        assertEquals(75.0, first.percent());
+        assertEquals(gain, first.gains());
+        assertEquals(1, first.fights());
+        var help = BossReports.history(ledger, helper).join().getFirst();
+        assertEquals(25.0, help.percent());
+        assertEquals(Gains.of(0, 0, 0, 0), help.gains());
+        assertTrue(BossReports.history(ledger, UUID.randomUUID()).join().isEmpty());
+        hunts.kill(
+                        "boss-two",
+                        owner,
+                        "Chasseur",
+                        "vache",
+                        true,
+                        gain,
+                        List.of(),
+                        Map.of(owner, 100L, helper, 100L),
+                        "")
+                .join();
+        var latest = BossReports.history(ledger, owner).join().getFirst();
+        assertEquals(100, latest.bestDamage());
+        assertEquals(75.0, latest.bestPercent());
+        assertEquals(2, latest.fights());
+        assertEquals(50.0, latest.percent());
+        assertEquals(200, economy.getBalances(owner).join().ecus());
+        assertEquals(0, economy.getBalances(helper).join().ecus());
+        assertEquals(2, BossReports.history(ledger, owner).join().size());
+    }
+
+    @Test
+    void rolledBackBossReportDoesNotLeaveARecord() {
+        db.submit(
+                        c -> {
+                            try {
+                                c.setAutoCommit(false);
+                                assertTrue(
+                                        BossReports.record(
+                                                c,
+                                                "rolled-back",
+                                                owner,
+                                                "raid:vache",
+                                                "Vache",
+                                                10,
+                                                10,
+                                                Gains.of(0, 0, 0, 0),
+                                                ""));
+                                c.rollback();
+                                return null;
+                            } catch (java.sql.SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        })
+                .join();
+        assertTrue(BossReports.history(ledger, owner).join().isEmpty());
+        db.submit(
+                        c -> {
+                            try {
+                                return BossReports.record(
+                                        c,
+                                        "rolled-back",
+                                        owner,
+                                        "raid:vache",
+                                        "Vache",
+                                        10,
+                                        10,
+                                        Gains.of(0, 0, 0, 0),
+                                        "");
+                            } catch (java.sql.SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        })
+                .join();
+        assertEquals(1, BossReports.history(ledger, owner).join().getFirst().fights());
+    }
 }

@@ -1,6 +1,20 @@
 # Gemmes Sombres exprimées en dixièmes : 10 = 1 gemme.
-# Les 38 contrats sont ajoutés ici au premier démarrage et restent modifiables.
+# Les 38 anciennes définitions servent de base aux gains et aux contrats déjà acceptés.
+# Les nouveaux contrats ciblent la dernière zone accessible et découverte.
 fuseau: Europe/Paris
+adaptatifs:
+  facile:
+    objectif: 30
+    supplement-par-zone: 5
+    multiplicateur-recompense: 1
+  normal:
+    objectif: 100
+    supplement-par-zone: 15
+    multiplicateur-recompense: 3
+  difficile:
+    objectif: 300
+    supplement-par-zone: 40
+    multiplicateur-recompense: 9
 maitrise:
   # Maîtrises de collection ; aucun bonus de combat caché.
   paliers: [10, 50, 100, 500, 1000, 5000, 10000]
@@ -11,6 +25,7 @@ pnj:
   titre: '&6Contrats de chasse'
   sous-titre: '&eClic droit pour consulter'
 messages:
+  actualise: "&eCette offre a changé. Le menu a été actualisé : vérifie le nouvel objectif."
   interdit: '&cTu ne peux pas utiliser cette commande.'
   erreur: '&cUne erreur est survenue. Réessaie dans quelques instants.'
   inconnu: '&7Découvre d’abord cette créature.'
