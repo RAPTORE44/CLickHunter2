@@ -402,7 +402,7 @@ public final class AfkModule implements Listener, CommandExecutor, TabCompleter 
                 Menus.item(
                         Material.NAUTILUS_SHELL,
                         "&bTalisman AFK &f" + tier,
-                        "&7Actif dans un /sac ; meilleur tier uniquement.",
+                        "&7Clic droit en main : ajout permanent. Meilleur tier uniquement.",
                         "&e+"
                                 + (10 * tier)
                                 + " Écus &8• &b+"

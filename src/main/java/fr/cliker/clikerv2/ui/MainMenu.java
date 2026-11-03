@@ -132,7 +132,7 @@ public final class MainMenu implements CommandExecutor, Listener {
     }
 
     private void expandLayout(File file) {
-        if (config.getInt("version-disposition", 0) >= 2) return;
+        if (config.getInt("version-disposition", 0) >= 3) return;
         try (var input = plugin.getResource("gui/menu.yml")) {
             var defaults =
                     YamlConfiguration.loadConfiguration(
@@ -173,7 +173,21 @@ public final class MainMenu implements CommandExecutor, Listener {
                         used.add(slot);
                     }
             config.set("taille", 54);
-            config.set("version-disposition", 2);
+            config.set("version-disposition", 3);
+            var talismanLore = config.getStringList("boutons.talismans.description");
+            talismanLore.replaceAll(
+                    line ->
+                            line.equals("&7Collection, découvertes et effets de tes sacs.")
+                                    ? "&7Clic droit en main : ajoute un talisman définitivement."
+                                    : line);
+            config.set("boutons.talismans.description", talismanLore);
+            var bagLore = config.getStringList("boutons.sacs.description");
+            bagLore.replaceAll(
+                    line ->
+                            line.equals("&7Range tes objets et tes talismans.")
+                                    ? "&7Range tes ressources et ton équipement."
+                                    : line);
+            config.set("boutons.sacs.description", bagLore);
             config.save(file);
         } catch (java.io.IOException e) {
             throw new IllegalStateException("Migration du menu impossible", e);
@@ -223,6 +237,36 @@ public final class MainMenu implements CommandExecutor, Listener {
                         size,
                         DailySettings.color(config.getString("titre", "ClickHunter • Menu")));
         for (int slot = 0; slot < size; slot++) holder.inventory.setItem(slot, background);
+        int[] sectionSlots = {9, 18, 27, 36};
+        String[] sectionNames = {
+            "&b✦ NAVIGATION", "&9✦ PROGRESSION", "&e✦ COMMERCE ET RANGEMENT", "&d✦ ACTIVITÉS"
+        };
+        Material[] sectionColors = {
+            Material.CYAN_STAINED_GLASS_PANE,
+            Material.BLUE_STAINED_GLASS_PANE,
+            Material.YELLOW_STAINED_GLASS_PANE,
+            Material.PURPLE_STAINED_GLASS_PANE
+        };
+        for (int i = 0; i < sectionSlots.length; i++)
+            if (sectionSlots[i] < size && !actions.containsKey(sectionSlots[i]))
+                holder.inventory.setItem(
+                        sectionSlots[i],
+                        item(
+                                sectionColors[i].name(),
+                                sectionNames[i],
+                                List.of(
+                                        "&7Les raccourcis de cette ligne sont regroupés par"
+                                                + " activité.")));
+        if (size == 54 && !actions.containsKey(4))
+            holder.inventory.setItem(
+                    4,
+                    item(
+                            "BOOK",
+                            "&a&lMENU CLICKHUNTER",
+                            List.of(
+                                    "&bVoyager &8• &9Progresser &8• &eÉchanger &8• &dJouer",
+                                    "&7Choisis une activité dans les lignes ci-dessous.",
+                                    "&7Talismans : clic droit en main pour un ajout permanent.")));
         for (var entry : actions.entrySet()) {
             Action action = entry.getValue();
             if (!action.permission.isBlank() && !player.hasPermission(action.permission)) {

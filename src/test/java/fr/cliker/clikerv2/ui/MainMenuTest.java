@@ -96,7 +96,7 @@ class MainMenuTest {
                                 plugin, player.getWorld().getName()),
                         plugin,
                         org.bukkit.plugin.ServicePriority.Normal);
-        click(32);
+        click(29);
         server.getScheduler().performOneTick();
         assertEquals(
                 0,
@@ -128,7 +128,7 @@ class MainMenuTest {
                                 return true;
                             }
                         });
-        click(10);
+        click(19);
         server.getScheduler().performOneTick();
         assertEquals(1, commands.get());
     }

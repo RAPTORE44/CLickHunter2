@@ -1,6 +1,16 @@
 # ClikerV2
 
-## Dernière mise à jour — 3 novembre 2026 — version 1.0.14
+## Dernière mise à jour — 3 novembre 2026 — version 1.0.15
+
+- **Menu principal réorganisé** : double coffre, raccourcis regroupés par navigation, progression, commerce/rangement et activités, repères colorés et descriptions plus claires. Migration de la disposition vers la version 3 avec sauvegarde de l’ancienne configuration ; commandes, permissions et boutons personnalisés conservés.
+- **Talismans permanents par clic droit** : tenir l’objet dans la main principale puis faire un clic droit consomme un exemplaire et l’ajoute définitivement à sa collection. Aucun retrait, déséquipement ou récupération depuis le menu. Les doublons déjà enregistrés restent en main ; meilleur tier par famille générale/AFK.
+- **Collection plus lisible** : cases centrales espacées, état permanent ou à enregistrer, catégories des talismans non découverts, pagination et récapitulatif des bonus actifs. Créatures, boss, familles générales, AFK et Trésor sont pris en charge.
+- **Sauvegarde** : retrait de l’objet et enregistrement utilisent le journal de transfert existant, sans activer le bonus avant validation SQL. Collection rechargée avec les sacs à la connexion ; bonus en cache, sans nouvelle requête par coup. Les talismans physiques déjà présents dans les sacs gardent leur ancien effet et peuvent être enregistrés par clic droit après les avoir repris en main.
+- Validation : **532 tests réussis**, sans échec ni test ignoré ; six nouveaux tests couvrent notamment les non OP, doublons, reconnexion, échec de sauvegarde et menus en lecture seule.
+
+[Utilisation, transition des anciens objets et validation](docs/TALISMANS-PERMANENTS.md).
+
+## Mise à jour 1.0.14 — 3 novembre 2026
 
 - Validation : **526 tests réussis**, sans échec ni test ignoré ; API Discord simulée et essais Paper 1.21.4. Aucun message réel publié sans configuration de production.
 - **Top 10 dans Discord chaque heure** : six tableaux issus des mêmes données que `/classement` — Écus, Gemmes Sombres, Cendres, éliminations, niveaux et points de donateurs. Un message par tableau, modifié toutes les 60 minutes ; IDs sauvegardés et dix lignes conservées même avec moins de joueurs. Un salon commun ou un salon différent par tableau.
@@ -121,7 +131,7 @@ Ces optimisations réduisent des tâches précises ; elles ne constituent pas un
 - Coups critiques en retombant : dégâts ×1,5 arrondis au supérieur, cumulables avec le critique d'équipement. Calcul partagé par la chasse et les raids ; Dresseur reste à 5 de base (8 en critique sans autre bonus).
 - Courrier privé avec interface, rédaction privée par paragraphes, aperçu en livre, livres/objets joints, blocage des expéditeurs, modération configurable et notification à la connexion. Les pièces jointes vont dans l’inventaire, avec surplus dans `/claim`.
 - Monde AFK vide avec sphère en verre, inventaire sauvegardé puis vidé et rendu à la sortie, commandes limitées et chat isolé. Préparation asynchrone des chunks avant le transfert. ZNPCsPlus 2.0.0 est nécessaire au filtre du chat ; l’entrée est refusée si le filtre est indisponible.
-- Dix minutes AFK = un point. Boutique : caisse Rare 1 point, Divine 6 points et quatre talismans à bonus fixes Écus/XP/Gemmes. Meilleur tier actif dans les sacs ; achats livrés au retour au clicker. Sauvegarde de durée par session, sans crédit hors ligne.
+- Dix minutes AFK = un point. Boutique : caisse Rare 1 point, Divine 6 points et quatre talismans à bonus fixes Écus/XP/Gemmes. Depuis la version 1.0.15, ajout permanent par clic droit ; meilleur tier actif. Achats livrés au retour au clicker. Sauvegarde de durée par session, sans crédit hors ligne.
 - Raids publics : un chef et trois renforts maximum ; chef avec lot normal et renforts à un tiers du lot de base chacun, uniquement s’ils contribuent au boss. Raids privés proportionnels conservés. Parchemin de la zone après victoire, livré par le journal durable.
 - Notifications privées sous forme de succès Minecraft : courrier, niveaux multiples de dix, Daily, déblocage de zone et victoire. File limitée, aucune annonce globale ; secours par titre si l’API de succès échoue.
 - Validation : **462 tests automatisés réussis**, aucun échec ni test ignoré ; parcours Paper du courrier, des succès et de l’isolation AFK avec restitution et livraison.
@@ -337,7 +347,7 @@ Les couples conservent leurs commandes toute l’année. L’anneau est identifi
 | `/raid lancer` | Le chef consomme le parchemin tenu et lance un raid privé de sa difficulté. |
 | `/raid rejoindre` | Rejoindre son raid lancé, après nouvelle vérification des droits de zone et de l’état du joueur. |
 | `/raid quitter` | Quitter le groupe après sortie effective de l’arène ; un refus de téléportation conserve le groupe et permet de réessayer. `sortir` est accepté. |
-| `/tallisement` | Consulter la collection de talismans ; alias `/talismans`, `/talissement`. |
+| `/tallisement` | Collection permanente, découvertes et bonus actifs ; ajout par clic droit avec l’objet en main, aucun retrait. Alias `/talismans`, `/talissement`. |
 
 ### Économie et équipement
 
@@ -620,7 +630,7 @@ Dans chaque atelier, le livre en haut à droite explique les effets, catégories
 
 Le boss public apparaît à chaque nouveau milliard de créatures effectivement éliminées ; compteur, cycle et état actif persistent après redémarrage. Les boss propres aux zones conservent leur fonctionnement et leurs destinations dans `/warp`. Les raids privés nécessitent un parchemin lié à une zone débloquée par chaque participant. Les deux activités utilisent des mondes distincts et partagent les récompenses de boss selon les dégâts effectifs, sans PvP.
 
-Les talismans de créature et de boss s’ajoutent à cinq familles générales : lame, richesse, sagesse, fortune et vitalité, chacune sur cinq tiers. Les bonus sont actifs dans les sacs, avec le meilleur tier par famille générale. Le tier 5 se débloque dans la **dernière zone actuelle (zone 19)**, conformément au choix du propriétaire.
+Les talismans de créature et de boss s’ajoutent à cinq familles générales : lame, richesse, sagesse, fortune et vitalité, chacune sur cinq tiers. Depuis la version 1.0.15, le clic droit avec l’objet en main l’enregistre définitivement, sans retrait possible ; le meilleur tier par famille générale s’applique. Les anciens exemplaires dans les sacs restent compatibles. Le tier 5 se débloque dans la **dernière zone actuelle (zone 19)**, conformément au choix du propriétaire.
 
 Configuration SFTP organisée, migration des anciens fichiers avec copies de secours et détails de chaque module : [guide des nouveaux systèmes](docs/SERVICES-RAIDS-TALISMANS.md).
 

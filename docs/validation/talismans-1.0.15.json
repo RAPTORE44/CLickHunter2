@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "checks": [
+    "Non OP : clic droit en main consomme le talisman Trésor et confirme son ajout permanent",
+    "Collection : emplacement espacé, bonus actif et clic sur l’icône sans retrait possible",
+    "Doublon conservé en main et absence de seconde consommation",
+    "Menu principal : navigation, progression et raccourci Talismans dans la nouvelle disposition",
+    "Après reconnexion : enregistrement et bonus actifs conservés sans sac"
+  ],
+  "version": "1.0.15",
+  "environment": "Paper 1.21.4 / Java 21, remplacement vanilla sans ItemsAdder",
+  "functional_tests": 532,
+  "production_deployed": false
+}

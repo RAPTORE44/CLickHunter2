@@ -30,10 +30,13 @@ public final class Talismans implements Listener, CommandExecutor {
     private BukkitTask task;
     private boolean stopped;
     private final Set<UUID> opening = new HashSet<>();
+    private final Set<UUID> activating = new HashSet<>();
+    private final TalismanRegistry registry;
 
     public Talismans(JavaPlugin p, DatabaseManager db, BagManager bags, Menus menus) {
         plugin = p;
         this.db = db;
+        registry = new TalismanRegistry(db);
         this.bags = bags;
         this.menus = menus;
         settings = new Settings(p, "progression/talismans.yml");
@@ -116,100 +119,141 @@ public final class Talismans implements Listener, CommandExecutor {
         if (p.getHealth() > a.getValue()) p.setHealth(a.getValue());
     }
 
+    private static final List<Integer> CELLS =
+            java.util.stream.IntStream.range(0, 28)
+                    .map(i -> 10 + i / 7 * 9 + i % 7)
+                    .boxed()
+                    .toList();
+
+    private static String family(String kind) {
+        return switch (kind) {
+            case "lame" -> "Lame";
+            case "richesse" -> "Richesse";
+            case "sagesse" -> "Sagesse";
+            case "fortune" -> "Fortune";
+            case "vitalite" -> "Vitalité";
+            case "afk" -> "AFK";
+            default -> kind;
+        };
+    }
+
     private ItemStack create(String id) {
+        if (id.equals("treasure")) return TalismanItem.createTreasureTalisman();
         var split = id.split(":");
         if (split[0].equals("mob")) return TalismanItem.createMobTalisman(MobTier.parse(split[1]));
+        if (split[0].equals("afk"))
+            return fr.cliker.clikerv2.community.AfkModule.talisman(Integer.parseInt(split[1]));
         String name =
                 split[0].equals("boss")
-                        ? "Talisman du boss — " + MobTier.parse(split[1]).label()
-                        : "Talisman de " + split[1] + " — Tier " + split[2];
-        var i =
+                        ? "&dTalisman du boss — " + MobTier.parse(split[1]).label()
+                        : "&bTalisman de " + family(split[1]) + " &f• Tier " + split[2];
+        var item =
                 Menus.item(
                         Material.NAUTILUS_SHELL,
                         name,
-                        "Bonus passif lorsqu’il est placé dans un /sac.",
+                        "&7Clic droit avec l'objet en main pour l'ajouter.",
                         split[0].equals("boss")
-                                ? "+"
+                                ? "&c+"
                                         + bossPower(MobTier.parse(split[1]))
                                         + " % de dégâts contre ce boss."
-                                : "Bonus : "
+                                : "&aBonus : +"
                                         + power(split[1], Integer.parseInt(split[2]))
                                         + (split[1].equals("vitalite") ? " PV" : " %"),
-                        "Les talismans généraux identiques ne se cumulent pas : meilleur tier"
-                                + " actif.");
-        var m = i.getItemMeta();
-        m.getPersistentDataContainer().set(tag, PersistentDataType.STRING, id);
-        i.setItemMeta(m);
-        return i;
+                        "&7Ajout définitif : aucun retrait possible.",
+                        "&8Un seul bonus par famille : le meilleur tier.");
+        var meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(tag, PersistentDataType.STRING, id);
+        item.setItemMeta(meta);
+        return item;
     }
 
-    private String activeStatus(Player p, String id) {
-        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(p))
-            return "Bonus suspendus dans l’avant-poste.";
-        if (!bags.isLoaded(p.getUniqueId())) return "Chargement des sacs en cours.";
+    private String activeStatus(Player player, String id) {
+        if (!bags.registeredTalismans(player.getUniqueId()).contains(id))
+            return "&eÀ enregistrer : clic droit avec l'objet en main.";
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player))
+            return "&eEnregistré ; bonus suspendu dans l'avant-poste.";
         String[] parts = id.split(":");
-        if (parts[0].equals("general")) {
-            int active = bags.generalTier(p.getUniqueId(), parts[1]);
-            if (active == Integer.parseInt(parts[2]))
-                return "ACTIF : meilleur tier de cette famille dans tes sacs.";
-            if (active > Integer.parseInt(parts[2]))
-                return "INACTIF : un tier supérieur est actif dans tes sacs.";
-            return "INACTIF : place ce talisman dans un /sac.";
-        }
-        boolean active =
-                parts[0].equals("boss")
-                        ? bags.hasBossTalisman(p.getUniqueId(), MobTier.parse(parts[1]))
-                        : bags.mobDamageBonusPercent(p.getUniqueId(), MobTier.parse(parts[1])) > 0;
-        return active
-                ? "ACTIF : bonus fourni par tes sacs."
-                : "INACTIF : place ce talisman dans un /sac.";
+        if (parts[0].equals("general")
+                && bags.generalTier(player.getUniqueId(), parts[1]) > Integer.parseInt(parts[2]))
+            return "&aAjout permanent ; un tier supérieur est prioritaire.";
+        if (parts[0].equals("afk")
+                && bags.generalTier(player.getUniqueId(), "afk") > Integer.parseInt(parts[1]))
+            return "&aAjout permanent ; un tier AFK supérieur est prioritaire.";
+        return "&aACTIF • bonus permanent, sans retrait possible.";
     }
 
-    private void activeBonuses(Player p) {
-        var view = menus.create(p, 54, "Talismans — Bonus actifs");
-        int slot = 0;
+    private void activeBonuses(Player player) {
+        var view = menus.create(player, 54, "Talismans • Mes bonus");
+        int index = 0;
+        view.put(
+                4,
+                Menus.item(
+                        Material.NETHER_STAR,
+                        "&a&lMES BONUS",
+                        "&7Les ajouts permanents sont actifs automatiquement.",
+                        "&7Les anciens talismans des sacs restent compatibles.",
+                        "&8Suspendus dans l'avant-poste ; familles non cumulées."),
+                null);
         for (String kind : List.of("lame", "richesse", "sagesse", "fortune", "vitalite")) {
-            int tier = bags.generalTier(p.getUniqueId(), kind);
-            view.put(
-                    slot++,
-                    Menus.item(
-                            Material.NAUTILUS_SHELL,
-                            kind + " — Tier " + tier,
-                            "Bonus : +"
-                                    + power(kind, tier)
-                                    + (kind.equals("vitalite") ? " PV" : " %"),
-                            "Source : meilleur tier dans les sacs ; exemplaires non cumulés.",
-                            fr.cliker.clikerv2.outpost.WorldInventories.isolated(p)
-                                    ? "SUSPENDU dans l’avant-poste."
-                                    : "Bonus applicable dans le monde clicker."),
-                    null);
-        }
-        for (var mob : MobTier.values()) {
-            double value = bags.mobDamageBonusPercent(p.getUniqueId(), mob);
-            boolean boss = bags.hasBossTalisman(p.getUniqueId(), mob);
-            if (value > 0 || boss)
+            int tier = bags.generalTier(player.getUniqueId(), kind);
+            if (tier > 0)
                 view.put(
-                        slot++,
+                        CELLS.get(index++),
                         Menus.item(
                                 Material.NAUTILUS_SHELL,
-                                mob.label(),
-                                "Créature : +" + value + " % de dégâts",
-                                "Boss associé : +" + (boss ? bossPower(mob) : 0) + " % de dégâts",
-                                "Source : talismans dans les sacs."),
+                                "&b" + family(kind) + " &f• Tier " + tier,
+                                "&a+"
+                                        + power(kind, tier)
+                                        + (kind.equals("vitalite") ? " PV" : " %"),
+                                "&7Le meilleur tier de la famille est retenu."),
                         null);
         }
-        if (bags.hasTreasureTalisman(p.getUniqueId()))
+        for (MobTier mob : MobTier.values()) {
+            double bonus = bags.mobDamageBonusPercent(player.getUniqueId(), mob);
+            boolean boss = bags.hasBossTalisman(player.getUniqueId(), mob);
+            if (bonus > 0 || boss)
+                view.put(
+                        CELLS.get(index++),
+                        Menus.item(
+                                Material.NAUTILUS_SHELL,
+                                "&e" + mob.label(),
+                                "&7Créature : &a+" + Math.round(bonus) + " % de dégâts",
+                                "&7Boss : &d+" + (boss ? bossPower(mob) : 0) + " % de dégâts"),
+                        null);
+        }
+        if (bags.hasTreasureTalisman(player.getUniqueId()))
             view.put(
-                    slot++,
+                    CELLS.get(index++),
                     Menus.item(
-                            Material.GOLD_INGOT,
-                            "Talisman du trésor",
-                            "Actif dans les sacs : +100 Écus, +1 Gemme, +25 XP de base par"
-                                    + " élimination."),
+                            Material.EMERALD,
+                            "&6Trésor",
+                            "&e+100 Écus &8• &d+1 Gemme &8• &b+25 XP par élimination"),
                     null);
-        view.put(
-                49, Menus.item(Material.ARROW, "Retour à la collection"), (who, r) -> open(who, 0));
-        view.show(p);
+        int afk = bags.generalTier(player.getUniqueId(), "afk");
+        if (afk > 0)
+            view.put(
+                    CELLS.get(index++),
+                    Menus.item(
+                            Material.CLOCK,
+                            "&bAFK • Tier " + afk,
+                            "&e+"
+                                    + (afk * 10)
+                                    + " Écus &8• &b+"
+                                    + (afk * 5)
+                                    + " XP &8• &d+"
+                                    + afk
+                                    + " Gemme(s)"),
+                    null);
+        if (index == 0)
+            view.put(
+                    22,
+                    Menus.item(
+                            Material.GRAY_DYE,
+                            "&7Aucun bonus pour le moment",
+                            "&eAjoute un talisman avec un clic droit en main."),
+                    null);
+        view.put(49, Menus.item(Material.ARROW, "&eRetour à ma collection"), (p, r) -> open(p, 0));
+        view.show(player);
     }
 
     private double chance(String path, double fallback) {
@@ -307,16 +351,81 @@ public final class Talismans implements Listener, CommandExecutor {
     }
 
     private String id(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return null;
-        var tier = TalismanItem.mobTierOf(item);
-        if (tier != null) return "mob:" + tier.id();
-        String id =
-                item.getItemMeta().getPersistentDataContainer().get(tag, PersistentDataType.STRING);
-        if (id != null
-                && id.matches(
-                        "(boss:[a-z_]+|general:(lame|richesse|sagesse|fortune|vitalite):[1-5])"))
-            return id;
-        return null;
+        return TalismanRegistry.id(item, tag);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+    public void activate(org.bukkit.event.player.PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND
+                || (event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_AIR
+                        && event.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK))
+            return;
+        Player player = event.getPlayer();
+        String id = id(player.getInventory().getItemInMainHand());
+        if (id == null) return;
+        event.setCancelled(true);
+        if (stopped || !bags.isLoaded(player.getUniqueId())) {
+            player.sendMessage("§eChargement de tes talismans, réessaie dans un instant.");
+            return;
+        }
+        if (fr.cliker.clikerv2.outpost.WorldInventories.isolated(player)) {
+            player.sendMessage("§eRetourne au /spawn pour enregistrer ce talisman.");
+            return;
+        }
+        if (bags.registeredTalismans(player.getUniqueId()).contains(id)) {
+            player.sendMessage("§eCe talisman est déjà enregistré. Ton exemplaire est conservé.");
+            return;
+        }
+        var outgoing = Bukkit.getServicesManager().load(OutgoingItems.class);
+        if (outgoing == null) {
+            player.sendMessage("§cEnregistrement indisponible. Ton talisman est conservé.");
+            return;
+        }
+        UUID owner = player.getUniqueId();
+        if (!activating.add(owner)) return;
+        ItemStack item = player.getInventory().getItemInMainHand().clone();
+        item.setAmount(1);
+        String payload = ClaimService.serialize(item);
+        boolean started =
+                outgoing.consumeHeld(
+                        player,
+                        item,
+                        receipt ->
+                                ready.thenCompose(
+                                        v -> registry.register(owner, id, receipt, payload)),
+                        error -> {
+                            activating.remove(owner);
+                            if (stopped
+                                    || !fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player))
+                                return;
+                            if (error != null) {
+                                player.sendMessage(
+                                        "§cAjout non confirmé : l'objet est conservé ou récupérable"
+                                            + " dans /claim.");
+                                return;
+                            }
+                            bags.registerTalisman(owner, id);
+                            health(player);
+                            player.sendMessage(
+                                    "§aTalisman ajouté définitivement à ta collection !"
+                                        + " §7/tallisement");
+                            fr.cliker.clikerv2.community.ToastNotifications.show(
+                                    player,
+                                    Material.NAUTILUS_SHELL,
+                                    "Talisman enregistré",
+                                    "Bonus permanent • aucun retrait possible");
+                        });
+        if (!started) {
+            activating.remove(owner);
+            player.sendMessage(
+                    "§eAttends la fin du transfert en cours avant d'ajouter ton talisman.");
+        }
+    }
+
+    @EventHandler
+    public void quit(org.bukkit.event.player.PlayerQuitEvent event) {
+        opening.remove(event.getPlayer().getUniqueId());
+        activating.remove(event.getPlayer().getUniqueId());
     }
 
     public CompletableFuture<Set<String>> discoveries(Player player) {
@@ -355,233 +464,270 @@ public final class Talismans implements Listener, CommandExecutor {
         open(p, page, "debloques");
     }
 
-    private void categories(Player p) {
-        var view = menus.create(p, 27, "Talismans non débloqués");
-        String[] kinds = {"mob", "boss", "lame", "richesse", "sagesse", "fortune", "vitalite"};
-        String[] labels = {
-            "Créatures", "Boss", "Lame", "Richesse", "Sagesse", "Fortune", "Vitalité"
+    private void categories(Player player) {
+        var view = menus.create(player, 54, "Talismans • À découvrir");
+        String[] kinds = {
+            "mob", "boss", "lame", "richesse", "sagesse", "fortune", "vitalite", "afk", "treasure"
         };
+        String[] labels = {
+            "Créatures",
+            "Boss",
+            "Lame",
+            "Richesse",
+            "Sagesse",
+            "Fortune",
+            "Vitalité",
+            "AFK",
+            "Trésor"
+        };
+        int[] slots = {10, 12, 14, 16, 28, 30, 32, 34, 40};
+        view.put(
+                4,
+                Menus.item(
+                        Material.BOOK,
+                        "&d&lÀ DÉCOUVRIR",
+                        "&7Choisis une famille pour consulter les talismans manquants."),
+                null);
         for (int i = 0; i < kinds.length; i++) {
             String kind = kinds[i];
-            view.put(10 + i, Menus.item(Material.BOOK, labels[i]), (who, r) -> open(who, 0, kind));
+            view.put(
+                    slots[i],
+                    Menus.item(
+                            Material.BOOK,
+                            "&e" + labels[i],
+                            "&7Voir les talismans non découverts.",
+                            "&eClique pour consulter."),
+                    (p, r) -> open(p, 0, kind));
         }
-        view.put(
-                22,
-                Menus.item(Material.ARROW, "Mes talismans débloqués"),
-                (who, r) -> open(who, 0));
-        view.show(p);
+        view.put(49, Menus.item(Material.ARROW, "&eRetour à ma collection"), (p, r) -> open(p, 0));
+        view.show(player);
     }
 
-    private void open(Player p, int page, String category) {
-        if (!opening.add(p.getUniqueId())) return;
-        var owned = new HashSet<String>();
-        for (var item : p.getInventory().getContents()) {
-            String id = id(item);
-            if (id != null) owned.add(id);
+    private static List<String> catalog() {
+        List<String> ids = new ArrayList<>();
+        for (var mob : MobTier.values()) {
+            ids.add("mob:" + mob.id());
+            ids.add("boss:" + mob.id());
         }
-        if (bags.isLoaded(p.getUniqueId()))
-            for (int i = 0; i < BagManager.MAX_CAPACITY; i++)
-                for (var item : bags.contents(p.getUniqueId(), i)) {
-                    String id = id(item);
-                    if (id != null) owned.add(id);
-                }
-        var previous = p.getOpenInventory().getTopInventory();
-        ready.thenCompose(
-                        v ->
-                                db.submit(
-                                        c -> {
-                                            try {
-                                                for (String id : owned)
-                                                    try (var s =
-                                                            c.prepareStatement(
-                                                                    "INSERT OR IGNORE INTO"
-                                                                        + " talisman_collection(owner,id)"
-                                                                        + " VALUES(?,?)")) {
-                                                        s.setString(1, p.getUniqueId().toString());
-                                                        s.setString(2, id);
-                                                        s.executeUpdate();
-                                                    }
-                                                var result = new HashSet<String>();
-                                                try (var s =
-                                                        c.prepareStatement(
-                                                                "SELECT id FROM talisman_collection"
-                                                                        + " WHERE owner=?")) {
-                                                    s.setString(1, p.getUniqueId().toString());
-                                                    try (var r = s.executeQuery()) {
-                                                        while (r.next()) result.add(r.getString(1));
-                                                    }
-                                                }
-                                                return result;
-                                            } catch (SQLException e) {
-                                                throw new DatabaseManager.DatabaseException(e);
-                                            }
-                                        }))
+        for (String kind : List.of("lame", "richesse", "sagesse", "fortune", "vitalite"))
+            for (int tier = 1; tier <= 5; tier++) ids.add("general:" + kind + ":" + tier);
+        for (int tier = 1; tier <= 4; tier++) ids.add("afk:" + tier);
+        ids.add("treasure");
+        return ids;
+    }
+
+    private void open(Player player, int page, String category) {
+        UUID owner = player.getUniqueId();
+        if (!bags.isLoaded(owner)) {
+            player.sendMessage("§eChargement de tes talismans, réessaie dans un instant.");
+            return;
+        }
+        if (!opening.add(owner)) return;
+        var previous = player.getOpenInventory().getTopInventory();
+        discoveries(player)
                 .whenComplete(
-                        (unlocked, error) ->
-                                fr.cliker.clikerv2.runtime.ServerTasks.run(
-                                        plugin,
-                                        () -> {
-                                            opening.remove(p.getUniqueId());
-                                            if (stopped
-                                                    || !fr.cliker.clikerv2.runtime.PlayerSessions
-                                                            .isCurrent(p)
-                                                    || p.getOpenInventory().getTopInventory()
-                                                            != previous) return;
-                                            if (error != null) {
-                                                p.sendMessage("Collection indisponible.");
-                                                return;
-                                            }
-                                            var ids = new ArrayList<String>();
-                                            for (var tier : MobTier.values()) {
-                                                ids.add("mob:" + tier.id());
-                                                ids.add("boss:" + tier.id());
-                                            }
-                                            for (String kind :
-                                                    List.of(
-                                                            "lame",
-                                                            "richesse",
-                                                            "sagesse",
-                                                            "fortune",
-                                                            "vitalite"))
-                                                for (int n = 1; n <= 5; n++)
-                                                    ids.add("general:" + kind + ":" + n);
-                                            ids.removeIf(
-                                                    id ->
-                                                            category.equals("debloques")
-                                                                    ? !unlocked.contains(id)
-                                                                    : unlocked.contains(id)
-                                                                            || !(category.equals(
-                                                                                                    "mob")
-                                                                                            || category
-                                                                                                    .equals(
-                                                                                                            "boss")
-                                                                                    ? id.startsWith(
-                                                                                            category
-                                                                                                    + ":")
-                                                                                    : id.startsWith(
-                                                                                            "general:"
-                                                                                                    + category
-                                                                                                    + ":")));
-                                            int max = (ids.size() - 1) / 45;
-                                            int selected = Math.max(0, Math.min(page, max));
-                                            var v =
-                                                    menus.create(
-                                                            p,
-                                                            54,
-                                                            (category.equals("debloques")
-                                                                            ? "Talismans débloqués"
-                                                                                    + " — "
-                                                                            : "Non débloqués — "
-                                                                                    + category
-                                                                                    + " — ")
-                                                                    + ids.size());
-                                            for (int i = 0;
-                                                    i < 45 && selected * 45 + i < ids.size();
-                                                    i++) {
-                                                String id = ids.get(selected * 45 + i);
-                                                boolean known = unlocked.contains(id);
+                        (known, error) -> {
+                            if (stopped || !plugin.isEnabled()) return;
+                            fr.cliker.clikerv2.runtime.ServerTasks.run(
+                                    plugin,
+                                    () -> {
+                                        opening.remove(owner);
+                                        if (stopped
+                                                || !fr.cliker.clikerv2.runtime.PlayerSessions
+                                                        .isCurrent(player)
+                                                || player.getOpenInventory().getTopInventory()
+                                                        != previous) return;
+                                        if (error != null) {
+                                            player.sendMessage(
+                                                    "§cCollection indisponible. Réessaie plus"
+                                                        + " tard.");
+                                            return;
+                                        }
+                                        Set<String> registered = bags.registeredTalismans(owner);
+                                        Set<String> unlocked = new HashSet<>(known);
+                                        unlocked.addAll(registered);
+                                        List<String> ids = new ArrayList<>(catalog());
+                                        ids.removeIf(
+                                                id ->
+                                                        category.equals("debloques")
+                                                                ? !unlocked.contains(id)
+                                                                : unlocked.contains(id)
+                                                                        || !(category.equals("mob")
+                                                                                        || category
+                                                                                                .equals(
+                                                                                                        "boss")
+                                                                                        || category
+                                                                                                .equals(
+                                                                                                        "afk")
+                                                                                ? id.startsWith(
+                                                                                        category
+                                                                                                + ":")
+                                                                                : category.equals(
+                                                                                                "treasure")
+                                                                                        ? id.equals(
+                                                                                                "treasure")
+                                                                                        : id
+                                                                                                .startsWith(
+                                                                                                        "general:"
+                                                                                                                + category
+                                                                                                                + ":")));
+                                        ids.sort(
+                                                Comparator.comparingInt(
+                                                        id -> registered.contains(id) ? 0 : 1));
+                                        int pages = Math.max(1, (ids.size() + 27) / 28),
+                                                selected = Math.max(0, Math.min(page, pages - 1));
+                                        var view =
+                                                menus.create(
+                                                        player,
+                                                        54,
+                                                        (category.equals("debloques")
+                                                                        ? "Mes talismans"
+                                                                        : "Talismans • À découvrir")
+                                                                + " • "
+                                                                + (selected + 1)
+                                                                + "/"
+                                                                + pages);
+                                        view.put(
+                                                4,
+                                                Menus.item(
+                                                        Material.NETHER_STAR,
+                                                        "&d&lMA COLLECTION",
+                                                        "&a"
+                                                                + registered.size()
+                                                                + " talisman(s) enregistré(s) &7/ "
+                                                                + catalog().size(),
+                                                        "&7Clic droit avec le talisman en main :"
+                                                            + " ajout définitif.",
+                                                        "&cAucun retrait possible ; un doublon"
+                                                            + " n'est pas consommé."),
+                                                null);
+                                        for (int i = 0;
+                                                i < 28 && selected * 28 + i < ids.size();
+                                                i++) {
+                                            String id = ids.get(selected * 28 + i);
+                                            ItemStack item;
+                                            if (unlocked.contains(id)) {
+                                                item = create(id);
+                                                var meta = item.getItemMeta();
+                                                var lore =
+                                                        new ArrayList<
+                                                                net.kyori.adventure.text.Component>(
+                                                                meta.lore() == null
+                                                                        ? List.of()
+                                                                        : meta.lore());
+                                                lore.add(
+                                                        fr.cliker.clikerv2.daily.DailySettings
+                                                                .color("&8────────────────────"));
+                                                lore.add(
+                                                        fr.cliker.clikerv2.daily.DailySettings
+                                                                .color(activeStatus(player, id)));
+                                                meta.lore(lore);
+                                                item.setItemMeta(meta);
+                                            } else {
                                                 String[] parts = id.split(":");
                                                 String hint =
                                                         parts[0].equals("general")
-                                                                ? "Général "
-                                                                        + parts[1]
-                                                                        + " — Tier "
+                                                                ? family(parts[1])
+                                                                        + " • Tier "
                                                                         + parts[2]
-                                                                : "Zone "
-                                                                        + (MobTier.parse(parts[1])
-                                                                                        .ordinal()
-                                                                                + 1)
-                                                                        + " — "
-                                                                        + (parts[0].equals("boss")
-                                                                                ? "Boss"
-                                                                                : "Créature");
-                                                var item =
-                                                        known
-                                                                ? create(id)
-                                                                : Menus.item(
-                                                                        Material.GRAY_DYE,
-                                                                        hint + " — Non découvert",
-                                                                        parts[0].equals("general")
-                                                                                ? "Tier accessible"
-                                                                                      + " à partir"
-                                                                                      + " de la"
-                                                                                      + " zone "
-                                                                                        + tierZone(
-                                                                                                Integer
-                                                                                                        .parseInt(
+                                                                : parts[0].equals("afk")
+                                                                        ? "AFK • Tier " + parts[1]
+                                                                        : id.equals("treasure")
+                                                                                ? "Trésor"
+                                                                                : "Zone "
+                                                                                        + (MobTier
+                                                                                                        .parse(
                                                                                                                 parts[
-                                                                                                                        2]))
-                                                                                : "Obtiens ce"
-                                                                                      + " talisman"
-                                                                                      + " pour"
-                                                                                      + " découvrir"
-                                                                                      + " son bonus.");
-                                                if (known) {
-                                                    var meta = item.getItemMeta();
-                                                    var lore =
-                                                            new ArrayList<
-                                                                    net.kyori.adventure.text
-                                                                            .Component>(
-                                                                    meta.lore() == null
-                                                                            ? List.of()
-                                                                            : meta.lore());
-                                                    lore.add(
-                                                            net.kyori.adventure.text.Component.text(
-                                                                    activeStatus(p, id)));
-                                                    meta.lore(lore);
-                                                    item.setItemMeta(meta);
-                                                }
-                                                v.put(i, item, null);
-                                            }
-                                            v.put(
-                                                    45,
-                                                    Menus.item(Material.ARROW, "Page précédente"),
-                                                    (who, r) -> open(who, selected - 1, category));
-                                            v.put(
-                                                    49,
-                                                    Menus.item(
-                                                            Material.BOOK,
-                                                            "Informations",
-                                                            "Collection permanente ; bonus actifs"
-                                                                    + " uniquement dans tes sacs.",
-                                                            "Un seul bonus par type général : le"
-                                                                    + " meilleur tier.",
-                                                            "Tier 5 : accessible en zone "
-                                                                    + tierZone(5)
-                                                                    + "."),
-                                                    null);
-                                            v.put(
-                                                    53,
-                                                    Menus.item(Material.ARROW, "Page suivante"),
-                                                    (who, r) -> open(who, selected + 1, category));
-                                            v.put(
-                                                    47,
-                                                    Menus.item(
-                                                            Material.BOOK,
-                                                            "Non débloqués — Catégories"),
-                                                    (who, r) -> categories(who));
-                                            if (!category.equals("debloques"))
-                                                v.put(
-                                                        51,
-                                                        Menus.item(
-                                                                Material.ARROW,
-                                                                "Mes talismans débloqués"),
-                                                        (who, r) -> open(who, 0));
-                                            v.put(
-                                                    48,
-                                                    Menus.item(
-                                                            Material.NAUTILUS_SHELL,
-                                                            "Mes bonus actifs"),
-                                                    (who, r) -> activeBonuses(who));
-                                            if (ids.isEmpty())
-                                                v.put(
-                                                        22,
+                                                                                                                        1])
+                                                                                                        .ordinal()
+                                                                                                + 1);
+                                                item =
                                                         Menus.item(
                                                                 Material.GRAY_DYE,
-                                                                "Aucun talisman dans cette liste"),
-                                                        null);
-                                            v.show(p);
-                                        }));
+                                                                "&8??? &7• " + hint,
+                                                                "&7Talisman non découvert.",
+                                                                "&eObtiens l'objet pour découvrir"
+                                                                    + " son bonus.");
+                                            }
+                                            view.put(CELLS.get(i), item, null);
+                                        }
+                                        view.put(
+                                                45,
+                                                Menus.item(
+                                                        selected > 0
+                                                                ? Material.ARROW
+                                                                : Material.GRAY_DYE,
+                                                        "&ePage précédente"),
+                                                selected > 0
+                                                        ? (p, r) -> open(p, selected - 1, category)
+                                                        : null);
+                                        view.put(
+                                                47,
+                                                Menus.item(
+                                                        Material.BOOK,
+                                                        "&dTalismans non débloqués",
+                                                        "&7Parcourir les familles et leurs"
+                                                            + " découvertes."),
+                                                (p, r) -> categories(p));
+                                        view.put(
+                                                48,
+                                                Menus.item(
+                                                        Material.PAPER,
+                                                        "&bComment les utiliser ?",
+                                                        "&71. Tiens le talisman dans ta main"
+                                                            + " principale.",
+                                                        "&72. Fais un clic droit : un exemplaire"
+                                                            + " est consommé.",
+                                                        "&73. Le bonus reste enregistré"
+                                                            + " définitivement.",
+                                                        "&7Le meilleur tier d'une famille"
+                                                            + " s'applique.",
+                                                        "&8Les anciens exemplaires dans les sacs"
+                                                            + " restent compatibles."),
+                                                null);
+                                        view.put(
+                                                49,
+                                                Menus.item(
+                                                        Material.ARROW,
+                                                        "&eRetour",
+                                                        category.equals("debloques")
+                                                                ? "&7Retour au menu principal."
+                                                                : "&7Retour à ma collection."),
+                                                (p, r) -> {
+                                                    if (category.equals("debloques"))
+                                                        p.performCommand("menu");
+                                                    else open(p, 0);
+                                                });
+                                        view.put(
+                                                51,
+                                                Menus.item(
+                                                        Material.NAUTILUS_SHELL,
+                                                        "&aMes bonus actifs",
+                                                        "&7Voir les effets actuellement"
+                                                            + " appliqués."),
+                                                (p, r) -> activeBonuses(p));
+                                        view.put(
+                                                53,
+                                                Menus.item(
+                                                        selected + 1 < pages
+                                                                ? Material.ARROW
+                                                                : Material.GRAY_DYE,
+                                                        "&ePage suivante"),
+                                                selected + 1 < pages
+                                                        ? (p, r) -> open(p, selected + 1, category)
+                                                        : null);
+                                        if (ids.isEmpty())
+                                            view.put(
+                                                    22,
+                                                    Menus.item(
+                                                            Material.GRAY_DYE,
+                                                            "&7Aucun talisman dans cette liste",
+                                                            "&eAjoute tes premiers talismans par"
+                                                                + " clic droit en main."),
+                                                    null);
+                                        view.show(player);
+                                    });
+                        });
     }
 
     @Override

@@ -54,15 +54,21 @@ public final class DatabaseManager {
             statement.executeUpdate("PRAGMA journal_mode=WAL");
             statement.executeUpdate("PRAGMA busy_timeout=5000");
             statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS registered_talismans(owner TEXT NOT NULL,id TEXT"
+                        + " NOT NULL,PRIMARY KEY(owner,id))");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS talisman_collection(owner TEXT NOT NULL,id TEXT NOT"
+                        + " NULL,PRIMARY KEY(owner,id))");
+            statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS discord_game_boards(bot TEXT NOT NULL,channel TEXT"
                         + " NOT NULL,board TEXT NOT NULL,message_id TEXT NOT NULL,updated INTEGER"
                         + " NOT NULL,PRIMARY KEY(bot,channel,board))");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS discord_game_sent(id TEXT PRIMARY KEY,sent INTEGER"
-                        + " NOT NULL)");
+                            + " NOT NULL)");
             statement.executeUpdate(
                     "CREATE INDEX IF NOT EXISTS discord_game_sent_expiry ON"
-                        + " discord_game_sent(sent)");
+                            + " discord_game_sent(sent)");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS discord_rank_links(id TEXT NOT NULL UNIQUE,owner"
                         + " TEXT PRIMARY KEY,discord TEXT NOT NULL,guild TEXT NOT NULL,unlinking"
@@ -256,7 +262,7 @@ public final class DatabaseManager {
             migrateUpgradesCadenceColumn(statement);
             statement.executeUpdate(
                     "INSERT OR IGNORE INTO server_counters(id,value)"
-                        + " VALUES('boss_discord_sequence',0)");
+                            + " VALUES('boss_discord_sequence',0)");
             fr.cliker.clikerv2.rankings.RankingHistory.install(connection, rankingZone);
         }
     }

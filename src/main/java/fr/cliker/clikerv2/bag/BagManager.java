@@ -38,6 +38,20 @@ public final class BagManager implements Listener {
     private final java.util.function.Consumer<org.bukkit.entity.Player> savePlayer;
     private final org.bukkit.NamespacedKey snapshotKey;
     private final Map<UUID, Bonuses> bonuses = new HashMap<>();
+    private final Map<UUID, java.util.Set<String>> registered = new HashMap<>();
+
+    public java.util.Set<String> registeredTalismans(UUID owner) {
+        return registered.getOrDefault(owner, java.util.Set.of());
+    }
+
+    public void registerTalisman(UUID owner, String id) {
+        if (!isLoaded(owner) || !java.util.Objects.equals(id, TalismanRegistry.valid(id))) return;
+        var ids = new java.util.HashSet<>(registeredTalismans(owner));
+        ids.add(id);
+        registered.put(owner, java.util.Set.copyOf(ids));
+        refreshBonuses(owner);
+    }
+
     private final Map<UUID, Object> loadingSessions = new HashMap<>();
 
     public BagManager(JavaPlugin plugin, BagStore store) {
@@ -219,6 +233,19 @@ public final class BagManager implements Listener {
                     }
                 }
             }
+        for (String id : registeredTalismans(owner)) {
+            String[] parts = id.split(":");
+            switch (parts[0]) {
+                case "mob" -> {
+                    var tier = MobTier.parse(parts[1]);
+                    damage.merge(tier, TalismanItem.mobBonusPercent(tier), Math::max);
+                }
+                case "boss" -> bosses.add(MobTier.parse(parts[1]));
+                case "general" -> general.merge(parts[1], Integer.parseInt(parts[2]), Math::max);
+                case "afk" -> general.merge("afk", Integer.parseInt(parts[1]), Math::max);
+                case "treasure" -> treasure = true;
+            }
+        }
         bonuses.put(
                 owner,
                 new Bonuses(
@@ -300,14 +327,18 @@ public final class BagManager implements Listener {
             loadPlayer(player.getUniqueId(), player.getName());
     }
 
+    private record Loaded(String yaml, java.util.Set<String> registered) {}
+
     private void loadPlayer(UUID uuid, String name) {
         Object session = new Object();
         loadingSessions.put(uuid, session);
         bags.remove(uuid);
         bonuses.remove(uuid);
+        registered.remove(uuid);
         store.load(uuid)
+                .thenCombine(store.registered(uuid), (yaml, ids) -> new Loaded(yaml, ids))
                 .whenComplete(
-                        (yaml, error) -> {
+                        (loaded, error) -> {
                             if (!plugin.isEnabled()) return;
                             fr.cliker.clikerv2.runtime.ServerTasks.run(
                                     plugin,
@@ -337,12 +368,13 @@ public final class BagManager implements Listener {
                                                     uuid,
                                                     deserialize(
                                                             snapshot == null
-                                                                    ? yaml
+                                                                    ? loaded.yaml()
                                                                     : new String(
                                                                             snapshot,
                                                                             java.nio.charset
                                                                                     .StandardCharsets
                                                                                     .UTF_8)));
+                                            registered.put(uuid, loaded.registered());
                                             refreshBonuses(uuid);
                                         } catch (InvalidConfigurationException exception) {
                                             plugin.getLogger()
@@ -367,5 +399,6 @@ public final class BagManager implements Listener {
         loadingSessions.remove(uuid);
         bags.remove(uuid);
         bonuses.remove(uuid);
+        registered.remove(uuid);
     }
 }

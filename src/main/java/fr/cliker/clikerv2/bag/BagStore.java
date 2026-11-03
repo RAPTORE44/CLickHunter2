@@ -16,25 +16,55 @@ public final class BagStore {
     }
 
     public CompletableFuture<String> load(UUID uuid) {
-        return database.submit(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement("SELECT items FROM bags WHERE uuid = ?")) {
-                statement.setString(1, uuid.toString());
-                try (ResultSet rows = statement.executeQuery()) {
-                    return rows.next() ? rows.getString("items") : null;
-                }
-            } catch (SQLException exception) { throw new DatabaseManager.DatabaseException(exception); }
-        });
+        return database.submit(
+                connection -> {
+                    try (PreparedStatement statement =
+                            connection.prepareStatement("SELECT items FROM bags WHERE uuid = ?")) {
+                        statement.setString(1, uuid.toString());
+                        try (ResultSet rows = statement.executeQuery()) {
+                            return rows.next() ? rows.getString("items") : null;
+                        }
+                    } catch (SQLException exception) {
+                        throw new DatabaseManager.DatabaseException(exception);
+                    }
+                });
+    }
+
+    public CompletableFuture<java.util.Set<String>> registered(UUID owner) {
+        return database.submit(
+                c -> {
+                    try (var q =
+                            c.prepareStatement(
+                                    "SELECT id FROM registered_talismans WHERE owner=?")) {
+                        q.setString(1, owner.toString());
+                        java.util.Set<String> ids = new java.util.HashSet<>();
+                        try (var r = q.executeQuery()) {
+                            while (r.next()) {
+                                String id = TalismanRegistry.valid(r.getString(1));
+                                if (id != null) ids.add(id);
+                            }
+                        }
+                        return java.util.Set.copyOf(ids);
+                    } catch (SQLException error) {
+                        throw new DatabaseManager.DatabaseException(error);
+                    }
+                });
     }
 
     public CompletableFuture<Void> save(UUID uuid, String itemsYaml) {
-        return database.submit(connection -> {
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "INSERT INTO bags (uuid, items) VALUES (?, ?) ON CONFLICT(uuid) DO UPDATE SET items = excluded.items")) {
-                statement.setString(1, uuid.toString());
-                statement.setString(2, itemsYaml);
-                statement.executeUpdate();
-            } catch (SQLException exception) { throw new DatabaseManager.DatabaseException(exception); }
-            return null;
-        });
+        return database.submit(
+                connection -> {
+                    try (PreparedStatement statement =
+                            connection.prepareStatement(
+                                    "INSERT INTO bags (uuid, items) VALUES (?, ?) ON CONFLICT(uuid)"
+                                        + " DO UPDATE SET items = excluded.items")) {
+                        statement.setString(1, uuid.toString());
+                        statement.setString(2, itemsYaml);
+                        statement.executeUpdate();
+                    } catch (SQLException exception) {
+                        throw new DatabaseManager.DatabaseException(exception);
+                    }
+                    return null;
+                });
     }
 }

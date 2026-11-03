@@ -16,7 +16,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.List;
 
 /**
- * Talismans posés dans le /sac : bonus passif tant qu'ils sont dedans, pas besoin de les porter.
+ * Objets à enregistrer par clic droit en main. Les anciens exemplaires dans les sacs restent
+ * compatibles.
  */
 public final class TalismanItem {
     private static NamespacedKey MOB_KEY;
@@ -30,8 +31,8 @@ public final class TalismanItem {
     }
 
     /**
-     * % de dégâts bonus contre ce mob, tant que le talisman est dans le /sac : scale jusqu'à 90%
-     * pour le tier le plus haut.
+     * % de dégâts bonus contre ce mob, enregistré ou anciennement dans le sac : jusqu'à 90% pour le
+     * tier le plus haut.
      */
     public static double mobBonusPercent(MobTier tier) {
         int lastOrdinal = MobTier.values().length - 1;
@@ -55,7 +56,7 @@ public final class TalismanItem {
                                                 NamedTextColor.GRAY)),
                         Component.text(""),
                         Component.text(
-                                        "Actif tant qu'il est dans ton /sac.",
+                                        "Clic droit en main : ajout permanent, sans retrait.",
                                         NamedTextColor.DARK_GRAY)
                                 .decoration(TextDecoration.ITALIC, false)));
         meta.getPersistentDataContainer().set(MOB_KEY, PersistentDataType.STRING, tier.id());
@@ -82,7 +83,7 @@ public final class TalismanItem {
                                 .append(Component.text("+25", NamedTextColor.AQUA)),
                         Component.text(""),
                         Component.text(
-                                        "Actif tant qu'il est dans ton /sac.",
+                                        "Clic droit en main : ajout permanent, sans retrait.",
                                         NamedTextColor.DARK_GRAY)
                                 .decoration(TextDecoration.ITALIC, false)));
         meta.getPersistentDataContainer().set(TREASURE_KEY, PersistentDataType.BYTE, (byte) 1);

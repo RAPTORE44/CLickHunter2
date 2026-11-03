@@ -1,5 +1,5 @@
 taille: 54
-version-disposition: 2
+version-disposition: 3
 titre: '&2ClickHunter &8• &2Menu principal'
 fond: BLACK_STAINED_GLASS_PANE
 messages:
@@ -16,17 +16,17 @@ boutons:
     commande: daily
     permission: cliker.daily.use
   sacs:
-    slot: 34
+    slot: 31
     materiau: NETHER_STAR
     nom: '&6Mes sacs'
     description:
-    - '&7Range tes objets et tes talismans.'
+    - '&7Range tes ressources et ton équipement.'
     - ''
     - '&eClique pour choisir un sac.'
     commande: sac
     permission: cliker.sac.use
   stats:
-    slot: 12
+    slot: 20
     materiau: BOOK
     nom: '&bMes statistiques'
     description:
@@ -36,7 +36,7 @@ boutons:
     commande: stats
     permission: cliker.stats.use
   upgrades:
-    slot: 19
+    slot: 22
     materiau: EXPERIENCE_BOTTLE
     nom: '&dAméliorations'
     description:
@@ -46,7 +46,7 @@ boutons:
     commande: upgrade
     permission: cliker.upgrade.use
   prestige:
-    slot: 21
+    slot: 23
     materiau: BEACON
     nom: '&5Prestige'
     description:
@@ -56,7 +56,7 @@ boutons:
     commande: prestige
     permission: cliker.prestige.use
   ah:
-    slot: 32
+    slot: 29
     materiau: GOLD_INGOT
     nom: '&6Hôtel des ventes'
     description:
@@ -66,7 +66,7 @@ boutons:
     commande: ah
     permission: cliker.ah.use
   spawn:
-    slot: 3
+    slot: 12
     materiau: COMPASS
     nom: '&bRetour au spawn'
     description:
@@ -76,7 +76,7 @@ boutons:
     commande: spawn
     permission: cliker.spawn.use
   sell:
-    slot: 30
+    slot: 28
     materiau: EMERALD
     nom: '&aVendre mes essences'
     description:
@@ -86,7 +86,7 @@ boutons:
     commande: sell
     permission: cliker.sell.use
   tuto:
-    slot: 7
+    slot: 47
     materiau: WRITABLE_BOOK
     nom: '&bGuide du serveur'
     description:
@@ -102,7 +102,7 @@ boutons:
     description: []
     commande: ''
   bestiaire:
-    slot: 14
+    slot: 21
     materiau: BOOK
     nom: '&2Bestiaire et maîtrises'
     description:
@@ -131,7 +131,7 @@ boutons:
     commande: raid
     permission: cliker.raid
   avantposte:
-    slot: 5
+    slot: 14
     materiau: GRASS_BLOCK
     nom: '&aMon avant-poste'
     description:
@@ -148,7 +148,7 @@ boutons:
     commande: session
     permission: cliker.session
   warp:
-    slot: 1
+    slot: 10
     materiau: COMPASS
     nom: '&aVoyager et découvrir'
     description:
@@ -156,14 +156,14 @@ boutons:
     commande: warp
     permission: cliker.navigation.use
   talismans:
-    slot: 23
+    slot: 24
     materiau: NAUTILUS_SHELL
     nom: '&dTalismans et bonus actifs'
     description:
-    - '&7Collection, découvertes et effets de tes sacs.'
+    - '&7Clic droit en main : ajoute un talisman définitivement.'
     commande: tallisement
   guide:
-    slot: 10
+    slot: 19
     materiau: COMPASS
     nom: '&eConseil de progression'
     description:
@@ -174,7 +174,7 @@ boutons:
     commande: guide
     permission: cliker.upgrade.use
   atm:
-    slot: 43
+    slot: 30
     materiau: GOLD_INGOT
     nom: '&eATM de Marketus'
     description:
@@ -182,7 +182,7 @@ boutons:
     commande: atm
     permission: cliker.atm.use
   wiki:
-    slot: 47
+    slot: 51
     materiau: BOOK
     nom: '&bWiki et commandes'
     description:
@@ -190,14 +190,14 @@ boutons:
     commande: wiki
     permission: cliker.wiki.use
   claim:
-    slot: 51
+    slot: 32
     materiau: CHEST
     nom: '&aRécompenses en attente'
     description:
     - '&7Clique pour ouvrir.'
     commande: claim
   classements:
-    slot: 53
+    slot: 34
     materiau: NETHER_STAR
     nom: '&6Classements'
     description:
@@ -206,7 +206,7 @@ boutons:
     commande: top
     permission: cliker.classement.use
   courrier:
-    slot: 40
+    slot: 33
     materiau: WRITTEN_BOOK
     nom: '&b✉ Boîte aux lettres'
     description:
@@ -214,7 +214,7 @@ boutons:
     commande: courrier
     permission: cliker.courrier
   afk:
-    slot: 42
+    slot: 43
     materiau: CLOCK
     nom: '&3⌛ Monde AFK'
     description:
@@ -222,7 +222,7 @@ boutons:
     commande: afk
     permission: cliker.afk
   skins:
-    slot: 44
+    slot: 25
     materiau: PAINTING
     nom: '&dSkins des épées'
     description:

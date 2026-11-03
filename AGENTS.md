@@ -55,3 +55,7 @@ Le propriétaire veut la synchronisation LuckPerms ↔ Discord directement dans 
 ## Publications de jeu vers Discord — demande après 1.0.13
 
 Conserver les Top 10 Discord issus du RankingStore du jeu, avec dix lignes et édition horaire des mêmes messages dont les IDs sont sauvegardés. Les salons sont configurables par tableau et par événement. Le bot natif peut réutiliser ses identifiants de discord-grades.yml sans nécessiter LuckPerms pour publier. Les alertes du boss serveur incluent ses PV à l'apparition et le joueur du coup final ; les enchères distinguent inscriptions et début réel des mises. Une route native active évite un second envoi par le webhook historique. Aucun envoi sur le vrai Discord sans configuration du bot et des salons.
+
+## Talismans — demande après 1.0.14
+
+Un clic droit avec un talisman dans la main principale consomme un exemplaire et enregistre définitivement son bonus. Aucun retrait ou déséquipement joueur depuis la collection ; doublons déjà enregistrés conservés. Garder le journal transactionnel, la distinction découverte/enregistrement et la compatibilité des anciens talismans physiques dans les sacs, sans effacer les objets existants.
