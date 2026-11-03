@@ -1,6 +1,13 @@
 # ClikerV2
 
-## Dernière mise à jour — 3 novembre 2026 — version 1.0.12
+## Dernière mise à jour — 3 novembre 2026 — version 1.0.13
+
+- Validation : **514 tests réussis**, sans échec ni test ignoré, dont quatre nouveaux cas pour les permissions, toutes les pages, les reçus et les anciens écrans. Essais Paper 1.21.4 : refus non OP, menu fermé après vidage et cible hors ligne par UUID.
+- **Vidage staff du `/claim`** : `/claim clear <joueur|UUID>`, ou `/claimclear <joueur|UUID>`. Permission dédiée `cliker.claim.clear`, réservée aux OP par défaut ; commande également disponible depuis la console et pour un joueur hors ligne.
+- Toutes les pages d’objets en attente sont vidées. Les monnaies, l’inventaire, les sacs et les objets des autres joueurs sont conservés. Les sources de livraison restent enregistrées pour empêcher une ancienne récompense de réapparaître.
+- Le menu `/claim` de la cible est fermé et ses lectures en attente sont annulées. Un transfert actif ou un reçu de livraison interrompue bloque le vidage entier ; terminer la livraison ou reconnecter le joueur, puis réessayer. Les gains arrivant après le vidage restent des gains normaux.
+
+## Mise à jour 1.0.12 — 3 novembre 2026
 
 - Validation : **510 tests réussis**, sans échec ni test ignoré ; bot Discord simulé pour les échanges et essais locaux Paper 1.21.4 pour les commandes et la compatibilité. Activation sur le vrai Discord après configuration du bot.
 - **Grades Discord intégrés au plugin** : synchronisation bidirectionnelle des groupes LuckPerms et des rôles explicitement associés, sans DiscordSRV ni JAR de bot supplémentaire. Ajouts, retraits et expiration des parents globaux temporaires sont pris en compte. Aucun accès donné par le statut OP ou une permission wildcard.
@@ -485,6 +492,15 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/feed [joueur]` | Restaurer la faim et la saturation. | `cliker.staff.feed` |
 
 Ces permissions sont réservées aux OP par défaut et peuvent être accordées via LuckPerms. Cibler un autre joueur nécessite aussi `cliker.staff.others`. La console doit préciser un joueur en ligne.
+
+### Administration : récompenses en attente
+
+| Commande | Utilité | Permission |
+| --- | --- | --- |
+| `/claim clear <joueur\|UUID>` | Vider toutes les pages du `/claim` d’un joueur connecté ou hors ligne. La console est acceptée. | `cliker.claim.clear` (OP par défaut) |
+| `/claimclear <joueur\|UUID>` | Raccourci de la même opération ; aucun autre alias ajouté. | `cliker.claim.clear` |
+
+La suppression concerne les objets encore en attente, sans retirer ceux de l’inventaire ni les monnaies. Un transfert en cours empêche le vidage ; les anciens reçus et sources restent enregistrés contre les doublons. La commande affiche le nombre d’entrées supprimées et écrit une trace staff dans les logs. Un UUID permet de cibler un joueur hors ligne même si son pseudo n’est plus en cache ; un pseudo doit être connu du serveur.
 
 ### Administration : monnaies et distribution
 

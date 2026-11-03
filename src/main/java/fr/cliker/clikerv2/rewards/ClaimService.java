@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 /** Objets différés uniquement : monnaies créditées dans les services économiques. */
-public final class ClaimService implements Listener, CommandExecutor {
+public final class ClaimService implements Listener, CommandExecutor, TabCompleter {
     private final JavaPlugin plugin;
     private final DatabaseManager database;
     private final MailStore store;
@@ -31,6 +31,8 @@ public final class ClaimService implements Listener, CommandExecutor {
     private final java.util.function.Consumer<Player> savePlayer;
     private final java.util.function.BiConsumer<Player, ItemStack[]> writeStorage;
     private final Set<UUID> busy = new HashSet<>();
+    private final Set<UUID> clearing = new HashSet<>();
+    public static final String CLEAR_PERMISSION = "cliker.claim.clear";
     private final Map<UUID, CompletableFuture<Void>> acknowledgements = new HashMap<>();
     private final Map<UUID, String> purchaseSources = new HashMap<>();
     private final Map<UUID, Object> opening = new HashMap<>();
@@ -72,7 +74,10 @@ public final class ClaimService implements Listener, CommandExecutor {
                 .getServicesManager()
                 .register(ClaimService.class, this, plugin, ServicePriority.Normal);
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        Objects.requireNonNull(plugin.getCommand("claim")).setExecutor(this);
+        for (String command : List.of("claim", "claimclear")) {
+            Objects.requireNonNull(plugin.getCommand(command)).setExecutor(this);
+            plugin.getCommand(command).setTabCompleter(this);
+        }
     }
 
     public static String serialize(ItemStack item) {
@@ -102,7 +107,9 @@ public final class ClaimService implements Listener, CommandExecutor {
 
     public boolean isDelivering(UUID uuid) {
         var outgoing = Bukkit.getServicesManager().load(OutgoingItems.class);
-        return busy.contains(uuid) || (outgoing != null && outgoing.locked(uuid));
+        return busy.contains(uuid)
+                || clearing.contains(uuid)
+                || (outgoing != null && outgoing.locked(uuid));
     }
 
     public CompletableFuture<UUID> resolve(String name) {
@@ -955,11 +962,157 @@ public final class ClaimService implements Listener, CommandExecutor {
             event.setCancelled(true);
     }
 
+    private void clearClaim(CommandSender staff, UUID owner, String target) {
+        if (stopped || !staff.hasPermission(CLEAR_PERMISSION)) return;
+        if (isDelivering(owner) || !clearing.add(owner)) {
+            staffMessage(
+                    staff,
+                    "§eUne livraison ou un transfert est en cours pour "
+                            + target
+                            + ". Réessaie ensuite.");
+            return;
+        }
+        bulkPages.remove(owner);
+        purchaseSources.remove(owner);
+        opening.remove(owner);
+        Player online = Bukkit.getPlayer(owner);
+        if (online != null) {
+            Inventory top = online.getOpenInventory().getTopInventory();
+            if (top != null && top.getHolder() instanceof Holder) online.closeInventory();
+        }
+        store.clearPending(owner)
+                .whenComplete(
+                        (result, error) ->
+                                sync(
+                                        () -> {
+                                            clearing.remove(owner);
+                                            if (error != null) {
+                                                plugin.getLogger()
+                                                        .log(
+                                                                Level.SEVERE,
+                                                                "Vidage du /claim impossible pour "
+                                                                        + owner,
+                                                                error);
+                                                staffMessage(
+                                                        staff,
+                                                        "§cImpossible de vider ce /claim. Réessaie"
+                                                                + " plus tard.");
+                                            } else if (result.transferPending()) {
+                                                staffMessage(
+                                                        staff,
+                                                        "§eUn transfert reste à terminer. Le joueur"
+                                                            + " doit se reconnecter pour reprendre"
+                                                            + " sa livraison, puis tu peux"
+                                                            + " réessayer.");
+                                            } else {
+                                                staffMessage(
+                                                        staff,
+                                                        "§a/claim de "
+                                                                + target
+                                                                + " vidé : "
+                                                                + result.removed()
+                                                                + " entrée(s) supprimée(s).");
+                                                plugin.getLogger()
+                                                        .info(
+                                                                staff.getName()
+                                                                        + " a vidé le /claim de "
+                                                                        + target
+                                                                        + " ("
+                                                                        + owner
+                                                                        + ") : "
+                                                                        + result.removed()
+                                                                        + " entrée(s).");
+                                            }
+                                            Player current = Bukkit.getPlayer(owner);
+                                            if (current != null) resume(owner);
+                                        }));
+    }
+
+    private void staffMessage(CommandSender staff, String text) {
+        if (!(staff instanceof Player player)
+                || fr.cliker.clikerv2.runtime.PlayerSessions.isCurrent(player))
+            staff.sendMessage(text);
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        boolean shortcut = command.getName().equalsIgnoreCase("claimclear");
+        boolean clear = shortcut || (args.length > 0 && args[0].equalsIgnoreCase("clear"));
+        if (clear) {
+            if (!sender.hasPermission(CLEAR_PERMISSION)) {
+                sender.sendMessage("§cTu n'as pas la permission de vider un /claim.");
+                return true;
+            }
+            int targetIndex = shortcut ? 0 : 1;
+            if (args.length != targetIndex + 1) {
+                sender.sendMessage("§e/claim clear <joueur|UUID> §7ou §e/claimclear <joueur|UUID>");
+                return true;
+            }
+            String target = args[targetIndex];
+            CompletableFuture<UUID> found;
+            try {
+                found = CompletableFuture.completedFuture(UUID.fromString(target));
+            } catch (IllegalArgumentException ignored) {
+                found = resolve(target);
+            }
+            found.whenComplete(
+                    (owner, error) ->
+                            sync(
+                                    () -> {
+                                        if (error != null) {
+                                            staffMessage(
+                                                    sender,
+                                                    "§cImpossible de rechercher ce joueur. Réessaie"
+                                                            + " plus tard.");
+                                            return;
+                                        }
+                                        if (owner == null) {
+                                            staffMessage(
+                                                    sender,
+                                                    "§cJoueur introuvable. Utilise un pseudo connu"
+                                                            + " du serveur ou son UUID.");
+                                            return;
+                                        }
+                                        if (sender instanceof Player player
+                                                && !fr.cliker.clikerv2.runtime.PlayerSessions
+                                                        .isCurrent(player)) return;
+                                        clearClaim(sender, owner, target);
+                                    }));
+            return true;
+        }
+        if (args.length > 0) {
+            sender.sendMessage(
+                    "§e/claim"
+                            + (sender.hasPermission(CLEAR_PERMISSION)
+                                    ? " §7ou §e/claim clear <joueur|UUID>"
+                                    : ""));
+            return true;
+        }
         if (sender instanceof Player p) open(p, 0);
-        else sender.sendMessage("Commande réservée aux joueurs.");
+        else
+            sender.sendMessage(
+                    "Commande réservée aux joueurs. Pour vider : /claim clear <joueur|UUID>.");
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(
+            CommandSender sender, Command command, String label, String[] args) {
+        if (!sender.hasPermission(CLEAR_PERMISSION)) return List.of();
+        boolean shortcut = command.getName().equalsIgnoreCase("claimclear");
+        if (!shortcut && args.length == 1)
+            return "clear".startsWith(args[0].toLowerCase(Locale.ROOT))
+                    ? List.of("clear")
+                    : List.of();
+        if ((shortcut && args.length == 1)
+                || (!shortcut && args.length == 2 && args[0].equalsIgnoreCase("clear"))) {
+            String prefix = args[args.length - 1].toLowerCase(Locale.ROOT);
+            return Bukkit.getOnlinePlayers().stream()
+                    .map(Player::getName)
+                    .filter(n -> n.toLowerCase(Locale.ROOT).startsWith(prefix))
+                    .toList();
+        }
+        return List.of();
     }
 
     private void message(Player player, String key) {
@@ -972,6 +1125,7 @@ public final class ClaimService implements Listener, CommandExecutor {
     }
 
     public void shutdown() {
+        clearing.clear();
         bulkPages.clear();
         purchaseSources.clear();
         stopped = true;

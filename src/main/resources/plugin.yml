@@ -5,6 +5,10 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  claimclear:
+    description: Vider les objets en attente du claim d’un joueur
+    usage: /claimclear <joueur|UUID>
+    permission: cliker.claim.clear
   discordsync:
     description: Gérer la synchronisation native LuckPerms et Discord
     usage: /discordsync <statut|reload|sync [joueur|UUID]>
@@ -209,7 +213,7 @@ commands:
     permission: cliker.avantposte
   claim:
     description: Récupérer les récompenses en objets non livrées
-    usage: /claim
+    usage: /claim [clear <joueur|UUID>]
     permission: cliker.claim
   parrain:
     description: Indiquer le joueur qui t’a invité
@@ -344,6 +348,9 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.claim.clear:
+    description: Vider le claim d’un joueur, connecté ou hors ligne
+    default: op
   cliker.discord.link:
     description: Lier son compte Discord aux grades Minecraft
     default: true

@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "checks": [
+    "Commande réservée au staff : accès non OP refusé",
+    "Vidage par pseudo connecté et fermeture de son menu claim",
+    "Raccourci claimclear accepté pour un UUID hors ligne"
+  ],
+  "version": "1.0.13",
+  "functional_tests": 514,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "new_tests": 4,
+  "permission": "cliker.claim.clear",
+  "paper": "1.21.4",
+  "java": 21,
+  "command": "/claim clear <joueur|UUID>",
+  "shortcut": "/claimclear <joueur|UUID>"
+}

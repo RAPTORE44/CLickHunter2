@@ -591,4 +591,117 @@ class ClaimServiceTest {
                                 && claims.store().page(player.getUniqueId(), 0).join().total()
                                         == 0);
     }
+
+    private org.bukkit.command.Command command(String name) {
+        return new org.bukkit.command.Command(name) {
+            public boolean execute(
+                    org.bukkit.command.CommandSender sender, String label, String[] args) {
+                return false;
+            }
+        };
+    }
+
+    @Test
+    void nonStaffCannotClearAnotherPlayersRewards() {
+        var item =
+                enqueue(player.getUniqueId(), "protected-clear", new ItemStack(Material.DIAMOND));
+        var other = server.addPlayer("OtherPlayer");
+        other.addAttachment(plugin, ClaimService.CLEAR_PERMISSION, false);
+        claims.onCommand(
+                other,
+                command("claim"),
+                "claim",
+                new String[] {"clear", player.getUniqueId().toString()});
+        claims.onCommand(
+                other,
+                command("claimclear"),
+                "claimclear",
+                new String[] {player.getUniqueId().toString()});
+        assertEquals(1, claims.store().page(player.getUniqueId(), 0).join().total());
+        assertTrue(other.nextMessage().contains("permission"));
+        assertTrue(
+                claims.onTabComplete(other, command("claim"), "claim", new String[] {""})
+                        .isEmpty());
+    }
+
+    @Test
+    void consoleClearsAllPagesForOfflineUuidWithoutReplayingSourcesOrChangingOtherPlayersMoney()
+            throws Exception {
+        UUID offline = UUID.randomUUID();
+        var economy = new fr.cliker.clikerv2.EconomyService(database, Map.of());
+        economy.set(offline, "OfflinePlayer", fr.cliker.clikerv2.economy.CurrencyType.ECUS, 1234)
+                .join();
+        var original = enqueue(offline, "clear-once", new ItemStack(Material.DIAMOND));
+        for (int i = 0; i < 46; i++)
+            enqueue(offline, "extra-clear-" + i, new ItemStack(Material.EMERALD));
+        enqueue(player.getUniqueId(), "other-owner", new ItemStack(Material.GOLD_INGOT));
+        claims.onCommand(
+                server.getConsoleSender(),
+                command("claimclear"),
+                "claimclear",
+                new String[] {offline.toString()});
+        await(() -> claims.store().page(offline, 0).join().total() == 0);
+        await(() -> !claims.isDelivering(offline));
+        assertEquals(1, claims.store().page(player.getUniqueId(), 0).join().total());
+        assertEquals(1234, economy.getBalances(offline).join().ecus());
+        assertEquals(
+                original.id(),
+                enqueue(offline, "clear-once", new ItemStack(Material.DIAMOND)).id());
+        assertEquals(0, claims.store().page(offline, 0).join().total());
+        assertNull(
+                claims.store()
+                        .reserve(offline, original.id(), "old-click", System.currentTimeMillis())
+                        .join());
+    }
+
+    @Test
+    void inFlightReceiptBlocksWholeClearAndPreservesPendingObjects() {
+        UUID offline = UUID.randomUUID();
+        var reserved = enqueue(offline, "reserved-clear", new ItemStack(Material.DIAMOND));
+        enqueue(offline, "waiting-clear", new ItemStack(Material.EMERALD));
+        assertNotNull(
+                claims.store()
+                        .reserve(
+                                offline,
+                                reserved.id(),
+                                "delivery-lease",
+                                System.currentTimeMillis())
+                        .join());
+        var result = claims.store().clearPending(offline).join();
+        assertTrue(result.transferPending());
+        assertEquals(0, result.removed());
+        assertEquals(2, claims.store().page(offline, 0).join().total());
+    }
+
+    @Test
+    void clearClosesOnlineClaimAndStaleInventoryClickCannotDeliverDeletedItem() throws Exception {
+        enqueue(player.getUniqueId(), "online-clear", new ItemStack(Material.DIAMOND));
+        claims.open(player, 0);
+        await(
+                () ->
+                        player.getOpenInventory().getTopInventory() != null
+                                && player.getOpenInventory().getTopInventory().getSize() == 54);
+        var oldView = player.getOpenInventory();
+        var staff = server.addPlayer("ClaimStaff");
+        staff.addAttachment(plugin, ClaimService.CLEAR_PERMISSION, true);
+        claims.onCommand(
+                staff, command("claim"), "claim", new String[] {"clear", player.getName()});
+        await(() -> claims.store().page(player.getUniqueId(), 0).join().total() == 0);
+        await(() -> !claims.isDelivering(player.getUniqueId()));
+        assertTrue(
+                player.getOpenInventory().getTopInventory() == null
+                        || player.getOpenInventory().getTopInventory().getSize() != 54);
+        var click =
+                new InventoryClickEvent(
+                        oldView,
+                        InventoryType.SlotType.CONTAINER,
+                        0,
+                        ClickType.LEFT,
+                        InventoryAction.PICKUP_ALL);
+        server.getPluginManager().callEvent(click);
+        drain();
+        await(() -> !claims.isDelivering(player.getUniqueId()));
+        assertFalse(player.getInventory().contains(Material.DIAMOND));
+        assertTrue(click.isCancelled());
+    }
 }

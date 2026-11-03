@@ -42,6 +42,46 @@ public final class MailStore {
         }
     }
 
+    public record ClearResult(int removed, boolean transferPending) {}
+
+    /** Conserver les sources déjà consommées empêche qu'une récompense rejouée soit recréée. */
+    public CompletableFuture<ClearResult> clearPending(UUID owner) {
+        return database.submit(
+                c -> {
+                    try {
+                        c.setAutoCommit(false);
+                        try (var q =
+                                c.prepareStatement(
+                                        "SELECT 1 FROM claim_items WHERE owner=? AND state=1 LIMIT"
+                                            + " 1")) {
+                            q.setString(1, owner.toString());
+                            try (var r = q.executeQuery()) {
+                                if (r.next()) {
+                                    c.rollback();
+                                    return new ClearResult(0, true);
+                                }
+                            }
+                        }
+                        int removed;
+                        try (var q =
+                                c.prepareStatement(
+                                        "UPDATE claim_items SET state=2,lease=NULL,lease_until=0"
+                                            + " WHERE owner=? AND state=0")) {
+                            q.setString(1, owner.toString());
+                            removed = q.executeUpdate();
+                        }
+                        c.commit();
+                        return new ClearResult(removed, false);
+                    } catch (SQLException error) {
+                        try {
+                            c.rollback();
+                        } catch (SQLException ignored) {
+                        }
+                        throw new DatabaseManager.DatabaseException(error);
+                    }
+                });
+    }
+
     public CompletableFuture<Boolean> discardOverflow(UUID owner, String id) {
         return database.submit(
                 c -> {
