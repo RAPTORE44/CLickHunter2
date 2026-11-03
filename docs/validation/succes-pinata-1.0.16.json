@@ -1,0 +1,31 @@
+{
+  "success": true,
+  "checks": [
+    "Non OP : /succes ouvre les catégories et le total sur 500",
+    "Liste complète : pages suivantes et précédentes accessibles, icônes en consultation",
+    "Migration du menu existant : raccourci Succès ajouté sans déplacer les talismans",
+    "Piñata : lama lumineux visible par le joueur avec équipe de contour dans son scoreboard",
+    "Coups rapides : couleurs du contour changent avec intervalle global limité à 500 ms",
+    "Titre Piñata et secondes restantes conservés",
+    "Reconnexion : collection persistante et ouverture directe du filtre débloqué"
+  ],
+  "glowChanges": [
+    {
+      "time": 1793740449051,
+      "formatting": 13
+    },
+    {
+      "time": 1793740450095,
+      "formatting": 11
+    }
+  ],
+  "version": "1.0.16",
+  "environment": "Paper 1.21.4 / Java 21 ; remplacement vanilla sans ItemsAdder local",
+  "unit_tests": {
+    "tests": 542,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "production_deployed": false
+}

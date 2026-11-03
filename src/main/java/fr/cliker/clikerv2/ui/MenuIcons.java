@@ -58,6 +58,10 @@ public final class MenuIcons implements Listener {
             throw new IllegalStateException("Catalogue des icônes illisible", error);
         }
         boolean migrated = config.contains("exiger-pack-charge");
+        if (!config.contains("mots.succes")) {
+            config.set("mots.succes", "progression_succes");
+            migrated = true;
+        }
         config.set("exiger-pack-charge", null);
         for (String word : java.util.List.of("enchere", "hotel")) {
             if ("boutique_enchere".equals(config.getString("mots." + word))) {

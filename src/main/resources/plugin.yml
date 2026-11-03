@@ -5,6 +5,11 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  succes:
+    description: Consulter les 500 succès et leur progression
+    aliases: [achievements]
+    usage: /succes [tout|debloques|a-faire]
+    permission: cliker.succes
   discordjeu:
     description: Classements horaires et événements Discord du serveur
     usage: /discordjeu <statut|reload|actualiser>
@@ -352,6 +357,9 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.succes:
+    description: Consulter sa collection de succès
+    default: true
   cliker.discord.game.admin:
     description: Administrer les classements et notifications du bot natif
     default: op

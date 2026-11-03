@@ -38,7 +38,8 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
     private final long minimum, maximum, duration, hitInterval;
     private Map<UUID, Long> totals = new HashMap<>();
     private long health, maxHealth;
-    private Strider entity;
+    private Llama entity;
+    private final PinataAppearance appearance = new PinataAppearance();
     private Location point;
     private org.bukkit.Chunk heldChunk;
     private String round;
@@ -53,6 +54,14 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
         this.store = new PinataStore(db, ledger);
         settings = new Settings(plugin, "activites/pinata.yml");
         marker = new NamespacedKey(plugin, "pinata");
+        String previous = settings.yaml.getString("messages.apparition", "");
+        if (previous.contains("Un arpenteur piñata est apparu")) {
+            settings.yaml.set(
+                    "messages.apparition",
+                    previous.replace(
+                            "Un arpenteur piñata est apparu", "Un lama piñata est apparu"));
+            settings.save();
+        }
         minimum = bounded("intervalle-min-secondes", 1200, 1, 86400);
         maximum = bounded("intervalle-max-secondes", 1800, minimum, 86400);
         duration = bounded("duree-secondes", 180, 1, 3600);
@@ -127,6 +136,7 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
             return;
         }
         if (entity == null || !entity.isValid()) materialize();
+        appearance.viewers();
         var at = entity.getLocation();
         if (!at.getWorld().equals(point.getWorld()) || at.distanceSquared(point) > .01)
             entity.teleport(point);
@@ -252,7 +262,7 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                                 plugin.getLogger()
                                                         .log(
                                                                 Level.SEVERE,
-                                                                "Création de l’arpenteur"
+                                                                "Création du lama piñata"
                                                                         + " impossible",
                                                                 failure);
                                                 round = id;
@@ -339,6 +349,7 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                                             Sound.BLOCK_NOTE_BLOCK_PLING,
                                                             .5f,
                                                             1.4f);
+                                                    appearance.hit();
                                                     health = Math.max(0, health - damage);
                                                     fr.cliker.clikerv2.combat.PersonalCombatAudio
                                                             .hurt(player, entity);
@@ -400,7 +411,7 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                 point.getWorld()
                         .spawn(
                                 point,
-                                Strider.class,
+                                Llama.class,
                                 CreatureSpawnEvent.SpawnReason.CUSTOM,
                                 s -> {
                                     s.getPersistentDataContainer()
@@ -411,13 +422,16 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
                                     s.setCollidable(false);
                                     s.setPersistent(false);
                                     s.setRemoveWhenFarAway(false);
-                                    s.setShivering(false);
+                                    s.setAdult();
+                                    s.setCanPickupItems(false);
                                 });
         if (!entity.isValid()) throw new IllegalStateException("Apparition annulée");
+        appearance.attach(entity);
         shownSecond = -1;
     }
 
     private void sleepEntity() {
+        appearance.clear();
         if (entity != null) {
             entity.remove();
             entity = null;
@@ -431,6 +445,7 @@ public final class PinataModule implements Listener, CommandExecutor, TabComplet
     }
 
     private void finish() {
+        appearance.clear();
         String id = round;
         round = null;
         if (entity != null) {

@@ -59,3 +59,7 @@ Conserver les Top 10 Discord issus du RankingStore du jeu, avec dix lignes et é
 ## Talismans — demande après 1.0.14
 
 Un clic droit avec un talisman dans la main principale consomme un exemplaire et enregistre définitivement son bonus. Aucun retrait ou déséquipement joueur depuis la collection ; doublons déjà enregistrés conservés. Garder le journal transactionnel, la distinction découverte/enregistrement et la compatibilité des anciens talismans physiques dans les sacs, sans effacer les objets existants.
+
+## Succès et piñata — demande après 1.0.15
+
+Conserver le catalogue de 500 succès honorifiques, les IDs stables et les déblocages permanents par UUID ; ne pas réinitialiser les succès avec le prestige. Leur suivi se fait hors du thread serveur pour le SQL, par passages espacés et répartis entre les joueurs, sans requête par coup. La piñata est un lama : pelage, tapis et contour lumineux changent sur les coups validés, avec une limite globale de 500 ms pour l’ensemble des joueurs. Conserver ses récompenses à monnaie unique, points de spawn/téléportation et secondes restantes. Nettoyer les équipes du contour lors de la mise en veille et de la disparition.

@@ -52,6 +52,29 @@ public final class CommunityStore {
                                             + " PRIMARY KEY,owner TEXT NOT NULL,seconds INTEGER NOT"
                                             + " NULL DEFAULT 0)");
                             }
+                            try (var s = c.createStatement()) {
+                                s.executeUpdate(
+                                        "CREATE INDEX IF NOT EXISTS achievement_mail_sender ON"
+                                            + " community_mail(sender)");
+                                try (var r =
+                                        s.executeQuery(
+                                                "SELECT 1 FROM achievement_migrations WHERE"
+                                                    + " id='mail-history'")) {
+                                    if (!r.next()) {
+                                        try (var migration = c.createStatement()) {
+                                            migration.executeUpdate(
+                                                    "INSERT OR IGNORE INTO"
+                                                        + " achievement_mail_counts(owner,total)"
+                                                        + " SELECT sender,count(*) FROM"
+                                                        + " community_mail WHERE sender<>owner"
+                                                        + " GROUP BY sender");
+                                            migration.executeUpdate(
+                                                    "INSERT INTO achievement_migrations"
+                                                        + " VALUES('mail-history')");
+                                        }
+                                    }
+                                }
+                            }
                             return null;
                         });
     }
@@ -124,6 +147,15 @@ public final class CommunityStore {
                         s.setLong(7, System.currentTimeMillis());
                         s.executeUpdate();
                     }
+                    if (!owner.equals(sender))
+                        try (var s =
+                                c.prepareStatement(
+                                        "INSERT INTO achievement_mail_counts(owner,total)"
+                                            + " VALUES(?,1) ON CONFLICT(owner) DO UPDATE SET"
+                                            + " total=total+1 WHERE total<9223372036854775807")) {
+                            s.setString(1, sender.toString());
+                            s.executeUpdate();
+                        }
                     return null;
                 });
     }

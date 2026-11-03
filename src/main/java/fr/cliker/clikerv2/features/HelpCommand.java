@@ -72,6 +72,11 @@ public final class HelpCommand implements CommandExecutor, TabCompleter {
                 "cliker.prestige.use",
                 "Progression");
         add("stats", "Consulter tes statistiques.", "cliker.stats.use", "Progression");
+        add(
+                "succes",
+                "Consulter les 500 succès et leur progression.",
+                "cliker.succes",
+                "Progression");
         add("session", "Résumé de ta session de chasse.", "cliker.session", "Progression");
         add(
                 "ah",

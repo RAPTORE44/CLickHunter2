@@ -1,6 +1,16 @@
 # ClikerV2
 
-## Dernière mise à jour — 3 novembre 2026 — version 1.0.15
+## Dernière mise à jour — 3 novembre 2026 — version 1.0.16
+
+- **500 succès persistants** : 190 paliers de chasse par créature, 190 paliers par boss de zone et 120 objectifs transversaux. `/succes` propose les catégories, la progression, les filtres et les pages ; raccourci dans `/menu`, aide dans `/aide`. Les créatures inconnues gardent leur mystère.
+- **Progression personnelle** : objectifs honorifiques sans nouvelle monnaie ni récompense à réclamer, conservation des déblocages et des meilleurs paliers après un prestige. Notifications privées regroupées par lot, sans annonce globale. Les statistiques historiques disponibles sont reprises ; vérifications SQL asynchrones espacées, jamais une requête par coup.
+- **Piñata lama multicolore** : remplace l’arpenteur, avec pelage et tapis qui changent avec le contour lumineux à chaque coup validé, au maximum une fois toutes les 0,5 seconde pour l’ensemble des attaquants. Couleur de nom selon la monnaie et secondes restantes conservées. Équipes de contour compatibles avec les scoreboards individuels et supprimées à la disparition.
+- Validation : **542 tests fonctionnels réussis**, sans échec, erreur ni test ignoré ; essais clients Paper 1.21.4 pour les menus migrés, le lama lumineux, les couleurs et la reconnexion.
+- Configuration des 500 noms et seuils : `progression/succes.yml`. Les commandes de piñata, gains, sons, particules, points sauvegardés et plages d’apparition restent disponibles.
+
+[Catalogue, fonctionnement et installation](docs/SUCCES-ET-PINATA.md).
+
+## Mise à jour 1.0.15 — 3 novembre 2026
 
 - **Menu principal réorganisé** : double coffre, raccourcis regroupés par navigation, progression, commerce/rangement et activités, repères colorés et descriptions plus claires. Migration de la disposition vers la version 3 avec sauvegarde de l’ancienne configuration ; commandes, permissions et boutons personnalisés conservés.
 - **Talismans permanents par clic droit** : tenir l’objet dans la main principale puis faire un clic droit consomme un exemplaire et l’ajoute définitivement à sa collection. Aucun retrait, déséquipement ou récupération depuis le menu. Les doublons déjà enregistrés restent en main ; meilleur tier par famille générale/AFK.
@@ -385,6 +395,7 @@ L'autocompresseur s'achète chez le marchand puis s'active par clic droit : l'ob
 | `/trash`, `/poubelle`, `/pouvelle` | Poubelle de 54 cases ; gauche 1, droite la pile, objets détruits à la fermeture. Permission `cliker.trash` (tous). |
 | `/tutoriel [reprendre\|masquer\|recommencer]` | Afficher, masquer ou recommencer le guide en bossbar. Permission `cliker.tutoriel` (tous). |
 | `/jeutchat` | Voir le jeu de chat en cours et son délai ; répondre dans le chat pour gagner une caisse selon son prestige. |
+| `/succes [tout\|debloques\|a-faire]` | Consulter les 500 succès : catégories, progression, pagination, filtres et dates de déblocage. Alias `/achievements`. Permission `cliker.succes`, accordée par défaut. Raccourci dans `/menu`. |
 | `/session` | Consulter la durée, les éliminations et les gains de chasse confirmés, avec rendement par minute. |
 | `/settings` | Régler les textes de dégâts, les effets doux, le son de compression et les messages de farm ; alias `/parametres`. |
 | `/drop` | Basculer ensemble le jet d’objets et le ramassage jusqu’à la déconnexion ; objets verrouillés toujours protégés. |

@@ -54,11 +54,16 @@ public final class DatabaseManager {
             statement.executeUpdate("PRAGMA journal_mode=WAL");
             statement.executeUpdate("PRAGMA busy_timeout=5000");
             statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS achievement_mail_counts(owner TEXT PRIMARY"
+                        + " KEY,total INTEGER NOT NULL DEFAULT 0)");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS achievement_migrations(id TEXT PRIMARY KEY)");
+            statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS registered_talismans(owner TEXT NOT NULL,id TEXT"
-                        + " NOT NULL,PRIMARY KEY(owner,id))");
+                            + " NOT NULL,PRIMARY KEY(owner,id))");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS talisman_collection(owner TEXT NOT NULL,id TEXT NOT"
-                        + " NULL,PRIMARY KEY(owner,id))");
+                            + " NULL,PRIMARY KEY(owner,id))");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS discord_game_boards(bot TEXT NOT NULL,channel TEXT"
                         + " NOT NULL,board TEXT NOT NULL,message_id TEXT NOT NULL,updated INTEGER"

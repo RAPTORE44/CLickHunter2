@@ -1,0 +1,1505 @@
+# 500 succès honorifiques : pas de monnaie créée ni de commande récompense.
+# Les IDs restent stables : ne pas les renommer après ouverture du serveur.
+intervalle-secondes: 60
+notifications: true
+succes:
+  kills_1:
+    nom: 'Chasseur infatigable 1'
+    objectif: 10
+  kills_2:
+    nom: 'Chasseur infatigable 2'
+    objectif: 100
+  kills_3:
+    nom: 'Chasseur infatigable 3'
+    objectif: 1000
+  kills_4:
+    nom: 'Chasseur infatigable 4'
+    objectif: 10000
+  kills_5:
+    nom: 'Chasseur infatigable 5'
+    objectif: 100000
+  kills_6:
+    nom: 'Chasseur infatigable 6'
+    objectif: 1000000
+  bosses_1:
+    nom: 'Tombeur de boss 1'
+    objectif: 1
+  bosses_2:
+    nom: 'Tombeur de boss 2'
+    objectif: 10
+  bosses_3:
+    nom: 'Tombeur de boss 3'
+    objectif: 50
+  bosses_4:
+    nom: 'Tombeur de boss 4'
+    objectif: 100
+  bosses_5:
+    nom: 'Tombeur de boss 5'
+    objectif: 500
+  bosses_6:
+    nom: 'Tombeur de boss 6'
+    objectif: 2500
+  clicks_1:
+    nom: 'Lame assidue 1'
+    objectif: 100
+  clicks_2:
+    nom: 'Lame assidue 2'
+    objectif: 1000
+  clicks_3:
+    nom: 'Lame assidue 3'
+    objectif: 10000
+  clicks_4:
+    nom: 'Lame assidue 4'
+    objectif: 100000
+  clicks_5:
+    nom: 'Lame assidue 5'
+    objectif: 1000000
+  clicks_6:
+    nom: 'Lame assidue 6'
+    objectif: 10000000
+  minutes_1:
+    nom: 'Fidèle aventurier 1'
+    objectif: 60
+  minutes_2:
+    nom: 'Fidèle aventurier 2'
+    objectif: 300
+  minutes_3:
+    nom: 'Fidèle aventurier 3'
+    objectif: 1500
+  minutes_4:
+    nom: 'Fidèle aventurier 4'
+    objectif: 6000
+  minutes_5:
+    nom: 'Fidèle aventurier 5'
+    objectif: 30000
+  minutes_6:
+    nom: 'Fidèle aventurier 6'
+    objectif: 60000
+  level_1:
+    nom: 'Toujours plus haut 1'
+    objectif: 10
+  level_2:
+    nom: 'Toujours plus haut 2'
+    objectif: 25
+  level_3:
+    nom: 'Toujours plus haut 3'
+    objectif: 50
+  level_4:
+    nom: 'Toujours plus haut 4'
+    objectif: 100
+  level_5:
+    nom: 'Toujours plus haut 5'
+    objectif: 500
+  level_6:
+    nom: 'Toujours plus haut 6'
+    objectif: 1000
+  prestige_1:
+    nom: 'Nouvelle ascension 1'
+    objectif: 1
+  prestige_2:
+    nom: 'Nouvelle ascension 2'
+    objectif: 2
+  prestige_3:
+    nom: 'Nouvelle ascension 3'
+    objectif: 5
+  prestige_4:
+    nom: 'Nouvelle ascension 4'
+    objectif: 10
+  prestige_5:
+    nom: 'Nouvelle ascension 5'
+    objectif: 25
+  prestige_6:
+    nom: 'Nouvelle ascension 6'
+    objectif: 50
+  zones_1:
+    nom: 'Grand explorateur 1'
+    objectif: 2
+  zones_2:
+    nom: 'Grand explorateur 2'
+    objectif: 4
+  zones_3:
+    nom: 'Grand explorateur 3'
+    objectif: 7
+  zones_4:
+    nom: 'Grand explorateur 4'
+    objectif: 10
+  zones_5:
+    nom: 'Grand explorateur 5'
+    objectif: 15
+  zones_6:
+    nom: 'Grand explorateur 6'
+    objectif: 19
+  talismans_1:
+    nom: 'Collectionneur permanent 1'
+    objectif: 1
+  talismans_2:
+    nom: 'Collectionneur permanent 2'
+    objectif: 5
+  talismans_3:
+    nom: 'Collectionneur permanent 3'
+    objectif: 10
+  talismans_4:
+    nom: 'Collectionneur permanent 4'
+    objectif: 20
+  talismans_5:
+    nom: 'Collectionneur permanent 5'
+    objectif: 40
+  talismans_6:
+    nom: 'Collectionneur permanent 6'
+    objectif: 60
+  contracts_1:
+    nom: 'Parole tenue 1'
+    objectif: 1
+  contracts_2:
+    nom: 'Parole tenue 2'
+    objectif: 5
+  contracts_3:
+    nom: 'Parole tenue 3'
+    objectif: 25
+  contracts_4:
+    nom: 'Parole tenue 4'
+    objectif: 100
+  contracts_5:
+    nom: 'Parole tenue 5'
+    objectif: 250
+  contracts_6:
+    nom: 'Parole tenue 6'
+    objectif: 1000
+  raids_1:
+    nom: 'Compagnon de raid 1'
+    objectif: 1
+  raids_2:
+    nom: 'Compagnon de raid 2'
+    objectif: 5
+  raids_3:
+    nom: 'Compagnon de raid 3'
+    objectif: 10
+  raids_4:
+    nom: 'Compagnon de raid 4'
+    objectif: 25
+  raids_5:
+    nom: 'Compagnon de raid 5'
+    objectif: 100
+  raids_6:
+    nom: 'Compagnon de raid 6'
+    objectif: 500
+  serverboss_1:
+    nom: 'Défenseur du serveur 1'
+    objectif: 1
+  serverboss_2:
+    nom: 'Défenseur du serveur 2'
+    objectif: 3
+  serverboss_3:
+    nom: 'Défenseur du serveur 3'
+    objectif: 10
+  serverboss_4:
+    nom: 'Défenseur du serveur 4'
+    objectif: 25
+  serverboss_5:
+    nom: 'Défenseur du serveur 5'
+    objectif: 50
+  serverboss_6:
+    nom: 'Défenseur du serveur 6'
+    objectif: 100
+  ecus_1:
+    nom: 'Fortune de chasse 1'
+    objectif: 1000
+  ecus_2:
+    nom: 'Fortune de chasse 2'
+    objectif: 10000
+  ecus_3:
+    nom: 'Fortune de chasse 3'
+    objectif: 100000
+  ecus_4:
+    nom: 'Fortune de chasse 4'
+    objectif: 1000000
+  ecus_5:
+    nom: 'Fortune de chasse 5'
+    objectif: 100000000
+  ecus_6:
+    nom: 'Fortune de chasse 6'
+    objectif: 1000000000
+  gems_1:
+    nom: 'Éclats de richesse 1'
+    objectif: 10
+  gems_2:
+    nom: 'Éclats de richesse 2'
+    objectif: 100
+  gems_3:
+    nom: 'Éclats de richesse 3'
+    objectif: 1000
+  gems_4:
+    nom: 'Éclats de richesse 4'
+    objectif: 10000
+  gems_5:
+    nom: 'Éclats de richesse 5'
+    objectif: 100000
+  gems_6:
+    nom: 'Éclats de richesse 6'
+    objectif: 1000000
+  xp_1:
+    nom: 'Soif de savoir 1'
+    objectif: 1000
+  xp_2:
+    nom: 'Soif de savoir 2'
+    objectif: 10000
+  xp_3:
+    nom: 'Soif de savoir 3'
+    objectif: 100000
+  xp_4:
+    nom: 'Soif de savoir 4'
+    objectif: 1000000
+  xp_5:
+    nom: 'Soif de savoir 5'
+    objectif: 10000000
+  xp_6:
+    nom: 'Soif de savoir 6'
+    objectif: 100000000
+  mail_1:
+    nom: 'Messager attentionné 1'
+    objectif: 1
+  mail_2:
+    nom: 'Messager attentionné 2'
+    objectif: 5
+  mail_3:
+    nom: 'Messager attentionné 3'
+    objectif: 10
+  mail_4:
+    nom: 'Messager attentionné 4'
+    objectif: 25
+  mail_5:
+    nom: 'Messager attentionné 5'
+    objectif: 50
+  mail_6:
+    nom: 'Messager attentionné 6'
+    objectif: 100
+  afk_1:
+    nom: 'Pause méritée 1'
+    objectif: 10
+  afk_2:
+    nom: 'Pause méritée 2'
+    objectif: 60
+  afk_3:
+    nom: 'Pause méritée 3'
+    objectif: 300
+  afk_4:
+    nom: 'Pause méritée 4'
+    objectif: 600
+  afk_5:
+    nom: 'Pause méritée 5'
+    objectif: 3000
+  afk_6:
+    nom: 'Pause méritée 6'
+    objectif: 6000
+  pinata_1:
+    nom: 'Pluie de cadeaux 1'
+    objectif: 1
+  pinata_2:
+    nom: 'Pluie de cadeaux 2'
+    objectif: 25
+  pinata_3:
+    nom: 'Pluie de cadeaux 3'
+    objectif: 100
+  pinata_4:
+    nom: 'Pluie de cadeaux 4'
+    objectif: 500
+  pinata_5:
+    nom: 'Pluie de cadeaux 5'
+    objectif: 1000
+  pinata_6:
+    nom: 'Pluie de cadeaux 6'
+    objectif: 5000
+  atm_1:
+    nom: 'Temps bien investi 1'
+    objectif: 100
+  atm_2:
+    nom: 'Temps bien investi 2'
+    objectif: 1000
+  atm_3:
+    nom: 'Temps bien investi 3'
+    objectif: 10000
+  atm_4:
+    nom: 'Temps bien investi 4'
+    objectif: 100000
+  atm_5:
+    nom: 'Temps bien investi 5'
+    objectif: 1000000
+  atm_6:
+    nom: 'Temps bien investi 6'
+    objectif: 10000000
+  outpost_1:
+    nom: 'Bâtisseur ambitieux 1'
+    objectif: 1
+  outpost_2:
+    nom: 'Bâtisseur ambitieux 2'
+    objectif: 2
+  outpost_3:
+    nom: 'Bâtisseur ambitieux 3'
+    objectif: 3
+  outpost_4:
+    nom: 'Bâtisseur ambitieux 4'
+    objectif: 4
+  outpost_5:
+    nom: 'Bâtisseur ambitieux 5'
+    objectif: 5
+  outpost_6:
+    nom: 'Bâtisseur ambitieux 6'
+    objectif: 6
+  welcomes_1:
+    nom: 'Accueil chaleureux 1'
+    objectif: 1
+  welcomes_2:
+    nom: 'Accueil chaleureux 2'
+    objectif: 5
+  welcomes_3:
+    nom: 'Accueil chaleureux 3'
+    objectif: 10
+  welcomes_4:
+    nom: 'Accueil chaleureux 4'
+    objectif: 25
+  welcomes_5:
+    nom: 'Accueil chaleureux 5'
+    objectif: 50
+  welcomes_6:
+    nom: 'Accueil chaleureux 6'
+    objectif: 100
+  mob_vache_1:
+    nom: 'Chasseur — Vache 1'
+    objectif: 1
+  mob_vache_2:
+    nom: 'Chasseur — Vache 2'
+    objectif: 25
+  mob_vache_3:
+    nom: 'Chasseur — Vache 3'
+    objectif: 100
+  mob_vache_4:
+    nom: 'Chasseur — Vache 4'
+    objectif: 500
+  mob_vache_5:
+    nom: 'Chasseur — Vache 5'
+    objectif: 1000
+  mob_vache_6:
+    nom: 'Chasseur — Vache 6'
+    objectif: 5000
+  mob_vache_7:
+    nom: 'Chasseur — Vache 7'
+    objectif: 10000
+  mob_vache_8:
+    nom: 'Chasseur — Vache 8'
+    objectif: 50000
+  mob_vache_9:
+    nom: 'Chasseur — Vache 9'
+    objectif: 100000
+  mob_vache_10:
+    nom: 'Chasseur — Vache 10'
+    objectif: 1000000
+  mob_cochon_1:
+    nom: 'Chasseur — Cochon 1'
+    objectif: 1
+  mob_cochon_2:
+    nom: 'Chasseur — Cochon 2'
+    objectif: 25
+  mob_cochon_3:
+    nom: 'Chasseur — Cochon 3'
+    objectif: 100
+  mob_cochon_4:
+    nom: 'Chasseur — Cochon 4'
+    objectif: 500
+  mob_cochon_5:
+    nom: 'Chasseur — Cochon 5'
+    objectif: 1000
+  mob_cochon_6:
+    nom: 'Chasseur — Cochon 6'
+    objectif: 5000
+  mob_cochon_7:
+    nom: 'Chasseur — Cochon 7'
+    objectif: 10000
+  mob_cochon_8:
+    nom: 'Chasseur — Cochon 8'
+    objectif: 50000
+  mob_cochon_9:
+    nom: 'Chasseur — Cochon 9'
+    objectif: 100000
+  mob_cochon_10:
+    nom: 'Chasseur — Cochon 10'
+    objectif: 1000000
+  mob_poulet_1:
+    nom: 'Chasseur — Poulet 1'
+    objectif: 1
+  mob_poulet_2:
+    nom: 'Chasseur — Poulet 2'
+    objectif: 25
+  mob_poulet_3:
+    nom: 'Chasseur — Poulet 3'
+    objectif: 100
+  mob_poulet_4:
+    nom: 'Chasseur — Poulet 4'
+    objectif: 500
+  mob_poulet_5:
+    nom: 'Chasseur — Poulet 5'
+    objectif: 1000
+  mob_poulet_6:
+    nom: 'Chasseur — Poulet 6'
+    objectif: 5000
+  mob_poulet_7:
+    nom: 'Chasseur — Poulet 7'
+    objectif: 10000
+  mob_poulet_8:
+    nom: 'Chasseur — Poulet 8'
+    objectif: 50000
+  mob_poulet_9:
+    nom: 'Chasseur — Poulet 9'
+    objectif: 100000
+  mob_poulet_10:
+    nom: 'Chasseur — Poulet 10'
+    objectif: 1000000
+  mob_mouton_1:
+    nom: 'Chasseur — Mouton 1'
+    objectif: 1
+  mob_mouton_2:
+    nom: 'Chasseur — Mouton 2'
+    objectif: 25
+  mob_mouton_3:
+    nom: 'Chasseur — Mouton 3'
+    objectif: 100
+  mob_mouton_4:
+    nom: 'Chasseur — Mouton 4'
+    objectif: 500
+  mob_mouton_5:
+    nom: 'Chasseur — Mouton 5'
+    objectif: 1000
+  mob_mouton_6:
+    nom: 'Chasseur — Mouton 6'
+    objectif: 5000
+  mob_mouton_7:
+    nom: 'Chasseur — Mouton 7'
+    objectif: 10000
+  mob_mouton_8:
+    nom: 'Chasseur — Mouton 8'
+    objectif: 50000
+  mob_mouton_9:
+    nom: 'Chasseur — Mouton 9'
+    objectif: 100000
+  mob_mouton_10:
+    nom: 'Chasseur — Mouton 10'
+    objectif: 1000000
+  mob_lapin_1:
+    nom: 'Chasseur — Lapin 1'
+    objectif: 1
+  mob_lapin_2:
+    nom: 'Chasseur — Lapin 2'
+    objectif: 25
+  mob_lapin_3:
+    nom: 'Chasseur — Lapin 3'
+    objectif: 100
+  mob_lapin_4:
+    nom: 'Chasseur — Lapin 4'
+    objectif: 500
+  mob_lapin_5:
+    nom: 'Chasseur — Lapin 5'
+    objectif: 1000
+  mob_lapin_6:
+    nom: 'Chasseur — Lapin 6'
+    objectif: 5000
+  mob_lapin_7:
+    nom: 'Chasseur — Lapin 7'
+    objectif: 10000
+  mob_lapin_8:
+    nom: 'Chasseur — Lapin 8'
+    objectif: 50000
+  mob_lapin_9:
+    nom: 'Chasseur — Lapin 9'
+    objectif: 100000
+  mob_lapin_10:
+    nom: 'Chasseur — Lapin 10'
+    objectif: 1000000
+  mob_ourse_1:
+    nom: 'Chasseur — Ourse 1'
+    objectif: 1
+  mob_ourse_2:
+    nom: 'Chasseur — Ourse 2'
+    objectif: 25
+  mob_ourse_3:
+    nom: 'Chasseur — Ourse 3'
+    objectif: 100
+  mob_ourse_4:
+    nom: 'Chasseur — Ourse 4'
+    objectif: 500
+  mob_ourse_5:
+    nom: 'Chasseur — Ourse 5'
+    objectif: 1000
+  mob_ourse_6:
+    nom: 'Chasseur — Ourse 6'
+    objectif: 5000
+  mob_ourse_7:
+    nom: 'Chasseur — Ourse 7'
+    objectif: 10000
+  mob_ourse_8:
+    nom: 'Chasseur — Ourse 8'
+    objectif: 50000
+  mob_ourse_9:
+    nom: 'Chasseur — Ourse 9'
+    objectif: 100000
+  mob_ourse_10:
+    nom: 'Chasseur — Ourse 10'
+    objectif: 1000000
+  mob_ane_1:
+    nom: 'Chasseur — Âne 1'
+    objectif: 1
+  mob_ane_2:
+    nom: 'Chasseur — Âne 2'
+    objectif: 25
+  mob_ane_3:
+    nom: 'Chasseur — Âne 3'
+    objectif: 100
+  mob_ane_4:
+    nom: 'Chasseur — Âne 4'
+    objectif: 500
+  mob_ane_5:
+    nom: 'Chasseur — Âne 5'
+    objectif: 1000
+  mob_ane_6:
+    nom: 'Chasseur — Âne 6'
+    objectif: 5000
+  mob_ane_7:
+    nom: 'Chasseur — Âne 7'
+    objectif: 10000
+  mob_ane_8:
+    nom: 'Chasseur — Âne 8'
+    objectif: 50000
+  mob_ane_9:
+    nom: 'Chasseur — Âne 9'
+    objectif: 100000
+  mob_ane_10:
+    nom: 'Chasseur — Âne 10'
+    objectif: 1000000
+  mob_pigman_1:
+    nom: 'Chasseur — Pigman 1'
+    objectif: 1
+  mob_pigman_2:
+    nom: 'Chasseur — Pigman 2'
+    objectif: 25
+  mob_pigman_3:
+    nom: 'Chasseur — Pigman 3'
+    objectif: 100
+  mob_pigman_4:
+    nom: 'Chasseur — Pigman 4'
+    objectif: 500
+  mob_pigman_5:
+    nom: 'Chasseur — Pigman 5'
+    objectif: 1000
+  mob_pigman_6:
+    nom: 'Chasseur — Pigman 6'
+    objectif: 5000
+  mob_pigman_7:
+    nom: 'Chasseur — Pigman 7'
+    objectif: 10000
+  mob_pigman_8:
+    nom: 'Chasseur — Pigman 8'
+    objectif: 50000
+  mob_pigman_9:
+    nom: 'Chasseur — Pigman 9'
+    objectif: 100000
+  mob_pigman_10:
+    nom: 'Chasseur — Pigman 10'
+    objectif: 1000000
+  mob_piglin_1:
+    nom: 'Chasseur — Piglin 1'
+    objectif: 1
+  mob_piglin_2:
+    nom: 'Chasseur — Piglin 2'
+    objectif: 25
+  mob_piglin_3:
+    nom: 'Chasseur — Piglin 3'
+    objectif: 100
+  mob_piglin_4:
+    nom: 'Chasseur — Piglin 4'
+    objectif: 500
+  mob_piglin_5:
+    nom: 'Chasseur — Piglin 5'
+    objectif: 1000
+  mob_piglin_6:
+    nom: 'Chasseur — Piglin 6'
+    objectif: 5000
+  mob_piglin_7:
+    nom: 'Chasseur — Piglin 7'
+    objectif: 10000
+  mob_piglin_8:
+    nom: 'Chasseur — Piglin 8'
+    objectif: 50000
+  mob_piglin_9:
+    nom: 'Chasseur — Piglin 9'
+    objectif: 100000
+  mob_piglin_10:
+    nom: 'Chasseur — Piglin 10'
+    objectif: 1000000
+  mob_piglin_brute_1:
+    nom: 'Chasseur — Piglin Brute 1'
+    objectif: 1
+  mob_piglin_brute_2:
+    nom: 'Chasseur — Piglin Brute 2'
+    objectif: 25
+  mob_piglin_brute_3:
+    nom: 'Chasseur — Piglin Brute 3'
+    objectif: 100
+  mob_piglin_brute_4:
+    nom: 'Chasseur — Piglin Brute 4'
+    objectif: 500
+  mob_piglin_brute_5:
+    nom: 'Chasseur — Piglin Brute 5'
+    objectif: 1000
+  mob_piglin_brute_6:
+    nom: 'Chasseur — Piglin Brute 6'
+    objectif: 5000
+  mob_piglin_brute_7:
+    nom: 'Chasseur — Piglin Brute 7'
+    objectif: 10000
+  mob_piglin_brute_8:
+    nom: 'Chasseur — Piglin Brute 8'
+    objectif: 50000
+  mob_piglin_brute_9:
+    nom: 'Chasseur — Piglin Brute 9'
+    objectif: 100000
+  mob_piglin_brute_10:
+    nom: 'Chasseur — Piglin Brute 10'
+    objectif: 1000000
+  mob_hoglin_1:
+    nom: 'Chasseur — Hoglin 1'
+    objectif: 1
+  mob_hoglin_2:
+    nom: 'Chasseur — Hoglin 2'
+    objectif: 25
+  mob_hoglin_3:
+    nom: 'Chasseur — Hoglin 3'
+    objectif: 100
+  mob_hoglin_4:
+    nom: 'Chasseur — Hoglin 4'
+    objectif: 500
+  mob_hoglin_5:
+    nom: 'Chasseur — Hoglin 5'
+    objectif: 1000
+  mob_hoglin_6:
+    nom: 'Chasseur — Hoglin 6'
+    objectif: 5000
+  mob_hoglin_7:
+    nom: 'Chasseur — Hoglin 7'
+    objectif: 10000
+  mob_hoglin_8:
+    nom: 'Chasseur — Hoglin 8'
+    objectif: 50000
+  mob_hoglin_9:
+    nom: 'Chasseur — Hoglin 9'
+    objectif: 100000
+  mob_hoglin_10:
+    nom: 'Chasseur — Hoglin 10'
+    objectif: 1000000
+  mob_magma_slime_1:
+    nom: 'Chasseur — Magma Slime 1'
+    objectif: 1
+  mob_magma_slime_2:
+    nom: 'Chasseur — Magma Slime 2'
+    objectif: 25
+  mob_magma_slime_3:
+    nom: 'Chasseur — Magma Slime 3'
+    objectif: 100
+  mob_magma_slime_4:
+    nom: 'Chasseur — Magma Slime 4'
+    objectif: 500
+  mob_magma_slime_5:
+    nom: 'Chasseur — Magma Slime 5'
+    objectif: 1000
+  mob_magma_slime_6:
+    nom: 'Chasseur — Magma Slime 6'
+    objectif: 5000
+  mob_magma_slime_7:
+    nom: 'Chasseur — Magma Slime 7'
+    objectif: 10000
+  mob_magma_slime_8:
+    nom: 'Chasseur — Magma Slime 8'
+    objectif: 50000
+  mob_magma_slime_9:
+    nom: 'Chasseur — Magma Slime 9'
+    objectif: 100000
+  mob_magma_slime_10:
+    nom: 'Chasseur — Magma Slime 10'
+    objectif: 1000000
+  mob_blaze_1:
+    nom: 'Chasseur — Blaze 1'
+    objectif: 1
+  mob_blaze_2:
+    nom: 'Chasseur — Blaze 2'
+    objectif: 25
+  mob_blaze_3:
+    nom: 'Chasseur — Blaze 3'
+    objectif: 100
+  mob_blaze_4:
+    nom: 'Chasseur — Blaze 4'
+    objectif: 500
+  mob_blaze_5:
+    nom: 'Chasseur — Blaze 5'
+    objectif: 1000
+  mob_blaze_6:
+    nom: 'Chasseur — Blaze 6'
+    objectif: 5000
+  mob_blaze_7:
+    nom: 'Chasseur — Blaze 7'
+    objectif: 10000
+  mob_blaze_8:
+    nom: 'Chasseur — Blaze 8'
+    objectif: 50000
+  mob_blaze_9:
+    nom: 'Chasseur — Blaze 9'
+    objectif: 100000
+  mob_blaze_10:
+    nom: 'Chasseur — Blaze 10'
+    objectif: 1000000
+  mob_wither_skeleton_1:
+    nom: 'Chasseur — Wither Squelette 1'
+    objectif: 1
+  mob_wither_skeleton_2:
+    nom: 'Chasseur — Wither Squelette 2'
+    objectif: 25
+  mob_wither_skeleton_3:
+    nom: 'Chasseur — Wither Squelette 3'
+    objectif: 100
+  mob_wither_skeleton_4:
+    nom: 'Chasseur — Wither Squelette 4'
+    objectif: 500
+  mob_wither_skeleton_5:
+    nom: 'Chasseur — Wither Squelette 5'
+    objectif: 1000
+  mob_wither_skeleton_6:
+    nom: 'Chasseur — Wither Squelette 6'
+    objectif: 5000
+  mob_wither_skeleton_7:
+    nom: 'Chasseur — Wither Squelette 7'
+    objectif: 10000
+  mob_wither_skeleton_8:
+    nom: 'Chasseur — Wither Squelette 8'
+    objectif: 50000
+  mob_wither_skeleton_9:
+    nom: 'Chasseur — Wither Squelette 9'
+    objectif: 100000
+  mob_wither_skeleton_10:
+    nom: 'Chasseur — Wither Squelette 10'
+    objectif: 1000000
+  mob_ghast_1:
+    nom: 'Chasseur — Ghast 1'
+    objectif: 1
+  mob_ghast_2:
+    nom: 'Chasseur — Ghast 2'
+    objectif: 25
+  mob_ghast_3:
+    nom: 'Chasseur — Ghast 3'
+    objectif: 100
+  mob_ghast_4:
+    nom: 'Chasseur — Ghast 4'
+    objectif: 500
+  mob_ghast_5:
+    nom: 'Chasseur — Ghast 5'
+    objectif: 1000
+  mob_ghast_6:
+    nom: 'Chasseur — Ghast 6'
+    objectif: 5000
+  mob_ghast_7:
+    nom: 'Chasseur — Ghast 7'
+    objectif: 10000
+  mob_ghast_8:
+    nom: 'Chasseur — Ghast 8'
+    objectif: 50000
+  mob_ghast_9:
+    nom: 'Chasseur — Ghast 9'
+    objectif: 100000
+  mob_ghast_10:
+    nom: 'Chasseur — Ghast 10'
+    objectif: 1000000
+  mob_vindicator_1:
+    nom: 'Chasseur — Vindicateur 1'
+    objectif: 1
+  mob_vindicator_2:
+    nom: 'Chasseur — Vindicateur 2'
+    objectif: 25
+  mob_vindicator_3:
+    nom: 'Chasseur — Vindicateur 3'
+    objectif: 100
+  mob_vindicator_4:
+    nom: 'Chasseur — Vindicateur 4'
+    objectif: 500
+  mob_vindicator_5:
+    nom: 'Chasseur — Vindicateur 5'
+    objectif: 1000
+  mob_vindicator_6:
+    nom: 'Chasseur — Vindicateur 6'
+    objectif: 5000
+  mob_vindicator_7:
+    nom: 'Chasseur — Vindicateur 7'
+    objectif: 10000
+  mob_vindicator_8:
+    nom: 'Chasseur — Vindicateur 8'
+    objectif: 50000
+  mob_vindicator_9:
+    nom: 'Chasseur — Vindicateur 9'
+    objectif: 100000
+  mob_vindicator_10:
+    nom: 'Chasseur — Vindicateur 10'
+    objectif: 1000000
+  mob_ravager_1:
+    nom: 'Chasseur — Ravageur 1'
+    objectif: 1
+  mob_ravager_2:
+    nom: 'Chasseur — Ravageur 2'
+    objectif: 25
+  mob_ravager_3:
+    nom: 'Chasseur — Ravageur 3'
+    objectif: 100
+  mob_ravager_4:
+    nom: 'Chasseur — Ravageur 4'
+    objectif: 500
+  mob_ravager_5:
+    nom: 'Chasseur — Ravageur 5'
+    objectif: 1000
+  mob_ravager_6:
+    nom: 'Chasseur — Ravageur 6'
+    objectif: 5000
+  mob_ravager_7:
+    nom: 'Chasseur — Ravageur 7'
+    objectif: 10000
+  mob_ravager_8:
+    nom: 'Chasseur — Ravageur 8'
+    objectif: 50000
+  mob_ravager_9:
+    nom: 'Chasseur — Ravageur 9'
+    objectif: 100000
+  mob_ravager_10:
+    nom: 'Chasseur — Ravageur 10'
+    objectif: 1000000
+  mob_wither_1:
+    nom: 'Chasseur — Wither 1'
+    objectif: 1
+  mob_wither_2:
+    nom: 'Chasseur — Wither 2'
+    objectif: 25
+  mob_wither_3:
+    nom: 'Chasseur — Wither 3'
+    objectif: 100
+  mob_wither_4:
+    nom: 'Chasseur — Wither 4'
+    objectif: 500
+  mob_wither_5:
+    nom: 'Chasseur — Wither 5'
+    objectif: 1000
+  mob_wither_6:
+    nom: 'Chasseur — Wither 6'
+    objectif: 5000
+  mob_wither_7:
+    nom: 'Chasseur — Wither 7'
+    objectif: 10000
+  mob_wither_8:
+    nom: 'Chasseur — Wither 8'
+    objectif: 50000
+  mob_wither_9:
+    nom: 'Chasseur — Wither 9'
+    objectif: 100000
+  mob_wither_10:
+    nom: 'Chasseur — Wither 10'
+    objectif: 1000000
+  mob_warden_1:
+    nom: 'Chasseur — Warden 1'
+    objectif: 1
+  mob_warden_2:
+    nom: 'Chasseur — Warden 2'
+    objectif: 25
+  mob_warden_3:
+    nom: 'Chasseur — Warden 3'
+    objectif: 100
+  mob_warden_4:
+    nom: 'Chasseur — Warden 4'
+    objectif: 500
+  mob_warden_5:
+    nom: 'Chasseur — Warden 5'
+    objectif: 1000
+  mob_warden_6:
+    nom: 'Chasseur — Warden 6'
+    objectif: 5000
+  mob_warden_7:
+    nom: 'Chasseur — Warden 7'
+    objectif: 10000
+  mob_warden_8:
+    nom: 'Chasseur — Warden 8'
+    objectif: 50000
+  mob_warden_9:
+    nom: 'Chasseur — Warden 9'
+    objectif: 100000
+  mob_warden_10:
+    nom: 'Chasseur — Warden 10'
+    objectif: 1000000
+  boss_vache_1:
+    nom: 'Némésis — Vache 1'
+    objectif: 1
+  boss_vache_2:
+    nom: 'Némésis — Vache 2'
+    objectif: 5
+  boss_vache_3:
+    nom: 'Némésis — Vache 3'
+    objectif: 10
+  boss_vache_4:
+    nom: 'Némésis — Vache 4'
+    objectif: 25
+  boss_vache_5:
+    nom: 'Némésis — Vache 5'
+    objectif: 50
+  boss_vache_6:
+    nom: 'Némésis — Vache 6'
+    objectif: 100
+  boss_vache_7:
+    nom: 'Némésis — Vache 7'
+    objectif: 250
+  boss_vache_8:
+    nom: 'Némésis — Vache 8'
+    objectif: 500
+  boss_vache_9:
+    nom: 'Némésis — Vache 9'
+    objectif: 1000
+  boss_vache_10:
+    nom: 'Némésis — Vache 10'
+    objectif: 2500
+  boss_cochon_1:
+    nom: 'Némésis — Cochon 1'
+    objectif: 1
+  boss_cochon_2:
+    nom: 'Némésis — Cochon 2'
+    objectif: 5
+  boss_cochon_3:
+    nom: 'Némésis — Cochon 3'
+    objectif: 10
+  boss_cochon_4:
+    nom: 'Némésis — Cochon 4'
+    objectif: 25
+  boss_cochon_5:
+    nom: 'Némésis — Cochon 5'
+    objectif: 50
+  boss_cochon_6:
+    nom: 'Némésis — Cochon 6'
+    objectif: 100
+  boss_cochon_7:
+    nom: 'Némésis — Cochon 7'
+    objectif: 250
+  boss_cochon_8:
+    nom: 'Némésis — Cochon 8'
+    objectif: 500
+  boss_cochon_9:
+    nom: 'Némésis — Cochon 9'
+    objectif: 1000
+  boss_cochon_10:
+    nom: 'Némésis — Cochon 10'
+    objectif: 2500
+  boss_poulet_1:
+    nom: 'Némésis — Poulet 1'
+    objectif: 1
+  boss_poulet_2:
+    nom: 'Némésis — Poulet 2'
+    objectif: 5
+  boss_poulet_3:
+    nom: 'Némésis — Poulet 3'
+    objectif: 10
+  boss_poulet_4:
+    nom: 'Némésis — Poulet 4'
+    objectif: 25
+  boss_poulet_5:
+    nom: 'Némésis — Poulet 5'
+    objectif: 50
+  boss_poulet_6:
+    nom: 'Némésis — Poulet 6'
+    objectif: 100
+  boss_poulet_7:
+    nom: 'Némésis — Poulet 7'
+    objectif: 250
+  boss_poulet_8:
+    nom: 'Némésis — Poulet 8'
+    objectif: 500
+  boss_poulet_9:
+    nom: 'Némésis — Poulet 9'
+    objectif: 1000
+  boss_poulet_10:
+    nom: 'Némésis — Poulet 10'
+    objectif: 2500
+  boss_mouton_1:
+    nom: 'Némésis — Mouton 1'
+    objectif: 1
+  boss_mouton_2:
+    nom: 'Némésis — Mouton 2'
+    objectif: 5
+  boss_mouton_3:
+    nom: 'Némésis — Mouton 3'
+    objectif: 10
+  boss_mouton_4:
+    nom: 'Némésis — Mouton 4'
+    objectif: 25
+  boss_mouton_5:
+    nom: 'Némésis — Mouton 5'
+    objectif: 50
+  boss_mouton_6:
+    nom: 'Némésis — Mouton 6'
+    objectif: 100
+  boss_mouton_7:
+    nom: 'Némésis — Mouton 7'
+    objectif: 250
+  boss_mouton_8:
+    nom: 'Némésis — Mouton 8'
+    objectif: 500
+  boss_mouton_9:
+    nom: 'Némésis — Mouton 9'
+    objectif: 1000
+  boss_mouton_10:
+    nom: 'Némésis — Mouton 10'
+    objectif: 2500
+  boss_lapin_1:
+    nom: 'Némésis — Lapin 1'
+    objectif: 1
+  boss_lapin_2:
+    nom: 'Némésis — Lapin 2'
+    objectif: 5
+  boss_lapin_3:
+    nom: 'Némésis — Lapin 3'
+    objectif: 10
+  boss_lapin_4:
+    nom: 'Némésis — Lapin 4'
+    objectif: 25
+  boss_lapin_5:
+    nom: 'Némésis — Lapin 5'
+    objectif: 50
+  boss_lapin_6:
+    nom: 'Némésis — Lapin 6'
+    objectif: 100
+  boss_lapin_7:
+    nom: 'Némésis — Lapin 7'
+    objectif: 250
+  boss_lapin_8:
+    nom: 'Némésis — Lapin 8'
+    objectif: 500
+  boss_lapin_9:
+    nom: 'Némésis — Lapin 9'
+    objectif: 1000
+  boss_lapin_10:
+    nom: 'Némésis — Lapin 10'
+    objectif: 2500
+  boss_ourse_1:
+    nom: 'Némésis — Ourse 1'
+    objectif: 1
+  boss_ourse_2:
+    nom: 'Némésis — Ourse 2'
+    objectif: 5
+  boss_ourse_3:
+    nom: 'Némésis — Ourse 3'
+    objectif: 10
+  boss_ourse_4:
+    nom: 'Némésis — Ourse 4'
+    objectif: 25
+  boss_ourse_5:
+    nom: 'Némésis — Ourse 5'
+    objectif: 50
+  boss_ourse_6:
+    nom: 'Némésis — Ourse 6'
+    objectif: 100
+  boss_ourse_7:
+    nom: 'Némésis — Ourse 7'
+    objectif: 250
+  boss_ourse_8:
+    nom: 'Némésis — Ourse 8'
+    objectif: 500
+  boss_ourse_9:
+    nom: 'Némésis — Ourse 9'
+    objectif: 1000
+  boss_ourse_10:
+    nom: 'Némésis — Ourse 10'
+    objectif: 2500
+  boss_ane_1:
+    nom: 'Némésis — Âne 1'
+    objectif: 1
+  boss_ane_2:
+    nom: 'Némésis — Âne 2'
+    objectif: 5
+  boss_ane_3:
+    nom: 'Némésis — Âne 3'
+    objectif: 10
+  boss_ane_4:
+    nom: 'Némésis — Âne 4'
+    objectif: 25
+  boss_ane_5:
+    nom: 'Némésis — Âne 5'
+    objectif: 50
+  boss_ane_6:
+    nom: 'Némésis — Âne 6'
+    objectif: 100
+  boss_ane_7:
+    nom: 'Némésis — Âne 7'
+    objectif: 250
+  boss_ane_8:
+    nom: 'Némésis — Âne 8'
+    objectif: 500
+  boss_ane_9:
+    nom: 'Némésis — Âne 9'
+    objectif: 1000
+  boss_ane_10:
+    nom: 'Némésis — Âne 10'
+    objectif: 2500
+  boss_pigman_1:
+    nom: 'Némésis — Pigman 1'
+    objectif: 1
+  boss_pigman_2:
+    nom: 'Némésis — Pigman 2'
+    objectif: 5
+  boss_pigman_3:
+    nom: 'Némésis — Pigman 3'
+    objectif: 10
+  boss_pigman_4:
+    nom: 'Némésis — Pigman 4'
+    objectif: 25
+  boss_pigman_5:
+    nom: 'Némésis — Pigman 5'
+    objectif: 50
+  boss_pigman_6:
+    nom: 'Némésis — Pigman 6'
+    objectif: 100
+  boss_pigman_7:
+    nom: 'Némésis — Pigman 7'
+    objectif: 250
+  boss_pigman_8:
+    nom: 'Némésis — Pigman 8'
+    objectif: 500
+  boss_pigman_9:
+    nom: 'Némésis — Pigman 9'
+    objectif: 1000
+  boss_pigman_10:
+    nom: 'Némésis — Pigman 10'
+    objectif: 2500
+  boss_piglin_1:
+    nom: 'Némésis — Piglin 1'
+    objectif: 1
+  boss_piglin_2:
+    nom: 'Némésis — Piglin 2'
+    objectif: 5
+  boss_piglin_3:
+    nom: 'Némésis — Piglin 3'
+    objectif: 10
+  boss_piglin_4:
+    nom: 'Némésis — Piglin 4'
+    objectif: 25
+  boss_piglin_5:
+    nom: 'Némésis — Piglin 5'
+    objectif: 50
+  boss_piglin_6:
+    nom: 'Némésis — Piglin 6'
+    objectif: 100
+  boss_piglin_7:
+    nom: 'Némésis — Piglin 7'
+    objectif: 250
+  boss_piglin_8:
+    nom: 'Némésis — Piglin 8'
+    objectif: 500
+  boss_piglin_9:
+    nom: 'Némésis — Piglin 9'
+    objectif: 1000
+  boss_piglin_10:
+    nom: 'Némésis — Piglin 10'
+    objectif: 2500
+  boss_piglin_brute_1:
+    nom: 'Némésis — Piglin Brute 1'
+    objectif: 1
+  boss_piglin_brute_2:
+    nom: 'Némésis — Piglin Brute 2'
+    objectif: 5
+  boss_piglin_brute_3:
+    nom: 'Némésis — Piglin Brute 3'
+    objectif: 10
+  boss_piglin_brute_4:
+    nom: 'Némésis — Piglin Brute 4'
+    objectif: 25
+  boss_piglin_brute_5:
+    nom: 'Némésis — Piglin Brute 5'
+    objectif: 50
+  boss_piglin_brute_6:
+    nom: 'Némésis — Piglin Brute 6'
+    objectif: 100
+  boss_piglin_brute_7:
+    nom: 'Némésis — Piglin Brute 7'
+    objectif: 250
+  boss_piglin_brute_8:
+    nom: 'Némésis — Piglin Brute 8'
+    objectif: 500
+  boss_piglin_brute_9:
+    nom: 'Némésis — Piglin Brute 9'
+    objectif: 1000
+  boss_piglin_brute_10:
+    nom: 'Némésis — Piglin Brute 10'
+    objectif: 2500
+  boss_hoglin_1:
+    nom: 'Némésis — Hoglin 1'
+    objectif: 1
+  boss_hoglin_2:
+    nom: 'Némésis — Hoglin 2'
+    objectif: 5
+  boss_hoglin_3:
+    nom: 'Némésis — Hoglin 3'
+    objectif: 10
+  boss_hoglin_4:
+    nom: 'Némésis — Hoglin 4'
+    objectif: 25
+  boss_hoglin_5:
+    nom: 'Némésis — Hoglin 5'
+    objectif: 50
+  boss_hoglin_6:
+    nom: 'Némésis — Hoglin 6'
+    objectif: 100
+  boss_hoglin_7:
+    nom: 'Némésis — Hoglin 7'
+    objectif: 250
+  boss_hoglin_8:
+    nom: 'Némésis — Hoglin 8'
+    objectif: 500
+  boss_hoglin_9:
+    nom: 'Némésis — Hoglin 9'
+    objectif: 1000
+  boss_hoglin_10:
+    nom: 'Némésis — Hoglin 10'
+    objectif: 2500
+  boss_magma_slime_1:
+    nom: 'Némésis — Magma Slime 1'
+    objectif: 1
+  boss_magma_slime_2:
+    nom: 'Némésis — Magma Slime 2'
+    objectif: 5
+  boss_magma_slime_3:
+    nom: 'Némésis — Magma Slime 3'
+    objectif: 10
+  boss_magma_slime_4:
+    nom: 'Némésis — Magma Slime 4'
+    objectif: 25
+  boss_magma_slime_5:
+    nom: 'Némésis — Magma Slime 5'
+    objectif: 50
+  boss_magma_slime_6:
+    nom: 'Némésis — Magma Slime 6'
+    objectif: 100
+  boss_magma_slime_7:
+    nom: 'Némésis — Magma Slime 7'
+    objectif: 250
+  boss_magma_slime_8:
+    nom: 'Némésis — Magma Slime 8'
+    objectif: 500
+  boss_magma_slime_9:
+    nom: 'Némésis — Magma Slime 9'
+    objectif: 1000
+  boss_magma_slime_10:
+    nom: 'Némésis — Magma Slime 10'
+    objectif: 2500
+  boss_blaze_1:
+    nom: 'Némésis — Blaze 1'
+    objectif: 1
+  boss_blaze_2:
+    nom: 'Némésis — Blaze 2'
+    objectif: 5
+  boss_blaze_3:
+    nom: 'Némésis — Blaze 3'
+    objectif: 10
+  boss_blaze_4:
+    nom: 'Némésis — Blaze 4'
+    objectif: 25
+  boss_blaze_5:
+    nom: 'Némésis — Blaze 5'
+    objectif: 50
+  boss_blaze_6:
+    nom: 'Némésis — Blaze 6'
+    objectif: 100
+  boss_blaze_7:
+    nom: 'Némésis — Blaze 7'
+    objectif: 250
+  boss_blaze_8:
+    nom: 'Némésis — Blaze 8'
+    objectif: 500
+  boss_blaze_9:
+    nom: 'Némésis — Blaze 9'
+    objectif: 1000
+  boss_blaze_10:
+    nom: 'Némésis — Blaze 10'
+    objectif: 2500
+  boss_wither_skeleton_1:
+    nom: 'Némésis — Wither Squelette 1'
+    objectif: 1
+  boss_wither_skeleton_2:
+    nom: 'Némésis — Wither Squelette 2'
+    objectif: 5
+  boss_wither_skeleton_3:
+    nom: 'Némésis — Wither Squelette 3'
+    objectif: 10
+  boss_wither_skeleton_4:
+    nom: 'Némésis — Wither Squelette 4'
+    objectif: 25
+  boss_wither_skeleton_5:
+    nom: 'Némésis — Wither Squelette 5'
+    objectif: 50
+  boss_wither_skeleton_6:
+    nom: 'Némésis — Wither Squelette 6'
+    objectif: 100
+  boss_wither_skeleton_7:
+    nom: 'Némésis — Wither Squelette 7'
+    objectif: 250
+  boss_wither_skeleton_8:
+    nom: 'Némésis — Wither Squelette 8'
+    objectif: 500
+  boss_wither_skeleton_9:
+    nom: 'Némésis — Wither Squelette 9'
+    objectif: 1000
+  boss_wither_skeleton_10:
+    nom: 'Némésis — Wither Squelette 10'
+    objectif: 2500
+  boss_ghast_1:
+    nom: 'Némésis — Ghast 1'
+    objectif: 1
+  boss_ghast_2:
+    nom: 'Némésis — Ghast 2'
+    objectif: 5
+  boss_ghast_3:
+    nom: 'Némésis — Ghast 3'
+    objectif: 10
+  boss_ghast_4:
+    nom: 'Némésis — Ghast 4'
+    objectif: 25
+  boss_ghast_5:
+    nom: 'Némésis — Ghast 5'
+    objectif: 50
+  boss_ghast_6:
+    nom: 'Némésis — Ghast 6'
+    objectif: 100
+  boss_ghast_7:
+    nom: 'Némésis — Ghast 7'
+    objectif: 250
+  boss_ghast_8:
+    nom: 'Némésis — Ghast 8'
+    objectif: 500
+  boss_ghast_9:
+    nom: 'Némésis — Ghast 9'
+    objectif: 1000
+  boss_ghast_10:
+    nom: 'Némésis — Ghast 10'
+    objectif: 2500
+  boss_vindicator_1:
+    nom: 'Némésis — Vindicateur 1'
+    objectif: 1
+  boss_vindicator_2:
+    nom: 'Némésis — Vindicateur 2'
+    objectif: 5
+  boss_vindicator_3:
+    nom: 'Némésis — Vindicateur 3'
+    objectif: 10
+  boss_vindicator_4:
+    nom: 'Némésis — Vindicateur 4'
+    objectif: 25
+  boss_vindicator_5:
+    nom: 'Némésis — Vindicateur 5'
+    objectif: 50
+  boss_vindicator_6:
+    nom: 'Némésis — Vindicateur 6'
+    objectif: 100
+  boss_vindicator_7:
+    nom: 'Némésis — Vindicateur 7'
+    objectif: 250
+  boss_vindicator_8:
+    nom: 'Némésis — Vindicateur 8'
+    objectif: 500
+  boss_vindicator_9:
+    nom: 'Némésis — Vindicateur 9'
+    objectif: 1000
+  boss_vindicator_10:
+    nom: 'Némésis — Vindicateur 10'
+    objectif: 2500
+  boss_ravager_1:
+    nom: 'Némésis — Ravageur 1'
+    objectif: 1
+  boss_ravager_2:
+    nom: 'Némésis — Ravageur 2'
+    objectif: 5
+  boss_ravager_3:
+    nom: 'Némésis — Ravageur 3'
+    objectif: 10
+  boss_ravager_4:
+    nom: 'Némésis — Ravageur 4'
+    objectif: 25
+  boss_ravager_5:
+    nom: 'Némésis — Ravageur 5'
+    objectif: 50
+  boss_ravager_6:
+    nom: 'Némésis — Ravageur 6'
+    objectif: 100
+  boss_ravager_7:
+    nom: 'Némésis — Ravageur 7'
+    objectif: 250
+  boss_ravager_8:
+    nom: 'Némésis — Ravageur 8'
+    objectif: 500
+  boss_ravager_9:
+    nom: 'Némésis — Ravageur 9'
+    objectif: 1000
+  boss_ravager_10:
+    nom: 'Némésis — Ravageur 10'
+    objectif: 2500
+  boss_wither_1:
+    nom: 'Némésis — Wither 1'
+    objectif: 1
+  boss_wither_2:
+    nom: 'Némésis — Wither 2'
+    objectif: 5
+  boss_wither_3:
+    nom: 'Némésis — Wither 3'
+    objectif: 10
+  boss_wither_4:
+    nom: 'Némésis — Wither 4'
+    objectif: 25
+  boss_wither_5:
+    nom: 'Némésis — Wither 5'
+    objectif: 50
+  boss_wither_6:
+    nom: 'Némésis — Wither 6'
+    objectif: 100
+  boss_wither_7:
+    nom: 'Némésis — Wither 7'
+    objectif: 250
+  boss_wither_8:
+    nom: 'Némésis — Wither 8'
+    objectif: 500
+  boss_wither_9:
+    nom: 'Némésis — Wither 9'
+    objectif: 1000
+  boss_wither_10:
+    nom: 'Némésis — Wither 10'
+    objectif: 2500
+  boss_warden_1:
+    nom: 'Némésis — Warden 1'
+    objectif: 1
+  boss_warden_2:
+    nom: 'Némésis — Warden 2'
+    objectif: 5
+  boss_warden_3:
+    nom: 'Némésis — Warden 3'
+    objectif: 10
+  boss_warden_4:
+    nom: 'Némésis — Warden 4'
+    objectif: 25
+  boss_warden_5:
+    nom: 'Némésis — Warden 5'
+    objectif: 50
+  boss_warden_6:
+    nom: 'Némésis — Warden 6'
+    objectif: 100
+  boss_warden_7:
+    nom: 'Némésis — Warden 7'
+    objectif: 250
+  boss_warden_8:
+    nom: 'Némésis — Warden 8'
+    objectif: 500
+  boss_warden_9:
+    nom: 'Némésis — Warden 9'
+    objectif: 1000
+  boss_warden_10:
+    nom: 'Némésis — Warden 10'
+    objectif: 2500

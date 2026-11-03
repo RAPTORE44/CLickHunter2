@@ -228,3 +228,12 @@ boutons:
     description:
     - '&7Collection et apparences débloquées.'
     commande: skin
+  succes:
+    slot: 46
+    materiau: NETHER_STAR
+    nom: '&6★ Mes succès'
+    description:
+    - '&7500 objectifs à débloquer dans tes activités.'
+    - '&eClique pour voir ta progression.'
+    commande: succes
+    permission: cliker.succes

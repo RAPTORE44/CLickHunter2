@@ -221,4 +221,20 @@ class MainMenuTest {
             assertTrue(slots.add(slot));
         }
     }
+
+    @Test
+    void installedLayoutReceivesAchievementsWithoutMovingOtherButtons() throws Exception {
+        var file = fr.cliker.clikerv2.config.ConfigFiles.file(plugin, "gui/menu.yml");
+        var config = YamlConfiguration.loadConfiguration(file);
+        config.set("boutons.succes", null);
+        config.save(file);
+        new MainMenu(plugin);
+        var migrated = YamlConfiguration.loadConfiguration(file);
+        assertEquals("succes", migrated.getString("boutons.succes.commande"));
+        assertEquals(46, migrated.getInt("boutons.succes.slot"));
+        for (String id : config.getConfigurationSection("boutons").getKeys(false))
+            assertEquals(
+                    config.getInt("boutons." + id + ".slot"),
+                    migrated.getInt("boutons." + id + ".slot"));
+    }
 }

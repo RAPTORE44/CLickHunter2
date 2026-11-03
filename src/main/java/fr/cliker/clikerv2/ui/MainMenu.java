@@ -103,7 +103,8 @@ public final class MainMenu implements CommandExecutor, Listener {
                             "classements",
                             "courrier",
                             "afk",
-                            "skins")) {
+                            "skins",
+                            "succes")) {
                 String path = "boutons." + id;
                 if (config.contains(path)) continue;
                 int slot = defaults.getInt(path + ".slot"), size = config.getInt("taille", 36);

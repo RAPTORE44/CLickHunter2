@@ -5,6 +5,7 @@ active: true
 menus: {}
 # Première expression présente dans le nom du bouton prioritaire.
 mots:
+  succes: progression_succes
   retour: navigation_retour
   accueil: navigation_accueil
   fermer: navigation_fermer
