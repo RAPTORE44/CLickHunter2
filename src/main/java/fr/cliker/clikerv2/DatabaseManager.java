@@ -54,6 +54,24 @@ public final class DatabaseManager {
             statement.executeUpdate("PRAGMA journal_mode=WAL");
             statement.executeUpdate("PRAGMA busy_timeout=5000");
             statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS discord_rank_links(id TEXT NOT NULL UNIQUE,owner"
+                        + " TEXT PRIMARY KEY,discord TEXT NOT NULL,guild TEXT NOT NULL,unlinking"
+                        + " INTEGER NOT NULL DEFAULT 0,UNIQUE(guild,discord))");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS discord_link_codes(owner TEXT PRIMARY KEY,hash TEXT"
+                        + " NOT NULL UNIQUE,issued INTEGER NOT NULL,expires INTEGER NOT NULL)");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS discord_rank_state(link_id TEXT NOT NULL,group_name"
+                        + " TEXT NOT NULL,role TEXT NOT NULL,baseline INTEGER,pending"
+                        + " INTEGER,to_minecraft INTEGER NOT NULL DEFAULT 0,PRIMARY"
+                        + " KEY(link_id,group_name,role))");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS discord_rank_cursor(channel TEXT PRIMARY"
+                        + " KEY,message_id TEXT NOT NULL)");
+            statement.executeUpdate(
+                    "CREATE INDEX IF NOT EXISTS discord_rank_links_page ON"
+                        + " discord_rank_links(guild,owner)");
+            statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS donor_points(name_key TEXT PRIMARY KEY,name TEXT"
                             + " NOT NULL,units INTEGER NOT NULL CHECK(units>=0))");
             statement.executeUpdate(
@@ -189,17 +207,17 @@ public final class DatabaseManager {
                         + " NULL,xp INTEGER NOT NULL,PRIMARY KEY(owner,cycle,slot))");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS boss_reports(source TEXT NOT NULL,owner TEXT NOT"
-                        + " NULL,boss TEXT NOT NULL,label TEXT NOT NULL,damage INTEGER NOT"
-                        + " NULL,total INTEGER NOT NULL,ecus INTEGER NOT NULL,gems INTEGER NOT"
-                        + " NULL,cendres INTEGER NOT NULL,xp INTEGER NOT NULL,items TEXT NOT"
-                        + " NULL,created INTEGER NOT NULL,PRIMARY KEY(source,owner))");
+                            + " NULL,boss TEXT NOT NULL,label TEXT NOT NULL,damage INTEGER NOT"
+                            + " NULL,total INTEGER NOT NULL,ecus INTEGER NOT NULL,gems INTEGER NOT"
+                            + " NULL,cendres INTEGER NOT NULL,xp INTEGER NOT NULL,items TEXT NOT"
+                            + " NULL,created INTEGER NOT NULL,PRIMARY KEY(source,owner))");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS boss_records(owner TEXT NOT NULL,boss TEXT NOT"
                         + " NULL,damage INTEGER NOT NULL,percent REAL NOT NULL,fights INTEGER NOT"
                         + " NULL,PRIMARY KEY(owner,boss))");
             statement.executeUpdate(
                     "CREATE INDEX IF NOT EXISTS boss_reports_owner ON boss_reports(owner,created"
-                        + " DESC)");
+                            + " DESC)");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS outposts(id INTEGER PRIMARY KEY AUTOINCREMENT,owner"
                         + " TEXT NOT NULL UNIQUE,name TEXT NOT NULL,tier INTEGER NOT NULL DEFAULT"

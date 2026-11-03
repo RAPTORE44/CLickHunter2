@@ -1,0 +1,34 @@
+# Synchronisation native ClikerV2 : LuckPerms <-> rôles Discord, sans DiscordSRV.
+# Ce fichier contient un secret : conserve-le sur ton serveur, jamais dans GitHub.
+actif: false
+bot-token: '' # Ou variable d'environnement CLICKHUNTER_DISCORD_BOT_TOKEN.
+serveur-id: ''
+salon-liaison-id: '' # Salon textuel : les joueurs y mentionnent le bot avec leur code.
+# Au premier lien seulement : minecraft ou discord. Ensuite les modifications passent dans les deux sens.
+premiere-liaison: minecraft
+intervalle-secondes: 30
+comptes-par-passage: 20
+code-minutes: 10
+# Parents LuckPerms DIRECTS et GLOBAUX ; adapter les noms à tes vrais groupes.
+# Un même rôle ne peut être associé qu'à un groupe. Vide = désactivé pour ce groupe.
+groupes:
+  minivip: ''
+  vip: ''
+  vipplus: ''
+  mvp: ''
+  mvpplus: ''
+  legend: ''
+messages:
+  desactive: '&7La liaison des grades Discord n’est pas encore configurée.'
+  attente: '&eLe bot se connecte ou réessaie. Réessaie dans quelques instants.'
+  erreur: '&cOpération Discord indisponible. Réessaie plus tard ou contacte le staff.'
+  code: '&bCode de liaison : &f{code} &8• &a[Copier le message Discord]'
+  salon: '&9[Ouvrir le salon de liaison]'
+  expiration: '&7Code personnel valable {minutes} minutes. Un nouveau code annule le précédent.'
+  deja-lie: '&eCe compte Minecraft est déjà lié. /discord statut pour le consulter.'
+  lie: '&aCompte Discord lié ! Les grades configurés vont être synchronisés.'
+  delier-confirmation: '&e/discord delier confirmer : retire les rôles synchronisés sur Discord et conserve tes grades Minecraft.'
+  delier-attente: '&eDéliaison enregistrée. Les rôles Discord sont retirés avant de supprimer la liaison.'
+  delie: '&aLiaison Discord supprimée. Tes grades Minecraft sont conservés.'
+  non-lie: '&7Aucun compte Discord lié. Utilise /discord lier.'
+  file-pleine: '&eLe bot traite déjà plusieurs demandes. Réessaie dans quelques instants.'

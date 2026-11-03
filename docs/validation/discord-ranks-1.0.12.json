@@ -1,0 +1,20 @@
+{
+  "success": true,
+  "checks": [
+    "Démarrage 1.0.12 sans LuckPerms : module de grades désactivé, autres modules actifs",
+    "Lien Discord existant conservé et liaison non OP signalée comme non configurée",
+    "Suggestions de liaison visibles au joueur, commandes PNJ réservées au staff",
+    "Rechargement sans secret et anciens bilans de boss conservés"
+  ],
+  "version": "1.0.12",
+  "functional_tests": 510,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "discord_transport": "simulated",
+  "live_discord_roles_changed": false,
+  "luckperms_adapter": "API interfaces and simulated access; no production provider/token configured",
+  "new_tests": 21,
+  "http_body_limit_bytes": 2097152,
+  "http_response_timeout_seconds": 9
+}

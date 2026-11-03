@@ -47,3 +47,7 @@ Autoclic : un bloc de distance entre hitboxes. Épée en main obligatoire, y com
 ## Demandes après 1.0.9
 
 Œufs/essences de mobs : supprimer le surplus quand l’inventaire est plein ; aucun nouveau drop au sol. `/claim` propose Tout récupérer. Entrée aux enchères gratuite par défaut ; protection passive à 100 blocs du point de salle, toute hauteur, bossbar pendant les événements.
+
+## Grades Discord — demande après 1.0.11
+
+Le propriétaire veut la synchronisation LuckPerms ↔ Discord directement dans ClikerV2, sans DiscordSRV. Conserver le bot natif et la liaison vérifiée par code ; seuls les parents LuckPerms directs, globaux et persistants et les rôles explicitement associés sont synchronisés. Six associations configurables : Mini-VIP, VIP, VIP+, MVP, MVP+, Legend. Ne pas inventer de jeton ou d'ID Discord, ni activer la connexion sans configuration. Conserver la journalisation des opérations, les limites de débit et la reprise des déliaisons ; une absence Discord ou une erreur réseau ne doit pas retirer un achat Minecraft.

@@ -27,6 +27,11 @@ public final class DiscordModule implements CommandExecutor, TabCompleter {
     private final YamlConfiguration config;
     private final ZnpcsNpc npc;
     private final String link;
+    private fr.cliker.clikerv2.discord.sync.DiscordRankSync ranks;
+
+    public void setRanks(fr.cliker.clikerv2.discord.sync.DiscordRankSync ranks) {
+        this.ranks = ranks;
+    }
 
     public DiscordModule(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -96,6 +101,12 @@ public final class DiscordModule implements CommandExecutor, TabCompleter {
             sendLink(sender);
             return true;
         }
+        if (Set.of("lier", "statut", "delier").contains(args[0].toLowerCase(Locale.ROOT))) {
+            if (ranks == null)
+                sender.sendMessage("§7La liaison des grades Discord n'est pas configurée.");
+            else ranks.playerCommand(sender, args);
+            return true;
+        }
         if (!sender.hasPermission(ADMIN)) {
             message(sender, "interdit");
             return true;
@@ -126,13 +137,18 @@ public final class DiscordModule implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(
             CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission(ADMIN)) return List.of();
-        List<String> options =
-                args.length == 1
-                        ? List.of("pnj")
-                        : args.length == 2 && args[0].equalsIgnoreCase("pnj")
-                                ? List.of("spawn", "remove")
-                                : List.of();
+        List<String> options = new ArrayList<>();
+        if (args.length == 1) {
+            if (sender.hasPermission(USE)
+                    && sender.hasPermission(fr.cliker.clikerv2.discord.sync.DiscordRankSync.LINK))
+                options.addAll(List.of("lier", "statut", "delier"));
+            if (sender.hasPermission(ADMIN)) options.add("pnj");
+        } else if (args.length == 2
+                && args[0].equalsIgnoreCase("delier")
+                && sender.hasPermission(fr.cliker.clikerv2.discord.sync.DiscordRankSync.LINK))
+            options.add("confirmer");
+        else if (args.length == 2 && args[0].equalsIgnoreCase("pnj") && sender.hasPermission(ADMIN))
+            options.addAll(List.of("spawn", "remove"));
         String prefix = args.length == 0 ? "" : args[args.length - 1].toLowerCase(Locale.ROOT);
         return options.stream().filter(s -> s.startsWith(prefix)).toList();
     }

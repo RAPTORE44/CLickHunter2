@@ -5,6 +5,10 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  discordsync:
+    description: Gérer la synchronisation native LuckPerms et Discord
+    usage: /discordsync <statut|reload|sync [joueur|UUID]>
+    permission: cliker.discord.sync.admin
   bilanboss:
     description: Consulter ses bilans personnels et records de boss
     usage: /bilanboss
@@ -213,8 +217,8 @@ commands:
     aliases: [parrainage]
     permission: cliker.parrein
   discord:
-    description: Lien du Discord ClickHunter et gestion du PNJ
-    usage: /discord [pnj spawn|remove]
+    description: Lien Discord, liaison des comptes et gestion du PNJ
+    usage: /discord [lier|statut|delier confirmer|pnj spawn|remove]
   menu:
     description: Menu principal ClickHunter
     usage: /menu
@@ -340,6 +344,12 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.discord.link:
+    description: Lier son compte Discord aux grades Minecraft
+    default: true
+  cliker.discord.sync.admin:
+    description: Gérer le bot natif de synchronisation des grades
+    default: op
   cliker.bilanboss:
     description: Consulter ses propres bilans de boss
     default: true

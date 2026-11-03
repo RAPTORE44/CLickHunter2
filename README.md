@@ -1,6 +1,16 @@
 # ClikerV2
 
-## Dernière mise à jour — 2 novembre 2026 — version 1.0.11
+## Dernière mise à jour — 3 novembre 2026 — version 1.0.12
+
+- Validation : **510 tests réussis**, sans échec ni test ignoré ; bot Discord simulé pour les échanges et essais locaux Paper 1.21.4 pour les commandes et la compatibilité. Activation sur le vrai Discord après configuration du bot.
+- **Grades Discord intégrés au plugin** : synchronisation bidirectionnelle des groupes LuckPerms et des rôles explicitement associés, sans DiscordSRV ni JAR de bot supplémentaire. Ajouts, retraits et expiration des parents globaux temporaires sont pris en compte. Aucun accès donné par le statut OP ou une permission wildcard.
+- **Liaison vérifiée** : `/discord lier` fournit un code personnel, un bouton de copie et le lien vers le salon Discord. Le joueur y colle le message mentionnant le bot. Code valable dix minutes, utilisable une seule fois, stocké uniquement sous forme d’empreinte ; un compte Discord ne peut pas être partagé entre deux UUID Minecraft.
+- **Configuration** : `plugins/ClikerV2/integrations/discord-grades.yml`. Désactivé par défaut ; renseigner le jeton du bot, les IDs du serveur/salon et les rôles Mini-VIP, VIP, VIP+, MVP, MVP+ et Legend, puis `/discordsync reload`. Les vrais noms des groupes LuckPerms restent configurables. Le webhook des notifications reste séparé.
+- **Reprises et performances** : opérations inachevées journalisées en SQL, une file réseau bornée, aucun appel Discord/LuckPerms bloquant sur le thread serveur, passages limités et respect des réponses 429. Pas de synchronisation sur les groupes ou rôles non associés. Un départ du Discord ne retire pas un achat Minecraft ; les rôles sont restaurés au retour.
+
+[Installation, commandes, délai de synchronisation et validation](docs/DISCORD-GRADES.md).
+
+## Mise à jour 1.0.11 — 2 novembre 2026
 
 - Validation : **489 tests réussis**, sans échec ni test ignoré ; essais locaux sur Paper 1.21.4 avec un joueur non OP, un boss à deux participants, un raid à deux et un redémarrage.
 - **Contrats adaptés à la progression** : trois difficultés, ciblant la dernière zone accessible dont le joueur a déjà tué la créature. Les objectifs augmentent avec la zone ; les offres non acceptées suivent la progression. Un contrat accepté ou réclamé conserve sa cible, son objectif et ses gains jusqu’à minuit. Les anciens contrats déjà acceptés restent disponibles jusqu’à la fin de leur journée.
@@ -252,7 +262,10 @@ Cette liste doit être vérifiée et mise à jour à chaque modification du plug
 | `/top [categorie]` / `/classement [categorie]` | Ouvrir les classements et parcourir les périodes : `ecus`, `gemmes`, `cendres`, `kills` (ou `mobs`), `niveaux` (ou `niveau`, `level`), `donateurs`. Permission `cliker.classement.use`, accordée par défaut. |
 | `/tuto` | Consulter le livre-guide. |
 | `/spawn` | Rejoindre le point d'accueil. |
-| `/discord` | Recevoir le lien du Discord. |
+| `/discord` | Recevoir le lien du Discord ; permission `cliker.discord.use`. |
+| `/discord lier` | Obtenir un code personnel et le message à coller dans le salon de liaison. Permissions `cliker.discord.use` et `cliker.discord.link` (par défaut). |
+| `/discord statut` | Voir uniquement sa propre liaison et l’état du bot. Mêmes permissions. |
+| `/discord delier confirmer` | Retirer les rôles Discord associés puis supprimer sa liaison ; conserve les grades Minecraft. Mêmes permissions. |
 | `/wiki` / `/wiki livre` | Recevoir le lien du Wiki et un bouton ouvrant le livre des commandes accessibles, ou ouvrir ce livre directement. |
 | `/tag` | Collection des tags : Bugs, Chasse, Temps de jeu, Boss, Popularité et Prestige ; 15 grades par catégorie. Permission **et** progression requises. |
 | `/chatcouleur` | Choisir une couleur de parole autorisée ; alias `/chatcolor`. |
@@ -434,6 +447,9 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/top pnj spawn` / `/top pnj remove` | Placer ou retirer le PNJ des classements ; `/classement pnj ...` est équivalent. | `cliker.classement.admin` |
 | `/wiki pnj spawn` / `/wiki pnj remove` | Placer ou supprimer le PNJ Wiki. Lien et textes dans `wiki.yml`. | `cliker.wiki.admin` |
 | `/discord pnj spawn` / `/discord pnj remove` | Placer ou supprimer le PNJ Discord. | `cliker.discord.admin` |
+| `/discordsync statut` | État du bot natif et nombre d’associations configurées, sans jeton. | `cliker.discord.sync.admin` (OP par défaut) |
+| `/discordsync reload` | Recharger la configuration des grades ; une configuration syntaxiquement invalide conserve l’ancien worker. | `cliker.discord.sync.admin` |
+| `/discordsync sync [joueur connecté\|UUID]` | Demander une vérification prioritaire d’un compte déjà lié ; sans argument, soi-même. | `cliker.discord.sync.admin` |
 | `/contrats pnj spawn` / `/contrats pnj remove` | Placer ou supprimer le PNJ des contrats. | `cliker.contrats.admin` |
 | `/mobspawn setspawn <mob>` | Définir un point d'apparition de mob ; alias `/mob`. | `cliker.mob.admin` |
 | `/mobspawn bossspawn <mob>` | Définir un point d'apparition de boss. | `cliker.mob.admin` |

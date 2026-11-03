@@ -118,6 +118,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.rewards.OutgoingItems outgoingItems;
     private fr.cliker.clikerv2.referral.ReferralModule referrals;
     private fr.cliker.clikerv2.discord.DiscordModule discordModule;
+    private fr.cliker.clikerv2.discord.sync.DiscordRankSync discordRanks;
     private MoneyScoreboard scoreboard;
     private TabListManager tabListManager;
     private fr.cliker.clikerv2.performance.ZoneActivity zoneActivity;
@@ -600,6 +601,18 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             if (discordModule != null) discordModule.shutdown();
         }
         try {
+            discordRanks = new fr.cliker.clikerv2.discord.sync.DiscordRankSync(this, database);
+            discordRanks.start();
+            if (discordModule != null) discordModule.setRanks(discordRanks);
+        } catch (RuntimeException error) {
+            getLogger()
+                    .warning(
+                            "Synchronisation des grades Discord indisponible : vérifier"
+                                + " integrations/discord-grades.yml et LuckPerms.");
+            if (discordRanks != null) discordRanks.shutdown();
+            unavailableCommands("discordsync");
+        }
+        try {
             referrals = new fr.cliker.clikerv2.referral.ReferralModule(this, database, claims);
             referrals.start();
         } catch (IllegalArgumentException | IllegalStateException error) {
@@ -834,6 +847,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         stop("atmModule", atmModule, value -> value.shutdown());
         stop("rewardLedger", rewardLedger, value -> value.shutdown());
         stop("referrals", referrals, value -> value.shutdown());
+        stop("grades Discord", discordRanks, value -> value.shutdown());
         stop("discordModule", discordModule, value -> value.shutdown());
         stop("scoreboard", scoreboard, value -> value.shutdown());
         stop("mainMenu", mainMenu, value -> value.shutdown());
