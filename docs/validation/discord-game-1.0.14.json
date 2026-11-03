@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "checks": [
+    "Paper 1.21.4 : version 1.0.14, publications désactivées sans bot/salons configurés",
+    "Administration Discord réservée au staff",
+    "Rechargement du bot et migration des notifications historiques sans erreur",
+    "Classement en jeu accessible et apparition forcée du boss déjà actif sans doublon"
+  ],
+  "version": "1.0.14",
+  "functional_tests": 526,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "new_tests": 12,
+  "discord_api": "simulated",
+  "production_messages_sent": false,
+  "default_refresh_minutes": 60,
+  "metrics": [
+    "ecus",
+    "gemmes",
+    "cendres",
+    "kills",
+    "niveaux",
+    "donateurs"
+  ],
+  "partial_forced_update_retry": true
+}

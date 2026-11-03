@@ -26,12 +26,12 @@ evenements:
   boss-serveur-spawn:
     actif: true
     titre: '🔥 Le boss du serveur est arrivé !'
-    texte: 'Tous les joueurs peuvent rejoindre avec /boss sur {adresse}.'
+    texte: '{boss} • PV : {pv} ({pv_bruts}). Tous les joueurs peuvent rejoindre avec /boss sur {adresse}.'
     couleur: 15548997
   boss-serveur-mort:
     actif: true
     titre: '🏆 Le boss du serveur a été vaincu !'
-    texte: 'Les récompenses ont été réparties selon les dégâts des participants.'
+    texte: '{boss} achevé par {joueur} • {participants} participant(s). Récompenses réparties selon les dégâts.'
     couleur: 5763719
   pinata-spawn:
     actif: true
@@ -48,3 +48,23 @@ evenements:
     titre: '🛡️ {joueur} ouvre un raid public'
     texte: 'Trois renforts peuvent rejoindre : /raid participer {joueur}, sur {adresse}.'
     couleur: 3447003
+  enchere-debut:
+    actif: true
+    titre: '🔔 Les enchères commencent !'
+    texte: '{participants} inscrit(s) • Lot {lot}/{total} : {objet}.'
+    couleur: 16766720
+  enchere-fin:
+    actif: true
+    titre: '✅ Enchères terminées'
+    texte: 'Session {etat} sur {adresse}.'
+    couleur: 5763719
+  enchere-lot:
+    actif: false
+    titre: '💎 Nouveau lot aux enchères'
+    texte: 'Lot {lot}/{total} : {objet}.'
+    couleur: 10181046
+  enchere-vendu:
+    actif: false
+    titre: '🔨 Lot adjugé !'
+    texte: 'Lot {lot} remporté par {joueur} pour {prix} Écus.'
+    couleur: 16766720

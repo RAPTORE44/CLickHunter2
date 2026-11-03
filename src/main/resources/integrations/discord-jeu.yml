@@ -1,0 +1,68 @@
+# Bot natif ClikerV2 : messages Top 10 édités et notifications de jeu.
+# Ne pas publier ce fichier après avoir renseigné un jeton.
+actif: false
+# Vide = réutiliser le bot-token de discord-grades.yml ; la variable d'environnement reste prioritaire.
+bot-token: ''
+serveur-id: '' # Vide = reprendre serveur-id de discord-grades.yml.
+fuseau: Europe/Paris
+adresse: play.clickhunter.fr
+classements:
+  actif: true
+  salon-id: '' # Salon commun ; chaque tableau peut aussi définir son propre salon-id.
+  intervalle-minutes: 60
+  tableaux:
+    ecus: {type: ecus, periode: all}
+    gemmes: {type: gemmes, periode: all}
+    cendres: {type: cendres, periode: all}
+    kills: {type: kills, periode: all}
+    niveaux: {type: niveaux, periode: all}
+    donateurs: {type: donateurs, periode: all}
+evenements:
+  actif: true
+  salon-id: ''
+  types:
+    boss-serveur-spawn:
+      actif: true
+      titre: '🔥 Le boss serveur est disponible !'
+      texte: '**{boss}** • PV : **{pv}** ({pv_bruts}). Rejoins avec **/boss** sur {adresse} !'
+      couleur: 15548997
+    boss-serveur-mort:
+      actif: true
+      titre: '🏆 Boss serveur vaincu !'
+      texte: '**{boss}** a été achevé par **{joueur}**. {participants} participant(s) récompensé(s).'
+      couleur: 5763719
+    enchere-inscriptions:
+      actif: true
+      titre: '🔨 Les inscriptions aux enchères sont ouvertes !'
+      texte: 'Début dans **{secondes} secondes**. Rejoins avec **/enchere rejoindre** sur {adresse}.'
+      couleur: 16766720
+    enchere-debut:
+      actif: true
+      titre: '🔔 Les enchères commencent !'
+      texte: '**{participants}** inscrit(s) • Lot **{lot}/{total}** : {objet}. Les mises sont ouvertes !'
+      couleur: 16766720
+    enchere-fin:
+      actif: true
+      titre: '✅ Enchères terminées'
+      texte: 'Session {etat} sur {adresse}. Prochaine session : à suivre en jeu.'
+      couleur: 5763719
+    enchere-lot:
+      actif: false
+      titre: '💎 Nouveau lot aux enchères'
+      texte: 'Lot **{lot}/{total}** : **{objet}** • {participants} inscrit(s).'
+      couleur: 10181046
+    enchere-vendu:
+      actif: false
+      titre: '🔨 Lot adjugé !'
+      texte: 'Lot **{lot}** remporté par **{joueur}** pour **{prix} Écus**.'
+      couleur: 16766720
+    pinata-spawn:
+      actif: false
+      titre: '🎉 Une piñata est apparue !'
+      texte: 'Récompense : {recompense}. Rejoins avec **/pinata tp** sur {adresse}.'
+      couleur: 10181046
+    boss-zones-spawn:
+      actif: false
+      titre: '⚔️ Les boss de zone sont disponibles !'
+      texte: '{nombre} points de boss ont été réinitialisés. Rejoins ta zone sur {adresse}.'
+      couleur: 16766720

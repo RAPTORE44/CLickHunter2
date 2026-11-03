@@ -56,6 +56,31 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
     private World world;
     private UUID boss;
     private long bossMax;
+    private String lastBossKiller = "inconnu";
+    private int lastBossParticipants;
+
+    public Map<String, String> discordInfo() {
+        long hp =
+                completed
+                        ? 0
+                        : boss == null
+                                ? configuredBossHP
+                                : health.getOrDefault(boss, configuredBossHP);
+        return Map.of(
+                "boss",
+                tier.label(),
+                "pv",
+                Numbers.compact(hp),
+                "pv_bruts",
+                Long.toString(hp),
+                "pv_max",
+                Numbers.compact(configuredBossHP),
+                "joueur",
+                lastBossKiller,
+                "participants",
+                Integer.toString(lastBossParticipants));
+    }
+
     private int kills;
     private BukkitTask task, movementTask;
     private int rangedCycle;
@@ -757,6 +782,8 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
         if (id.equals(boss)) {
             world.getPlayers().forEach(fr.cliker.clikerv2.combat.BossMusic::stop);
             UUID source = boss;
+            lastBossKiller = p.getName();
+            lastBossParticipants = damage.size();
             boss = null;
             if (managed) {
                 completed = true;
@@ -861,7 +888,7 @@ public final class RaidModule implements Listener, CommandExecutor, TabCompleter
                                                     entry.getKey(), Gains.of(0, 0, 0, 0)),
                                             scrollRewards.containsKey(entry.getKey())
                                                     ? "&dParchemin de raid enregistré (inventaire"
-                                                          + " ou /claim)."
+                                                            + " ou /claim)."
                                                     : "&7Aucun objet supplémentaire.");
                                 c.commit();
                                 return true;

@@ -16,6 +16,13 @@ public final class DiscordBotApi implements AutoCloseable {
     public interface Transport extends AutoCloseable {
         Reply request(String method, String path, String token) throws Exception;
 
+        default Reply request(String method, String path, String token, String body)
+                throws Exception {
+            if (body != null)
+                throw new UnsupportedOperationException("Envoi JSON non pris en charge");
+            return request(method, path, token);
+        }
+
         default void close() {}
     }
 
@@ -47,6 +54,10 @@ public final class DiscordBotApi implements AutoCloseable {
     }
 
     public JsonElement request(String method, String path) throws Exception {
+        return request(method, path, null);
+    }
+
+    public JsonElement request(String method, String path, JsonObject body) throws Exception {
         if (closed || Thread.currentThread().isInterrupted())
             throw new java.io.InterruptedIOException("Client Discord arrêté");
         long delay = nextRequest - System.currentTimeMillis();
@@ -54,7 +65,7 @@ public final class DiscordBotApi implements AutoCloseable {
         if (delay > 0) Thread.sleep(delay);
         if (closed || Thread.currentThread().isInterrupted())
             throw new java.io.InterruptedIOException("Client Discord arrêté");
-        Reply reply = transport.request(method, path, token);
+        Reply reply = transport.request(method, path, token, body == null ? null : body.toString());
         nextRequest = System.currentTimeMillis() + spacing;
         if (reply.status() == 429) {
             long retry = Math.max(1000, Math.min(3_600_000, reply.retryMillis()));
@@ -93,14 +104,24 @@ public final class DiscordBotApi implements AutoCloseable {
                         .build();
         return new Transport() {
             public Reply request(String method, String path, String token) throws Exception {
+                return request(method, path, token, null);
+            }
+
+            public Reply request(String method, String path, String token, String body)
+                    throws Exception {
                 if (!path.matches("/[A-Za-z0-9_/@?=&.-]+"))
                     throw new IllegalArgumentException("Route Discord invalide");
                 var request =
                         HttpRequest.newBuilder(URI.create("https://discord.com/api/v10" + path))
                                 .timeout(Duration.ofSeconds(8))
                                 .header("Authorization", "Bot " + token)
-                                .header("User-Agent", "DiscordBot (https://clickhunter.fr, 1.0.12)")
-                                .method(method, HttpRequest.BodyPublishers.noBody())
+                                .header("User-Agent", "DiscordBot (https://clickhunter.fr, 1.0.14)")
+                                .header("Content-Type", "application/json; charset=utf-8")
+                                .method(
+                                        method,
+                                        body == null
+                                                ? HttpRequest.BodyPublishers.noBody()
+                                                : HttpRequest.BodyPublishers.ofString(body))
                                 .build();
                 var future = client.sendAsync(request, info -> new LimitedBody(2_097_152));
                 HttpResponse<byte[]> response;
@@ -110,21 +131,22 @@ public final class DiscordBotApi implements AutoCloseable {
                     future.cancel(true);
                     throw error;
                 }
-                String body = new String(response.body(), java.nio.charset.StandardCharsets.UTF_8);
+                String replyBody =
+                        new String(response.body(), java.nio.charset.StandardCharsets.UTF_8);
                 long retry = 5000;
                 if (response.statusCode() == 429)
                     try {
                         retry =
                                 (long)
                                         Math.ceil(
-                                                JsonParser.parseString(body)
+                                                JsonParser.parseString(replyBody)
                                                                 .getAsJsonObject()
                                                                 .get("retry_after")
                                                                 .getAsDouble()
                                                         * 1000);
                     } catch (RuntimeException ignored) {
                     }
-                return new Reply(response.statusCode(), body, retry);
+                return new Reply(response.statusCode(), replyBody, retry);
             }
 
             public void close() {

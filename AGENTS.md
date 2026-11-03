@@ -51,3 +51,7 @@ Autoclic : un bloc de distance entre hitboxes. Épée en main obligatoire, y com
 ## Grades Discord — demande après 1.0.11
 
 Le propriétaire veut la synchronisation LuckPerms ↔ Discord directement dans ClikerV2, sans DiscordSRV. Conserver le bot natif et la liaison vérifiée par code ; seuls les parents LuckPerms directs, globaux et persistants et les rôles explicitement associés sont synchronisés. Six associations configurables : Mini-VIP, VIP, VIP+, MVP, MVP+, Legend. Ne pas inventer de jeton ou d'ID Discord, ni activer la connexion sans configuration. Conserver la journalisation des opérations, les limites de débit et la reprise des déliaisons ; une absence Discord ou une erreur réseau ne doit pas retirer un achat Minecraft.
+
+## Publications de jeu vers Discord — demande après 1.0.13
+
+Conserver les Top 10 Discord issus du RankingStore du jeu, avec dix lignes et édition horaire des mêmes messages dont les IDs sont sauvegardés. Les salons sont configurables par tableau et par événement. Le bot natif peut réutiliser ses identifiants de discord-grades.yml sans nécessiter LuckPerms pour publier. Les alertes du boss serveur incluent ses PV à l'apparition et le joueur du coup final ; les enchères distinguent inscriptions et début réel des mises. Une route native active évite un second envoi par le webhook historique. Aucun envoi sur le vrai Discord sans configuration du bot et des salons.

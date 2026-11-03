@@ -294,6 +294,31 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                 }
             }
         }
+        if (newLot && updated.phase().equals("ACTIVE")) {
+            String object = "Lot légendaire";
+            try {
+                var item = ClaimService.deserialize(updated.items().get(updated.lot()));
+                if (item.hasItemMeta() && item.getItemMeta().hasDisplayName())
+                    object =
+                            net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
+                                    .plainText()
+                                    .serialize(item.getItemMeta().displayName());
+                else object = item.getType().name().toLowerCase(Locale.ROOT).replace('_', ' ');
+            } catch (RuntimeException ignored) {
+            }
+            fr.cliker.clikerv2.discord.DiscordNotifications.emit(
+                    updated.lot() == 0 ? "enchere-debut" : "enchere-lot",
+                    updated.id() + ":" + updated.lot(),
+                    Map.of(
+                            "lot",
+                            Integer.toString(updated.lot() + 1),
+                            "total",
+                            Integer.toString(updated.items().size()),
+                            "participants",
+                            Integer.toString(updated.members()),
+                            "objet",
+                            object));
+        }
         if (newLot && updated.phase().equals("ACTIVE"))
             for (UUID owner : new ArrayList<>(room.present)) {
                 Player player = Bukkit.getPlayer(owner);
@@ -413,6 +438,21 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                                                                                                     sale
                                                                                                                     .lot()
                                                                                                             + 1))));
+                                                    fr.cliker.clikerv2.discord.DiscordNotifications
+                                                            .emit(
+                                                                    "enchere-vendu",
+                                                                    event + ":" + sale.lot(),
+                                                                    Map.of(
+                                                                            "lot",
+                                                                            Integer.toString(
+                                                                                    sale.lot() + 1),
+                                                                            "joueur",
+                                                                            Objects.toString(
+                                                                                    sale.name(),
+                                                                                    "Joueur"),
+                                                                            "prix",
+                                                                            Numbers.compact(
+                                                                                    sale.price())));
                                                     claims.notifyAndDeliver(sale.winner());
                                                 } else
                                                     Bukkit.broadcast(
@@ -427,6 +467,23 @@ public final class LiveAuctions implements Listener, CommandExecutor, TabComplet
                                                                                                             + 1))));
                                             }
                                             if (updated.phase().equals("DONE")) {
+                                                fr.cliker.clikerv2.discord.DiscordNotifications
+                                                        .emit(
+                                                                "enchere-fin",
+                                                                event,
+                                                                Map.of(
+                                                                        "participants",
+                                                                        Integer.toString(
+                                                                                updated.members()),
+                                                                        "etat",
+                                                                        previous.equals(
+                                                                                                "REGISTERING")
+                                                                                        && updated
+                                                                                                        .members()
+                                                                                                == 0
+                                                                                ? "annulée faute"
+                                                                                      + " d'inscrits"
+                                                                                : "terminée"));
                                                 Bukkit.broadcast(
                                                         DailySettings.color(
                                                                 text(previous.equals("REGISTERING")

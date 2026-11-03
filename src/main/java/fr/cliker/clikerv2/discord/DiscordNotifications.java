@@ -27,6 +27,41 @@ public final class DiscordNotifications implements Listener, CommandExecutor, Ta
 
     private void reload() {
         Settings next = new Settings(plugin, "integrations/discord-notifications.yml");
+        boolean changed = false;
+        try (var input = plugin.getResource("integrations/discord-notifications.yml")) {
+            if (input != null) {
+                var defaults =
+                        org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(
+                                new java.io.InputStreamReader(
+                                        input, java.nio.charset.StandardCharsets.UTF_8));
+                for (String key :
+                        List.of("enchere-debut", "enchere-fin", "enchere-lot", "enchere-vendu")) {
+                    String path = "evenements." + key;
+                    if (!next.yaml.contains(path)) {
+                        next.yaml.createSection(
+                                path, defaults.getConfigurationSection(path).getValues(true));
+                        changed = true;
+                    }
+                }
+                if ("Tous les joueurs peuvent rejoindre avec /boss sur {adresse}."
+                        .equals(next.yaml.getString("evenements.boss-serveur-spawn.texte"))) {
+                    next.yaml.set(
+                            "evenements.boss-serveur-spawn.texte",
+                            defaults.getString("evenements.boss-serveur-spawn.texte"));
+                    changed = true;
+                }
+                if ("Les récompenses ont été réparties selon les dégâts des participants."
+                        .equals(next.yaml.getString("evenements.boss-serveur-mort.texte"))) {
+                    next.yaml.set(
+                            "evenements.boss-serveur-mort.texte",
+                            defaults.getString("evenements.boss-serveur-mort.texte"));
+                    changed = true;
+                }
+            }
+        } catch (java.io.IOException error) {
+            throw new IllegalStateException("Ressource des notifications indisponible", error);
+        }
+        if (changed) next.save();
         WebhookRelay replacement = null;
         if (next.yaml.getBoolean("actif", false))
             replacement =
@@ -42,6 +77,7 @@ public final class DiscordNotifications implements Listener, CommandExecutor, Ta
     }
 
     public static void emit(String event, String id, Map<String, String> values) {
+        if (fr.cliker.clikerv2.discord.game.DiscordGameBridge.route(event, id, values)) return;
         DiscordNotifications service = current;
         if (service == null) return;
         if (!Bukkit.isPrimaryThread()) {

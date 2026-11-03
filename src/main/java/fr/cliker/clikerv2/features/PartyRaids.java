@@ -42,7 +42,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
     private boolean forcing;
     private BukkitTask task;
     private boolean poll, stopped, serverActive;
-    private long totalKills, cycles;
+    private long totalKills, cycles, bossDiscordSequence;
     private final long threshold;
 
     private static class Party {
@@ -80,6 +80,20 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
         default void observe(Player player) {}
 
         default void publicParty(UUID leader, Set<UUID> helpers) {}
+
+        default Map<String, String> discordInfo() {
+            return Map.of(
+                    "boss",
+                    "Boss serveur",
+                    "pv",
+                    "inconnus",
+                    "pv_bruts",
+                    "0",
+                    "joueur",
+                    "inconnu",
+                    "participants",
+                    "0");
+        }
     }
 
     @FunctionalInterface
@@ -119,6 +133,10 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
 
             public void observe(Player player) {
                 raid.observe(player);
+            }
+
+            public Map<String, String> discordInfo() {
+                return raid.discordInfo();
             }
 
             public void beginPublicBoss() {
@@ -808,11 +826,22 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                                 "UPDATE server_counters SET value=1 WHERE"
                                                         + " id='boss_active'");
                                     }
+                                    try (var q = c.createStatement()) {
+                                        q.executeUpdate(
+                                                "UPDATE server_counters SET value=value+1 WHERE"
+                                                    + " id='boss_discord_sequence'");
+                                    }
                                     cycles++;
                                     running = 1;
                                 }
                                 c.commit();
-                                return new long[] {kills, cycles, running, start ? 1 : 0};
+                                return new long[] {
+                                    kills,
+                                    cycles,
+                                    running,
+                                    start ? 1 : 0,
+                                    value(c, "boss_discord_sequence")
+                                };
                             } catch (SQLException ex) {
                                 try {
                                     c.rollback();
@@ -838,6 +867,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                             }
                                             totalKills = state[0];
                                             cycles = state[1];
+                                            bossDiscordSequence = state[4];
                                             if (state[2] == 1) activateServerBoss();
                                         }));
     }
@@ -848,7 +878,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
             serverBoss.beginPublicBoss();
             serverActive = true;
             fr.cliker.clikerv2.discord.DiscordNotifications.emit(
-                    "boss-serveur-spawn", UUID.randomUUID().toString(), Map.of());
+                    "boss-serveur-spawn", "boss-" + bossDiscordSequence, serverBoss.discordInfo());
             Bukkit.broadcast(
                     net.kyori.adventure.text.Component.text(
                                     "⚔ Le boss du serveur est apparu ! Tout le monde peut rejoindre"
@@ -891,8 +921,15 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                             "UPDATE server_counters SET value=1 WHERE"
                                                     + " id='boss_active'");
                                 }
+                                if (created)
+                                    try (var q = c.createStatement()) {
+                                        q.executeUpdate(
+                                                "UPDATE server_counters SET value=value+1 WHERE"
+                                                    + " id='boss_discord_sequence'");
+                                    }
+                                long sequence = value(c, "boss_discord_sequence");
                                 c.commit();
-                                return created;
+                                return new long[] {created ? 1 : 0, sequence};
                             } catch (SQLException error) {
                                 try {
                                     c.rollback();
@@ -919,6 +956,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                                                 + " journaux.");
                                                 return;
                                             }
+                                            bossDiscordSequence = created[1];
                                             if (!activateServerBoss()) {
                                                 sender.sendMessage(
                                                         "Apparition en attente : vérifie les"
@@ -926,7 +964,7 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                                 return;
                                             }
                                             sender.sendMessage(
-                                                    Boolean.TRUE.equals(created)
+                                                    created[0] == 1
                                                             ? "Boss serveur apparu. Le compteur du"
                                                                     + " prochain boss naturel est"
                                                                     + " conservé."
@@ -976,8 +1014,8 @@ public final class PartyRaids implements CommandExecutor, TabCompleter, Listener
                                             serverActive = false;
                                             fr.cliker.clikerv2.discord.DiscordNotifications.emit(
                                                     "boss-serveur-mort",
-                                                    UUID.randomUUID().toString(),
-                                                    Map.of());
+                                                    "boss-" + bossDiscordSequence,
+                                                    serverBoss.discordInfo());
                                             Bukkit.broadcast(
                                                     net.kyori.adventure.text.Component.text(
                                                             "Le boss du serveur a été vaincu !"

@@ -1,6 +1,16 @@
 # ClikerV2
 
-## Dernière mise à jour — 3 novembre 2026 — version 1.0.13
+## Dernière mise à jour — 3 novembre 2026 — version 1.0.14
+
+- Validation : **526 tests réussis**, sans échec ni test ignoré ; API Discord simulée et essais Paper 1.21.4. Aucun message réel publié sans configuration de production.
+- **Top 10 dans Discord chaque heure** : six tableaux issus des mêmes données que `/classement` — Écus, Gemmes Sombres, Cendres, éliminations, niveaux et points de donateurs. Un message par tableau, modifié toutes les 60 minutes ; IDs sauvegardés et dix lignes conservées même avec moins de joueurs. Un salon commun ou un salon différent par tableau.
+- **Notifications du jeu via le bot natif** : boss serveur disponible avec ses PV compacts et exacts ; victoire avec le joueur qui l’achève et le nombre de participants ; inscriptions, début réel des mises et fin de la session d’enchères. Nouveaux lots, adjudications, piñatas et boss de zone activables séparément.
+- Configuration : `plugins/ClikerV2/integrations/discord-jeu.yml`. Réutilise le bot de synchronisation des grades si les champs de connexion sont laissés vides ; ne nécessite pas LuckPerms pour les publications seules. Désactivé par défaut tant que les salons ne sont pas renseignés. Les alertes prises en charge par le bot ne sont pas envoyées une seconde fois par le webhook.
+- `/discordjeu statut`, `/discordjeu reload`, `/discordjeu actualiser` pour l’administration ; permission `cliker.discord.game.admin`, OP par défaut. Aucune publication Discord sur le thread Minecraft ; taille et durée HTTP, file et reprises limitées.
+
+[Configuration des salons, périodes, événements et limites](docs/DISCORD-JEU.md).
+
+## Mise à jour 1.0.13 — 3 novembre 2026
 
 - Validation : **514 tests réussis**, sans échec ni test ignoré, dont quatre nouveaux cas pour les permissions, toutes les pages, les reçus et les anciens écrans. Essais Paper 1.21.4 : refus non OP, menu fermé après vidage et cible hors ligne par UUID.
 - **Vidage staff du `/claim`** : `/claim clear <joueur|UUID>`, ou `/claimclear <joueur|UUID>`. Permission dédiée `cliker.claim.clear`, réservée aux OP par défaut ; commande également disponible depuis la console et pour un joueur hors ligne.
@@ -454,6 +464,9 @@ Ces commandes nécessitent les permissions administrateur correspondantes. ZNPCs
 | `/top pnj spawn` / `/top pnj remove` | Placer ou retirer le PNJ des classements ; `/classement pnj ...` est équivalent. | `cliker.classement.admin` |
 | `/wiki pnj spawn` / `/wiki pnj remove` | Placer ou supprimer le PNJ Wiki. Lien et textes dans `wiki.yml`. | `cliker.wiki.admin` |
 | `/discord pnj spawn` / `/discord pnj remove` | Placer ou supprimer le PNJ Discord. | `cliker.discord.admin` |
+| `/discordjeu statut` | État de la connexion, nombre de tableaux et file d’événements. | `cliker.discord.game.admin` (OP par défaut) |
+| `/discordjeu reload` | Recharger les salons et paramètres du bot pour les classements et événements. | `cliker.discord.game.admin` |
+| `/discordjeu actualiser` | Demander une actualisation immédiate des Top 10 ; les limites Discord restent respectées. | `cliker.discord.game.admin` |
 | `/discordsync statut` | État du bot natif et nombre d’associations configurées, sans jeton. | `cliker.discord.sync.admin` (OP par défaut) |
 | `/discordsync reload` | Recharger la configuration des grades ; une configuration syntaxiquement invalide conserve l’ancien worker. | `cliker.discord.sync.admin` |
 | `/discordsync sync [joueur connecté\|UUID]` | Demander une vérification prioritaire d’un compte déjà lié ; sans argument, soi-même. | `cliker.discord.sync.admin` |

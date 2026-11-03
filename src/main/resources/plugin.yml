@@ -5,6 +5,10 @@ api-version: '1.21'
 author: Cliker
 softdepend: [LuckPerms, HolographicDisplays, DecentHolograms, ZNPCsPlus, ItemsAdder, Citizens]
 commands:
+  discordjeu:
+    description: Classements horaires et événements Discord du serveur
+    usage: /discordjeu <statut|reload|actualiser>
+    permission: cliker.discord.game.admin
   claimclear:
     description: Vider les objets en attente du claim d’un joueur
     usage: /claimclear <joueur|UUID>
@@ -348,6 +352,9 @@ commands:
     usage: /talisman treasure <joueur>
     permission: cliker.mob.admin
 permissions:
+  cliker.discord.game.admin:
+    description: Administrer les classements et notifications du bot natif
+    default: op
   cliker.claim.clear:
     description: Vider le claim d’un joueur, connecté ou hors ligne
     default: op

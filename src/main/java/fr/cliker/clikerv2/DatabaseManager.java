@@ -54,23 +54,33 @@ public final class DatabaseManager {
             statement.executeUpdate("PRAGMA journal_mode=WAL");
             statement.executeUpdate("PRAGMA busy_timeout=5000");
             statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS discord_game_boards(bot TEXT NOT NULL,channel TEXT"
+                        + " NOT NULL,board TEXT NOT NULL,message_id TEXT NOT NULL,updated INTEGER"
+                        + " NOT NULL,PRIMARY KEY(bot,channel,board))");
+            statement.executeUpdate(
+                    "CREATE TABLE IF NOT EXISTS discord_game_sent(id TEXT PRIMARY KEY,sent INTEGER"
+                        + " NOT NULL)");
+            statement.executeUpdate(
+                    "CREATE INDEX IF NOT EXISTS discord_game_sent_expiry ON"
+                        + " discord_game_sent(sent)");
+            statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS discord_rank_links(id TEXT NOT NULL UNIQUE,owner"
                         + " TEXT PRIMARY KEY,discord TEXT NOT NULL,guild TEXT NOT NULL,unlinking"
                         + " INTEGER NOT NULL DEFAULT 0,UNIQUE(guild,discord))");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS discord_link_codes(owner TEXT PRIMARY KEY,hash TEXT"
-                        + " NOT NULL UNIQUE,issued INTEGER NOT NULL,expires INTEGER NOT NULL)");
+                            + " NOT NULL UNIQUE,issued INTEGER NOT NULL,expires INTEGER NOT NULL)");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS discord_rank_state(link_id TEXT NOT NULL,group_name"
-                        + " TEXT NOT NULL,role TEXT NOT NULL,baseline INTEGER,pending"
-                        + " INTEGER,to_minecraft INTEGER NOT NULL DEFAULT 0,PRIMARY"
-                        + " KEY(link_id,group_name,role))");
+                            + " TEXT NOT NULL,role TEXT NOT NULL,baseline INTEGER,pending"
+                            + " INTEGER,to_minecraft INTEGER NOT NULL DEFAULT 0,PRIMARY"
+                            + " KEY(link_id,group_name,role))");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS discord_rank_cursor(channel TEXT PRIMARY"
-                        + " KEY,message_id TEXT NOT NULL)");
+                            + " KEY,message_id TEXT NOT NULL)");
             statement.executeUpdate(
                     "CREATE INDEX IF NOT EXISTS discord_rank_links_page ON"
-                        + " discord_rank_links(guild,owner)");
+                            + " discord_rank_links(guild,owner)");
             statement.executeUpdate(
                     "CREATE TABLE IF NOT EXISTS donor_points(name_key TEXT PRIMARY KEY,name TEXT"
                             + " NOT NULL,units INTEGER NOT NULL CHECK(units>=0))");
@@ -244,6 +254,9 @@ public final class DatabaseManager {
                 statement.executeUpdate(
                         "ALTER TABLE auctions ADD COLUMN fee_paid INTEGER NOT NULL DEFAULT 0");
             migrateUpgradesCadenceColumn(statement);
+            statement.executeUpdate(
+                    "INSERT OR IGNORE INTO server_counters(id,value)"
+                        + " VALUES('boss_discord_sequence',0)");
             fr.cliker.clikerv2.rankings.RankingHistory.install(connection, rankingZone);
         }
     }

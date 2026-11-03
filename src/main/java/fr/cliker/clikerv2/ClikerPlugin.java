@@ -106,6 +106,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
     private fr.cliker.clikerv2.cosmetics.WeaponSkins weaponSkins;
     private fr.cliker.clikerv2.combat.TrainingDummy trainingDummy;
     private fr.cliker.clikerv2.discord.DiscordNotifications discordNotifications;
+    private fr.cliker.clikerv2.discord.game.DiscordGameBridge discordGame;
     private DatabaseManager database;
     private EconomyService economy;
     private CustomMobManager mobManager;
@@ -197,6 +198,15 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
                                     + " integrations/discord-notifications.yml sans publier son URL"
                                     + " privée.");
             unavailableCommands("discordnotif");
+        }
+        try {
+            discordGame = new fr.cliker.clikerv2.discord.game.DiscordGameBridge(this, database);
+            discordGame.start();
+        } catch (RuntimeException error) {
+            if (discordGame != null) discordGame.shutdown();
+            getLogger()
+                    .warning("Discord jeu indisponible : vérifier integrations/discord-jeu.yml.");
+            unavailableCommands("discordjeu");
         }
         activityUI = new fr.cliker.clikerv2.hunting.HuntUI(this);
         new fr.cliker.clikerv2.ui.MenuNavigation(this);
@@ -608,7 +618,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
             getLogger()
                     .warning(
                             "Synchronisation des grades Discord indisponible : vérifier"
-                                + " integrations/discord-grades.yml et LuckPerms.");
+                                    + " integrations/discord-grades.yml et LuckPerms.");
             if (discordRanks != null) discordRanks.shutdown();
             unavailableCommands("discordsync");
         }
@@ -864,6 +874,7 @@ public final class ClikerPlugin extends JavaPlugin implements org.bukkit.event.L
         stop("notifications", toastNotifications, value -> value.shutdown());
         stop("skins", weaponSkins, value -> value.shutdown());
         stop("mannequin", trainingDummy, value -> value.shutdown());
+        stop("Discord jeu", discordGame, value -> value.shutdown());
         stop("notifications Discord", discordNotifications, value -> value.shutdown());
         stop("claims", claims, value -> value.shutdown());
         stop("hologramManager", hologramManager, value -> value.shutdown());
